@@ -25,7 +25,7 @@ def test_filter_run():
     assert len(par_files) == len(tim_files), "Mismatch between .par and .tim file counts."
 
     #Get the dataframes
-    merged_df, combined_df, ζ = data_loader.LoadWidebandPulsarData.read_multiple_par_tim(par_files[0:2], tim_files[0:2])
+    merged_df, combined_df, ζ = data_loader.LoadWidebandPulsarData.read_multiple_par_tim(par_files[0:1], tim_files[0:1])
 
 
 
@@ -37,12 +37,12 @@ def test_filter_run():
     #********** the above below be moved to be part of data loader
 
     #initialise the kalman filter
-    residuals_data = merged_df
+   # residuals_data = merged_df
 
 
 
     #massage the residuals data into a proper array form. This should be a standalone. 
-    #shoudl also assert that no times occur at the same time 
+    #shoudl also assert that no times occur at the same time. todo
 
     residual_columns = [col for col in merged_df.columns if col.startswith('residuals_')]
     mask = ~merged_df[residual_columns].isna()   # DataFrame of booleans
@@ -75,7 +75,7 @@ def test_filter_run():
 
     #Not sure where we should define x0 and P0....
     x0 = np.zeros(model.nx)
-    P0 = np.eye(model.nx)*1e-1
+    P0 = np.eye(model.nx)*1e-12
 
     
     KF=kalman_filter.KalmanFilter(model=model,observations=result,x0=x0,P0=P0)
@@ -84,14 +84,14 @@ def test_filter_run():
 
     # # Set global parameters.
     params = {
-        'γa': 0.001,                    # s⁻¹
-        'γp': np.ones(len(combined_df)),
-        'σp': 1e-10 * np.ones(len(combined_df)),
+        'γa': 1e-1,                    # s⁻¹
+        'γp': 1e-1*np.ones(len(combined_df)),
+        'σp': 1e-20 * np.ones(len(combined_df)),
         'h2': 1e-12,
-        'σeps': 1,
+        'σeps': 1e-20,
         'separation_angle_matrix': ζ,
-        'f0': np.ones(len(combined_df)),
-        'σt': 1e-1
+        'f0': 100*np.ones(len(combined_df)), #everything is 100 Hz for now
+        'σt': 1e-6 #some approximate reasonable value
     }
 
     KF.get_likelihood(params)

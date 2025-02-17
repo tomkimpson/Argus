@@ -28,7 +28,14 @@ class KalmanFilter:
         self.P0 = P0
 
 
+        #Extract the observations into separate arrays
+        self.toa  = self.observations[:,0]
+        self.data = self.observations[:,1]
+        self.psr_indices = self.observations[:,2].astype(int)
         self.N_timesteps = len(self.observations)
+
+        self.t_diffs=np.diff(self.toa)
+
 
 
 
@@ -41,38 +48,64 @@ class KalmanFilter:
         # sign, log_det = np.linalg.slogdet(cov)
         # ll = -0.5 * (log_det + np.dot(y.T, np.linalg.solve(cov, y))+ N*np.log(2 * np.pi))
         # return ll
-        return -0.5 * (np.log(2.0 * np.pi * cov) +(y * y) / cov) 
+       # return -0.5 * (np.log(2.0 * np.pi * cov) +(y * y) / cov) 
+        return -0.5 * (np.log(2.0 * np.pi * np.abs(cov)) +(y * y) / cov) 
 
 
     def predict(self):
         """Predict the next state and covariance."""
-        self.x = self.model.F @ self.x #+ self.model.B @ self.model.u
-        self.P = self.model.F @ self.P @ self.model.F.T + self.model.Q
+
+        F = self.model.F_matrix(self.dt)
+        Q = self.model.Q_matrix(self.dt)
+
+        print("Predict step", self.dt/(60*60*24))
+
+        self.xp = F @ self.x #+ self.model.B @ self.model.u
+        self.Pp = F @ self.P @ F.T #+ Q
+
+        print("F matrix:")
+        print(F)
+        print("x before:", self.x[0])
+        print("x after:", self.xp[0])
+
+        print("P before:", self.P[0,0])
+        print("P after:", self.Pp[0,0])
+        print('********')
+
 
     def update(self, z):
         """Update the state and covariance with a new observation."""
 
-        #Note, our observations are always just a scalar. 
-        #Accordingly, y and S are both scalars
+        #Note, this update function takes the observation to always be a scalar.
+        #The dot products, matrix inverses are modified accordingly 
+        # We should decide whether this module should be more general, i.e. a general Kalman filter that applies to all problems,
+        #or more specialised, focusing on our specific use case. todo
 
 
-        y = z - self.H @ self.x
-        print("Getting S")
-        S = self.H @ self.P @ self.H.T + self.model.R_matrix()
+        #print("This is the update function")
+        print("The observation is:", z)
+        print("The covariance is:")
+        print(self.Pp[0,0])
+   
+
+        y = z - self.H @ self.xp
+        print("The innovation is =", y)
+
+        #print(self.H, self.Pp, self.model.R_matrix())
+        S = self.H @ self.Pp @ self.H.T + self.model.R_matrix()
 
 
 
         #K = self.P @ self.H.T @ np.linalg.inv(S)
-        print("Getting K")
-        K = self.P @ self.H.T / S # because S is a scalar
+        K = self.Pp @ self.H.T / S # because S is a scalar
 
-        print("Update X", self.x.shape,K.shape, y.shape)
+
         #self.x = self.x + K @ y
-        self.x = self.x + K * y # because observation is a scalar
-        print("update P")
-        self.P = (np.eye(len(self.x)) - K @ self.H) @ self.P
-        print("completed P")
-        print("get likelihood")
+        self.x = self.xp + K * y # because observation is a scalar
+        self.P = (np.eye(len(self.xp)) - K @ self.H) @ self.Pp
+        
+        
+        print("innovation covariance S = ", S)
         self.ll += self._scalar_log_likelihood(y,S)
 
 
@@ -93,33 +126,26 @@ class KalmanFilter:
 
       
         #Do the first update step
-        psr_index = int(self.observations[i,2])
-        self.H = self.model.H_matrix(psr_index)
-        self.update(self.observations[i,1]) # x,P,likelihood_value 
+        ## First define the H-matrix for this step
+        self.H = self.model.H_matrix(self.psr_indices[i])
+        ##For the first update step, just assign the predicted values to be the states
+        self.xp,self.Pp = self.x, self.P 
+        ##Update step
+        self.update(self.data[i]) # Updates x,P,and the likelihood_value 
 
         print("Number of observations is:", self.N_timesteps)
-        for i in range(1,self.N_obs): #we have already done i=0
+        for i in range(1,self.N_timesteps): #we have already done i=0
+        #for i in range(1,10): #we have already done i=0
 
-
+            print(i)
+            #Set the delta t
+            self.dt = self.t_diffs[i-1] #For example, when i=1, we use the 0th element of t_diffs for the predict step
+            
             #Predict step
-            x_predict, P_predict             = self.predict()                                        # The predict step
-            
+            self.predict()
             #Update step
+            self.update(self.data[i])
             
-            
-
-            # psr_index = int(self.observations[i,2])
-            # self.H = self.model.H_matrix(psr_index)
-            # self.update(self.observations[i,1]) # x,P,likelihood_value 
-            
-
-
-        # for z in self.observations:
-        #     self.predict()
-        #     self.update(z)
-
-
-
 
 
 

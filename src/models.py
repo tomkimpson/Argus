@@ -77,6 +77,7 @@ class StochasticGWBackgroundModel(ModelHyperClass):
 
         """
         self.Npsr = len(df_psr)
+        print("The number of pulsars is:", self.Npsr)
         self.name = "Stochastic GW background model"
         # Total state dimension: for each pulsar, two state variables from spin noise,
         # two from GW noise, and dim_M extra parameters.
