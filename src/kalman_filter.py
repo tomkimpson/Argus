@@ -54,7 +54,6 @@ class ScalarKalmanFilter:
 
     def update(self, z):
         """Update the state and covariance with a new observation."""
-
         y      = z - self.H @ self.xp                                # innovation
         S      = self.H @ self.Pp @ self.H.T + self.model.R_matrix() # innovation covariance
         K      = self.Pp @ self.H.T / S                              # Kalman gain for scalar covariance
@@ -65,7 +64,6 @@ class ScalarKalmanFilter:
 
     def get_likelihood(self,θ):
         """Run the Kalman filter algorithm over all observations and return a log likelihood."""
-        
         #Define all the free parameters for the model. Note this exludes dt, which is not a parameter we need to infer.
         self.model.set_global_parameters(θ) 
 
