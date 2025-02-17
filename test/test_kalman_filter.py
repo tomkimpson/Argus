@@ -77,7 +77,7 @@ def test_filter_run():
     P0 = np.eye(model.nx)*1e-12
 
     
-    KF=kalman_filter.KalmanFilter(model=model,observations=result,x0=x0,P0=P0)
+    KF=kalman_filter.ScalarKalmanFilter(model=model,observations=result,x0=x0,P0=P0)
 
 
 

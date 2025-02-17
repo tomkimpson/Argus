@@ -3,8 +3,8 @@
 import numpy as np 
 
 
-class KalmanFilter:
-    """A class to implement the linear Kalman filter.
+class ScalarKalmanFilter:
+    """A class to implement the linear Kalman filter on scalar inputs.
 
     It takes four initialization arguments:
 
@@ -21,32 +21,26 @@ class KalmanFilter:
 
     def __init__(self, model, observations, x0, P0, **kwargs):
         """Initialize the class."""
-        self.model = model
-        self.observations = observations # convert the input pandas df to a numpy array. # t, residual, psr
-        self.x0 = x0
-        self.P0 = P0
+        self.model        = model
+        self.observations = observations 
+        self.x0           = x0
+        self.P0           = P0
 
 
         #Extract the observations into separate arrays
-        self.toa  = self.observations[:,0]
-        self.data = self.observations[:,1]
+        self.toa         = self.observations[:,0]
+        self.data        = self.observations[:,1]
         self.psr_indices = self.observations[:,2].astype(int)
         self.N_timesteps = len(self.observations)
+        self.t_diffs     = np.diff(self.toa)
 
-        self.t_diffs=np.diff(self.toa)
-
-
-
+        assert  np.isscalar(self.data[0])
 
 
-    def _scalar_log_likelihood(self,y,cov): #make this proper, cf OOP
+
+    def _log_likelihood(self,y,cov):
         """Given the innovation and innovation covariance, get the likelihood."""
-        # N = len(y)
-        # sign, log_det = np.linalg.slogdet(cov)
-        # ll = -0.5 * (log_det + np.dot(y.T, np.linalg.solve(cov, y))+ N*np.log(2 * np.pi))
-        # return ll
-       # return -0.5 * (np.log(2.0 * np.pi * cov) +(y * y) / cov) 
-        return -0.5 * (np.log(2.0 * np.pi * np.abs(cov)) +(y * y) / cov) 
+        return -0.5 * (np.log(2.0 * np.pi * cov) +(y * y) / cov) 
 
 
     def predict(self):
@@ -55,50 +49,33 @@ class KalmanFilter:
         Q = self.model.Q_matrix(self.dt)
 
     
-        self.xp = F @ self.x #+ self.model.B @ self.model.u
+        self.xp = F @ self.x 
         self.Pp = F @ self.P @ F.T + Q
 
     def update(self, z):
         """Update the state and covariance with a new observation."""
-        #Note, this update function takes the observation to always be a scalar.
-        #The dot products, matrix inverses are modified accordingly 
-        # We should decide whether this module should be more general, i.e. a general Kalman filter that applies to all problems,
-        #or more specialised, focusing on our specific use case. todo
 
-
-
-        y = z - self.H @ self.xp
-        S = self.H @ self.Pp @ self.H.T + self.model.R_matrix()
-
-
-
-        #K = self.P @ self.H.T @ np.linalg.inv(S)
-        K = self.Pp @ self.H.T / S # because S is a scalar
-
-
-        #self.x = self.x + K @ y
-        self.x = self.xp + K * y # because observation is a scalar
-        self.P = (np.eye(len(self.xp)) - K @ self.H) @ self.Pp
-        
-        self.ll += self._scalar_log_likelihood(y,S)
+        y      = z - self.H @ self.xp                                # innovation
+        S      = self.H @ self.Pp @ self.H.T + self.model.R_matrix() # innovation covariance
+        K      = self.Pp @ self.H.T / S                              # Kalman gain for scalar covariance
+        self.x = self.xp + K * y                                     # updated state
+        self.P = (np.eye(len(self.xp)) - K @ self.H) @ self.Pp       # updated covariance
+        self.ll += self._log_likelihood(y,S)                         # update the likelihood
 
 
     def get_likelihood(self,θ):
         """Run the Kalman filter algorithm over all observations and return a log likelihood."""
+        
         #Define all the free parameters for the model. Note this exludes dt, which is not a parameter we need to infer.
         self.model.set_global_parameters(θ) 
-
 
         #Define the R matrix. 
         ## Dev note: is this the best place for this? We probably need to read in the actual errors on the measurements somewhere
         self.R = self.model.R_matrix()
 
-  
         #Initialise x and P, the likelihood, and the index i
         self.x,self.P,self.ll,i = self.x0,self.P0,0.0,int(0)  
  
-
-      
         #Do the first update step
         ## First define the H-matrix for this step
         self.H = self.model.H_matrix(self.psr_indices[i])
@@ -108,9 +85,8 @@ class KalmanFilter:
         self.update(self.data[i]) # Updates x,P,and the likelihood_value 
 
   
-        for i in range(1,self.N_timesteps): #we have already done i=0
-        #for i in range(1,10): #we have already done i=0
-
+        for i in range(1,self.N_timesteps): #indexing starts at 1 as we have already done i=0
+   
             #Set the delta t
             self.dt = self.t_diffs[i-1] #For example, when i=1, we use the 0th element of t_diffs for the predict step
             
