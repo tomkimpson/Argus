@@ -1,13 +1,11 @@
 from src import data_loader, models 
 import os 
 import glob 
-import pytest
-import random
-import pandas as pd 
 import numpy as np 
 
 
 def test_StochasticGWBackgroundModel():
+    """Test the StochasticGWBackgroundModel class by loading data, initializing the model, setting parameters, and verifying matrix shapes."""
     # Load some data to test on 
     # Get the directory of the current script
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -20,7 +18,7 @@ def test_StochasticGWBackgroundModel():
 
     # Get all .par and .tim files in the directory
     par_files = sorted(glob.glob(directory + '*.par'))
-    tim_files = sorted(glob.glob(directory + '*.tim'))
+    tim_files = sorted(glob.glob(os.path.join(directory, '*.tim')))
 
     assert len(par_files) == len(tim_files), "Mismatch between .par and .tim file counts."
 
@@ -52,8 +50,8 @@ def test_StochasticGWBackgroundModel():
     dt = 0.50
     F = model.F_matrix(dt)
     Q = model.Q_matrix(dt)
-    H = model.H_matrix()
-    R = model.R_matrix()
+    # H = model.H_matrix()
+    # R = model.R_matrix()
 
     assert F.shape == (model.nx, model.nx)
     assert Q.shape == F.shape

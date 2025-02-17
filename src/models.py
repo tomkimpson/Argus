@@ -77,6 +77,7 @@ class StochasticGWBackgroundModel(ModelHyperClass):
 
         """
         self.Npsr = len(df_psr)
+        print("The number of pulsars is:", self.Npsr)
         self.name = "Stochastic GW background model"
         # Total state dimension: for each pulsar, two state variables from spin noise,
         # two from GW noise, and dim_M extra parameters.
@@ -319,7 +320,38 @@ class StochasticGWBackgroundModel(ModelHyperClass):
 
         return Q
 
-    def H_matrix(self) -> List[np.ndarray]:
+    # def _compute_H_matrix_list(self) -> List[np.ndarray]:
+    #     """Build a list of measurement matrices H (one per pulsar).
+
+    #     For pulsar n the measurement equation is:
+
+    #         δt = (1/f₀)·δφ − r + (design row)·[δε],
+
+    #     so that H^(n) is the row vector:
+
+    #         [1/f₀, 0, -1, 0, zeros(M[n])].
+
+    #     The design row (beyond the first four elements) is assumed to be zero.
+
+    #     Returns
+    #     -------
+    #     List[np.ndarray]
+    #         A list of 1 x (4 + M[n]) arrays (one per pulsar).
+
+    #     """
+    #     H_list = [
+    #         np.concatenate(
+    #             (
+    #                 np.array([1.0 / self.f0[i], 0.0, -1.0, 0.0]),
+    #                 np.zeros(self.M[i]),
+    #             )
+    #         ).flatten()
+    #         for i in range(self.Npsr)
+    #     ]
+    #     return H_list
+    
+
+    def H_matrix(self,psr_idx: int)-> np.ndarray:
         """Build a list of measurement matrices H (one per pulsar).
 
         For pulsar n the measurement equation is:
@@ -338,16 +370,27 @@ class StochasticGWBackgroundModel(ModelHyperClass):
             A list of 1 x (4 + M[n]) arrays (one per pulsar).
 
         """
-        H_list = [
-            np.concatenate(
-                (
-                    np.array([1.0 / self.f0[i], 0.0, -1.0, 0.0]),
-                    np.zeros(self.M[i]),
-                )
-            ).reshape(1, -1)
-            for i in range(self.Npsr)
-        ]
-        return H_list
+        output = np.zeros(self.nx) 
+
+        # 1. Compute the start index for segment i
+        #    Each segment j has length (4 + M[j]).
+        #    So, to find the start of segment i, sum all lengths up to i.
+        start_idx = sum(4 + self.M[j] for j in range(psr_idx)) #Compute the start index for the ith segement
+
+        # 2. Construct the i-th segment
+        #    It's basically [1/f0[i], 0, -1, 0] concatenated with zeros(M[i]).
+        segment = np.concatenate((
+            np.array([1.0 / self.f0[psr_idx], 0.0, -1.0, 0.0]),
+            np.zeros(self.M[psr_idx])
+        ))
+        seg_len = len(segment)  # This should be 4 + M[i]
+
+
+        output[start_idx : start_idx + seg_len] = segment
+
+        
+        return output
+
 
     def R_matrix(self) -> Any:
         """Build the measurement–noise covariance matrix R for the pulsars observed at a given epoch.
