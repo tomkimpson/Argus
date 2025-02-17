@@ -6,8 +6,7 @@ from src import data_loader,models,kalman_filter
 import numpy as np 
 
 def test_filter_run():
-
-
+    """Test the KalmanFilter class by loading data, initializing the model, setting parameters, and running the filter."""
     #Generate some data
         # Load some data to test on 
     # Get the directory of the current script

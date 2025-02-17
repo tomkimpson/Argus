@@ -352,7 +352,24 @@ class StochasticGWBackgroundModel(ModelHyperClass):
     
 
     def H_matrix(self,psr_idx: int)-> np.ndarray:
-        
+        """Build a list of measurement matrices H (one per pulsar).
+
+        For pulsar n the measurement equation is:
+
+            δt = (1/f₀)·δφ − r + (design row)·[δε],
+
+        so that H^(n) is the row vector:
+
+            [1/f₀, 0, -1, 0, zeros(M[n])].
+
+        The design row (beyond the first four elements) is assumed to be zero.
+
+        Returns
+        -------
+        List[np.ndarray]
+            A list of 1 x (4 + M[n]) arrays (one per pulsar).
+
+        """
         output = np.zeros(self.nx) 
 
         # 1. Compute the start index for segment i

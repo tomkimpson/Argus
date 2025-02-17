@@ -29,7 +29,7 @@ exclude = [
     "test",
     "docs",
     "src/legacy_code",
-    "notebooks",
+    "notebooks"
 ]
 
 # Same as Black.
