@@ -12,39 +12,159 @@
 
 %opening
 \title{Notes on Kalman filter for PTA analysis}
-\author{}
+\author{T. Kimpson}
 
 \begin{document}
 
 \maketitle
-
 \begin{abstract}
-This note defines the Kalman ``machinery"" for the state-space / residuals formulation of PTA analysis. It is heavily based on work done by P.Meyers and the \textsc{minnow} package, with extension to handle multiple pulsars and the influence of the stochastic GW background. 
+	This note defines the Kalman ``machinery" for the state-space formulation of PTA analysis in terms of timing residuals. It is heavily based on work by P. Meyers and the \textsc{minnow} package, with extensions to handle multiple pulsars and the influence of the stochastic GW background, with contributions from A. Vargas. This work builds on our previous papers, continuing from their state-space formulation in the frequency domain.
 \end{abstract}
 
 \section{Requirements}
 
-For the purposes of running state-space algorithms, we need to define the following:
+For the purposes of running state-space algorithms, we define the following:
 
 \begin{itemize}
-\item $\boldsymbol{X}$ : the state vector, dimension $n_X$
-\item  $\boldsymbol{Y}$ : the observation vector, dimension $n_Y$
-\item $\boldsymbol{F}$ : the state transition matrix, dimension $n_X$ $\times$ $n_X$
-\item  $\boldsymbol{H}$ : the measurement matrix, dimension $n_Y$ $\times$ $n_X$
-\item $\boldsymbol{Q}$ : the process noise covariance matrix, dimension $n_X$ $\times$ $n_X$
-\item $\boldsymbol{R}$ : the measurement noise covariance matrix, dimension $n_Y$ $\times$ $n_Y$
+	\item $\boldsymbol{X}$ : the state vector, dimension $n_X$
+	\item $\boldsymbol{Y}$ : the observation vector, dimension $n_Y$
+	\item $\boldsymbol{F}$ : the state transition matrix, dimension $n_X \times n_X$
+	\item $\boldsymbol{H}$ : the measurement matrix, dimension $n_Y \times n_X$
+	\item $\boldsymbol{Q}$ : the process noise covariance matrix, dimension $n_X \times n_X$
+	\item $\boldsymbol{R}$ : the measurement noise covariance matrix, dimension $n_Y \times n_Y$
+\end{itemize}
+
+The goal of this note is to define the above matrices.
+
+\section{Derivation of the Measurement Equation}
+
+\subsection{Introduction}
+We seek to apply the Kalman filter method to real PTA data, rather than a measured frequency time series $f_{\textrm{m}}^{(n)}(t)$, as done in previous work. \newline 
+
+\noindent By ``real data," we refer to a \textsc{.tim} file (which contains the TOAs) and a \textsc{.par} file (which provides constrained \textit{a priori} estimates of the pulsar parameters, such as sky position, spin frequency, etc.). \newline
+
+For the purposes of this note, we assume that the \textsc{.tim} and \textsc{.par} files have been processed through a standard pulsar timing library (e.g., TEMPO or PINT) to produce timing residuals $\delta t$. These timing residuals define our measurement vector, $\boldsymbol{Y}$. \newline 
+
+Pulsar timing libraries employ a deterministic, parameterized model that utilizes estimates of the timing ephemeris parameters, $\boldsymbol{\hat{\theta}}$ , to predict the pulse TOA, $t_{\text{det}}(\boldsymbol{\hat{\theta}})$. This deterministic model accounts for standard effects such as Shapiro delay, proper motions, and binary interactions.\footnote{One might reasonably question whether removing all known contributions first, before analyzing residuals, could inadvertently filter out part of the signal of interest. This potential issue is well known in the pulsar community and will be addressed later.} The timing residuals are then defined as the difference between the actual TOAs and the predicted TOAs:
+
+\begin{equation}
+	\delta t = t_{\text{TOA}} - t_{\text{det}}(\boldsymbol{\hat{\theta}}). \label{eq:delta_t_og_defn}
+\end{equation}
+
+
+\subsection{Definition of phases, $\phi(t)$}
+
+In previous works, we have a hidden state $\boldsymbol{X}$ which we identify with the intrinsic pulsar frequency $f_p(t)$ and a measurement  $\boldsymbol{Y}$ which we identify with a measured frequency $f_m(t)$. The two are related via a measurement equation 
+\begin{equation}
+	f_{\text{m}}(t) = f_{\text{p}}(t) \left[1 - a(t)\right], \label{eq:measurement}
+\end{equation}
+where $a(t)$ quantifies the influence of the GW (for simplicity, we omit here the superscript-$(n)$ notation.) \newline 
+
+\noindent We want to derive an equivalent measurement equation that relates the new measurement $\boldsymbol{Y} = \delta t$ with some hidden states $\boldsymbol{X}$. \newline 
+
+
+\noindent To start, separate the intrinsic pulsar frequency into deterministic and stochastic parts $f_{\text{p}}(t) = \bar{f}(t) + \delta f(t)$ and define the following phase variables:
+\begin{align}
+	\text{Measured phase:} \quad & \phi_{\text{m}}(t) = \int_0^t f_{\text{m}}(t') dt', \label{eq:measured_phase}\\
+	\text{Intrinsic phase:} \quad & \phi_{\text{p}}(t;\boldsymbol{\theta}) = \int_0^t \bar{f}(t'; \boldsymbol{\theta}) dt', \label{eq:model_phase} \\
+	\text{Model phase:} \quad & \phi_{\text{p}}(t;\boldsymbol{\hat{\theta}}) = \int_0^t \bar{f}(t'; \boldsymbol{\hat{\theta}}) dt'.
+\end{align}
+
+Here, $\boldsymbol{\theta}$ represents the true timing-ephemeris parameters, while $\boldsymbol{\hat{\theta}}$ are the best-fit model estimates (i.e., the true parameters satisfy $\boldsymbol{\theta} = \boldsymbol{\hat{\theta}} + \delta \boldsymbol{\theta}$). In a standard PTA analysis it is assumed that any difference between the true determinisic solution and the estimated solution will be small (see e.g. \href{https://arxiv.org/abs/2105.13270}{Taylor 2021, Section 7.1}) and we can therefore linearize as
+\begin{eqnarray}
+\phi_{\text{p}}(t;\boldsymbol{\theta}) = \phi_{\text{p}}(t;\boldsymbol{\hat{\theta}}) + \mathbf{M}_{\phi} \delta \boldsymbol{\theta} \label{eq:MMatrix}
+\end{eqnarray}
+where $\mathbf{M}_{\phi}$ is the design matrix of partial derivatives (of the phases) with respect to the parameters i.e. $= \partial_{\theta} \phi(t)$. 
+
+\subsection{Definition of the timing residual, $\delta t$}
+The timing residual is given by Equation \eqref{eq:delta_t_og_defn}. We can also provide an equivalent definition in terms of phases / frequencies as follows. \newline 
+
+\noindent According to the timing-ephemeris model, the $n$-th pulse arrives at time $t$ if 
+
+\begin{equation}
+	\phi_{\text{p}}(t; \boldsymbol{\hat{\theta}}) = n.
+	\end{equation}
+for some integer $n$. The actual pulse arrives at time $t + \delta t$, satisfying:
+
+\begin{equation}
+	\phi_{\text{m}}(t + \delta t) = n.
+\end{equation}
+
+\noindent A linear expansion gives
+\begin{align}
+	\phi_{\text{m}}(t + \delta t)  &\approx \phi_{\text{m}}(t) + \frac{d}{dt} \phi_{\text{m}}(t) \delta t \nonumber \\
+	&= \phi_{\text{m}}(t) + f_{\text{m}}(t) \delta t. \label{eq:assumption 1}
+\end{align}
+Rearranging, we express the timing residual in terms of phases:
+\begin{equation}
+	\delta t (t)= \frac{\phi_{\text{p}}(t; \boldsymbol{\hat{\theta}}) - \phi_{\text{m}}(t)}{f_{\text{m}}(t)}. \label{eq:delta_t}
+\end{equation}
+
+
+\subsection{Expanding $\phi_m(t)$}
+From Equation \eqref{eq:measurement} and Equation \eqref{eq:measured_phase}, we can express the measured phase as
+\begin{align}
+	\phi_m(t)
+	&= \int_{0}^{t} f_m(\tau)\,d\tau \\
+	&= \int_{0}^{t} 
+	\bigl[1 - a(\tau)\bigr]\,
+	\bigl[\bar{f}(\tau) + \delta f(\tau)\bigr]\,d\tau \\
+	&= \underbrace{\int_{0}^{t} \bar{f}(\tau)\,d\tau}_{\text{timing solution}}
+	\;+\;
+	\underbrace{\int_{0}^{t} \delta f(\tau)\,d\tau}_{\text{red noise}}
+	\;-\;
+	\underbrace{\int_{0}^{t} a(\tau)\,\bar{f}(\tau)\,d\tau}_{\text{GW term}}
+	\;-\;
+	\underbrace{\int_{0}^{t} a(\tau)\,\delta f(\tau)\,d\tau}_{\text{small term}}. \label{eq:phi_m_decomposed}
+\end{align}
+
+
+
+We make the following observations
+\begin{itemize}
+	\item The timing solution term is just the phase 	$\phi_{\text{p}}(t;\boldsymbol{\theta})$, Equation \eqref{eq:model_phase}
+	\item The red noise term integral is just a phase, a fluctuation from the determinisic timing model, which we will call $\delta \phi$.
+	\item Because the spin-down derivative term is small, the determinstic part of the GW term can be approximated as constant, $\bar{f}(t) = f_0 + \dot{f} t \approx f_0$. We will define $r(t) =\int_{0}^{t} a(\tau) \,d\tau $, (see e.g. \href{https://arxiv.org/abs/1003.0677}{Equation 5 of Sesana \& Vecchio 2010})
+	\item The second order term is small and can be dropped.
+\end{itemize}
+We can therefore write Equation \eqref{eq:phi_m_decomposed} more concisely as 
+\begin{equation}
+	\phi_m(t)
+	= \phi_{\text{p}}(t;\boldsymbol{\theta})
+	\;+\;
+	\delta \phi(t)
+	\;-\;
+	f_0 r(t) \label{eq:phi_m_concise}
+\end{equation}
+
+\subsection{Putting it all together}
+Combining Equations \eqref{eq:MMatrix}, \eqref{eq:delta_t}, and \eqref{eq:phi_m_concise}, and taking the denominator of Equation \eqref{eq:delta_t} to be constant ($=f_0$) we can write
+\begin{align}
+	\delta t &= \frac{1}{f_0} \left[ \phi_{\text{p}}(t;\boldsymbol{\hat{\theta}}) - \phi_{\text{p}}(t;\boldsymbol{\theta}) - \delta \phi(t) + f_0 r(t)\right] \\
+	&= - \frac{1}{f_0}M_{\phi} \delta \boldsymbol{\theta} - \frac{\delta \phi}{f_0} + r(t)
+\end{align}
+In practice, TEMPO/PINT return a design matrix defined in terms of partial derivatives of the TOAs, rather than in terms of phases, so we can just write
+\begin{equation}
+	\boxed{\delta t = \boldsymbol{M}_{\text{TOA}} \delta \boldsymbol{\theta} - \frac{\delta \phi}{f_0} + r(t)} \label{eq:measurement_new}
+\end{equation}
+Equation \eqref{eq:measurement_new} is the measurement equation. \newline 
+
+\textbf{Summary of assumptions and approximations }
+\begin{itemize}
+	\item  Linearisation to define the M-matrix in Equation \eqref{eq:MMatrix}
+	\item Linear expansion and neglecting higher-order terms in Equation \eqref{eq:assumption 1}.
+	\item Approximating $\bar{f}(t) \approx f_0$ in the GW term of Equation \eqref{eq:phi_m_decomposed}.
+	\item Approximating $f_{\text{m}} \approx f_0$ in the denominator of Equation \eqref{eq:delta_t}.
+	\item Neglecting small second-order terms in Equation \eqref{eq:phi_m_decomposed}.
+
 \end{itemize}
 
 
 
 
 
-
-
-
 \section{Single pulsar}\label{sec:single_pulsar}
-To start, lets work with a single pulsar, $N=1$. \newline 
-
+To start, lets put the above into a state-space frame work with a single pulsar, $N=1$. \newline 
 
 \subsection{State vector}
 
@@ -72,7 +192,7 @@ where $\delta t$ is the timing residual.
 
 \subsection{Dynamical Equations (continuous time)}
 
-The above state variables evolve according to the following dynamical equations 
+The above state variables evolve according to the following dynamical equations\footnote{TK: these might not be the equations to use. For instance, do we still need a $\gamma$ term? I just use these as palce holders for now.}
 
 
 \begin{align}
