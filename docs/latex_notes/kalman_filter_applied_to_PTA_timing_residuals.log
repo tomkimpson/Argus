@@ -1,9 +1,9 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.12.18)  17 FEB 2025 15:05
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.12.18)  17 FEB 2025 15:13
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
-**notes.tex
-(./notes.tex
+**kalman_filter_applied_to_PTA_timing_residuals.tex
+(./kalman_filter_applied_to_PTA_timing_residuals.tex
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
 (/usr/local/texlive/2024/texmf-dist/tex/latex/koma-script/scrartcl.cls
@@ -361,8 +361,8 @@ File: l3backend-pdftex.def 2024-02-20 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count287
 \l__pdf_internal_box=\box55
 )
-(./notes.aux)
-\openout1 = `notes.aux'.
+(./kalman_filter_applied_to_PTA_timing_residuals.aux)
+\openout1 = `kalman_filter_applied_to_PTA_timing_residuals.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 17.
 LaTeX Font Info:    ... okay on input line 17.
@@ -407,9 +407,10 @@ Package scrbase Info: activating english \indexname on input line 17.
 \everyMPtoPDFconversion=\toks24
 )
 Package hyperref Info: Link coloring ON on input line 17.
- (./notes.out) (./notes.out)
+ (./kalman_filter_applied_to_PTA_timing_residuals.out)
+(./kalman_filter_applied_to_PTA_timing_residuals.out)
 \@outlinefile=\write3
-\openout3 = `notes.out'.
+\openout3 = `kalman_filter_applied_to_PTA_timing_residuals.out'.
 
 Class scrartcl Info: loading recommended package `bookmark'.
 (scrartcl)           Using `bookmark' together with `hyperref' is recommended,
@@ -567,22 +568,23 @@ Overfull \hbox (4.94392pt too wide) detected at line 535
   :
  []
 
-[12] [13] [14] [15] (./notes.aux)
+[12] [13] [14] [15] (./kalman_filter_applied_to_PTA_timing_residuals.aux)
  ***********
 LaTeX2e <2023-11-01> patch level 1
 L3 programming layer <2024-02-20>
  ***********
-Package rerunfilecheck Info: File `notes.out' has not changed.
+Package rerunfilecheck Info: File `kalman_filter_applied_to_PTA_timing_residual
+s.out' has not changed.
 (rerunfilecheck)             Checksum: D41D8CD98F00B204E9800998ECF8427E;0.
  ) 
 Here is how much of TeX's memory you used:
  12521 strings out of 474116
- 218608 string characters out of 5743681
+ 219368 string characters out of 5743681
  1945187 words of memory out of 5000000
  34633 multiletter control sequences out of 15000+600000
  572123 words of font info for 84 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 108i,21n,107p,10900b,576s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 108i,21n,107p,10940b,576s stack positions out of 10000i,1000n,20000p,200000b,200000s
 </usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmcsc10.pfb
 ></usr/local/texlive/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb>
@@ -603,7 +605,8 @@ e/2024/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texlive/2
 4/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy8.pfb></usr/local/texlive/2024/
 texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb></usr/local/texlive/2024/t
 exmf-dist/fonts/type1/public/cm-super/sfrm1095.pfb>
-Output written on notes.pdf (15 pages, 283472 bytes).
+Output written on kalman_filter_applied_to_PTA_timing_residuals.pdf (15 pages, 
+283472 bytes).
 PDF statistics:
  391 PDF objects out of 1000 (max. 8388607)
  330 compressed objects within 4 object streams
