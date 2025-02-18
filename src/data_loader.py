@@ -97,6 +97,7 @@ class LoadWidebandPulsarData:
                         + cos(dec1) * cos(dec2) * cos(ra1 - ra2)
                         
         where (ra1, dec1) and (ra2, dec2) are coordinate pairs in radians.
+
         """
         # Reshape for broadcasting
         ra1 = ra_rad[:, None]
