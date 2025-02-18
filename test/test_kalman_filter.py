@@ -44,7 +44,9 @@ def test_filter_run():
     P0 = np.eye(model.nx)*1e-12
 
     
+
     KF=kalman_filter.ScalarKalmanFilter(model=model,observations=processed_pulsar_residuals,x0=x0,P0=P0)
+
 
 
     # # Set global parameters.
