@@ -24,24 +24,33 @@ def test_StochasticGWBackgroundModel():
 
     # Instead of manually merging dataframes and computing angles, use the new function.
     # Select the first 2 file pairs.
-    merged_df, combined_df, ζ = data_loader.LoadWidebandPulsarData.read_multiple_par_tim(
-        par_files[0:2], tim_files[0:2]
-    )
+    pulsar_residuals, pulsar_metadata = data_loader.LoadWidebandPulsarData.read_multiple_par_tim(par_files[0:2], tim_files[0:2])
 
-    print(combined_df)
+
+    # Also get the separation angles between all pulsars.
+    ra = pulsar_metadata["RA"].to_numpy(dtype=float)
+    dec = pulsar_metadata["DEC"].to_numpy(dtype=float)
+    angular_separation_matrix = data_loader.LoadWidebandPulsarData.pairwise_angular_separation(ra,dec)
+
+
+    # Post-process the residuals
+    processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.post_process_residuals(pulsar_residuals)
+
+    # Initialize the GW background model 
+    model = models.StochasticGWBackgroundModel(pulsar_metadata)
 
     # Initialize the GW background model with the metadata dataframe.
-    model = models.StochasticGWBackgroundModel(combined_df)
+    model = models.StochasticGWBackgroundModel(pulsar_metadata)
 
     # Set global parameters.
     params = {
         'γa': 0.001,                    # s⁻¹
-        'γp': np.ones(len(combined_df)),
-        'σp': 1e-10 * np.ones(len(combined_df)),
+        'γp': np.ones(len(pulsar_metadata)),
+        'σp': 1e-10 * np.ones(len(pulsar_metadata)),
         'h2': 1e-12,
         'σeps': 1,
-        'separation_angle_matrix': ζ,
-        'f0': np.ones(len(combined_df)),
+        'separation_angle_matrix': angular_separation_matrix,
+        'f0': np.ones(len(pulsar_metadata)),
         'σt': 1e-1
     }
 

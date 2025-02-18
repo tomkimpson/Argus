@@ -67,6 +67,103 @@ class LoadWidebandPulsarData:
         self.toa_diffs = np.diff(self.toas)
         self.toa_diff_errors = np.sqrt(self.toaerrs[1:] ** 2 + self.toaerrs[:-1] ** 2)
 
+
+    @staticmethod
+    def pairwise_angular_separation(ra_rad, dec_rad):
+        """Compute the pairwise angular separations for a set of celestial coordinates in radians.
+        
+        This function takes arrays of right ascension (RA) and declination (Dec), both in radians,
+        and returns an NxN matrix of angular separations, where N is the length of the input arrays.
+        Each entry (i, j) in the output is the angular separation between the coordinate pair
+        (ra_rad[i], dec_rad[i]) and (ra_rad[j], dec_rad[j]).
+        
+        Parameters
+        ----------
+        ra_rad : numpy.ndarray
+            1D array of right ascensions in radians, of length N.
+        dec_rad : numpy.ndarray
+            1D array of declinations in radians, of length N.
+            
+        Returns
+        -------
+        sep_rad : numpy.ndarray
+            NxN matrix (2D array) of pairwise angular separations in radians.
+        
+        Notes
+        -----
+        The spherical distance formula used is:
+        
+            cos(theta) = sin(dec1) * sin(dec2)
+                        + cos(dec1) * cos(dec2) * cos(ra1 - ra2)
+                        
+        where (ra1, dec1) and (ra2, dec2) are coordinate pairs in radians.
+
+        """
+        # Reshape for broadcasting
+        ra1 = ra_rad[:, None]
+        ra2 = ra_rad[None, :]
+        dec1 = dec_rad[:, None]
+        dec2 = dec_rad[None, :]
+
+        # Spherical distance formula:
+        #   cos(theta) = sin(dec1)*sin(dec2) + cos(dec1)*cos(dec2)*cos(ra1 - ra2)
+        cos_sep = (np.sin(dec1) * np.sin(dec2) + np.cos(dec1) * np.cos(dec2) * np.cos(ra1 - ra2))
+        
+        # Clip values to avoid floating-point errors outside [-1, 1] when taking arccos
+        cos_sep = np.clip(cos_sep, -1.0, 1.0)
+        
+        # Compute separation in radians
+        sep_rad = np.arccos(cos_sep)
+        
+        return sep_rad
+
+
+    @staticmethod
+    def post_process_residuals(residuals_data: pd.DataFrame) -> np.ndarray:
+        """Post-process residuals data to extract the non-NaN residuals and their indices.
+
+        Parameters
+        ----------
+        residuals_data : pd.DataFrame
+            DataFrame containing residuals data for multiple pulsars.
+
+        Returns
+        -------
+        np.ndarray
+            A 2D array containing the non-NaN residuals and their corresponding pulsar indices.
+
+        """
+        #1. Select columns that start with 'residuals_'
+        residual_columns = [col for col in residuals_data.columns if col.startswith('residuals_')]
+        
+        
+        #2. Create a mask to identify non-NaN values in the selected columns. Mask is a DataFrame of booleans.
+        mask = ~residuals_data[residual_columns].isna()
+
+        #3. For each row, find the *position* of the True (non-NaN) column
+        ##  np.argmax returns the index of the first True in each row.
+        ## idx is a NumPy array of shape (Nrows,)
+        idx = np.argmax(mask.values, axis=1)  
+
+        #4. Extract the numeric part of the column name. 
+        ##  e.g. "residuals_3" -> 3
+        subscript_list = [int(col.split('_')[-1]) for col in residual_columns]
+
+        #5. Map each row’s True position to its "residuals_i" subscript
+        subscripts = np.array(subscript_list)[idx]
+
+        #6. Index to get the non-NaN values
+        row_indices = np.arange(len(residuals_data))  # 0,1,2,... up to len(df)-1
+        residuals_values = residuals_data[residual_columns].values[row_indices, idx]
+
+        # 7. Finally, stack them into a 2D array:
+        #   - Column 0: the non-NaN residual value
+        #   - Column 1: the subscript i
+        result = np.column_stack([residuals_data['toas'].values,residuals_values, subscripts])
+
+        return result
+
+
     @classmethod
     def read_par_tim(cls, par_file: str, tim_file: str, **kwargs) -> "LoadWidebandPulsarData":
         """Load the pulsar data from the specified parameter and timing files.
@@ -165,30 +262,6 @@ class LoadWidebandPulsarData:
         merged_df = reduce(lambda left, right: pd.merge(left, right, on="toas", how="outer"), dfs)
         meta_df = pd.concat(dfs_meta, ignore_index=True)
 
-        # Convert RA and DEC to numpy arrays of type float.
-        ra = meta_df["RA"].to_numpy(dtype=float)
-        dec = meta_df["DEC"].to_numpy(dtype=float)
+        return merged_df, meta_df
+    
 
-        # Local helper function to compute unit vectors from spherical coordinates.
-        # Here, RA is treated as the azimuth (φ) and DEC is converted to co-latitude (θ = π/2 − DEC).
-        def _unit_vector(θ, φ):
-            qx = np.sin(θ) * np.cos(φ)
-            qy = np.sin(θ) * np.sin(φ)
-            qz = np.cos(θ)
-            return np.column_stack([qx, qy, qz])
-
-        # Convert DEC (declination) to co-latitude: θ = π/2 − DEC.
-        q = _unit_vector(np.pi / 2.0 - dec, ra)
-        Npsr = len(meta_df)
-
-        # Compute the pairwise angular separation matrix.
-        angle_matrix = np.zeros((Npsr, Npsr), dtype=float)
-        # Compute only for i < j and mirror the values, since the matrix is symmetric.
-        for i in range(Npsr):
-            for j in range(i + 1, Npsr):
-                dot_product = np.dot(q[i, :], q[j, :])
-                angle = np.arccos(dot_product)
-                angle_matrix[i, j] = angle
-                angle_matrix[j, i] = angle
-
-        return merged_df, meta_df, angle_matrix
