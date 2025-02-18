@@ -70,8 +70,7 @@ class LoadWidebandPulsarData:
 
     @staticmethod
     def pairwise_angular_separation(ra_rad, dec_rad):
-        """
-        Compute the pairwise angular separations for a set of celestial coordinates in radians.
+        """Compute the pairwise angular separations for a set of celestial coordinates in radians.
         
         This function takes arrays of right ascension (RA) and declination (Dec), both in radians,
         and returns an NxN matrix of angular separations, where N is the length of the input arrays.
@@ -98,6 +97,7 @@ class LoadWidebandPulsarData:
                         + cos(dec1) * cos(dec2) * cos(ra1 - ra2)
                         
         where (ra1, dec1) and (ra2, dec2) are coordinate pairs in radians.
+
         """
         # Reshape for broadcasting
         ra1 = ra_rad[:, None]
@@ -133,7 +133,6 @@ class LoadWidebandPulsarData:
             A 2D array containing the non-NaN residuals and their corresponding pulsar indices.
 
         """
-
         #1. Select columns that start with 'residuals_'
         residual_columns = [col for col in residuals_data.columns if col.startswith('residuals_')]
         
