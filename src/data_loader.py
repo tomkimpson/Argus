@@ -67,6 +67,12 @@ class LoadWidebandPulsarData:
         self.toa_diffs = np.diff(self.toas)
         self.toa_diff_errors = np.sqrt(self.toaerrs[1:] ** 2 + self.toaerrs[:-1] ** 2)
 
+        for d in dir(ds_psr):
+            print(d)
+        
+        print("here is the noise dict")
+        print(ds_psr.noisedict)
+
     @classmethod
     def read_par_tim(cls, par_file: str, tim_file: str, **kwargs) -> "LoadWidebandPulsarData":
         """Load the pulsar data from the specified parameter and timing files.
