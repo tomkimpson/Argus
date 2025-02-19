@@ -67,35 +67,34 @@ class LoadWidebandPulsarData:
         self.toa_diffs = np.diff(self.toas)
         self.toa_diff_errors = np.sqrt(self.toaerrs[1:] ** 2 + self.toaerrs[:-1] ** 2)
 
-
     @staticmethod
     def pairwise_angular_separation(ra_rad, dec_rad):
         """Compute the pairwise angular separations for a set of celestial coordinates in radians.
-        
+
         This function takes arrays of right ascension (RA) and declination (Dec), both in radians,
         and returns an NxN matrix of angular separations, where N is the length of the input arrays.
         Each entry (i, j) in the output is the angular separation between the coordinate pair
         (ra_rad[i], dec_rad[i]) and (ra_rad[j], dec_rad[j]).
-        
+
         Parameters
         ----------
         ra_rad : numpy.ndarray
             1D array of right ascensions in radians, of length N.
         dec_rad : numpy.ndarray
             1D array of declinations in radians, of length N.
-            
+
         Returns
         -------
         sep_rad : numpy.ndarray
             NxN matrix (2D array) of pairwise angular separations in radians.
-        
+
         Notes
         -----
         The spherical distance formula used is:
-        
+
             cos(theta) = sin(dec1) * sin(dec2)
                         + cos(dec1) * cos(dec2) * cos(ra1 - ra2)
-                        
+
         where (ra1, dec1) and (ra2, dec2) are coordinate pairs in radians.
 
         """
@@ -107,16 +106,17 @@ class LoadWidebandPulsarData:
 
         # Spherical distance formula:
         #   cos(theta) = sin(dec1)*sin(dec2) + cos(dec1)*cos(dec2)*cos(ra1 - ra2)
-        cos_sep = (np.sin(dec1) * np.sin(dec2) + np.cos(dec1) * np.cos(dec2) * np.cos(ra1 - ra2))
-        
+        cos_sep = np.sin(dec1) * np.sin(dec2) + np.cos(dec1) * np.cos(dec2) * np.cos(
+            ra1 - ra2
+        )
+
         # Clip values to avoid floating-point errors outside [-1, 1] when taking arccos
         cos_sep = np.clip(cos_sep, -1.0, 1.0)
-        
+
         # Compute separation in radians
         sep_rad = np.arccos(cos_sep)
-        
-        return sep_rad
 
+        return sep_rad
 
     @staticmethod
     def post_process_residuals(residuals_data: pd.DataFrame) -> np.ndarray:
@@ -133,39 +133,43 @@ class LoadWidebandPulsarData:
             A 2D array containing the non-NaN residuals and their corresponding pulsar indices.
 
         """
-        #1. Select columns that start with 'residuals_'
-        residual_columns = [col for col in residuals_data.columns if col.startswith('residuals_')]
-        
-        
-        #2. Create a mask to identify non-NaN values in the selected columns. Mask is a DataFrame of booleans.
+        # 1. Select columns that start with 'residuals_'
+        residual_columns = [
+            col for col in residuals_data.columns if col.startswith("residuals_")
+        ]
+
+        # 2. Create a mask to identify non-NaN values in the selected columns. Mask is a DataFrame of booleans.
         mask = ~residuals_data[residual_columns].isna()
 
-        #3. For each row, find the *position* of the True (non-NaN) column
+        # 3. For each row, find the *position* of the True (non-NaN) column
         ##  np.argmax returns the index of the first True in each row.
         ## idx is a NumPy array of shape (Nrows,)
-        idx = np.argmax(mask.values, axis=1)  
+        idx = np.argmax(mask.values, axis=1)
 
-        #4. Extract the numeric part of the column name. 
+        # 4. Extract the numeric part of the column name.
         ##  e.g. "residuals_3" -> 3
-        subscript_list = [int(col.split('_')[-1]) for col in residual_columns]
+        subscript_list = [int(col.split("_")[-1]) for col in residual_columns]
 
-        #5. Map each row’s True position to its "residuals_i" subscript
+        # 5. Map each row’s True position to its "residuals_i" subscript
         subscripts = np.array(subscript_list)[idx]
 
-        #6. Index to get the non-NaN values
+        # 6. Index to get the non-NaN values
         row_indices = np.arange(len(residuals_data))  # 0,1,2,... up to len(df)-1
         residuals_values = residuals_data[residual_columns].values[row_indices, idx]
 
         # 7. Finally, stack them into a 2D array:
         #   - Column 0: the non-NaN residual value
         #   - Column 1: the subscript i
-        result = np.column_stack([residuals_data['toas'].values,residuals_values, subscripts])
+        result = np.column_stack(
+            [residuals_data["toas"].values, residuals_values, subscripts]
+        )
 
         return result
 
-
     @classmethod
-    def read_par_tim(cls, par_file: str, tim_file: str, **kwargs) -> "LoadWidebandPulsarData":
+    def read_par_tim(
+        cls, par_file: str, tim_file: str, **kwargs
+    ) -> "LoadWidebandPulsarData":
         """Load the pulsar data from the specified parameter and timing files.
 
         Parameters
@@ -191,12 +195,15 @@ class LoadWidebandPulsarData:
             raise
 
     @classmethod
-    def read_multiple_par_tim(cls, par_files: list[str], 
-                              tim_files: list[str], 
-                              max_files: int | None = None, 
-                              **kwargs) -> tuple[pd.DataFrame, pd.DataFrame, np.ndarray]:
+    def read_multiple_par_tim(
+        cls,
+        par_files: list[str],
+        tim_files: list[str],
+        max_files: int | None = None,
+        **kwargs,
+    ) -> tuple[pd.DataFrame, pd.DataFrame, np.ndarray]:
         """Load multiple par/tim file pairs.
-         
+
         Merge their TOAs/residuals into a DataFrame,and collect metadata (pulsar name, RA, DEC, etc.) in a second DataFrame.
         Also, compute the angular separation matrix between all loaded pulsars.
 
@@ -235,33 +242,32 @@ class LoadWidebandPulsarData:
         if max_files is not None:
             file_pairs = file_pairs[:max_files]
 
-        dfs = []      # List to hold individual pulsar TOA/residual DataFrames.
-        dfs_meta = [] # List to hold individual pulsar metadata DataFrames.
+        dfs = []  # List to hold individual pulsar TOA/residual DataFrames.
+        dfs_meta = []  # List to hold individual pulsar metadata DataFrames.
 
         for i, (par_file, tim_file) in enumerate(file_pairs):
-            psr = cls.read_par_tim(par_file, tim_file,**kwargs)
+            psr = cls.read_par_tim(par_file, tim_file, **kwargs)
 
             # DataFrame for TOAs and residuals for this pulsar.
-            df = pd.DataFrame({
-                "toas": psr.toas,
-                f"residuals_{i}": psr.residuals
-            })
+            df = pd.DataFrame({"toas": psr.toas, f"residuals_{i}": psr.residuals})
 
             # DataFrame for metadata for this pulsar.
-            df_meta = pd.DataFrame({
-                "name": [psr.name],
-                "dim_M": [psr.M_matrix.shape[-1]],
-                "RA": [psr.RA],
-                "DEC": [psr.DEC]
-            })
+            df_meta = pd.DataFrame(
+                {
+                    "name": [psr.name],
+                    "dim_M": [psr.M_matrix.shape[-1]],
+                    "RA": [psr.RA],
+                    "DEC": [psr.DEC],
+                }
+            )
 
             dfs.append(df)
             dfs_meta.append(df_meta)
 
         # Merge all individual pulsar DataFrames on 'toas' using an outer merge.
-        merged_df = reduce(lambda left, right: pd.merge(left, right, on="toas", how="outer"), dfs)
+        merged_df = reduce(
+            lambda left, right: pd.merge(left, right, on="toas", how="outer"), dfs
+        )
         meta_df = pd.concat(dfs_meta, ignore_index=True)
 
         return merged_df, meta_df
-    
-

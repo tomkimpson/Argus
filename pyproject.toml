@@ -1,0 +1,79 @@
+[tool.poetry]
+name = "argus"
+version = "0.0.0-dev" # Just a place holder; package version is managed by the dynamic-versioning plugin & git tags
+description = "Short project description"
+authors = [ "Tom Kimpson", "J.Hu" ]
+license = "MIT-expat"
+readme = "README.md"
+packages = [
+    { include = "argus", from = "python" } 
+]
+homepage = "https://github.com/ADACS-Australia/tkimpson_2025a"
+documentation = "https://argus.readthedocs.io/en/latest/"
+
+[tool.poetry.dependencies]
+python = " >=3.11, <3.13"
+numpy = "^1.21.2"
+pandas = "^2.2.3"
+
+[tool.poetry.group.docs.dependencies]
+Sphinx = "^6"
+sphinx-rtd-theme = "^1"
+sphinx-click = "^4"
+sphinx-copybutton = "^0"
+myst-parser = "^1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7"
+pytest-mock = "^3"
+pytest-cookies = "^0"
+pytest-cov = "^5"
+black = "^24"
+ruff = "^0"
+mypy = "^1"
+pre-commit = "^3"
+
+# This configures the Poetry plugin which enables dynamic versioning via the repo tags
+# Note the changes that are also needed to the [build-system] config below.
+[tool.poetry-dynamic-versioning]
+enable = true
+vcs = "git"
+style = "semver"
+
+[tool.pytest.ini_options]
+addopts = "--cov"
+pythonpath = "./python" # relative to root directory
+
+# Uncomment and edit the following line to add custom markers to your tests
+# These can be run with the following (for example):
+#
+#   $ pytest -m marker_name
+#
+#markers = [ "marker_name: A short description of the marker" ]
+
+[tool.mypy]
+ignore_missing_imports = true
+mypy_path = "$MYPY_CONFIG_FILE_DIR/python"
+
+[tool.coverage.paths]
+source = ["python"]
+
+[tool.coverage.run]
+branch = true
+source = ["python"]
+omit = ["python/argus/tests/*"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+  "pragma: no cover",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+  "if typing.TYPE_CHECKING:"
+]
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
+build-backend = "poetry_dynamic_versioning.backend"
