@@ -30,7 +30,8 @@ class ScalarKalmanFilter:
         #Extract the observations into separate arrays
         self.toa         = self.observations[:,0]
         self.data        = self.observations[:,1]
-        self.psr_indices = self.observations[:,2].astype(int)
+        self.data_errors = self.observations[:,2]
+        self.psr_indices = self.observations[:,3].astype(int)
         self.N_timesteps = len(self.observations)
         self.t_diffs     = np.diff(self.toa)
 
@@ -43,19 +44,24 @@ class ScalarKalmanFilter:
         return -0.5 * (np.log(2.0 * np.pi * cov) +(y * y) / cov) 
 
 
-    def predict(self):
+    def predict(self,dt):
         """Predict the next state and covariance."""
-        F = self.model.F_matrix(self.dt)
-        Q = self.model.Q_matrix(self.dt)
+        F = self.F #self.model.F_matrix(dt)
+        Q = self.Q #self.model.Q_matrix(dt)
 
     
         self.xp = F @ self.x 
         self.Pp = F @ self.P @ F.T + Q
 
-    def update(self, z):
+    def update(self, z,z_err,psr_index):
         """Update the state and covariance with a new observation."""
+        #Define the time-dependent H and R matrices for this timestep
+        self.H = self.model.H_matrix(psr_index)
+        self.R = self.model.R_matrix(z_err,psr_index)
+
+        #Now run through the update algorithm
         y      = z - self.H @ self.xp                                # innovation
-        S      = self.H @ self.Pp @ self.H.T + self.model.R_matrix() # innovation covariance
+        S      = self.H @ self.Pp @ self.H.T + self.R                # innovation covariance
         K      = self.Pp @ self.H.T / S                              # Kalman gain for scalar covariance
         self.x = self.xp + K * y                                     # updated state
         self.P = (np.eye(len(self.xp)) - K @ self.H) @ self.Pp       # updated covariance
@@ -67,31 +73,33 @@ class ScalarKalmanFilter:
         #Define all the free parameters for the model. Note this exludes dt, which is not a parameter we need to infer.
         self.model.set_global_parameters(θ) 
 
-        #Define the R matrix. 
-        ## Dev note: is this the best place for this? We probably need to read in the actual errors on the measurements somewhere
-        self.R = self.model.R_matrix()
 
         #Initialise x and P, the likelihood, and the index i
         self.x,self.P,self.ll,i = self.x0,self.P0,0.0,int(0)  
  
+        
+
+        self.F = self.model.F_matrix(0.1)
+        self.Q = self.model.Q_matrix(0.1)
+        
+
         #Do the first update step
-        ## First define the H-matrix for this step
-        self.H = self.model.H_matrix(self.psr_indices[i])
         ##For the first update step, just assign the predicted values to be the states
         self.xp,self.Pp = self.x, self.P 
         ##Update step
-        self.update(self.data[i]) # Updates x,P,and the likelihood_value 
+        self.update(self.data[i],self.data_errors[i],self.psr_indices[i]) # Updates x,P,and the likelihood_value 
 
-  
+        print(i)
         for i in range(1,self.N_timesteps): #indexing starts at 1 as we have already done i=0
-   
+            #print(i)
             #Set the delta t
-            self.dt = self.t_diffs[i-1] #For example, when i=1, we use the 0th element of t_diffs for the predict step
+            dt = self.t_diffs[i-1] #For example, when i=1, we use the 0th element of t_diffs for the predict step
             
             #Predict step
-            self.predict()
+            self.predict(dt)
             #Update step
-            self.update(self.data[i])
+            self.update(self.data[i],self.data_errors[i],self.psr_indices[i]) # Updates x,P,and the likelihood_value 
+
             
 
 

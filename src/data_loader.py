@@ -133,34 +133,38 @@ class LoadWidebandPulsarData:
             A 2D array containing the non-NaN residuals and their corresponding pulsar indices.
 
         """
-        #1. Select columns that start with 'residuals_'
+        #1. Select the residuals and errors columns
         residual_columns = [col for col in residuals_data.columns if col.startswith('residuals_')]
-        
-        
-        #2. Create a mask to identify non-NaN values in the selected columns. Mask is a DataFrame of booleans.
-        mask = ~residuals_data[residual_columns].isna()
+        error_columns    = [col for col in residuals_data.columns if col.startswith('error_')]
+        row_indices      = np.arange(len(residuals_data))  # 0,1,2,... up to len(df)-1
 
-        #3. For each row, find the *position* of the True (non-NaN) column
-        ##  np.argmax returns the index of the first True in each row.
-        ## idx is a NumPy array of shape (Nrows,)
-        idx = np.argmax(mask.values, axis=1)  
-
-        #4. Extract the numeric part of the column name. 
+        #2. Extract the numeric part of the column name. 
         ##  e.g. "residuals_3" -> 3
         subscript_list = [int(col.split('_')[-1]) for col in residual_columns]
 
-        #5. Map each row’s True position to its "residuals_i" subscript
+
+        #3. Create a mask to identify non-NaN values in the selected columns. Mask is a DataFrame of booleans.
+        mask = ~residuals_data[residual_columns].isna()
+        mask_for_errors = ~residuals_data[error_columns].isna()
+
+        #4. For each row, find the *position* of the True (non-NaN) column
+        ##  np.argmax returns the index of the first True in each row.
+        ## idx is a NumPy array of shape (Nrows,)
+        idx = np.argmax(mask.values, axis=1)  
+        idx_for_errors = np.argmax(mask_for_errors.values, axis=1)
         subscripts = np.array(subscript_list)[idx]
 
+  
         #6. Index to get the non-NaN values
-        row_indices = np.arange(len(residuals_data))  # 0,1,2,... up to len(df)-1
         residuals_values = residuals_data[residual_columns].values[row_indices, idx]
+        error_values     = residuals_data[error_columns].values[row_indices, idx_for_errors] #the error is the next column after the residual
+
 
         # 7. Finally, stack them into a 2D array:
         #   - Column 0: the non-NaN residual value
         #   - Column 1: the subscript i
-        result = np.column_stack([residuals_data['toas'].values,residuals_values, subscripts])
-
+        #   - Column 2: the subscript i, denoting the pulsar
+        result = np.column_stack([residuals_data['toas'].values,residuals_values,error_values, subscripts])
         return result
 
 
@@ -244,7 +248,8 @@ class LoadWidebandPulsarData:
             # DataFrame for TOAs and residuals for this pulsar.
             df = pd.DataFrame({
                 "toas": psr.toas,
-                f"residuals_{i}": psr.residuals
+                f"residuals_{i}": psr.residuals,
+                f"error_{i}": psr.toaerrs
             })
 
             # DataFrame for metadata for this pulsar.
