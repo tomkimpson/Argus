@@ -103,13 +103,14 @@ class StochasticGWBackgroundModel(ModelHyperClass):
                 between pulsars.
             "f0" : np.ndarray
                 Array of pulsar spin frequencies.
-            "σt" : np.ndarray or float
-                Measurement noise standard deviation (per pulsar).
+            "EFAC" : np.ndarray
+                Array of EFAC values for each pulsar.
+            "EQUAD" : np.ndarray
+                Array of EQUAD values for each pulsar.
 
         Note:
         ----
-        Although "Delta_t" is mentioned in some documentation, here dt is passed
-        directly to F_matrix and Q_matrix.
+        The parameter dt is calculated from the data and passed directly to F_matrix and Q_matrix.
 
         """
         self.γp = params["γp"]  # shape: (Npsr,)
@@ -119,7 +120,8 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         self.σeps = params["σeps"]  # scalar (could be extended per pulsar)
         self.separation_angle_matrix = params["separation_angle_matrix"]
         self.f0 = params["f0"]
-        self.σt = params["σt"]
+        self.EFAC = params["EFAC"]
+        self.EQUAD = params["EQUAD"]
 
     @staticmethod
     def _hellings_downs(θ: np.ndarray) -> np.ndarray:
@@ -320,37 +322,6 @@ class StochasticGWBackgroundModel(ModelHyperClass):
 
         return Q
 
-    # def _compute_H_matrix_list(self) -> List[np.ndarray]:
-    #     """Build a list of measurement matrices H (one per pulsar).
-
-    #     For pulsar n the measurement equation is:
-
-    #         δt = (1/f₀)·δφ − r + (design row)·[δε],
-
-    #     so that H^(n) is the row vector:
-
-    #         [1/f₀, 0, -1, 0, zeros(M[n])].
-
-    #     The design row (beyond the first four elements) is assumed to be zero.
-
-    #     Returns
-    #     -------
-    #     List[np.ndarray]
-    #         A list of 1 x (4 + M[n]) arrays (one per pulsar).
-
-    #     """
-    #     H_list = [
-    #         np.concatenate(
-    #             (
-    #                 np.array([1.0 / self.f0[i], 0.0, -1.0, 0.0]),
-    #                 np.zeros(self.M[i]),
-    #             )
-    #         ).flatten()
-    #         for i in range(self.Npsr)
-    #     ]
-    #     return H_list
-    
-
     def H_matrix(self,psr_idx: int)-> np.ndarray:
         """Build a list of measurement matrices H (one per pulsar).
 
@@ -392,11 +363,11 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         return output
 
 
-    def R_matrix(self) -> Any:
+    def R_matrix(self,σ,psr_idx: int)-> np.ndarray:
         """Build the measurement–noise covariance matrix R for the pulsars observed at a given epoch.
 
         For pulsar n, the measurement noise variance is (σt[n])².
-        Currently, this method returns a scalar (if σt is the same for all pulsars)
+        Currently, this method returns a scalar
         or a per-pulsar value.
 
         Returns
@@ -405,5 +376,6 @@ class StochasticGWBackgroundModel(ModelHyperClass):
             The measurement noise covariance (for now, simply σt²).
             
         """
-        return self.σt**2
+
+        return (σ * self.EFAC[psr_idx])**2 + self.EQUAD[psr_idx]**2
     

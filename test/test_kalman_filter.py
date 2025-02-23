@@ -58,7 +58,8 @@ def test_filter_run():
         'σeps': 1e-20,
         'separation_angle_matrix': angular_separation_matrix,
         'f0': 100*np.ones(len(pulsar_metadata)), #everything is 100 Hz for now
-        'σt': 1e-6 #some approximate reasonable value
+        'EFAC': np.ones(len(pulsar_metadata)),
+        'EQUAD':np.ones(len(pulsar_metadata))
     }
 
     KF.get_likelihood(params)
