@@ -6,7 +6,6 @@ sys.path.append('../../src')
 import numpy as np 
 
 from data_loader import LoadWidebandPulsarData
-import os
 
 
 directory = '../IPTA_MockDataChallenge/IPTA_Challenge1_open/Challenge_Data/Dataset2/'

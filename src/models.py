@@ -376,6 +376,5 @@ class StochasticGWBackgroundModel(ModelHyperClass):
             The measurement noise covariance (for now, simply σt²).
             
         """
-
         return (σ * self.EFAC[psr_idx])**2 + self.EQUAD[psr_idx]**2
     

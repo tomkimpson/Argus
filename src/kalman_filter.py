@@ -55,7 +55,6 @@ class ScalarKalmanFilter:
 
     def update(self, z,z_err,psr_index):
         """Update the state and covariance with a new observation."""
-
         #Define the time-dependent H and R matrices for this timestep
         self.H = self.model.H_matrix(psr_index)
         self.R = self.model.R_matrix(z_err,psr_index)
