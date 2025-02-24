@@ -21,7 +21,7 @@
 	This note defines the Kalman ``machinery" for the state-space formulation of PTA analysis in terms of timing residuals. It is heavily based on work by P. Meyers and the \textsc{minnow} package, with extensions to handle multiple pulsars and the influence of the stochastic GW background, with contributions from A. Vargas. This work builds on our previous papers, continuing from their state-space formulation in the frequency domain.
 \end{abstract}
 
-\section{Requirements}
+\section{Summary}
 
 For the purposes of running state-space algorithms, we define the following:
 
@@ -34,7 +34,47 @@ For the purposes of running state-space algorithms, we define the following:
 	\item $\boldsymbol{R}$ : the measurement noise covariance matrix, dimension $n_Y \times n_Y$
 \end{itemize}
 
-The goal of this note is to define the above matrices.
+The goal of this note is to define the above matrices. \newline 
+
+
+In summary, for a single pulsar, we have the following system
+\begin{equation}
+	\boldsymbol{X} = \left(\delta \phi, \delta f, r,a,\delta \epsilon_1, \delta \epsilon_2, \cdots, \delta \epsilon_{\mathrm M} \right)
+\end{equation}
+\begin{equation}
+	\boldsymbol{Y} = \left(\delta t \right)
+\end{equation}
+where the states are related to the observables via a measurement equation
+\begin{equation}
+	\delta t = \frac{\delta \phi}{f_0} + \mathbf{M} \mathbf{\delta \epsilon} - r
+\end{equation}
+The states evolve according to the dynamical equations (continuous time)
+\begin{align}
+	\frac{d}{dt} \delta \phi^{(n)} &= \delta f^{(n)}, \\
+	\frac{d}{dt} \delta f^{(n)} &= -\gamma_p^{(n)} \delta f^{(n)} + \chi_p^{(n)}(t;\sigma_p^{(n)}), \\
+	\frac{d}{dt} r^{(n)} &= a^{(n)}, \\
+	\frac{d}{dt} a^{(n)} &= -\gamma_a a^{(n)} + \chi_a^{(n)}(t;\sigma_a^{(n)}), \\
+	\frac{d}{dt} \delta \epsilon^{(n)}_{m} &= \chi_\epsilon^{(n)}(t;\sigma_\epsilon) \quad \forall m \in [1, M^{(n)}].
+\end{align}
+where $\chi_{\mathrm a}$ denotes a white noise stochastic process. The processes  $\chi_p^{(n)}$ and  $\chi_\epsilon^{(n)}$ are uncorrelated between different $n$, whilst the ensemble statistics of $\chi_{\mathrm a}^{(n)}$ are
+\begin{align}
+	\langle \chi^{(n)}_{\mathrm a}(t) \rangle &= 0 \ , 	\label{eq:xieqn1} \\
+	\langle \chi^{(n)}_{\mathrm a}(t) \, \chi^{(n')}_{\mathrm a}(t') \rangle &= \left[\sigma^{(n,n')}_{\mathrm a}\right]^2 \delta(t - t') \ .	\label{eq:xieqn2}
+\end{align}
+with
+\begin{eqnarray}
+	\left[\sigma^{(n,n')}_{\mathrm a}\right]^2 = \frac{\langle h^2\rangle}{6} \gamma_{\mathrm a} \, \Gamma \left[ \theta^{(n,n')} \right] \, , \label{eq:sigma_a_expression}
+\end{eqnarray}
+where $\langle h^2 \rangle$ is the mean square GW strain from the $M$ summed sources at the Earth's position, $\theta^{(n,n')}$ is the angle between the $n$-th and $n'$-th pulsars, and one has
+\begin{eqnarray}
+	\Gamma\left[\theta^{(n,n')} \right] =  \frac{3}{2} x_{n n'} \ln x_{n n'}  -\frac{x_{n n'} }{4}+\frac{1}{2} + \frac{1}{2} \delta_{n n'}\label{eq:correlation} \, ,
+\end{eqnarray}
+with $x_{nn'} = \left[1 - \cos \theta^{(n,n')}\right]/2$. \newline 
+
+
+
+
+
 
 \section{Derivation of the Measurement Equation}
 
