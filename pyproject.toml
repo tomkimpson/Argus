@@ -15,6 +15,7 @@ documentation = "https://argus.readthedocs.io/en/latest/"
 python = " >=3.11, <3.13"
 numpy = "^1.21.2"
 pandas = "^2.2.3"
+fastparquet = "^2024.11.0"
 
 [tool.poetry.group.docs.dependencies]
 Sphinx = "^6"

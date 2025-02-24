@@ -52,14 +52,15 @@ def test_StochasticGWBackgroundModel():
 
     # Set global parameters.
     params = {
-        "γa": 0.001,  # s⁻¹
-        "γp": np.ones(len(pulsar_metadata)),
-        "σp": 1e-10 * np.ones(len(pulsar_metadata)),
+        "γa": 1e-1,  # s⁻¹
+        "γp": 1e-1 * np.ones(len(pulsar_metadata)),
+        "σp": 1e-20 * np.ones(len(pulsar_metadata)),
         "h2": 1e-12,
-        "σeps": 1,
+        "σeps": 1e-20,
         "separation_angle_matrix": angular_separation_matrix,
-        "f0": np.ones(len(pulsar_metadata)),
-        "σt": 1e-1,
+        "f0": 100 * np.ones(len(pulsar_metadata)),  # everything is 100 Hz for now
+        "EFAC": np.ones(len(pulsar_metadata)),
+        "EQUAD": np.ones(len(pulsar_metadata)),
     }
 
     model.set_global_parameters(params)
