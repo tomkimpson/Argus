@@ -378,3 +378,120 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         """
         return (σ * self.EFAC[psr_idx])**2 + self.EQUAD[psr_idx]**2
     
+
+
+
+
+class JAXStochasticGWBackgroundModel(ModelHyperClass):
+    """A model class for the Stochastic Gravitational Wave Background.
+
+    The state vector for pulsar n is assumed to be:
+
+        X^(n) = [δφ, δf, r, a, δε₁, ..., δε_M]^T
+
+    with measurement equation
+
+        δt^(n) = (1/f₀)·δφ − r + (design row)·[δε].
+
+    The measurement row for pulsar n is therefore
+
+        [1/f₀, 0, -1, 0, zeros(M[n])],
+
+    where M[n] is the number of extra (design) parameters for that pulsar.
+    """
+
+    def __init__(self, df_psr: Any,hellings_downs_matrix: Any) -> None:
+        """Initialize the StochasticGWBackgroundModel.
+
+        Parameters
+        ----------
+        df_psr : DataFrame
+            A pandas DataFrame containing pulsar information. The DataFrame is
+            assumed to contain at least the following columns:
+                - dim_M: integer, the number of design parameters for that pulsar.
+                - gamma_p: the spin–noise damping rate.
+                - sigma_p: the spin–noise white noise amplitude.
+                - f0: the pulsar spin frequency.
+                - sigma_t: the measurement noise standard deviation.
+
+        """
+        self.Npsr = len(df_psr)
+        print("The number of pulsars is:", self.Npsr)
+        self.name = "Stochastic GW background model"
+        # Total state dimension: for each pulsar, two state variables from spin noise,
+        # two from GW noise, and dim_M extra parameters.
+        self.nx = self.Npsr * (2 + 2) + df_psr["dim_M"].sum()
+        self.M = df_psr["dim_M"].values.astype(int)
+
+  
+        self.hellings_downs_matrix = hellings_downs_matrix 
+
+
+
+    def set_global_parameters(self, params: Dict[str, Any]) -> None:
+        """Set global parameters for the model.
+
+        The params dictionary must include:
+            "γp" : np.ndarray
+                Array of spin–noise damping rates for each pulsar.
+            "σp" : np.ndarray
+                Array of spin–noise white noise amplitudes for each pulsar.
+            "γa" : float
+                GW damping rate.
+            "h2" : float
+                Mean–square GW strain (<h²>).
+            "σeps" : float
+                White–noise amplitude for timing model parameters.
+            "separation_angle_matrix": np.ndarray
+                (N x N) symmetric array of angular separations (radians)
+                between pulsars.
+            "f0" : np.ndarray
+                Array of pulsar spin frequencies.
+            "EFAC" : np.ndarray
+                Array of EFAC values for each pulsar.
+            "EQUAD" : np.ndarray
+                Array of EQUAD values for each pulsar.
+
+        Note:
+        ----
+        The parameter dt is calculated from the data and passed directly to F_matrix and Q_matrix.
+
+        """
+        #self.γp = params["γp"]  # shape: (Npsr,)
+
+        self.γa = params["γa"]  # scalar
+
+        # self.σp = params["σp"]  # shape: (Npsr,)
+    
+        self.h2 = params["h2"]  # scalar
+        # self.σeps = params["σeps"]  # scalar (could be extended per pulsar)
+        # self.separation_angle_matrix = params["separation_angle_matrix"]
+        # self.f0 = params["f0"]
+        # self.EFAC = params["EFAC"]
+        # self.EQUAD = params["EQUAD"]
+
+
+
+
+    #this exponential can be reused
+    def build_Fa(self,dt):
+        return np.exp(-self.γa * dt) * np.eye(self.Npsr)
+
+    def build_Qaa(self,dt):
+        return (1 - np.exp(-2 * self.γa * dt)) *self.h2*self.hellings_downs_matrix
+    
+
+
+
+
+    def F_matrix(self):
+        return np.eye(1)
+    
+    def Q_matrix(self):
+        return np.eye(1)
+    
+    def H_matrix(self):
+        return np.eye(1)
+
+    def R_matrix(self):
+        return np.eye(1)
