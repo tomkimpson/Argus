@@ -122,6 +122,7 @@ def test_filter_run_v2():
 
 
 import jax.numpy as jnp
+from src import functional_kalman_filter
 def test_jax_filter_run():
     """Test the KalmanFilter class by loading data, initializing the model, setting parameters, and running the filter."""
 
@@ -155,8 +156,8 @@ def test_jax_filter_run():
 
 
     # Precalculate everyhting we can before calling the likelihood  
-    Npsr = len(pulsar_metadata)
-    local_dim = 3 + pulsar_metadata["dim_M"] #phi,f,r plus M terms. The `a`` variable is not included here
+    Npsr = len(pulsar_metadata.to_numpy())
+    local_dim = 3 + pulsar_metadata["dim_M"].to_numpy() #phi,f,r plus M terms. The `a`` variable is not included here
     
     obs_times  = jnp.array(processed_pulsar_residuals[:,0])
     obs_value  = jnp.array(processed_pulsar_residuals[:,1])
@@ -164,7 +165,28 @@ def test_jax_filter_run():
     obs_pulsar = jnp.array(processed_pulsar_residuals[:,3]) #.astype(int)
 
 
-    x0_list = jnp.array([jnp.zeros(ld) for ld in local_dim])
+    params = {
+        "gamma_a": 0.01,
+        "Sigma_a":jnp.array(correlation_matrix)
+    }
+
+    a0 = jnp.zeros(Npsr)           # global
+    P_GG0 = jnp.eye(Npsr)*1e6
+    x0_list = [jnp.zeros(ld) for ld in local_dim]
+    P_xx0_list = [jnp.eye(ld)*1e6 for ld in local_dim]
+    P_xG0_list = [ jnp.zeros((ld, Npsr)) for ld in local_dim]
+
+
+
+    # Evaluate negative log-likelihood
+    nll_value = functional_kalman_filter.neg_log_likelihood(params,
+                                   local_dim,
+                                   obs_times, obs_pulsar, obs_value, obs_var,
+                                   a0, P_GG0,
+                                   x0_list, P_xx0_list, P_xG0_list)
+
+    print("Negative Log-Likelihood =", nll_value)
+
 
     #print(x0_list.shape)
     # known_parameters = {
