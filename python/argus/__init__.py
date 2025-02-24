@@ -1,0 +1,1 @@
+"""Inits src directory."""

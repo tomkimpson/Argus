@@ -1,0 +1,18 @@
+{{ [pkgname," API Documentation"] | join | heading(1) }}
+
+{% macro automodule(modname, options) -%}
+.. automodule:: {{ modname }}
+{%- for option in options %}
+   :{{ option }}:
+{%- endfor %}
+{%- endmacro %}
+{{- automodule(pkgname, automodule_options) }}
+
+{%- if submodules %}
+
+{{ 'Submodules' | heading(2) }}
+{% for submodule in submodules %}
+{{ submodule | heading(3) }}
+{{ automodule(submodule, automodule_options) }}
+{% endfor %}
+{%- endif %}

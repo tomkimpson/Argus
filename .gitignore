@@ -1,1 +1,71 @@
-**/__pycache__
+# vim:syntax=sh
+# vim:filetype=sh
+
+# This template file isn't needed, once config is done.  Remove it and
+# then you can remove this entry as well, if you'd like
+INSTRUCTIONS.template
+
+# Prevent the commit of analysis products
+*.npy
+*.png
+
+# Build products
+*.o
+*.a
+
+# Some annoying Apple stuff
+.DS_Store
+*.dSYM
+
+# Python stuff
+*.pyc
+*.egg
+*.eggs
+*.egg-info
+__pycache__
+.pytest_cache
+.src
+.cache
+.ropeproject
+
+# Virtual env stuff
+venv
+.venv
+
+# Pyenv stuff
+.python-version
+
+# Poetry stuff
+dist
+poetry.toml
+
+# JetBrains stuff
+.idea
+
+# .vi swap files
+*.*.swp
+
+# tag files
+.tags
+
+# cmake stuff
+.cmake-tmp*
+
+# Common names for out-of-source build directories
+cmake-build-*
+build-*
+build
+_build
+
+# Scratch directories/files
+.tests
+.project_aux.json
+
+#Miscillaneous
+.install*
+*.old
+.ipynb_checkpoints
+local
+htmlcov
+.coverage
+*.log
