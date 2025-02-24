@@ -46,8 +46,8 @@ class ScalarKalmanFilter:
 
     def predict(self,dt):
         """Predict the next state and covariance."""
-        F = self.F #self.model.F_matrix(dt)
-        Q = self.Q #self.model.Q_matrix(dt)
+        F = self.model.F_matrix(dt)
+        Q = self.model.Q_matrix(dt)
 
     
         self.xp = F @ self.x 
@@ -77,12 +77,7 @@ class ScalarKalmanFilter:
         #Initialise x and P, the likelihood, and the index i
         self.x,self.P,self.ll,i = self.x0,self.P0,0.0,int(0)  
  
-        
-
-        self.F = self.model.F_matrix(0.1)
-        self.Q = self.model.Q_matrix(0.1)
-        
-
+          
         #Do the first update step
         ##For the first update step, just assign the predicted values to be the states
         self.xp,self.Pp = self.x, self.P 
@@ -103,7 +98,10 @@ class ScalarKalmanFilter:
             
 
 
+class JAXKalmanFilter:
 
+
+    
 
 
 
