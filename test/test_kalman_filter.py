@@ -155,92 +155,24 @@ def test_jax_filter_run():
     print("Total number of pulsars is ", len(pulsar_metadata))# Calculate the size of the DataFrame in MB
 
 
-    # Precalculate everyhting we can before calling the likelihood  
-    Npsr = len(pulsar_metadata.to_numpy())
-    local_dim = 3 + pulsar_metadata["dim_M"].to_numpy() #phi,f,r plus M terms. The `a`` variable is not included here
+    # # Precalculate everyhting we can before calling the likelihood  
+    # Npsr = len(pulsar_metadata.to_numpy())
+    # local_dim = 3 + pulsar_metadata["dim_M"].to_numpy() #phi,f,r plus M terms. The `a`` variable is not included here
     
-    obs_times  = jnp.array(processed_pulsar_residuals[:,0])
-    obs_value  = jnp.array(processed_pulsar_residuals[:,1])
-    obs_var    = jnp.array(processed_pulsar_residuals[:,2])
-    obs_pulsar = jnp.array(processed_pulsar_residuals[:,3]) #.astype(int)
+    # obs_times  = np.array(processed_pulsar_residuals[:,0])
+    # obs_value  = np.array(processed_pulsar_residuals[:,1])
+    # obs_var    = np.array(processed_pulsar_residuals[:,2])
+    # obs_pulsar = np.array(processed_pulsar_residuals[:,3]) #.astype(int)
 
 
-    params = {
-        "gamma_a": 0.01,
-        "Sigma_a":jnp.array(correlation_matrix)
-    }
-
-    a0 = jnp.zeros(Npsr)           # global
-    P_GG0 = jnp.eye(Npsr)*1e6
-    x0_list = [jnp.zeros(ld) for ld in local_dim]
-    P_xx0_list = [jnp.eye(ld)*1e6 for ld in local_dim]
-    P_xG0_list = [ jnp.zeros((ld, Npsr)) for ld in local_dim]
-
-
-
-    # Evaluate negative log-likelihood
-    nll_value = functional_kalman_filter.neg_log_likelihood(params,
-                                   local_dim,
-                                   obs_times, obs_pulsar, obs_value, obs_var,
-                                   a0, P_GG0,
-                                   x0_list, P_xx0_list, P_xG0_list)
-
-    print("Negative Log-Likelihood =", nll_value)
-
-
-    #print(x0_list.shape)
-    # known_parameters = {
-    # }
-
-
-
-    # parameters_to_be_estimated = {
-    # }
-
-
-    
-    # # Total state dimension: for each pulsar, two state variables from spin noise,
-    #     # two from GW noise, and dim_M extra parameters.
-    #     self.nx = self.Npsr * (2 + 2) + df_psr["dim_M"].sum()
-    #     self.M = df_psr["dim_M"].values.astype(int)
-
-    # #N =         self.Npsr = len(df_psr)
-    #     print("The number of pulsars is:", self.Npsr)
-    #     self.name = "Stochastic GW background model"
-    #     # Total state dimension: for each pulsar, two state variables from spin noise,
-    #     # two from GW noise, and dim_M extra parameters.
-    #     self.nx = self.Npsr * (2 + 2) + df_psr["dim_M"].sum()
-    #     self.M = df_psr["dim_M"].values.astype(int)
-
-
-    # #Initialize the GW background model 
-    # print("Initializing the model")
-    # model = models.JAXStochasticGWBackgroundModel(pulsar_metadata,correlation_matrix)
-
-
-    # #Initialize the Kalman Filter
-    # x0 = np.zeros(model.nx)
-    # P0 = np.eye(model.nx)*1e-12
-
-    
-    # print("Initialise the Kalman filter")
-    # KF=kalman_filter.JAXKalmanFilter(model=model,observations=processed_pulsar_residuals,x0=x0,P0=P0)
-
-
-    # print("set global params")
-    # # # Set global parameters.
     # params = {
-    #     'γa': 1e-1,                    # s⁻¹
-    #     'γp': 1e-1*np.ones(len(pulsar_metadata)),
-    #     'σp': 1e-20 * np.ones(len(pulsar_metadata)),
-    #     'h2': 1e-12,
-    #     'σeps': 1e-20,
-    #     'separation_angle_matrix': angular_separation_matrix,
-    #     'f0': 100*np.ones(len(pulsar_metadata)), #everything is 100 Hz for now
-    #     'EFAC': np.ones(len(pulsar_metadata)),
-    #     'EQUAD':np.ones(len(pulsar_metadata))
+    #     "gamma_a": 0.01,
+    #     "Sigma_a":jnp.array(correlation_matrix)
     # }
 
-    # print("Iterate")
-    # KF.get_likelihood(params)
+
+
+    # nll_value = functional_kalman_filter.neg_log_likelihood(params)
+
+
 
