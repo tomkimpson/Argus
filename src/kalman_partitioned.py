@@ -6,6 +6,7 @@ from typing import List, Dict, Tuple, NamedTuple, Any
 import time
 from common import Measurement, PulsarState, KalmanState, compute_hellings_downs_matrix
 from utils import generate_test_data, print_data_summary
+from tqdm import tqdm
 
 ###############################################################################
 #               PART 1: Data Structures and Utilities
@@ -36,26 +37,6 @@ class KalmanState(NamedTuple):
 ###############################################################################
 #               PART 1: Utility Functions
 ###############################################################################
-
-def compute_hellings_downs_matrix(phi: np.ndarray, theta: np.ndarray) -> np.ndarray:
-    """Compute Hellings-Downs correlation matrix from pulsar sky positions."""
-    Npsr = len(phi)
-    matrix = np.zeros((Npsr, Npsr))
-    
-    for i in range(Npsr):
-        for j in range(i, Npsr):
-            if i == j:
-                matrix[i,j] = 1.0
-            else:
-                cos_ang = (np.sin(theta[i]) * np.sin(theta[j]) * 
-                          np.cos(phi[i] - phi[j]) + 
-                          np.cos(theta[i]) * np.cos(theta[j]))
-                cos_ang = np.clip(cos_ang, -1.0, 1.0)
-                ang = np.arccos(cos_ang)
-                hd = 3 * (1-np.cos(ang))/2 * np.log((1-np.cos(ang))/2) - (1-np.cos(ang))/4 + 1/2
-                matrix[i,j] = hd
-                matrix[j,i] = hd
-    return matrix
 
 def compute_state_dimensions(N: int, dims_p: List[int]) -> Tuple[List[int], List[int], int]:
     """Compute various state space dimensions.
@@ -446,24 +427,77 @@ def kalman_update_scalar(
     state: KalmanState,
     H: np.ndarray,
     R: float,
-    y: float
+    y: float,
+    psr_idx: int
 ) -> KalmanState:
-    """Scalar measurement update returning new state."""
-    # Merge state components
-    X, P = merge_state_components(state)
+    """Scalar measurement update handling a and x components separately."""
+    # Split measurement matrix into a and x parts
+    H_a = H[0, :state.a.size]  # Shape (N,)
+    start_idx = state.a.size + sum(3 + len(p.eps) for p in state.pulsar_states[:psr_idx])
+    state_size = 3 + len(state.pulsar_states[psr_idx].eps)
+    H_x = H[0, start_idx:start_idx + state_size]  # Shape (state_size,)
     
-    # Standard Kalman update
-    y_pred = (H @ X).item()
+    # Compute predicted measurement (scalar)
+    y_pred_a = H_a @ state.a
+    ps = state.pulsar_states[psr_idx]
+    y_pred_x = (H_x[0] * ps.phi + 
+                H_x[1] * ps.freq + 
+                H_x[2] * ps.r + 
+                H_x[3:] @ ps.eps)
+    y_pred = y_pred_a + y_pred_x
+    
+    # Innovation (scalar)
     inn = y - y_pred
-    S = (H @ P @ H.T).item() + R + 1e-10
-    K = (P @ H.T)/S
-    X_upd = X + K.flatten()*inn
-    P_upd = P - np.outer(K, H @ P)
-    P_upd = (P_upd + P_upd.T)/2
     
-    # Split back into components
-    return split_state_components(X_upd, P_upd, len(state.pulsar_states), 
-                                [len(ps.eps) for ps in state.pulsar_states])
+    # Innovation covariance (scalar)
+    S = R + 1e-10
+    S += float(H_a @ state.P_aa @ H_a)  # a contribution
+    S += float(H_x @ state.P_xx[(psr_idx,psr_idx)] @ H_x)  # x contribution
+    S += 2 * float(H_a @ state.P_ax[psr_idx] @ H_x)  # cross terms
+    
+    # Kalman gains
+    K_a = (state.P_aa @ H_a + state.P_ax[psr_idx] @ H_x) / S  # Shape (N,)
+    K_x = (state.P_xx[(psr_idx,psr_idx)] @ H_x + 
+           state.P_ax[psr_idx].T @ H_a) / S  # Shape (state_size,)
+    
+    # Update means
+    a_new = state.a + K_a * inn
+    
+    # Update pulsar states
+    pulsar_states_new = []
+    for i, ps in enumerate(state.pulsar_states):
+        if i == psr_idx:
+            pulsar_states_new.append(PulsarState(
+                phi=ps.phi + K_x[0] * inn,
+                freq=ps.freq + K_x[1] * inn,
+                r=ps.r + K_x[2] * inn,
+                eps=ps.eps + K_x[3:] * inn
+            ))
+        else:
+            pulsar_states_new.append(ps)
+    
+    # Update covariances using Joseph form
+    # P = (I - KH)P(I - KH)' + KRK'
+    
+    # Update P_aa
+    P_aa_new = state.P_aa - np.outer(K_a, H_a) @ state.P_aa
+    
+    # Copy unchanged blocks
+    P_xx_new = dict(state.P_xx)
+    P_ax_new = list(state.P_ax)
+    
+    # Update P_xx for measured pulsar
+    P_xx_block = state.P_xx[(psr_idx,psr_idx)]
+    P_xx_new[(psr_idx,psr_idx)] = P_xx_block - np.outer(K_x, H_x) @ P_xx_block
+    
+    # Update P_ax for measured pulsar
+    # P_ax = P_ax - K_a * H_x * P_xx
+    P_ax_block = state.P_ax[psr_idx]  # Shape (N, state_size)
+    K_a_reshaped = K_a.reshape(-1, 1)  # Shape (N, 1)
+    H_x_reshaped = H_x.reshape(1, -1)  # Shape (1, state_size)
+    P_ax_new[psr_idx] = P_ax_block - K_a_reshaped @ H_x_reshaped @ P_xx_block
+    
+    return KalmanState(a_new, P_aa_new, pulsar_states_new, P_xx_new, P_ax_new)
 
 
 ###############################################################################
@@ -471,60 +505,47 @@ def kalman_update_scalar(
 ###############################################################################
 
 def run_kalman_filter(
-    measurements: List[Measurement],
+    dt_values: np.ndarray,       # Pre-computed time differences
+    values: np.ndarray,          # Measurement values
+    errors: np.ndarray,          # Measurement errors
+    psr_indices: np.ndarray,     # Pulsar indices for each measurement
     params: Dict[str, Any],
     initial_state: KalmanState,
-    N: int,
-    dims_p: List[int],
-    f0_list: List[float],
+    H_matrices: List[np.ndarray],
     hellings_downs_matrix: np.ndarray,
     verbose: bool = True
 ) -> Tuple[List[KalmanState], float]:
     """Run complete Kalman filter over all data."""
-    start_time = time.time()
-    
-    # Pre-compute dimensions and matrices
-    pulsar_state_dims, state_starts, total_size = compute_state_dimensions(N, dims_p)
-    H_matrices = build_measurement_matrices(N, dims_p, f0_list, state_starts, total_size)
-    
     # Initialize storage
     states = [initial_state]
     total_log_likelihood = 0.0
-    
-    # Main Kalman filter loop
     current_state = initial_state
-    prev_time = measurements[0].time
     
-    for i, m in enumerate(measurements[1:], 1):
-        if verbose and i % max(1, len(measurements)//10) == 0:
-            print(f"Step {i}/{len(measurements)} ({100*i/len(measurements):.1f}%)")
-        
+    # Main Kalman filter loop with tqdm progress bar
+    pbar = tqdm(range(len(dt_values)), disable=not verbose)
+    
+    for i in pbar:
         # Predict step
-        dt = m.time - prev_time
-        current_state = predict_step(
-            current_state, dt, params, hellings_downs_matrix
-        )
+        current_state = predict_step(current_state, dt_values[i], params, hellings_downs_matrix)
         
         # Update step
-        H = H_matrices[m.pulsar_idx]
-        current_state = kalman_update_scalar(
-            current_state, H, m.error**2, m.value
-        )
+        H = H_matrices[psr_indices[i+1]]
+        current_state = kalman_update_scalar(current_state, H, errors[i+1]**2, values[i+1], psr_indices[i+1])
         
         # Update likelihood
-        X, P = merge_state_components(current_state)  # Merge for likelihood calculation
+        X, P = merge_state_components(current_state)
         y_pred = (H @ X).item()
-        inn = m.value - y_pred
-        S = (H @ P @ H.T).item() + m.error**2 + 1e-10
+        inn = values[i+1] - y_pred
+        S = (H @ P @ H.T).item() + errors[i+1]**2 + 1e-10
         total_log_likelihood += -0.5 * (np.log(2*np.pi) + np.log(S) + inn**2/S)
         
         states.append(current_state)
-        prev_time = m.time
     
     if verbose:
-        elapsed_time = time.time() - start_time
-        print(f"\nTotal runtime: {elapsed_time:.2f} seconds")
-        print(f"Measurements per second: {len(measurements)/elapsed_time:.1f}")
+        total_time = pbar.format_dict["elapsed"]
+        iterations_per_sec = len(dt_values) / total_time
+        print(f"\nTotal runtime: {total_time:.2f} seconds")
+        print(f"Iterations per second: {iterations_per_sec:.1f}")
     
     return states, float(total_log_likelihood)
 
@@ -540,6 +561,10 @@ if __name__ == "__main__":
         years=years,
         nominal_cadence=cadence
     )
+    
+    # Pre-compute all dimensions and measurement matrices
+    pulsar_state_dims, state_starts, total_size = compute_state_dimensions(Npsr, M_list)
+    H_matrices = build_measurement_matrices(Npsr, M_list, f0_list, state_starts, total_size)
     
     # Initialize state
     total_state_size = Npsr + sum(3 + M for M in M_list)
@@ -586,10 +611,23 @@ if __name__ == "__main__":
         total_state_size=total_state_size
     )
     
-    # Run complete Kalman filter
+    # Extract and pre-compute arrays from measurements
+    times = np.array([m.time for m in measurements])
+    dt_values = np.diff(times)  # Pre-compute time differences
+    values = np.array([m.value for m in measurements])
+    errors = np.array([m.error for m in measurements])
+    psr_indices = np.array([m.pulsar_idx for m in measurements])
+    
+    # Run complete Kalman filter with pre-computed arrays
     states, log_like = run_kalman_filter(
-        measurements, params, initial_state, 
-        Npsr, M_list, f0_list, hellings_downs_matrix
+        dt_values=dt_values,     # Pass pre-computed differences instead of times
+        values=values,
+        errors=errors,
+        psr_indices=psr_indices,
+        params=params,
+        initial_state=initial_state,
+        H_matrices=H_matrices,
+        hellings_downs_matrix=hellings_downs_matrix
     )
     
     # Print summary statistics
