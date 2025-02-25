@@ -92,4 +92,21 @@ def print_data_summary(
     
     print(f"\nState space dimensions:")
     print(f"GW amplitudes: {Npsr}")
-    print(f"Total state dimension: {total_state_size}") 
+    print(f"Total state dimension: {total_state_size}")
+
+def compute_state_dimensions(N: int, dims_p: List[int]) -> Tuple[List[int], List[int], int]:
+    """Compute various state space dimensions.
+    
+    Returns
+    -------
+    pulsar_state_dims : List[int]
+        Size of each pulsar's state vector (3 + M)
+    state_starts : List[int]
+        Starting index for each pulsar's state
+    total_size : int
+        Total size of state vector
+    """
+    pulsar_state_dims = [3 + M for M in dims_p]
+    state_starts = [N + sum(pulsar_state_dims[:i]) for i in range(N)]
+    total_size = N + sum(pulsar_state_dims)
+    return pulsar_state_dims, state_starts, total_size 

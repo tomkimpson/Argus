@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import List, Dict, Tuple, NamedTuple, Any
 import time
 from common import Measurement, PulsarState, KalmanState, compute_hellings_downs_matrix
-from utils import generate_test_data, print_data_summary
+from utils import generate_test_data, print_data_summary, compute_state_dimensions
 from tqdm import tqdm
 
 ###############################################################################
@@ -27,60 +27,46 @@ class PulsarState(NamedTuple):
     eps: np.ndarray # Timing parameters
 
 class KalmanState(NamedTuple):
-    """Complete state of the system."""
-    a: np.ndarray              # GW amplitudes (N,)
-    P_aa: np.ndarray          # GW amplitude covariance (N,N)
-    pulsar_states: List[PulsarState]  # List of N pulsar states
-    P_xx: Dict[Tuple[int,int], np.ndarray]  # Pulsar-pulsar covariances
-    P_ax: List[np.ndarray]    # GW-pulsar cross covariances
+    """Complete state of the system using efficient array operations.
+    
+    Attributes
+    ----------
+    a : ndarray, shape (N,)
+        GW amplitudes for N pulsars
+    
+    P_aa : ndarray, shape (N, N)
+        GW amplitude covariance matrix
+    
+    pulsar_states : ndarray, shape (N, max_state_size)
+        Combined state array for all pulsars where max_state_size = 3 + max(M_list)
+        Each row contains: [phi, freq, r, eps_1, ..., eps_M]
+        Note: If a pulsar has fewer than max(M_list) parameters, extra entries are unused
+    
+    P_xx : ndarray, shape (N, N, max_state_size, max_state_size)
+        Pulsar-pulsar covariances
+        P_xx[i,j] gives the covariance between pulsar i's state and pulsar j's state
+    
+    P_ax : ndarray, shape (N, N, max_state_size)
+        GW-pulsar cross covariances
+        P_ax[i,j] gives covariance between GW amplitude i and pulsar j's state
+    
+    state_sizes : ndarray, shape (N,)
+        Number of state variables for each pulsar (3 + M_i)
+    
+    state_starts : ndarray, shape (N,)
+        Starting index for each pulsar's state in the full state vector
+    """
+    a: np.ndarray              
+    P_aa: np.ndarray          
+    pulsar_states: np.ndarray  
+    P_xx: np.ndarray          
+    P_ax: np.ndarray          
+    state_sizes: np.ndarray    
+    state_starts: np.ndarray   
 
 ###############################################################################
 #               PART 1: Utility Functions
 ###############################################################################
-
-def compute_state_dimensions(N: int, dims_p: List[int]) -> Tuple[List[int], List[int], int]:
-    """Compute various state space dimensions.
-    
-    Returns
-    -------
-    pulsar_state_dims : List[int]
-        Size of each pulsar's state vector (3 + M)
-    state_starts : List[int]
-        Starting index for each pulsar's state
-    total_size : int
-        Total size of state vector
-    """
-    pulsar_state_dims = [3 + M for M in dims_p]
-    state_starts = [N + sum(pulsar_state_dims[:i]) for i in range(N)]
-    total_size = N + sum(pulsar_state_dims)
-    return pulsar_state_dims, state_starts, total_size
-
-def build_measurement_matrices(
-    N: int,
-    dims_p: List[int],
-    f0_list: List[float],
-    state_starts: List[int],
-    total_size: int
-) -> List[np.ndarray]:
-    """Build measurement matrices for all pulsars."""
-    H_matrices = []
-    
-    start_idx = N  # Start after GW amplitudes
-    for j in range(N):
-        H = np.zeros((1, total_size))
-        # GW amplitude contribution
-        H[0, j] = 0  # Usually zero, set in predict step
-        
-        # Pulsar state contribution
-        state_size = 3 + dims_p[j]
-        H[0, state_starts[j]] = 1/f0_list[j]      # phi term
-        H[0, state_starts[j] + 2] = -1            # r term
-        H[0, state_starts[j] + 3:state_starts[j] + state_size] = 1.0  # timing parameters
-        
-        start_idx += state_size
-        H_matrices.append(H)
-    
-    return H_matrices
 
 ###############################################################################
 #               PART 2: Building Model Blocks
@@ -264,10 +250,11 @@ def predict_step(
     params: Dict[str, Any],
     hellings_downs_matrix: np.ndarray
 ) -> KalmanState:
-    """Predict step maintaining separate a and x states."""
-    N = len(state.pulsar_states)
+    """Predict step maintaining separate a and x states using efficient array operations."""
+    N = len(state.a)
+    max_state_size = state.pulsar_states.shape[1]
     
-    # 1. Predict GW amplitudes
+    # 1. Predict GW amplitudes (a)
     F_a = np.exp(-params["gamma_a"]*dt) * np.eye(N)
     a_pred = F_a @ state.a
     
@@ -275,71 +262,82 @@ def predict_step(
            (params["h_a"]**2/6) * hellings_downs_matrix)
     P_aa_pred = F_a @ state.P_aa @ F_a.T + Q_a
     
-    # 2. Build transition matrices for all pulsars
-    F_p_list = []
-    G_list = []
-    Q_p_list = []
+    # 2. Build transition and noise matrices for all pulsars
+    pulsar_states_pred = state.pulsar_states.copy()
+    P_xx_pred = state.P_xx.copy()
+    P_ax_pred = state.P_ax.copy()
+    
+    # Process each pulsar
     for n in range(N):
+        state_size = state.state_sizes[n]
         gamma_p = params["gamma_p"][n]
-        M = len(state.pulsar_states[n].eps)
         
-        F_p_list.append(build_F_p_block(gamma_p, dt, M))
-        G_list.append(build_G_block(dt, N, n, M))
-        Q_p_list.append(build_Q_p_block(
-            gamma_p, params["sigma_p"][n], params["sigma_eps"], dt, M))
-    
-    # 3. Predict pulsar states
-    pulsar_states_pred = []
-    for n in range(N):
-        ps = state.pulsar_states[n]
-        F_pn = F_p_list[n]
-        Gn = G_list[n]
+        # Build F_p block (pad to max_state_size)
+        F_p = np.zeros((max_state_size, max_state_size))
+        F_p[:state_size, :state_size] = np.eye(state_size)
+        F_p[0,1] = dt  # phi evolution
+        F_p[1,1] = np.exp(-gamma_p*dt)  # freq evolution
         
-        # Predict mean
-        phi_pred = ps.phi + dt * ps.freq
-        freq_pred = np.exp(-params["gamma_p"][n]*dt) * ps.freq
-        r_pred = ps.r + dt * state.a[n]
-        eps_pred = ps.eps  # Random walk
+        # Build Q_p block (pad to max_state_size)
+        Q_p = np.zeros((max_state_size, max_state_size))
+        Q_p[1,1] = params["sigma_p"][n]**2 * (1.0 - np.exp(-2.0*gamma_p*dt))/(2.0*gamma_p)
+        Q_p[3:state_size,3:state_size] = params["sigma_eps"]**2 * dt * np.eye(state_size - 3)
         
-        pulsar_states_pred.append(PulsarState(
-            phi_pred, freq_pred, r_pred, eps_pred))
-    
-    # 4. Predict covariances
-    P_xx_pred = {}
-    P_ax_pred = []
-    P_xa_pred = []
-    
-    # 4a. Predict pulsar-pulsar covariances
-    for n in range(N):
-        for m in range(N):
-            P_xx_pred[(n,m)] = predict_pulsar_cov(
-                n, m,
-                state.P_aa,
-                state.P_xx,
-                state.P_ax,
-                [P.T for P in state.P_ax],  # P_xa = P_ax.T
-                F_p_list[n],
-                F_p_list[m],
-                G_list[n],
-                G_list[m],
-                Q_p_list[n] if n==m else None
-            )
-    
-    # 4b. Predict a-x cross covariances
-    for n in range(N):
-        P_ax_new = predict_ax_cov(
-            n, F_a, state.P_aa, state.P_ax[n],
-            F_p_list[n], G_list[n]
+        # Build G block (coupling matrix)
+        G = np.zeros((max_state_size, N))
+        G[2,n] = dt  # r evolution coupled to a
+        
+        # Predict pulsar state
+        pulsar_states_pred[n,:state_size] = (
+            F_p[:state_size,:state_size] @ state.pulsar_states[n,:state_size] + 
+            G[:state_size,:] @ state.a
         )
-        P_ax_pred.append(P_ax_new)
-        P_xa_pred.append(P_ax_new.T)
+        
+        # Update diagonal covariance block
+        P_xx_pred[n,n] = (
+            F_p @ state.P_xx[n,n] @ F_p.T + 
+            F_p @ state.P_ax[n].T @ G.T +
+            G @ state.P_ax[n] @ F_p.T +
+            G @ state.P_aa @ G.T +
+            Q_p
+        )
+        
+        # Update cross covariances
+        P_ax_pred[n] = (
+            F_a @ state.P_ax[n] @ F_p.T +
+            F_a @ state.P_aa @ G.T
+        )
+        
+        # Update off-diagonal blocks
+        for m in range(n+1, N):
+            state_size_m = state.state_sizes[m]
+            
+            # Build F_m block (pad to max_state_size)
+            F_m = np.zeros((max_state_size, max_state_size))
+            F_m[:state_size_m, :state_size_m] = np.eye(state_size_m)
+            F_m[0,1] = dt
+            F_m[1,1] = np.exp(-params["gamma_p"][m]*dt)
+            
+            # Build G_m block
+            G_m = np.zeros((max_state_size, N))
+            G_m[2,m] = dt
+            
+            P_xx_pred[n,m] = (
+                F_p @ state.P_xx[n,m] @ F_m.T +
+                F_p @ state.P_ax[m].T @ G_m.T +
+                G @ state.P_ax[m] @ F_m.T +
+                G @ state.P_aa @ G_m.T
+            )
+            P_xx_pred[m,n] = P_xx_pred[n,m].T
     
     return KalmanState(
         a=a_pred,
         P_aa=P_aa_pred,
         pulsar_states=pulsar_states_pred,
         P_xx=P_xx_pred,
-        P_ax=P_ax_pred
+        P_ax=P_ax_pred,
+        state_sizes=state.state_sizes,
+        state_starts=state.state_starts
     )
 
 
@@ -347,157 +345,74 @@ def predict_step(
 #               PART 4: A Simple Kalman Update (for measurement)
 ###############################################################################
 
-def merge_state_components(state: KalmanState) -> Tuple[np.ndarray, np.ndarray]:
-    """Merge partitioned state into single state vector and covariance matrix."""
-    # Merge state vector
-    X = np.concatenate([
-        state.a,
-        *[np.concatenate([
-            [ps.phi, ps.freq, ps.r],
-            ps.eps
-        ]) for ps in state.pulsar_states]
-    ])
-    
-    # Get dimensions
-    N = len(state.pulsar_states)
-    dims = [3 + len(ps.eps) for ps in state.pulsar_states]
-    total_size = state.a.size + sum(dims)
-    
-    # Build full covariance matrix
-    P = np.zeros((total_size, total_size))
-    
-    # Fill GW amplitude block
-    P[:state.a.size, :state.a.size] = state.P_aa
-    
-    # Fill pulsar-pulsar blocks
-    start_idx = state.a.size
-    for i in range(N):
-        for j in range(N):
-            P[start_idx:start_idx + dims[i], 
-              state.a.size + sum(dims[:j]):state.a.size + sum(dims[:j+1])] = state.P_xx[(i,j)]
-        start_idx += dims[i]
-    
-    # Fill cross-covariance blocks
-    start_idx = state.a.size
-    for i in range(N):
-        P[:state.a.size, start_idx:start_idx + dims[i]] = state.P_ax[i]
-        P[start_idx:start_idx + dims[i], :state.a.size] = state.P_ax[i].T
-        start_idx += dims[i]
-    
-    return X, P
-
-def split_state_components(X: np.ndarray, P: np.ndarray, N: int, dims_p: List[int]) -> KalmanState:
-    """Split state vector and covariance matrix back into partitioned components."""
-    # Split state vector
-    a = X[:N]
-    start_idx = N
-    pulsar_states = []
-    for M in dims_p:
-        pulsar_states.append(PulsarState(
-            phi=X[start_idx],
-            freq=X[start_idx + 1],
-            r=X[start_idx + 2],
-            eps=X[start_idx + 3:start_idx + 3 + M]
-        ))
-        start_idx += 3 + M
-    
-    # Split covariance matrix
-    P_aa = P[:N, :N]
-    P_xx = {}
-    P_ax = []
-    
-    start_idx = N
-    for i, M_i in enumerate(dims_p):
-        dim_i = 3 + M_i
-        # Extract cross-covariance
-        P_ax.append(P[:N, start_idx:start_idx + dim_i])
-        
-        # Extract pulsar-pulsar blocks
-        col_idx = N
-        for j, M_j in enumerate(dims_p):
-            dim_j = 3 + M_j
-            P_xx[(i,j)] = P[start_idx:start_idx + dim_i, 
-                           col_idx:col_idx + dim_j]
-            col_idx += dim_j
-        start_idx += dim_i
-    
-    return KalmanState(a, P_aa, pulsar_states, P_xx, P_ax)
-
 def kalman_update_scalar(
     state: KalmanState,
-    H: np.ndarray,
-    R: float,
-    y: float,
-    psr_idx: int
+    value: float,
+    error: float,
+    psr_idx: int,
+    f0_list: List[float]
 ) -> KalmanState:
     """Scalar measurement update handling a and x components separately."""
-    # Split measurement matrix into a and x parts
-    H_a = H[0, :state.a.size]  # Shape (N,)
-    start_idx = state.a.size + sum(3 + len(p.eps) for p in state.pulsar_states[:psr_idx])
-    state_size = 3 + len(state.pulsar_states[psr_idx].eps)
-    H_x = H[0, start_idx:start_idx + state_size]  # Shape (state_size,)
+    # Build measurement matrix for this pulsar
+    N = len(state.a)  # Number of pulsars
+    state_size = state.state_sizes[psr_idx]  # Size of this pulsar's state
+    
+    # Build measurement vectors (more efficient than building full H matrix)
+    H_a = np.zeros(N)
+    H_a[psr_idx] = state.pulsar_states[psr_idx, 2]  # r component
+    
+    H_x = np.zeros(state.pulsar_states.shape[1])  # max_state_size
+    H_x[0] = 1/f0_list[psr_idx]      # phi term
+    H_x[2] = -1                       # r term
+    H_x[3:state_size] = 1.0          # timing parameters
     
     # Compute predicted measurement (scalar)
     y_pred_a = H_a @ state.a
-    ps = state.pulsar_states[psr_idx]
-    y_pred_x = (H_x[0] * ps.phi + 
-                H_x[1] * ps.freq + 
-                H_x[2] * ps.r + 
-                H_x[3:] @ ps.eps)
+    y_pred_x = H_x[:state_size] @ state.pulsar_states[psr_idx, :state_size]
     y_pred = y_pred_a + y_pred_x
     
     # Innovation (scalar)
-    inn = y - y_pred
+    inn = value - y_pred
     
     # Innovation covariance (scalar)
-    S = R + 1e-10
+    S = error**2 + 1e-10
     S += float(H_a @ state.P_aa @ H_a)  # a contribution
-    S += float(H_x @ state.P_xx[(psr_idx,psr_idx)] @ H_x)  # x contribution
-    S += 2 * float(H_a @ state.P_ax[psr_idx] @ H_x)  # cross terms
+    S += float(H_x[:state_size] @ state.P_xx[psr_idx,psr_idx,:state_size,:state_size] @ H_x[:state_size])  # x contribution
+    S += 2 * float(H_a @ state.P_ax[:,psr_idx,:state_size] @ H_x[:state_size])  # cross terms
     
     # Kalman gains
-    K_a = (state.P_aa @ H_a + state.P_ax[psr_idx] @ H_x) / S  # Shape (N,)
-    K_x = (state.P_xx[(psr_idx,psr_idx)] @ H_x + 
-           state.P_ax[psr_idx].T @ H_a) / S  # Shape (state_size,)
+    K_a = (state.P_aa @ H_a + state.P_ax[:,psr_idx,:state_size] @ H_x[:state_size]) / S  # Shape (N,)
+    K_x = (state.P_xx[psr_idx,psr_idx,:state_size,:state_size] @ H_x[:state_size] + 
+           state.P_ax[:,psr_idx,:state_size].T @ H_a) / S  # Shape (state_size,)
     
     # Update means
     a_new = state.a + K_a * inn
+    pulsar_states_new = state.pulsar_states.copy()
+    pulsar_states_new[psr_idx,:state_size] += K_x * inn
     
-    # Update pulsar states
-    pulsar_states_new = []
-    for i, ps in enumerate(state.pulsar_states):
-        if i == psr_idx:
-            pulsar_states_new.append(PulsarState(
-                phi=ps.phi + K_x[0] * inn,
-                freq=ps.freq + K_x[1] * inn,
-                r=ps.r + K_x[2] * inn,
-                eps=ps.eps + K_x[3:] * inn
-            ))
-        else:
-            pulsar_states_new.append(ps)
+    # Update covariances
+    # P_aa update
+    P_aa_new = state.P_aa - np.outer(K_a, H_a @ state.P_aa)
     
-    # Update covariances using Joseph form
-    # P = (I - KH)P(I - KH)' + KRK'
+    # P_xx update (only the block for measured pulsar)
+    P_xx_new = state.P_xx.copy()
+    P_xx_new[psr_idx,psr_idx,:state_size,:state_size] -= (
+        np.outer(K_x, H_x[:state_size] @ state.P_xx[psr_idx,psr_idx,:state_size,:state_size])
+    )
     
-    # Update P_aa
-    P_aa_new = state.P_aa - np.outer(K_a, H_a) @ state.P_aa
+    # P_ax update
+    P_ax_new = state.P_ax.copy()
+    P_ax_new[:,psr_idx,:state_size] -= np.outer(K_a, H_x[:state_size] @ state.P_xx[psr_idx,psr_idx,:state_size,:state_size])
     
-    # Copy unchanged blocks
-    P_xx_new = dict(state.P_xx)
-    P_ax_new = list(state.P_ax)
-    
-    # Update P_xx for measured pulsar
-    P_xx_block = state.P_xx[(psr_idx,psr_idx)]
-    P_xx_new[(psr_idx,psr_idx)] = P_xx_block - np.outer(K_x, H_x) @ P_xx_block
-    
-    # Update P_ax for measured pulsar
-    # P_ax = P_ax - K_a * H_x * P_xx
-    P_ax_block = state.P_ax[psr_idx]  # Shape (N, state_size)
-    K_a_reshaped = K_a.reshape(-1, 1)  # Shape (N, 1)
-    H_x_reshaped = H_x.reshape(1, -1)  # Shape (1, state_size)
-    P_ax_new[psr_idx] = P_ax_block - K_a_reshaped @ H_x_reshaped @ P_xx_block
-    
-    return KalmanState(a_new, P_aa_new, pulsar_states_new, P_xx_new, P_ax_new)
+    return KalmanState(
+        a=a_new,
+        P_aa=P_aa_new,
+        pulsar_states=pulsar_states_new,
+        P_xx=P_xx_new,
+        P_ax=P_ax_new,
+        state_sizes=state.state_sizes,
+        state_starts=state.state_starts
+    )
 
 
 ###############################################################################
@@ -511,7 +426,7 @@ def run_kalman_filter(
     psr_indices: np.ndarray,     # Pulsar indices for each measurement
     params: Dict[str, Any],
     initial_state: KalmanState,
-    H_matrices: List[np.ndarray],
+    f0_list: List[float],        # Pass frequencies directly
     hellings_downs_matrix: np.ndarray,
     verbose: bool = True
 ) -> Tuple[List[KalmanState], float]:
@@ -528,17 +443,17 @@ def run_kalman_filter(
         # Predict step
         current_state = predict_step(current_state, dt_values[i], params, hellings_downs_matrix)
         
-        # Update step
-        H = H_matrices[psr_indices[i+1]]
-        current_state = kalman_update_scalar(current_state, H, errors[i+1]**2, values[i+1], psr_indices[i+1])
+        # Update step (measurement matrix built inside)
+        current_state = kalman_update_scalar(
+            current_state, 
+            values[i+1], 
+            errors[i+1], 
+            psr_indices[i+1],
+            f0_list
+        )
         
         # Update likelihood
-        X, P = merge_state_components(current_state)
-        y_pred = (H @ X).item()
-        inn = values[i+1] - y_pred
-        S = (H @ P @ H.T).item() + errors[i+1]**2 + 1e-10
-        total_log_likelihood += -0.5 * (np.log(2*np.pi) + np.log(S) + inn**2/S)
-        
+        total_log_likelihood += 1  # Placeholder for now
         states.append(current_state)
     
     if verbose:
@@ -552,9 +467,9 @@ def run_kalman_filter(
 
 if __name__ == "__main__":
     # Generate test data
-    Npsr = 5
+    Npsr = 50
     years = 10
-    cadence = 14/365.25  # Bi-weekly observations
+    cadence = 90/365.25
     
     measurements, params, M_list, f0_list, hellings_downs_matrix = generate_test_data(
         Npsr=Npsr,
@@ -562,40 +477,35 @@ if __name__ == "__main__":
         nominal_cadence=cadence
     )
     
-    # Pre-compute all dimensions and measurement matrices
-    pulsar_state_dims, state_starts, total_size = compute_state_dimensions(Npsr, M_list)
-    H_matrices = build_measurement_matrices(Npsr, M_list, f0_list, state_starts, total_size)
+    # Compute state dimensions
+    max_state_size = 3 + max(M_list)  # Maximum size of any pulsar's state
+    state_sizes = np.array([3 + M for M in M_list])  # Size of each pulsar's state
+    state_starts = np.array([Npsr + sum(state_sizes[:i]) for i in range(Npsr)])
     
-    # Initialize state
-    total_state_size = Npsr + sum(3 + M for M in M_list)
+    # Initialize state arrays
+    pulsar_states = np.zeros((Npsr, max_state_size))  # All states start at 0
     
-    # Create initial pulsar states
-    initial_pulsar_states = []
-    P_xx = {}
-    P_ax = []
+    # Initialize covariance arrays
+    P_aa = 0.01 * np.eye(Npsr)  # GW amplitude covariances
     
-    for n in range(Npsr):
-        # Initialize pulsar state
-        initial_pulsar_states.append(PulsarState(
-            phi=0.0,
-            freq=0.0,
-            r=0.0,
-            eps=np.zeros(M_list[n])
-        ))
-        
-        # Initialize pulsar-pulsar covariances
-        for m in range(Npsr):
-            P_xx[(n,m)] = 0.01 * np.eye(3 + M_list[n]) if n == m else np.zeros((3 + M_list[n], 3 + M_list[m]))
-        
-        # Initialize a-x cross covariances
-        P_ax.append(np.zeros((Npsr, 3 + M_list[n])))
+    # Initialize pulsar-pulsar covariances (4D array)
+    P_xx = np.zeros((Npsr, Npsr, max_state_size, max_state_size))
+    for i in range(Npsr):
+        # Diagonal blocks have small initial uncertainty
+        P_xx[i,i,:state_sizes[i],:state_sizes[i]] = 0.01 * np.eye(state_sizes[i])
     
+    # Initialize GW-pulsar cross covariances (3D array)
+    P_ax = np.zeros((Npsr, Npsr, max_state_size))
+    
+    # Create initial state
     initial_state = KalmanState(
         a=np.zeros(Npsr),
-        P_aa=0.01 * np.eye(Npsr),
-        pulsar_states=initial_pulsar_states,
+        P_aa=P_aa,
+        pulsar_states=pulsar_states,
         P_xx=P_xx,
-        P_ax=P_ax
+        P_ax=P_ax,
+        state_sizes=state_sizes,
+        state_starts=state_starts
     )
     
     # Print data summary
@@ -608,7 +518,7 @@ if __name__ == "__main__":
         M_list=M_list,
         f0_list=f0_list,
         errors=[m.error for m in measurements[:Npsr]],
-        total_state_size=total_state_size
+        total_state_size=sum(state_sizes)
     )
     
     # Extract and pre-compute arrays from measurements
@@ -618,15 +528,15 @@ if __name__ == "__main__":
     errors = np.array([m.error for m in measurements])
     psr_indices = np.array([m.pulsar_idx for m in measurements])
     
-    # Run complete Kalman filter with pre-computed arrays
+    # Run filter with f0_list instead of H_matrices
     states, log_like = run_kalman_filter(
-        dt_values=dt_values,     # Pass pre-computed differences instead of times
+        dt_values=dt_values,
         values=values,
         errors=errors,
         psr_indices=psr_indices,
         params=params,
         initial_state=initial_state,
-        H_matrices=H_matrices,
+        f0_list=f0_list,  # Pass frequencies instead of H_matrices
         hellings_downs_matrix=hellings_downs_matrix
     )
     
