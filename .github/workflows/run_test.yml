@@ -5,35 +5,61 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.11"]
 
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Miniconda
+
+      - name: Check-out repo
+        uses: actions/checkout@v4
+
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libsuitesparse-dev
+
+      - name: Setup miniconda
         uses: conda-incubator/setup-miniconda@v3
-        with:
-          activate-environment: Argus
-          environment-file: env.yml
-          auto-activate-base: false
-      - run: |
+        with: 
+          activate-environment: tkimpson_2025a
+          environment-file: conda_env.yml
+
+      - name: Verify Environment
+        shell: bash -l {0}
+        run: |
           conda info
           conda list
+          which python
+
+      - name: Install pipx
+        shell: bash -l {0}
+        run: |
+          python -m pip install pipx 
+          python -m pipx ensurepath
+
+      - name: Install poetry
+        shell: bash -l {0}
+        run: |
+          pipx install poetry==2.1.1
+          poetry --version
+
+      - name: Install the project
+        shell: bash -l {0}
+        run: |
+          poetry env info
+          poetry install --no-interaction
 
       - name: Test with pytest
-        run: |
-          conda run -n Argus coverage run -m pytest -v -s
+        shell: bash -l {0}
+        run: pytest
 
-      - name: Generate Coverage Report
-        run: |
-          conda run -n Argus coverage report -m
-          conda run -n Argus coverage xml  # Generates coverage.xml file
+      # - name: Generate Coverage Report
+      #   run: |
+      #     conda run -n Argus coverage report -m
+      #     conda run -n Argus coverage xml  # Generates coverage.xml file
 
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          files: coverage.xml  # Explicitly specify the coverage file
-          fail_ci_if_error: true  # Fails the workflow if upload fails
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+      # - name: Upload coverage reports to Codecov
+      #   uses: codecov/codecov-action@v5
+      #   with:
+      #     files: coverage.xml  # Explicitly specify the coverage file
+      #     fail_ci_if_error: true  # Fails the workflow if upload fails
+      #   env:
+      #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -1,0 +1,9 @@
+name: tkimpson_2025a
+channels: 
+  - conda-forge
+  - defaults 
+dependencies:
+  - python = 3.12
+  - scikit-sparse == 0.4.14
+  - libstempo >= 2.5.0
+  - enterprise-pulsar >= 3.4

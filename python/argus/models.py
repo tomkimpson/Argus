@@ -170,10 +170,12 @@ class StochasticGWBackgroundModel(ModelHyperClass):
 
         """
         exp_term = np.exp(-γp * dt)
-        return np.array([
-            [1.0, (1 - exp_term) / γp],
-            [0.0, exp_term],
-        ])
+        return np.array(
+            [
+                [1.0, (1 - exp_term) / γp],
+                [0.0, exp_term],
+            ]
+        )
 
     @staticmethod
     def _compute_F_a(γa: float, dt: float) -> np.ndarray:
@@ -193,10 +195,12 @@ class StochasticGWBackgroundModel(ModelHyperClass):
 
         """
         exp_term = np.exp(-γa * dt)
-        return np.array([
-            [1.0, (1 - exp_term) / γa],
-            [0.0, exp_term],
-        ])
+        return np.array(
+            [
+                [1.0, (1 - exp_term) / γa],
+                [0.0, exp_term],
+            ]
+        )
 
     @staticmethod
     def _compute_Q_block(γ: float, σ: float, dt: float) -> np.ndarray:
@@ -219,14 +223,15 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         """
         exp_term = np.exp(-γ * dt)
         exp_2γ_dt = np.exp(-2 * γ * dt)
-        term1 = (dt / γ**2 - 2 * (1 - exp_term) / γ**3 +
-                 (1 - exp_2γ_dt) / (2 * γ**3))
+        term1 = dt / γ**2 - 2 * (1 - exp_term) / γ**3 + (1 - exp_2γ_dt) / (2 * γ**3)
         term2 = (1 - exp_term) / γ**2 - (1 - exp_2γ_dt) / (2 * γ**2)
         term3 = (1 - exp_2γ_dt) / (2 * γ)
-        return σ**2 * np.array([
-            [term1, term2],
-            [term2, term3],
-        ])
+        return σ**2 * np.array(
+            [
+                [term1, term2],
+                [term2, term3],
+            ]
+        )
 
     def F_matrix(self, dt: float) -> np.ndarray:
         """Build the overall state–transition matrix F (block–diagonal over pulsars).
@@ -322,7 +327,7 @@ class StochasticGWBackgroundModel(ModelHyperClass):
 
         return Q
 
-    def H_matrix(self,psr_idx: int)-> np.ndarray:
+    def H_matrix(self, psr_idx: int) -> np.ndarray:
         """Build a list of measurement matrices H (one per pulsar).
 
         For pulsar n the measurement equation is:
@@ -341,29 +346,30 @@ class StochasticGWBackgroundModel(ModelHyperClass):
             A list of 1 x (4 + M[n]) arrays (one per pulsar).
 
         """
-        output = np.zeros(self.nx) 
+        output = np.zeros(self.nx)
 
         # 1. Compute the start index for segment i
         #    Each segment j has length (4 + M[j]).
         #    So, to find the start of segment i, sum all lengths up to i.
-        start_idx = sum(4 + self.M[j] for j in range(psr_idx)) #Compute the start index for the ith segement
+        start_idx = sum(
+            4 + self.M[j] for j in range(psr_idx)
+        )  # Compute the start index for the ith segement
 
         # 2. Construct the i-th segment
         #    It's basically [1/f0[i], 0, -1, 0] concatenated with zeros(M[i]).
-        segment = np.concatenate((
-            np.array([1.0 / self.f0[psr_idx], 0.0, -1.0, 0.0]),
-            np.zeros(self.M[psr_idx])
-        ))
+        segment = np.concatenate(
+            (
+                np.array([1.0 / self.f0[psr_idx], 0.0, -1.0, 0.0]),
+                np.zeros(self.M[psr_idx]),
+            )
+        )
         seg_len = len(segment)  # This should be 4 + M[i]
-
 
         output[start_idx : start_idx + seg_len] = segment
 
-        
         return output
 
-
-    def R_matrix(self,σ,psr_idx: int)-> np.ndarray:
+    def R_matrix(self, σ, psr_idx: int) -> np.ndarray:
         """Build the measurement–noise covariance matrix R for the pulsars observed at a given epoch.
 
         For pulsar n, the measurement noise variance is (σt[n])².
@@ -374,7 +380,6 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         -------
         Any
             The measurement noise covariance (for now, simply σt²).
-            
+
         """
-        return (σ * self.EFAC[psr_idx])**2 + self.EQUAD[psr_idx]**2
-    
+        return (σ * self.EFAC[psr_idx]) ** 2 + self.EQUAD[psr_idx] ** 2
