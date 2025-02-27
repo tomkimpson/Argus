@@ -411,7 +411,7 @@ Q = \operatorname{diag}\Bigl(Q^{(1)},\,Q^{(2)},\,\dots,\,Q^{(N)}\Bigr).
 
 
 
-\section{Predict step}
+\subsection{Predict step}
 Assume the state is ordered as
 \begin{equation}
 x = \begin{pmatrix} x_{GW} \\[1mm] x_{\phi/f} \\[1mm] x_{\delta\epsilon} \end{pmatrix},
@@ -479,78 +479,10 @@ Thus:
 
 
 
+\subsection{Measurement update}
 
-Assume that the state is partitioned into three sectors as
-\begin{equation}
-x=\begin{pmatrix}
-x_{GW}\\[1mm]
-x_{\phi/f}\\[1mm]
-x_{\delta\epsilon}
-\end{pmatrix},
-\end{equation}
-with prior (predicted) covariance
-\begin{equation}
-P^-=\begin{pmatrix}
-P^-_{GW} & 0 & 0\\[1mm]
-0 & P^-_{\phi/f} & 0\\[1mm]
-0 & 0 & P^-_{\delta\epsilon}
-\end{pmatrix}.
-\end{equation}
-Suppose that the measurement equation for the currently observed pulsar (say pulsar \(n\)) is
-\begin{equation}
-y=\frac{1}{f_0^{(n)}}\,\delta\phi^{(n)}+\mathbf{M}^{(n)}\,\boldsymbol{\delta\epsilon}^{(n)}-r^{(n)}.
-\end{equation}
-Then the measurement matrix is written in block form as
-\begin{equation}
-H=\begin{pmatrix} H_{GW} & H_{\phi/f} & H_{\delta\epsilon} \end{pmatrix},
-\end{equation}
-where
-\begin{equation}
-H_{GW}=[0\,\cdots\,0\,\, -1\, 0\,\cdots\,0] \quad,\quad
-H_{\phi/f}=[0\,\cdots\,0\,\, 1/f_0^{(n)}\, 0\,\cdots\,0],
-\end{equation}
-\begin{equation}
-H_{\delta\epsilon}=[0\,\cdots\,0\,\, \mathbf{M}^{(n)}\, 0\,\cdots\,0].
-\end{equation}
-Define
-\begin{equation}
-S=H_{GW}P^-_{GW}H_{GW}^T+H_{\phi/f}P^-_{\phi/f}H_{\phi/f}^T+H_{\delta\epsilon}P^-_{\delta\epsilon}H_{\delta\epsilon}^T+R.
-\end{equation}
-Then the Kalman gain is
-\begin{equation}
-K=P^-H^T\,S^{-1},
-\end{equation}
-which in block form is
-\begin{equation}
-K=\begin{pmatrix}
-K_{GW}\\[1mm]
-K_{\phi/f}\\[1mm]
-K_{\delta\epsilon}
-\end{pmatrix}=
-\begin{pmatrix}
-P^-_{GW}H_{GW}^T\\[1mm]
-P^-_{\phi/f}H_{\phi/f}^T\\[1mm]
-P^-_{\delta\epsilon}H_{\delta\epsilon}^T
-\end{pmatrix}\,S^{-1}.
-\end{equation}
 
-The state update is
-\begin{equation}
-x^+=x^-+K\Bigl(y-Hx^-\Bigr).
-\end{equation}
 
-The covariance update is
-\begin{equation}
-P^+=(I-KH)P^-.
-\end{equation}
-Since \(P^-\) is block diagonal, this expands to
-\begin{equation}
-P^+ = \begin{pmatrix}
-P^-_{GW}-K_{GW}H_{GW}P^-_{GW} & -K_{GW}H_{\phi/f}P^-_{\phi/f} & -K_{GW}H_{\delta\epsilon}P^-_{\delta\epsilon}\\[1mm]
--K_{\phi/f}H_{GW}P^-_{GW} & P^-_{\phi/f}-K_{\phi/f}H_{\phi/f}P^-_{\phi/f} & -K_{\phi/f}H_{\delta\epsilon}P^-_{\delta\epsilon}\\[1mm]
--K_{\delta\epsilon}H_{GW}P^-_{GW} & -K_{\delta\epsilon}H_{\phi/f}P^-_{\phi/f} & P^-_{\delta\epsilon}-K_{\delta\epsilon}H_{\delta\epsilon}P^-_{\delta\epsilon}
-\end{pmatrix}.
-\end{equation}
 
 Assume that the state is partitioned into three sectors:
 \begin{equation}
@@ -600,21 +532,98 @@ P^+_{\delta\phi^{(n)},\delta\epsilon^{(n)}} &= P^-_{\delta\phi^{(n)},\delta\epsi
 \end{align}
 All other blocks of \(P^+\) remain unchanged.
 
-Finally, the prediction step is
+
+\subsection{Measurement update v2}
+
+
+
+Assume the full state is partitioned as
 \begin{equation}
-P_p = F\,P^+\,F^T+Q,
+x=\begin{pmatrix}
+x_{GW}\\[1mm]
+x_{\phi/f}\\[1mm]
+x_{\delta\epsilon}
+\end{pmatrix},
 \end{equation}
-and since \(F\) and \(Q\) are block diagonal,
+and the predicted covariance is
 \begin{equation}
-P_p = \begin{pmatrix}
-F_{GW}\,P^+_{GW}\,F_{GW}^T+Q_{GW} & F_{GW}\,P^+_{GW,\phi/f}\,F_{\phi/f}^T & F_{GW}\,P^+_{GW,\delta\epsilon}\,F_{\delta\epsilon}^T\\[1mm]
-F_{\phi/f}\,P^+_{\phi/f,GW}\,F_{GW}^T & F_{\phi/f}\,P^+_{\phi/f}\,F_{\phi/f}^T+Q_{\phi/f} & F_{\phi/f}\,P^+_{\phi/f,\delta\epsilon}\,F_{\delta\epsilon}^T\\[1mm]
-F_{\delta\epsilon}\,P^+_{\delta\epsilon,GW}\,F_{GW}^T & F_{\delta\epsilon}\,P^+_{\delta\epsilon,\phi/f}\,F_{\phi/f}^T & F_{\delta\epsilon}\,P^+_{\delta\epsilon}\,F_{\delta\epsilon}^T+Q_{\delta\epsilon}
+P^-=\begin{pmatrix}
+P^-_{GW} & P^-_{GW,\phi/f} & P^-_{GW,\delta\epsilon}\\[1mm]
+P^-_{\phi/f,GW} & P^-_{\phi/f} & P^-_{\phi/f,\delta\epsilon}\\[1mm]
+P^-_{\delta\epsilon,GW} & P^-_{\delta\epsilon,\phi/f} & P^-_{\delta\epsilon}
 \end{pmatrix}.
 \end{equation}
+Suppose that for pulsar \(n\) the measurement equation is
+\begin{equation}
+y=\frac{1}{f_0^{(n)}}\,\delta\phi+\mathbf{M}^{(n)}\,\boldsymbol{\delta\epsilon}-r,
+\end{equation}
+so that the measurement matrix is
+\begin{equation}
+H=\begin{pmatrix} H_{GW} & H_{\phi/f} & H_{\delta\epsilon} \end{pmatrix},
+\end{equation}
+with
+\begin{equation}
+H_{GW} = \text{(zero except a }-1\text{ at the entry for } r\text{)},
+\end{equation}
+\begin{equation}
+H_{\phi/f} = \text{(zero except } 1/f_0^{(n)} \text{ at the entry for } \delta\phi\text{)},
+\end{equation}
+\begin{equation}
+H_{\delta\epsilon} = \text{(zero except the block for pulsar \(n\) equals } \mathbf{M}^{(n)}\text{)}.
+\end{equation}
 
+Then, defining
+\begin{equation}
+S = H\,P^-\,H^T+R,
+\end{equation}
+which (using the sparsity of \(H\)) expands to
+\begin{equation}
+S = P^-_{rr} + \frac{1}{f_0^{(n)2}}\,P^-_{\delta\phi\,\delta\phi} + \mathbf{M}^{(n)}\,P^-_{\epsilon\,\epsilon}\,\mathbf{M}^{(n)T} - \frac{2}{f_0^{(n)}}\,P^-_{r,\delta\phi} - 2\,\mathbf{M}^{(n)}\,P^-_{r,\epsilon} + \frac{2}{f_0^{(n)}}\,\mathbf{M}^{(n)}\,P^-_{\delta\phi,\epsilon} + R.
+\end{equation}
+The Kalman gain is then given by
+\begin{equation}
+K=P^-H^T\,S^{-1},
+\end{equation}
+or, writing in block form,
+\begin{equation}
+K=\begin{pmatrix}
+K_{GW}\\[1mm]K_{\phi/f}\\[1mm]K_{\delta\epsilon}
+\end{pmatrix}=
+\begin{pmatrix}
+P^-_{GW}H_{GW}^T\\[1mm]P^-_{\phi/f}H_{\phi/f}^T\\[1mm]P^-_{\delta\epsilon}H_{\delta\epsilon}^T
+\end{pmatrix}\,S^{-1}.
+\end{equation}
+Because \(H_{GW}\) has only one nonzero entry (namely, \(-1\) at the \(r\) position), we have
+\begin{equation}
+K_{GW} = -\frac{P^-_{GW}(:,r)}{S},
+\end{equation}
+and similarly,
+\begin{equation}
+K_{\phi/f} = \frac{P^-_{\phi/f}(:,\delta\phi)}{f_0^{(n)}\,S},\qquad
+K_{\delta\epsilon} = \frac{P^-_{\delta\epsilon}(:,\epsilon)\,\mathbf{M}^{(n)T}}{S}.
+\end{equation}
 
-
+The state update is
+\begin{equation}
+x^+ = x^- + K\Bigl(y-H\,x^-\Bigr).
+\end{equation}
+The covariance update is
+\begin{equation}
+P^+ = P^- - K\,H\,P^-.
+\end{equation}
+Writing this in fully–expanded block form we have
+\begin{equation}
+P^+ = \begin{pmatrix}
+P^-_{GW}-K_{GW}H_{GW}P^-_{GW} & -K_{GW}H_{\phi/f}P^-_{\phi/f} & -K_{GW}H_{\delta\epsilon}P^-_{\delta\epsilon}\\[1mm]
+-K_{\phi/f}H_{GW}P^-_{GW} & P^-_{\phi/f}-K_{\phi/f}H_{\phi/f}P^-_{\phi/f} & -K_{\phi/f}H_{\delta\epsilon}P^-_{\delta\epsilon}\\[1mm]
+-K_{\delta\epsilon}H_{GW}P^-_{GW} & -K_{\delta\epsilon}H_{\phi/f}P^-_{\phi/f} & P^-_{\delta\epsilon}-K_{\delta\epsilon}H_{\delta\epsilon}P^-_{\delta\epsilon}
+\end{pmatrix}.
+\end{equation}
+Because \(H\) is sparse, only the entries corresponding to the measured components (namely, \(r\), \(\delta\phi\), and the pulsar \(n\) block of \(\delta\epsilon\)) appear in these products. For example, the update for the variance of \(r\) is
+\begin{equation}
+P^+_{rr} = P^-_{rr} - \frac{\left(P^-_{rr}\right)^2}{S},
+\end{equation}
+and similarly for the other blocks and the cross–terms.
 
 
 
