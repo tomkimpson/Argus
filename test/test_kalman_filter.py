@@ -3,6 +3,16 @@ import glob
 from argus import data_loader, models, kalman_filter
 import numpy as np
 
+def hellings_downs(θ):
+    """Compute the Hellings–Downs function for an angle θ (in radians).
+    For θ == 0 the autocorrelation is defined to be 1.
+    """
+    x = (1 - np.cos(θ)) / 2.0
+    return np.where(
+        np.isclose(θ, 0.0),
+        1.0,
+        (3 / 2) * x * np.log(x) - x / 4 + 0.5,
+    )
 
 def test_filter_run():
     """Test the KalmanFilter class by loading data, initializing the model, setting parameters, and running the filter."""
@@ -31,20 +41,19 @@ def test_filter_run():
         )
     )
 
-    # Also get the separation angles between all pulsars.
+    # Get the separation angles and compute HD correlation
     ra = pulsar_metadata["RA"].to_numpy(dtype=float)
     dec = pulsar_metadata["DEC"].to_numpy(dtype=float)
-    angular_separation_matrix = (
-        data_loader.LoadWidebandPulsarData.pairwise_angular_separation(ra, dec)
-    )
+    angular_separation_matrix = data_loader.LoadWidebandPulsarData.pairwise_angular_separation(ra, dec)
+    hd_correlation_matrix = hellings_downs(angular_separation_matrix)
 
     # Post-process the residuals
     processed_pulsar_residuals = (
         data_loader.LoadWidebandPulsarData.post_process_residuals(pulsar_residuals)
     )
 
-    # Initialize the GW background model
-    model = models.StochasticGWBackgroundModel(pulsar_metadata)
+    # Initialize the GW background model with HD correlation
+    model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix)
 
     # Initialize the Kalman Filter
     x0 = np.zeros(model.nx)
@@ -61,7 +70,6 @@ def test_filter_run():
         "σp": 1e-20 * np.ones(len(pulsar_metadata)),
         "h2": 1e-12,
         "σeps": 1e-20,
-        "separation_angle_matrix": angular_separation_matrix,
         "f0": 100 * np.ones(len(pulsar_metadata)),  # everything is 100 Hz for now
         "EFAC": np.ones(len(pulsar_metadata)),
         "EQUAD": np.ones(len(pulsar_metadata)),
@@ -87,12 +95,11 @@ def test_filter_run_v2():
         directory + "IPTA_Challenge1_open_Dataset2_metadata"
     )
 
-    # Also get the separation angles between all pulsars.
+    # Also get the separation angles and compute HD correlation
     ra = pulsar_metadata["RA"].to_numpy(dtype=float)
     dec = pulsar_metadata["DEC"].to_numpy(dtype=float)
-    angular_separation_matrix = (
-        data_loader.LoadWidebandPulsarData.pairwise_angular_separation(ra, dec)
-    )
+    angular_separation_matrix = data_loader.LoadWidebandPulsarData.pairwise_angular_separation(ra, dec)
+    hd_correlation_matrix = hellings_downs(angular_separation_matrix)
 
     print(
         "Total length of the data is ", len(processed_pulsar_residuals)
@@ -101,9 +108,9 @@ def test_filter_run_v2():
         "Total number of pulsars is ", len(pulsar_metadata)
     )  # Calculate the size of the DataFrame in MB
 
-    # Initialize the GW background model
+    # Initialize the GW background model with HD correlation
     print("Initializing the model")
-    model = models.StochasticGWBackgroundModel(pulsar_metadata)
+    model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix)
 
     # Initialize the Kalman Filter
     x0 = np.zeros(model.nx)
@@ -122,7 +129,6 @@ def test_filter_run_v2():
         "σp": 1e-20 * np.ones(len(pulsar_metadata)),
         "h2": 1e-12,
         "σeps": 1e-20,
-        "separation_angle_matrix": angular_separation_matrix,
         "f0": 100 * np.ones(len(pulsar_metadata)),  # everything is 100 Hz for now
         "EFAC": np.ones(len(pulsar_metadata)),
         "EQUAD": np.ones(len(pulsar_metadata)),

@@ -1,6 +1,7 @@
 """Module which implements Kalman filter algorithm."""
 
 import numpy as np
+from tqdm import tqdm
 
 
 class ScalarKalmanFilter:
@@ -42,8 +43,8 @@ class ScalarKalmanFilter:
 
     def predict(self, dt):
         """Predict the next state and covariance."""
-        F = self.F  # self.model.F_matrix(dt)
-        Q = self.Q  # self.model.Q_matrix(dt)
+        F = self.model.F_matrix(dt)
+        Q = self.model.Q_matrix(dt)
 
         self.xp = F @ self.x
         self.Pp = F @ self.P @ F.T + Q
@@ -70,33 +71,24 @@ class ScalarKalmanFilter:
         # Initialise x and P, the likelihood, and the index i
         self.x, self.P, self.ll, i = self.x0, self.P0, 0.0, int(0)
 
-        self.F = self.model.F_matrix(0.1)
-        self.Q = self.model.Q_matrix(0.1)
 
         # Do the first update step
         ##For the first update step, just assign the predicted values to be the states
         self.xp, self.Pp = self.x, self.P
         ##Update step
-        self.update(
-            self.data[i], self.data_errors[i], self.psr_indices[i]
-        )  # Updates x,P,and the likelihood_value
+        self.update(self.data[i], self.data_errors[i], self.psr_indices[i])  # Updates x,P,and the likelihood_value
 
-        print(i)
-        for i in range(
-            1, self.N_timesteps
-        ):  # indexing starts at 1 as we have already done i=0
-            # print(i)
+        # Replace the print with tqdm progress bar
+        for i in tqdm(range(1, self.N_timesteps), desc="Processing timesteps"):
             # Set the delta t
-            dt = self.t_diffs[
-                i - 1
-            ]  # For example, when i=1, we use the 0th element of t_diffs for the predict step
+            dt = self.t_diffs[i - 1]  
 
             # Predict step
             self.predict(dt)
             # Update step
-            self.update(
-                self.data[i], self.data_errors[i], self.psr_indices[i]
-            )  # Updates x,P,and the likelihood_value
+            self.update(self.data[i], self.data_errors[i], self.psr_indices[i])  # Updates x,P,and the likelihood_value
+
+        return self.ll
 
 
 # class ExtendedKalmanFilter:

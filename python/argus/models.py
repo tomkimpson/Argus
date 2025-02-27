@@ -61,7 +61,7 @@ class StochasticGWBackgroundModel(ModelHyperClass):
     where M[n] is the number of extra (design) parameters for that pulsar.
     """
 
-    def __init__(self, df_psr: Any) -> None:
+    def __init__(self, df_psr: Any, hd_correlation_matrix: np.ndarray) -> None:
         """Initialize the StochasticGWBackgroundModel.
 
         Parameters
@@ -74,7 +74,8 @@ class StochasticGWBackgroundModel(ModelHyperClass):
                 - sigma_p: the spin–noise white noise amplitude.
                 - f0: the pulsar spin frequency.
                 - sigma_t: the measurement noise standard deviation.
-
+        hd_correlation_matrix : np.ndarray
+            Precomputed Hellings-Downs correlation matrix
         """
         self.Npsr = len(df_psr)
         print("The number of pulsars is:", self.Npsr)
@@ -83,6 +84,7 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         # two from GW noise, and dim_M extra parameters.
         self.nx = self.Npsr * (2 + 2) + df_psr["dim_M"].sum()
         self.M = df_psr["dim_M"].values.astype(int)
+        self.hd_correlation_matrix = hd_correlation_matrix
 
     def set_global_parameters(self, params: Dict[str, Any]) -> None:
         """Set global parameters for the model.
@@ -98,9 +100,6 @@ class StochasticGWBackgroundModel(ModelHyperClass):
                 Mean–square GW strain (<h²>).
             "σeps" : float
                 White–noise amplitude for timing model parameters.
-            "separation_angle_matrix": np.ndarray
-                (N x N) symmetric array of angular separations (radians)
-                between pulsars.
             "f0" : np.ndarray
                 Array of pulsar spin frequencies.
             "EFAC" : np.ndarray
@@ -111,46 +110,15 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         Note:
         ----
         The parameter dt is calculated from the data and passed directly to F_matrix and Q_matrix.
-
         """
         self.γp = params["γp"]  # shape: (Npsr,)
         self.σp = params["σp"]  # shape: (Npsr,)
         self.γa = params["γa"]  # scalar
         self.h2 = params["h2"]  # scalar
         self.σeps = params["σeps"]  # scalar (could be extended per pulsar)
-        self.separation_angle_matrix = params["separation_angle_matrix"]
         self.f0 = params["f0"]
         self.EFAC = params["EFAC"]
         self.EQUAD = params["EQUAD"]
-
-    @staticmethod
-    def _hellings_downs(θ: np.ndarray) -> np.ndarray:
-        """Compute the Hellings–Downs function for an angle θ (in radians).
-
-        For θ == 0 the autocorrelation is defined to be 1.
-
-        Parameters
-        ----------
-        θ : np.ndarray or float
-            Angular separation(s) in radians.
-
-        Returns
-        -------
-        np.ndarray
-            Hellings–Downs values.
-
-        Notes
-        -----
-        To avoid computing log(0), np.where is used to set the value to 1 when
-        θ is 0.
-
-        """
-        x = (1 - np.cos(θ)) / 2.0
-        return np.where(
-            np.isclose(θ, 0.0),
-            1.0,
-            (3 / 2) * x * np.log(x) - x / 4 + 0.5,
-        )
 
     @staticmethod
     def _compute_F_p(γp: float, dt: float) -> np.ndarray:
@@ -314,8 +282,7 @@ class StochasticGWBackgroundModel(ModelHyperClass):
 
         for n in range(self.Npsr):
             for m in range(n + 1, self.Npsr):
-                θ_nm = self.separation_angle_matrix[n, m]
-                Γ_nm = self._hellings_downs(θ_nm)
+                Γ_nm = self.hd_correlation_matrix[n, m]
                 σ_a_nm = np.sqrt((self.h2 / 6) * self.γa * Γ_nm)
                 Q_a_nm = Q_a_template(σ_a_nm)
                 i0_n = cum_sizes[n] + 2
