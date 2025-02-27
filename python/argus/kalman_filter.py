@@ -45,7 +45,7 @@ class ScalarKalmanFilter:
         """Predict the next state and covariance."""
         F = self.model.F_matrix(dt)
         Q = self.model.Q_matrix(dt)
-
+        
         self.xp = F @ self.x
         self.Pp = F @ self.P @ F.T + Q
 
