@@ -239,7 +239,7 @@ def test_filter_single_timestep_restructured():
     )
 
     # Take just the first timestep
-    single_timestep_residuals = processed_pulsar_residuals[0:1]
+    single_timestep_residuals = processed_pulsar_residuals[0:2]
     
     # Get the HD correlation matrix
     ra = pulsar_metadata["RA"].to_numpy(dtype=float)
@@ -424,4 +424,169 @@ def test_compare_model_performance():
     print(f"Q_matrix time: {results['Q_matrix_time']:.6f} seconds")
     
     return model_original, model_restructured
+
+def test_partitioned_filter_single_timestep():
+    """Test the PartitionedKalmanFilter class using preprocessed data for a single timestep."""
+    
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    directory = os.path.join(script_dir, "../data/preprocessed_data/")
+    
+    # Load preprocessed data
+    processed_pulsar_residuals = np.load(
+        directory + "IPTA_Challenge1_open_Dataset2_residuals.npy"
+    )
+    pulsar_metadata = pd.read_parquet(
+        directory + "IPTA_Challenge1_open_Dataset2_metadata"
+    )
+
+    # Take just the first two timesteps
+    single_timestep_residuals = processed_pulsar_residuals[0:2]
+    
+    # Get the HD correlation matrix
+    ra = pulsar_metadata["RA"].to_numpy(dtype=float)
+    dec = pulsar_metadata["DEC"].to_numpy(dtype=float)
+    angular_separation_matrix = data_loader.LoadWidebandPulsarData.pairwise_angular_separation(ra, dec)
+    hd_correlation_matrix = hellings_downs(angular_separation_matrix)
+
+    print("Initializing the model")
+    model = models.SGWB_restructured(pulsar_metadata, hd_correlation_matrix)
+
+    # Initialize the Kalman Filter
+    x0 = np.zeros(model.nx)
+    P0 = np.eye(model.nx) * 1e-12
+
+    # Implement the predict method for testing
+    def predict_method(self, dt):
+        """Standard predict implementation for testing."""
+        F = self.model.F_matrix(dt)
+        Q = self.model.Q_matrix(dt)
+        
+        self.xp = F @ self.x
+        self.Pp = F @ self.P @ F.T + Q
+    
+    # Patch the predict method
+    kalman_filter.PartitionedKalmanFilter.predict = predict_method
+
+    print("Initialize the Partitioned Kalman filter")
+    KF = kalman_filter.PartitionedKalmanFilter(
+        model=model, 
+        observations=single_timestep_residuals,
+        x0=x0, 
+        P0=P0
+    )
+
+    print("Set global params")
+    params = {
+        "γa": 1e-1,  # s⁻¹
+        "γp": 1e-1 * np.ones(len(pulsar_metadata)),
+        "σp": 1e-20 * np.ones(len(pulsar_metadata)),
+        "h2": 1e-12,
+        "σeps": 1e-20,
+        "f0": 100 * np.ones(len(pulsar_metadata)),  # everything is 100 Hz for now
+        "EFAC": np.ones(len(pulsar_metadata)),
+        "EQUAD": np.ones(len(pulsar_metadata)),
+    }
+
+    print("Run single timestep")
+    start_time = time.time()
+    ll = KF.get_likelihood(params)
+    end_time = time.time()
+    
+    print(f"Log-likelihood for single timestep: {ll}")
+    print(f"Time taken: {end_time - start_time:.4f} seconds")
+    
+    return KF
+
+def test_compare_partitioned_vs_standard():
+    """Compare performance between standard and partitioned Kalman filters."""
+    
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    directory = os.path.join(script_dir, "../data/preprocessed_data/")
+    
+    # Load preprocessed data
+    processed_pulsar_residuals = np.load(
+        directory + "IPTA_Challenge1_open_Dataset2_residuals.npy"
+    )
+    pulsar_metadata = pd.read_parquet(
+        directory + "IPTA_Challenge1_open_Dataset2_metadata"
+    )
+
+    # Take a subset of the data for testing
+    test_residuals = processed_pulsar_residuals[:100]
+    
+    # Get the HD correlation matrix
+    ra = pulsar_metadata["RA"].to_numpy(dtype=float)
+    dec = pulsar_metadata["DEC"].to_numpy(dtype=float)
+    angular_separation_matrix = data_loader.LoadWidebandPulsarData.pairwise_angular_separation(ra, dec)
+    hd_correlation_matrix = hellings_downs(angular_separation_matrix)
+
+    # Initialize the model
+    model = models.SGWB_restructured(pulsar_metadata, hd_correlation_matrix)
+
+    # Initialize state vectors
+    x0 = np.zeros(model.nx)
+    P0 = np.eye(model.nx) * 1e-12
+    
+    # Set parameters
+    params = {
+        "γa": 1e-1,
+        "γp": 1e-1 * np.ones(len(pulsar_metadata)),
+        "σp": 1e-20 * np.ones(len(pulsar_metadata)),
+        "h2": 1e-12,
+        "σeps": 1e-20,
+        "f0": 100 * np.ones(len(pulsar_metadata)),
+        "EFAC": np.ones(len(pulsar_metadata)),
+        "EQUAD": np.ones(len(pulsar_metadata)),
+    }
+    
+    # Implement optimized predict method for testing
+    def optimized_predict(self, dt):
+        """Optimized predict implementation for testing."""
+        # This is a placeholder - you'll implement your optimized version
+        F = self.model.F_matrix(dt)
+        Q = self.model.Q_matrix(dt)
+        
+        self.xp = F @ self.x
+        self.Pp = F @ self.P @ F.T + Q
+    
+    # Patch the predict method
+    kalman_filter.PartitionedKalmanFilter.predict = optimized_predict
+    
+    # Initialize standard filter
+    KF_std = kalman_filter.ScalarKalmanFilter(
+        model=model, 
+        observations=test_residuals,
+        x0=x0, 
+        P0=P0
+    )
+    
+    # Initialize partitioned filter
+    KF_part = kalman_filter.PartitionedKalmanFilter(
+        model=model, 
+        observations=test_residuals,
+        x0=x0, 
+        P0=P0
+    )
+    
+    # Test standard filter
+    print("\nRunning standard filter:")
+    start = time.time()
+    ll_std = KF_std.get_likelihood(params)
+    std_time = time.time() - start
+    print(f"Log-likelihood: {ll_std}")
+    print(f"Time taken: {std_time:.4f} seconds")
+    
+    # Test partitioned filter
+    print("\nRunning partitioned filter:")
+    start = time.time()
+    ll_part = KF_part.get_likelihood(params)
+    part_time = time.time() - start
+    print(f"Log-likelihood: {ll_part}")
+    print(f"Time taken: {part_time:.4f} seconds")
+    print(f"Speedup: {std_time/part_time:.2f}x")
+    
+    # Check that the likelihoods are the same (within numerical precision)
+    assert np.isclose(ll_std, ll_part, rtol=1e-10), "Likelihoods don't match!"
+    
+    return KF_std, KF_part
 
