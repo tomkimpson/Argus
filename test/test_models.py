@@ -22,8 +22,7 @@ def test_StochasticGWBackgroundModel():
 
     assert len(par_files) == len(tim_files), "Mismatch between .par and .tim file counts."
 
-    # Instead of manually merging dataframes and computing angles, use the new function.
-    # Select the first J pulsars 
+    # Select the first J pulsars for quick loading and testing
     J = 3
     pulsar_residuals, pulsar_metadata, pulsar_design_matrices = (
         data_loader.LoadWidebandPulsarData.read_multiple_par_tim(
