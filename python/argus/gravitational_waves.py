@@ -4,6 +4,41 @@ from numpy import sin, cos
 import numpy as np
 
 
+
+def hellings_downs(θ):
+    """Compute the Hellings–Downs function for an angle θ (in radians).
+    
+    Parameters
+    ----------
+    θ : np.ndarray or float
+        Angular separation between pulsars in radians
+        
+    Returns
+    -------
+    np.ndarray or float
+        Hellings-Downs correlation values
+    """
+    # Handle the autocorrelation case first
+    if isinstance(θ, np.ndarray):
+        mask = np.isclose(θ, 0.0)
+        x = np.zeros_like(θ)
+        # Only compute (1-cos(θ))/2 for non-zero angles
+        x[~mask] = (1 - np.cos(θ[~mask])) / 2.0
+        
+        result = np.zeros_like(θ)
+        result[mask] = 1.0
+        # Only compute HD function for non-zero angles
+        result[~mask] = (3 / 2) * x[~mask] * np.log(x[~mask]) - x[~mask] / 4 + 0.5
+        
+        return result
+    else:
+        # Handle scalar input
+        if np.isclose(θ, 0.0):
+            return 1.0
+        x = (1 - np.cos(θ)) / 2.0
+        return (3 / 2) * x * np.log(x) - x / 4 + 0.5
+
+
 # @njit(fastmath=True)
 def _h_amplitudes(h, ι):
     """Calculate the plus/cross amplitude components of the GW.
