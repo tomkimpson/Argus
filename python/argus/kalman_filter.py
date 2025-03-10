@@ -39,7 +39,12 @@ class ScalarKalmanFilter:
 
     def _log_likelihood(self, y, cov):
         """Given the innovation and innovation covariance, get the likelihood."""
-        return -0.5 * (np.log(2.0 * np.pi * cov) + (y * y) / cov)
+        log_likelihood = -0.5 * (np.log(2.0 * np.pi * cov) + (y * y) / cov)
+
+        if hasattr(log_likelihood, "item"):
+            log_likelihood = log_likelihood.item()
+
+        return log_likelihood
 
     def predict(self, dt):
         """Predict the next state and covariance."""
@@ -52,17 +57,18 @@ class ScalarKalmanFilter:
     def update(self, z, z_err, psr_index):
         """Update the state and covariance with a new observation."""
         # Define the time-dependent H and R matrices for this timestep
-        self.H = (self.model.H_matrix(psr_index)).reshape(1, -1)
+        self.H = self.model.H_matrix(psr_index)
         self.R = self.model.R_matrix(z_err, psr_index)
 
         # Now run through the update algorithm
         y = z - self.H @ self.xp  # innovation. For this class, this is just a scalar
         S = self.H @ self.Pp @ self.H.T + self.R  # innovation covariance, a scalar
-        K = (self.Pp @ self.H.T / S).reshape(-1, 1)  # Kalman gain, dimension (n_x, 1)
+        K = self.Pp @ self.H.T / S  # Kalman gain, dimension (n_x, 1)
         self.x = self.xp + K * y  # Updated state, dimension (n_x, 1)
         self.P = (
             np.eye(len(self.xp)) - K @ self.H
         ) @ self.Pp  # Updated covariance, dimension (n_x, n_x)
+
         self.ll += self._log_likelihood(y, S)  # update the likelihood
 
     def get_likelihood(self, θ):
@@ -71,7 +77,8 @@ class ScalarKalmanFilter:
         self.model.set_global_parameters(θ)
 
         # Initialise x and P, the likelihood, and the index i
-        self.x, self.P, self.ll, i = self.x0, self.P0, 0.0, int(0)
+        # self.x should be of dimension (n_x,1)
+        self.x, self.P, self.ll, i = self.x0.reshape(-1, 1), self.P0, 0.0, int(0)
 
         # Do the first update step
         ##For the first update step, just assign the predicted values to be the states
