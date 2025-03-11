@@ -99,7 +99,7 @@ class StochasticGWBackgroundModel(ModelHyperClass):
 
         self.hd_correlation_matrix = hd_correlation_matrix
 
-        self.start_indices = np.cumsum([0] + [4 + m for m in self.M])
+        self.M_start_indices = np.cumsum([0] + [m for m in self.M]) + 4 * self.Npsr
 
         # Used in the H_matrix function
         self.pulsar_design_matrices = pulsar_design_matrices
@@ -233,25 +233,28 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         np.ndarray
             Observation matrix (a row vector of length nx) for the specified pulsar.
         """
+        # initialization
+        H = np.zeros((1, self.nx))
+
+        # update GW term
+        H[0, 2 * psr_idx] = -1.0
+
+        # update spin term
+        H[0, self.Npsr * 2 + 2 * psr_idx] = 1.0 / self.f0[psr_idx]
+
+        # update timing term
         # Use a precomputed start index
-        start_idx = self.start_indices[psr_idx]
-
-        # Build the segment for pulsar psr_idx: length = 4 + M[psr_idx]
+        start_idx = self.M_start_indices[psr_idx]
+        end_idx = self.M_start_indices[psr_idx + 1]
         row_idx = int(self.design_matrix_counter[psr_idx])
+        H[0, start_idx:end_idx] = self.pulsar_design_matrices[psr_idx][
+            row_idx, :
+        ]  # length M[psr_idx]
 
-        Mrow = self.pulsar_design_matrices[psr_idx][row_idx, :]  # length M[psr_idx]
-        H_segment = np.hstack(
-            (np.array([1.0 / self.f0[psr_idx], 0.0, -1.0, 0.0]), Mrow)
-        )
-        self.design_matrix_counter[
-            psr_idx
-        ] += 1  # increment the counter for this pulsar
+        # increment the counter for this pulsar
+        self.design_matrix_counter[psr_idx] += 1
 
-        # Create the full observation row vector
-        H_full = np.zeros(self.nx)
-        seg_len = H_segment.shape[0]  # could pre compute this
-        H_full[start_idx : start_idx + seg_len] = H_segment
-        return H_full.reshape(1, -1)
+        return H
 
     def R_matrix(self, σ, psr_idx: int) -> np.ndarray:
         """Build the measurement–noise covariance matrix R for the pulsars observed at a given epoch.
