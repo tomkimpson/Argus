@@ -2,10 +2,10 @@
 
 import numpy as np
 from tqdm import tqdm
-import time 
+
 
 class ScalarKalmanFilter:
-    """A class to implement the linear Kalman filter on scalar inputs. 
+    """A class to implement the linear Kalman filter on scalar inputs.
 
     It takes four initialization arguments:
 
@@ -39,17 +39,21 @@ class ScalarKalmanFilter:
 
     def _log_likelihood(self, y, cov):
         """Given the innovation and innovation covariance, get the likelihood."""
-        return -0.5 * (np.log(2.0 * np.pi * cov) + (y * y) / cov)
+        log_likelihood = -0.5 * (np.log(2.0 * np.pi * cov) + (y * y) / cov)
+
+        if hasattr(log_likelihood, "item"):
+            log_likelihood = log_likelihood.item()
+
+        return log_likelihood
 
     def predict(self, dt):
         """Predict the next state and covariance."""
-        
         F = self.model.F_matrix(dt)
         Q = self.model.Q_matrix(dt)
-       
+
         self.xp = F @ self.x
         self.Pp = F @ self.P @ F.T + Q
-       
+
     def update(self, z, z_err, psr_index):
         """Update the state and covariance with a new observation."""
         # Define the time-dependent H and R matrices for this timestep
@@ -57,11 +61,14 @@ class ScalarKalmanFilter:
         self.R = self.model.R_matrix(z_err, psr_index)
 
         # Now run through the update algorithm
-        y = z - self.H @ self.xp                  # innovation. For this class, this is just a scalar
-        S = self.H @ self.Pp @ self.H.T + self.R  # innovation covariance, a scalar 
-        K = self.Pp @ self.H.T / S                # Kalman gain, dimension (n_x, 1)
-        self.x = self.xp + K * y                  # Updated state, dimension (n_x, 1)
-        self.P = (np.eye(len(self.xp)) - K @ self.H) @ self.Pp  # Updated covariance, dimension (n_x, n_x)
+        y = z - self.H @ self.xp  # innovation. For this class, this is just a scalar
+        S = self.H @ self.Pp @ self.H.T + self.R  # innovation covariance, a scalar
+        K = self.Pp @ self.H.T / S  # Kalman gain, dimension (n_x, 1)
+        self.x = self.xp + K * y  # Updated state, dimension (n_x, 1)
+        self.P = (
+            np.eye(len(self.xp)) - K @ self.H
+        ) @ self.Pp  # Updated covariance, dimension (n_x, n_x)
+
         self.ll += self._log_likelihood(y, S)  # update the likelihood
 
     def get_likelihood(self, θ):
@@ -70,29 +77,29 @@ class ScalarKalmanFilter:
         self.model.set_global_parameters(θ)
 
         # Initialise x and P, the likelihood, and the index i
-        self.x, self.P, self.ll, i = self.x0, self.P0, 0.0, int(0)
-
+        # self.x should be of dimension (n_x,1)
+        self.x, self.P, self.ll, i = self.x0.reshape(-1, 1), self.P0, 0.0, int(0)
 
         # Do the first update step
         ##For the first update step, just assign the predicted values to be the states
         self.xp, self.Pp = self.x, self.P
         ##Update step
-        self.update(self.data[i], self.data_errors[i], self.psr_indices[i])  # Updates x,P,and the likelihood_value
- 
+        self.update(
+            self.data[i], self.data_errors[i], self.psr_indices[i]
+        )  # Updates x,P,and the likelihood_value
 
-        #Iterate over the data. 
-        #tqdm progress bar just for testing. To be removed ultimately
+        # Iterate over the data.
+        # tqdm progress bar just for testing. To be removed ultimately
         for i in tqdm(range(1, self.N_timesteps), desc="Processing timesteps"):
             # Set the delta t
-            dt = self.t_diffs[i - 1]  
+            dt = self.t_diffs[i - 1]
 
             # Predict step
             self.predict(dt)
-      
+
             # Update step
-            self.update(self.data[i], self.data_errors[i], self.psr_indices[i])  # Updates x,P,and the likelihood_value
+            self.update(
+                self.data[i], self.data_errors[i], self.psr_indices[i]
+            )  # Updates x,P,and the likelihood_value
 
         return self.ll
-
-
-

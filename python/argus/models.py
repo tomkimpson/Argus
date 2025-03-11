@@ -46,7 +46,7 @@ class ModelHyperClass(ABC):
 class StochasticGWBackgroundModel(ModelHyperClass):
     """A model class for the Stochastic Gravitational Wave Background.
 
-    The state vector for all pulsars is taken to be 
+    The state vector for all pulsars is taken to be
 
         X = [X_GW, X_spin, X_timing]
     with
@@ -56,18 +56,23 @@ class StochasticGWBackgroundModel(ModelHyperClass):
 
         X_timing = [X_timing^(1), X_timing^(2),..., X_timing^(N)]
 
-    and 
+    and
         X_timing^(n) = [δε_1^(n), δε_2^(n),..., δε_M^(n)]
 
     where M[n] is the number of extra (design) parameters for that pulsar.
 
-    The measurement equation is 
+    The measurement equation is
 
         δt^(n) = (1/f₀)·δφ − r + (design row)·[δε].
 
     """
 
-    def __init__(self, df_psr: Any, hd_correlation_matrix: np.ndarray,pulsar_design_matrices: np.ndarray) -> None:
+    def __init__(
+        self,
+        df_psr: Any,
+        hd_correlation_matrix: np.ndarray,
+        pulsar_design_matrices: np.ndarray,
+    ) -> None:
         """Initialize the StochasticGWBackgroundModel.
 
         Parameters
@@ -89,17 +94,16 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         # Total state dimension: for each pulsar, two state variables from spin noise,
         # two from GW noise, and dim_M extra parameters.
         self.nx = self.Npsr * (2 + 2) + df_psr["dim_M"].sum()
-        self.M = df_psr["dim_M"].values.astype(int) #array of integers 
+        self.M = df_psr["dim_M"].values.astype(int)  # array of integers
         self.M_sum = self.M.sum()
 
         self.hd_correlation_matrix = hd_correlation_matrix
 
-        self.start_indices = np.cumsum([0] + [4 + m for m in self.M])
+        self.M_start_indices = np.cumsum([0] + [m for m in self.M]) + 4 * self.Npsr
 
-        #Used in the H_matrix function
+        # Used in the H_matrix function
         self.pulsar_design_matrices = pulsar_design_matrices
         self.design_matrix_counter = np.zeros(self.Npsr)
-
 
     def set_global_parameters(self, params: Dict[str, Any]) -> None:
         """Set global parameters for the model."""
@@ -111,7 +115,6 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         self.f0 = params["f0"]
         self.EFAC = params["EFAC"]
         self.EQUAD = params["EQUAD"]
-
 
     @staticmethod
     def _compute_F_block(γ: float, dt: float) -> np.ndarray:
@@ -139,27 +142,29 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         )
 
     def F_matrix(self, dt: float) -> np.ndarray:
-
         """Return the state–transition matrix for time step dt."""
-
-        #GW block   
+        # GW block
         F_gw_block = self._compute_F_block(self.γa, dt)
         F_gw = np.kron(np.eye(self.Npsr), F_gw_block)
 
-        #Spin block
+        # Spin block
         F_list = []
-        for gamma in self.γp: #length Npsr. Gamma is different for each pulsar, so we have to iterate over the list.
-            F_n = self._compute_F_block(gamma,dt)
+        for (
+            gamma
+        ) in (
+            self.γp
+        ):  # length Npsr. Gamma is different for each pulsar, so we have to iterate over the list.
+            F_n = self._compute_F_block(gamma, dt)
             F_list.append(F_n)
 
         F_spin = block_diag(*F_list)
 
-        #Timing block
+        # Timing block
         F_timing = np.eye(self.M_sum)
 
-        #Combine all blocks
+        # Combine all blocks
         F = block_diag(F_gw, F_spin, F_timing)
-   
+
         return F
 
     @staticmethod
@@ -179,36 +184,35 @@ class StochasticGWBackgroundModel(ModelHyperClass):
             2x2 state–transition matrix.
 
         """
-        exp_term = np.exp(-γ * dt) 
+        exp_term = np.exp(-γ * dt)
         exp_2term = np.exp(-2 * γ * dt)
 
         q11 = (dt - 2 * (1 - exp_term) / γ + (1 - exp_2term) / (2 * γ)) / γ**3
-        q12 =  ((1 - exp_term) - (1 - exp_2term)/2) / (γ**2)
-        q22 = (1 - exp_2term) / (2*γ)
+        q12 = ((1 - exp_term) - (1 - exp_2term) / 2) / (γ**2)
+        q22 = (1 - exp_2term) / (2 * γ)
 
         return np.array([[q11, q12], [q12, q22]])
 
     def Q_matrix(self, dt: float) -> np.ndarray:
         """Return the process–noise covariance matrix for time step dt."""
-        #GW block
+        # GW block
         Q_gw = self._compute_Q_block(self.γa, dt)
-        Q_gw = np.kron(np.eye(self.Npsr), Q_gw) 
+        Q_gw = np.kron(np.eye(self.Npsr), Q_gw)
 
-        #Spin block
+        # Spin block
         Q_list = []
         for gamma in self.γp:
             Q_n = self._compute_Q_block(gamma, dt)
             Q_list.append(Q_n)
-        Q_spin = block_diag(*Q_list)    
+        Q_spin = block_diag(*Q_list)
 
-        #Timing block
-        Q_timing = dt*np.eye(self.M_sum) * self.σeps**2
+        # Timing block
+        Q_timing = dt * np.eye(self.M_sum) * self.σeps**2
 
-        #Combine all blocks
+        # Combine all blocks
         Q = block_diag(Q_gw, Q_spin, Q_timing)
 
         return Q
-        
 
     def H_matrix(self, psr_idx: int) -> np.ndarray:
         """
@@ -229,26 +233,28 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         np.ndarray
             Observation matrix (a row vector of length nx) for the specified pulsar.
         """
+        # initialization
+        H = np.zeros((1, self.nx))
 
-        # Use a precomputed start index 
-        start_idx = self.start_indices[psr_idx]
-     
-    
-        # Build the segment for pulsar psr_idx: length = 4 + M[psr_idx]
+        # update GW term
+        H[0, 2 * psr_idx] = -1.0
+
+        # update spin term
+        H[0, self.Npsr * 2 + 2 * psr_idx] = 1.0 / self.f0[psr_idx]
+
+        # update timing term
+        # Use a precomputed start index
+        start_idx = self.M_start_indices[psr_idx]
+        end_idx = self.M_start_indices[psr_idx + 1]
         row_idx = int(self.design_matrix_counter[psr_idx])
-      
+        H[0, start_idx:end_idx] = self.pulsar_design_matrices[psr_idx][
+            row_idx, :
+        ]  # length M[psr_idx]
 
-        Mrow = self.pulsar_design_matrices[psr_idx][row_idx,:] #length M[psr_idx]
-        H_segment = np.hstack((
-            np.array([1.0 / self.f0[psr_idx], 0.0, -1.0, 0.0]),Mrow
-        ))
-        self.design_matrix_counter[psr_idx] += 1 #increment the counter for this pulsar
+        # increment the counter for this pulsar
+        self.design_matrix_counter[psr_idx] += 1
 
-        # Create the full observation row vector
-        H_full = np.zeros(self.nx)
-        seg_len = H_segment.shape[0] #could pre compute this
-        H_full[start_idx: start_idx + seg_len] = H_segment
-        return H_full
+        return H
 
     def R_matrix(self, σ, psr_idx: int) -> np.ndarray:
         """Build the measurement–noise covariance matrix R for the pulsars observed at a given epoch.
