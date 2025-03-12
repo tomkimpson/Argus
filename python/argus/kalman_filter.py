@@ -2,7 +2,8 @@
 
 import numpy as np
 from tqdm import tqdm
-
+from argus.jmath import get_Pp
+from line_profiler import profile
 
 class ScalarKalmanFilter:
     """A class to implement the linear Kalman filter on scalar inputs.
@@ -45,15 +46,17 @@ class ScalarKalmanFilter:
             log_likelihood = log_likelihood.item()
 
         return log_likelihood
-
+    @profile
     def predict(self, dt):
         """Predict the next state and covariance."""
         F = self.model.F_matrix(dt)
         Q = self.model.Q_matrix(dt)
 
         self.xp = F @ self.x
-        self.Pp = F @ self.P @ F.T + Q
-
+        # self.Pp = F @ self.P @ F.T + Q
+        self.Pp = get_Pp(F, self.P, Q)
+        # breakpoint()
+    @profile
     def update(self, z, z_err, psr_index):
         """Update the state and covariance with a new observation."""
         # Define the time-dependent H and R matrices for this timestep
@@ -65,12 +68,11 @@ class ScalarKalmanFilter:
         S = self.H @ self.Pp @ self.H.T + self.R  # innovation covariance, a scalar
         K = self.Pp @ self.H.T / S  # Kalman gain, dimension (n_x, 1)
         self.x = self.xp + K * y  # Updated state, dimension (n_x, 1)
-        self.P = (
-            np.eye(len(self.xp)) - K @ self.H
-        ) @ self.Pp  # Updated covariance, dimension (n_x, n_x)
-
-        self.ll += self._log_likelihood(y, S)  # update the likelihood
-
+        # breakpoint()
+        self.P = (np.eye(len(self.xp)) - K @ self.H) @ self.Pp  # Updated covariance, dimension (n_x, n_x)
+        
+        # self.ll += self._log_likelihood(y, S)  # update the likelihood
+    @profile
     def get_likelihood(self, θ):
         """Run the Kalman filter algorithm over all observations and return a log likelihood."""
         # Define all the free parameters for the model. Note this exludes dt, which is not a parameter we need to infer.
@@ -83,6 +85,7 @@ class ScalarKalmanFilter:
         # Do the first update step
         ##For the first update step, just assign the predicted values to be the states
         self.xp, self.Pp = self.x, self.P
+        # breakpoint()
         ##Update step
         self.update(
             self.data[i], self.data_errors[i], self.psr_indices[i]
