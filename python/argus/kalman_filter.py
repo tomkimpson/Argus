@@ -2,7 +2,7 @@
 
 import numpy as np
 from tqdm import tqdm
-from argus.jmath import get_Pp
+from argus.jmath import get_Pp, get_xp, get_P_blocks, get_Pp_blocks
 from line_profiler import profile
 
 class ScalarKalmanFilter:
@@ -49,12 +49,16 @@ class ScalarKalmanFilter:
     @profile
     def predict(self, dt):
         """Predict the next state and covariance."""
-        F = self.model.F_matrix(dt)
-        Q = self.model.Q_matrix(dt)
+        F_list = self.model.F_matrix(dt) # (F_gw, F_spin)
+        Q_list = self.model.Q_matrix(dt) # (Q_gw, Q_spin, Q_timing)
+        self.xp = get_xp(F_list, self.x, 72, 72)
+        P_list = get_P_blocks(self.P, 72, 72)
+        self.Pp = get_Pp_blocks(F_list, P_list, Q_list)
+        # breakpoint()
 
-        self.xp = F @ self.x
-        # self.Pp = F @ self.P @ F.T + Q
-        self.Pp = get_Pp(F, self.P, Q)
+        # self.xp = F @ self.x
+        # # self.Pp = F @ self.P @ F.T + Q
+        # self.Pp = get_Pp(F, self.P, Q)
         # breakpoint()
     @profile
     def update(self, z, z_err, psr_index):

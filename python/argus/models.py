@@ -171,7 +171,7 @@ class StochasticGWBackgroundModel(ModelHyperClass):
 
         # # test
         # # res = get_F_spin(self.γp, dt)
-        res = get_F(self.γa, self.γp, dt, self.Npsr, self.M_sum)
+        F_gw, F_spin = get_F(self.γa, self.γp, dt, self.Npsr, self.M_sum)
         
 
         # self.F[self.Npsr*2:self.Npsr*4, self.Npsr*2:self.Npsr*4] = F_spin
@@ -182,7 +182,7 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         # # Combine all blocks
         # F = block_diag(F_gw, F_spin, F_timing)
         
-        return res
+        return F_gw, F_spin
 
     @staticmethod
     def _compute_Q_block(γ: float, dt: float) -> np.ndarray:
@@ -229,9 +229,9 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         # # Combine all blocks
         # Q = block_diag(Q_gw, Q_spin, Q_timing)
 
-        res = get_Q(self.γa, self.γp, dt, self.Npsr, self.M_sum, self.σeps)
+        Q_gw, Q_spin, Q_timing = get_Q(self.γa, self.γp, dt, self.Npsr, self.M_sum, self.σeps)
         # breakpoint()
-        return res
+        return Q_gw, Q_spin, Q_timing
     @profile
     def H_matrix(self, psr_idx: int) -> np.ndarray:
         """
