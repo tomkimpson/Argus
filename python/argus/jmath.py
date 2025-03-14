@@ -6,11 +6,9 @@ from functools import partial
 from line_profiler import profile
 
 @jax.jit
-def get_Pp(F, P, Q):
-    F_jax = jnp.asarray(F)
+def get_Pp(F, P, Q):    
     P_jax = jnp.asarray(P)
-    Q_jax = jnp.asarray(Q)
-    return F_jax@P_jax@F_jax.T + Q_jax
+    return F@P_jax@F.T + Q
 
 def get_F_block(gamma, dt):
     exp_term = jnp.exp(-gamma * dt)
