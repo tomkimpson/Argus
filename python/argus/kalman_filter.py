@@ -36,6 +36,13 @@ class ScalarKalmanFilter:
         self.N_timesteps = len(self.observations)
         self.t_diffs = np.diff(self.toa)
 
+
+
+
+        #new stuff
+        self.pulsar_design_matrices = self.model.pulsar_design_matrices
+        self.design_matrix_counter = np.zeros(self.model.Npsr)
+
         assert np.isscalar(self.data[0])
 
     def _log_likelihood(self, y, cov):
@@ -77,10 +84,30 @@ class ScalarKalmanFilter:
         
         # self.ll += self._log_likelihood(y, S)  # update the likelihood
 
-
+    def _pick_column(self, P, col_idx, scale):
+        """
+        Return scale * the 'col_idx'-th column of matrix P.
+        
+        Parameters
+        ----------
+        P : ndarray of shape (rows, cols)
+            The covariance (sub-)matrix.
+        col_idx : int
+            Which column to pick out from P.
+        scale : float
+            Multiply that column by 'scale'.
+        
+        Returns
+        -------
+        ndarray of shape (rows,)
+            The scaled column.
+        """
+        return scale * P[:, col_idx]
 
 
     def kalman_update_scalar_symmetric(
+        self,
+        psr_index,
         # --- State blocks ---
         x_gw:     np.ndarray,  # shape (2N,)
         x_spin:   np.ndarray,  # shape (2N,)
@@ -107,21 +134,27 @@ class ScalarKalmanFilter:
         """
 
         # 1) Innovation (residual)
-        #    nu = y - [h_gw @ x_gw + h_spin @ x_spin + h_eps @ x_eps]
-        nu = y - (h_gw @ x_gw + h_spin @ x_spin + h_eps @ x_eps)
+        row_idx = self.design_matrix_counter[psr_idx]
+        f0 = self.f0[psr_idx]
+        M = self.pulsar_design_matrices[psr_idx][row_idx] 
+        nu = y - (-1.0*x_gw[psr_index] + 1.0/f0*x_spin[psr_index]+M*x_eps[psr_idx]) #write out the measurement equation explicitly
+        self.design_matrix_counter[psr_idx] += 1 
 
-        # 2) Vector "u" = P * H^T, in block form.
-        #    Each u_* is the partial result for that block of the state.
-        u_gw   = P_gw @ h_gw + P_gw_spin @ h_spin + P_gw_eps @ h_eps
-        u_spin = P_gw_spin.T @ h_gw + P_spin @ h_spin + P_spin_eps @ h_eps
-        # Note: P_gw_spin is (2N,2N), so P_gw_spin.T is (2N,2N)
-        # We do not store P_spin_gw, so we use the transpose here.
-        u_eps  = P_gw_eps.T @ h_gw + P_spin_eps.T @ h_spin + P_eps @ h_eps
-        # Similarly, P_gw_eps is (2N, sum(M)), so P_gw_eps.T is (sum(M), 2N), etc.
+
+        # 2) The vector "u_gw" = P_gw @ h_gw^T, but h_gw^T has only one nonzero at col_r_n
+        #    with scale val_r_n. So we pick that column from P_gw:
+        u_gw   = pick_column(P_gw, psr_index, -1)            + pick_column(P_gw_spin, psr_index, 1.0/f0)         + pick_column_vector(P_gw_eps, psr_index, M)
+        u_spin = pick_column(P_gw_spin, psr_index, -1)       + pick_column(P_spin, psr_index, 1.0/f0)            + pick_column_vector(P_spin_eps, psr_index, M)
+        u_eps  = pick_column_vector(P_gw_eps, psr_index, -1) + pick_column_vector(P_spin_eps, psr_index, 1.0/f0) + pick_column_vector(P_eps, psr_index, M)
+
+
 
         # 3) Innovation variance: S = H * P * H^T + R
-        S = (h_gw @ u_gw) + (h_spin @ u_spin) + (h_eps @ u_eps) + R
+        #S = (h_gw @ u_gw) + (h_spin @ u_spin) + (h_eps @ u_eps) + R
 
+        # 3) Innovation variance from GW part alone (again, ignoring spin/eps for brevity):
+        S = (-1 * u_gw[psr_index]) + (1.0/f0 * u_spin[psr_index]) + (M * u_eps[psr_index]) + R
+    
         # 4) Kalman gain scale
         alpha = 1.0 / S
 
