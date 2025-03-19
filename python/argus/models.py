@@ -102,6 +102,12 @@ class StochasticGWBackgroundModel(ModelHyperClass):
 
         self.M_start_indices = np.cumsum([0] + [m for m in self.M]) + 4 * self.Npsr
 
+
+        self.M_cumsum = np.concatenate(([0], np.cumsum(self.M)))
+
+
+
+
         # Used in the H_matrix function
         self.pulsar_design_matrices = pulsar_design_matrices
         self.design_matrix_counter = np.zeros(self.Npsr)
@@ -146,43 +152,8 @@ class StochasticGWBackgroundModel(ModelHyperClass):
     @profile
     def F_matrix(self, dt: float) -> np.ndarray:
         """Return the state–transition matrix for time step dt."""
-        # if self.F is None:
-        #     self.F = np.zeros((self.nx, self.nx))
-
-        #     # timing block
-        #     self.F[self.Npsr*4:, self.Npsr*4:] = np.eye(self.M_sum)
-
-        # # GW block
-        # F_gw_block = self._compute_F_block(self.γa, dt)
-        # F_gw = np.kron(np.eye(self.Npsr), F_gw_block)
-        # self.F[:self.Npsr*2, :self.Npsr*2] = F_gw
-        
-        # # Spin block
-        # F_list = []
-        # for (
-        #     gamma
-        # ) in (
-        #     self.γp
-        # ):  # length Npsr. Gamma is different for each pulsar, so we have to iterate over the list.
-        #     F_n = self._compute_F_block(gamma, dt)
-        #     F_list.append(F_n)
-        # # breakpoint()
-        # F_spin = block_diag(*F_list)
-
-        # # test
-        # # res = get_F_spin(self.γp, dt)
-        F_gw, F_spin = get_F(self.γa, self.γp, dt, self.Npsr, self.M_sum)
-        
-
-        # self.F[self.Npsr*2:self.Npsr*4, self.Npsr*2:self.Npsr*4] = F_spin
-        
-        # # Timing block
-        # F_timing = np.eye(self.M_sum)
-
-        # # Combine all blocks
-        # F = block_diag(F_gw, F_spin, F_timing)
-        
-        return F_gw, F_spin
+        F_gw, F_spin, F_timing = get_F(self.γa, self.γp, dt, self.Npsr, self.M_sum)
+        return F_gw, F_spin,F_timing
 
     @staticmethod
     def _compute_Q_block(γ: float, dt: float) -> np.ndarray:
@@ -212,25 +183,7 @@ class StochasticGWBackgroundModel(ModelHyperClass):
     @profile
     def Q_matrix(self, dt: float) -> np.ndarray:
         """Return the process–noise covariance matrix for time step dt."""
-        # GW block
-        # Q_gw = self._compute_Q_block(self.γa, dt)
-        # Q_gw = np.kron(np.eye(self.Npsr), Q_gw)
-
-        # # Spin block
-        # Q_list = []
-        # for gamma in self.γp:
-        #     Q_n = self._compute_Q_block(gamma, dt)
-        #     Q_list.append(Q_n)
-        # Q_spin = block_diag(*Q_list)
-
-        # # Timing block
-        # Q_timing = dt * np.eye(self.M_sum) * self.σeps**2
-
-        # # Combine all blocks
-        # Q = block_diag(Q_gw, Q_spin, Q_timing)
-
         Q_gw, Q_spin, Q_timing = get_Q(self.γa, self.γp, dt, self.Npsr, self.M_sum, self.σeps)
-        # breakpoint()
         return Q_gw, Q_spin, Q_timing
     @profile
     def H_matrix(self, psr_idx: int) -> np.ndarray:

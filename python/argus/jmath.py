@@ -5,10 +5,10 @@ from jax import vmap
 from functools import partial
 from line_profiler import profile
 
-@jax.jit
-def get_Pp(F, P, Q):    
-    P_jax = jnp.asarray(P)
-    return F@P_jax@F.T + Q
+# @jax.jit
+# def get_Pp(F, P, Q):    
+#     P_jax = jnp.asarray(P)
+#     return F@P_jax@F.T + Q
 
 def get_F_block(gamma, dt):
     exp_term = jnp.exp(-gamma * dt)
@@ -24,9 +24,8 @@ def get_F(gamma, gamma_spin, dt, Npsr, M_sum):
     F_gw_block = get_F_block(gamma, dt)
     F_gw = jnp.kron(jnp.eye(Npsr), F_gw_block)
     F_spin = get_F_spin(gamma_spin, dt)
-    # F_timing = jnp.eye(M_sum)
-    # return block_diag(F_gw, F_spin, F_timing)
-    return F_gw, F_spin
+    F_timing = jnp.eye(M_sum)
+    return F_gw, F_spin, F_timing
 
 def get_Q_block(γ, dt):
     exp_term = jnp.exp(-γ * dt)
@@ -51,25 +50,25 @@ def get_Q(gamma, gamma_spin, dt, Npsr, M_sum, eps):
     # return block_diag(Q_gw, Q_spin, Q_timing)
     return Q_gw, Q_spin, Q_timing
 
-@partial(jax.jit, static_argnums=(2,3))
-def get_xp(F_list, x, gw_size, spin_size):
-    F_gw, F_spin = F_list
-    x_gw = x[:gw_size]
-    x_spin = x[gw_size:gw_size+spin_size]
-    x_timing = x[gw_size+spin_size:]
+# @partial(jax.jit, static_argnums=(2,3))
+# def get_xp(F_list, x, gw_size, spin_size):
+#     F_gw, F_spin = F_list
+#     x_gw = x[:gw_size]
+#     x_spin = x[gw_size:gw_size+spin_size]
+#     x_timing = x[gw_size+spin_size:]
     
-    return jnp.vstack([F_gw@x_gw, F_spin@x_spin, x_timing])
+#     return jnp.vstack([F_gw@x_gw, F_spin@x_spin, x_timing])
 
-@partial(jax.jit, static_argnums=(1,2))
-def get_P_blocks(P, gw_size, spin_size):
-    P1 = P[:gw_size, :gw_size]
-    P2 = P[gw_size:gw_size+spin_size, gw_size:gw_size+spin_size]
-    P3 = P[gw_size+spin_size:, gw_size+spin_size:]
-    P4 = P[:gw_size, gw_size:gw_size+spin_size]
-    P5 = P[gw_size:gw_size+spin_size, gw_size+spin_size:]
-    P6 = P[:gw_size, gw_size+spin_size:]
+# @partial(jax.jit, static_argnums=(1,2))
+# def get_P_blocks(P, gw_size, spin_size):
+#     P1 = P[:gw_size, :gw_size]
+#     P2 = P[gw_size:gw_size+spin_size, gw_size:gw_size+spin_size]
+#     P3 = P[gw_size+spin_size:, gw_size+spin_size:]
+#     P4 = P[:gw_size, gw_size:gw_size+spin_size]
+#     P5 = P[gw_size:gw_size+spin_size, gw_size+spin_size:]
+#     P6 = P[:gw_size, gw_size+spin_size:]
 
-    return P1, P2, P3, P4, P5, P6
+#     return P1, P2, P3, P4, P5, P6
 
 @jax.jit
 def get_Pp_blocks(list_A, list_B, list_C):
