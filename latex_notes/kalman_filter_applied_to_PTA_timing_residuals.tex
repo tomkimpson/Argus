@@ -3,6 +3,7 @@
 
 %packages
 \usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{xcolor}
 \usepackage{hyperref}
 \hypersetup{
@@ -38,7 +39,7 @@ The goal of this note is to define the above matrices.
 
 
 
-\section{System definition}
+\section{System definition: continuous ODEs}
 
 We have a set of $N$ pulsars. Each pulsar has $4 + M^{(n)}$ states, where $M^{(n)}$ is the number of timing model parameters for the $n$-th pulsar. The states evolve according to the following set of dynamical equations.
 \begin{align}
@@ -92,7 +93,24 @@ The quantity $f_0^{(n)}$ is the nominal spin frequency of pulsar $n$.
 
 
 
-\section{Block organisation}
+\section{Discretisation}
+
+The previous section defines the continuous-time system for a single pulsar. We now discretise it in time for multiple pulsars.
+
+\subsection{Block organisation}
+
+It is tempting to define the state vector as
+\begin{equation}
+\boldsymbol{X} = \left(\boldsymbol{X}^{(1)}, \boldsymbol{X}^{(2)},\cdots, \boldsymbol{X}^{(N)} \right),
+\end{equation}
+where $\boldsymbol{X}^{(n)} = \left(\delta \phi^{(n)}, \delta f^{(n)}, r^{(n)}, a^{(n)}, \delta \epsilon^{(n)}_{m} \right)$ is the state vector for pulsar $n$. However, it will prove more useful to define the state vector  in terms of a series of blocks
+\begin{equation}
+\boldsymbol{X} = \left(\boldsymbol{X}_{\text{spin}}, \boldsymbol{X}_{\text{gw}}, \boldsymbol{X}_{\text{tm}} \right),
+\end{equation}
+where $\boldsymbol{X}_{\text{spin}} = \left(\boldsymbol{X}^{(1)}_{\text{spin}}, \boldsymbol{X}^{(2)}_{\text{spin}},\cdots, \boldsymbol{X}^{(N)}_{\text{spin}} \right)$, $\boldsymbol{X}_{\text{gw}} = \left(\boldsymbol{X}^{(1)}_{\text{gw}}, \boldsymbol{X}^{(2)}_{\text{gw}},\cdots, \boldsymbol{X}^{(N)}_{\text{gw}} \right)$, and $\boldsymbol{X}_{\text{tm}} = \left(\boldsymbol{X}^{(1)}_{\text{tm}}, \boldsymbol{X}^{(2)}_{\text{tm}},\cdots, \boldsymbol{X}^{(N)}_{\text{tm}} \right)$.
+
+
+
 
 
 The structure of the system invictes a block organisation of the state vector.
@@ -407,8 +425,28 @@ Q = \operatorname{diag}\Bigl(Q^{(1)},\,Q^{(2)},\,\dots,\,Q^{(N)}\Bigr).
 
 
 
-\section{Kalman filter implementation}
+\section{Optimised Kalman filter implementation}
 
+The block structure of the state and covariance allows for a more efficient implementation of the Kalman filter.
+
+\noindent Lets express the state vector as 
+\begin{equation}
+x = \begin{pmatrix} x_{GW} \\[1mm] x_{\phi/f} \\[1mm] x_{\delta\epsilon} \end{pmatrix},
+\end{equation}
+
+The F-matrix and Q-matrix are block diagonal:
+\begin{equation}
+	F = \begin{pmatrix}
+	F_{GW} & 0 & 0\\[1mm]
+	0 & F_{\phi/f} & 0\\[1mm]
+	0 & 0 & F_{\delta\epsilon}
+	\end{pmatrix},\qquad
+	Q = \begin{pmatrix}
+	Q_{GW} & 0 & 0\\[1mm]
+	0 & Q_{\phi/f} & 0\\[1mm]
+	0 & 0 & Q_{\delta\epsilon}
+	\end{pmatrix}.
+	\end{equation}
 
 
 \subsection{Predict step}
@@ -478,62 +516,7 @@ Thus:
 \end{itemize}
 
 
-
-\subsection{Measurement update}
-
-
-
-
-Assume that the state is partitioned into three sectors:
-\begin{equation}
-x=\begin{pmatrix}
-x_{GW}\\[1mm]
-x_{\phi/f}\\[1mm]
-x_{\delta\epsilon}
-\end{pmatrix},
-\end{equation}
-and that the measurement equation for pulsar \(n\) is
-\begin{equation}
-y=\frac{1}{f_0^{(n)}}\,\delta\phi^{(n)}+\mathbf{M}^{(n)}\,\boldsymbol{\delta\epsilon}^{(n)}-r^{(n)}.
-\end{equation}
-In our state ordering, the measurement matrix has nonzero blocks only in the following positions:
-\begin{itemize}
-    \item In the GW sector, a \(-1\) in the entry corresponding to \(r^{(n)}\);
-    \item In the \(\phi/f\) sector, a \(1/f_0^{(n)}\) in the entry corresponding to \(\delta\phi^{(n)}\);
-    \item In the \(\delta\epsilon\) sector, the row vector \(\mathbf{M}^{(n)}\) in the block corresponding to pulsar \(n\).
-\end{itemize}
-Let
-\begin{equation}
-S=P^-_{r^{(n)}r^{(n)}}+\frac{1}{f_0^{(n)2}}P^-_{\delta\phi^{(n)}\delta\phi^{(n)}}+\mathbf{M}^{(n)}P^-_{\delta\epsilon^{(n)}\delta\epsilon^{(n)}}\mathbf{M}^{(n)T}+R.
-\end{equation}
-Then the Kalman gains for the measured components are
-\begin{align}
-K_{r^{(n)}} &= -\frac{P^-_{r^{(n)}r^{(n)}}}{S},\\[1mm]
-K_{\delta\phi^{(n)}} &= \frac{P^-_{\delta\phi^{(n)}\delta\phi^{(n)}}}{f_0^{(n)}\,S},\\[1mm]
-K_{\delta\epsilon^{(n)}} &= \frac{P^-_{\delta\epsilon^{(n)}\delta\epsilon^{(n)}}\,\mathbf{M}^{(n)T}}{S}.
-\end{align}
-All other entries of the gain \(K\) are zero.
-
-The covariance update is
-\begin{equation}
-P^+=P^--K\,H\,P^-.
-\end{equation}
-Thus, the updated variances for the measured components are
-\begin{align}
-P^+_{r^{(n)}r^{(n)}} &= P^-_{r^{(n)}r^{(n)}}-\frac{\Bigl(P^-_{r^{(n)}r^{(n)}}\Bigr)^2}{S},\\[1mm]
-P^+_{\delta\phi^{(n)}\delta\phi^{(n)}} &= P^-_{\delta\phi^{(n)}\delta\phi^{(n)}}-\frac{\Bigl(P^-_{\delta\phi^{(n)}\delta\phi^{(n)}/f_0^{(n)}}\Bigr)^2}{S},\\[1mm]
-P^+_{\delta\epsilon^{(n)}\delta\epsilon^{(n)}} &= P^-_{\delta\epsilon^{(n)}\delta\epsilon^{(n)}}-\frac{P^-_{\delta\epsilon^{(n)}\delta\epsilon^{(n)}}\,\mathbf{M}^{(n)T}\,\mathbf{M}^{(n)}\,P^-_{\delta\epsilon^{(n)}\delta\epsilon^{(n)}}}{S}.
-\end{align}
-Similarly, the cross–covariances are updated as
-\begin{align}
-P^+_{r^{(n)},\delta\phi^{(n)}} &= P^-_{r^{(n)},\delta\phi^{(n)}}+\frac{P^-_{r^{(n)}r^{(n)}}\,P^-_{\delta\phi^{(n)}\delta\phi^{(n)}/f_0^{(n)}}}{S},\\[1mm]
-P^+_{r^{(n)},\delta\epsilon^{(n)}} &= P^-_{r^{(n)},\delta\epsilon^{(n)}}+\frac{P^-_{r^{(n)}r^{(n)}}\,P^-_{\delta\epsilon^{(n)}\delta\epsilon^{(n)}}\,\mathbf{M}^{(n)T}}{S},\\[1mm]
-P^+_{\delta\phi^{(n)},\delta\epsilon^{(n)}} &= P^-_{\delta\phi^{(n)},\delta\epsilon^{(n)}}-\frac{P^-_{\delta\phi^{(n)}\delta\phi^{(n)}/f_0^{(n)}}\,P^-_{\delta\epsilon^{(n)}\delta\epsilon^{(n)}}\,\mathbf{M}^{(n)T}}{S}.
-\end{align}
-All other blocks of \(P^+\) remain unchanged.
-
-
-\subsection{Measurement update v2}
+\subsection{Update step}
 
 
 
@@ -624,6 +607,218 @@ Because \(H\) is sparse, only the entries corresponding to the measured componen
 P^+_{rr} = P^-_{rr} - \frac{\left(P^-_{rr}\right)^2}{S},
 \end{equation}
 and similarly for the other blocks and the cross–terms.
+
+
+
+\subsection{Update step again}
+
+Assume that after the predict step we have a state
+\begin{equation}
+x_{k\mid k-1}
+=
+\begin{pmatrix}
+x_{\mathrm{GW}}\\[3pt]
+x_{\phi/f}\\[3pt]
+x_{\delta\epsilon}
+\end{pmatrix}_{\!k\mid k-1}
+\quad\in \mathbb{R}^{n},
+\end{equation}
+and a block-partitioned covariance
+\begin{equation}
+P_{k\mid k-1}
+=
+\begin{pmatrix}
+P_{\mathrm{GW}} & P_{\mathrm{GW},\,\phi/f} & P_{\mathrm{GW},\,\delta\epsilon}\\[5pt]
+P_{\phi/f,\,\mathrm{GW}} & P_{\phi/f} & P_{\phi/f,\,\delta\epsilon}\\[5pt]
+P_{\delta\epsilon,\,\mathrm{GW}} & P_{\delta\epsilon,\,\phi/f} & P_{\delta\epsilon}
+\end{pmatrix}_{k\mid k-1}.
+\end{equation}
+Here, each block corresponds to a portion of the state:
+\begin{equation}
+\textstyle
+x_{\mathrm{GW}}\in \mathbb{R}^{2N},\quad
+x_{\phi/f}\in \mathbb{R}^{2N},\quad
+x_{\delta\epsilon}\in \mathbb{R}^{\sum M^{(n)}}.
+\end{equation}
+At time step $k$, we obtain a single scalar measurement $y_k$ with a $1\times n$ matrix (row vector) $H_k$ and scalar measurement noise $R_k$. The measurement equation is
+\begin{equation}
+y_k = H_k\,x_{k\mid k-1} + \text{(noise)}.
+\end{equation}
+
+
+Often, $H_k$ is mostly zeros (e.g., if we only measure one pulsar's residual). We can exploit that structure and avoid constructing large matrices. Let us partition $H_k$ into three sub-rows,
+\begin{equation}
+H_k 
+=
+\bigl[
+  h_{\mathrm{GW}},\;
+  h_{\phi/f},\;
+  h_{\delta\epsilon}
+\bigr].
+\end{equation}
+Below, we detail how to compute the necessary products and update each block of the covariance.
+
+\paragraph{3.1 Compute the Vector \(\boldsymbol{u}\).}
+
+We define
+\begin{equation}
+u_{\mathrm{GW}}
+=
+P_{\mathrm{GW}}\,h_{\mathrm{GW}}^\mathsf{T}
++
+P_{\mathrm{GW},\,\phi/f}\,h_{\phi/f}^\mathsf{T}
++
+P_{\mathrm{GW},\,\delta\epsilon}\,h_{\delta\epsilon}^\mathsf{T},
+\end{equation}
+
+\begin{equation}
+u_{\phi/f}
+=
+P_{\phi/f,\,\mathrm{GW}}\,h_{\mathrm{GW}}^\mathsf{T}
++
+P_{\phi/f}\,h_{\phi/f}^\mathsf{T}
++
+P_{\phi/f,\,\delta\epsilon}\,h_{\delta\epsilon}^\mathsf{T},
+\end{equation}
+
+\begin{equation}
+u_{\delta\epsilon}
+=
+P_{\delta\epsilon,\,\mathrm{GW}}\,h_{\mathrm{GW}}^\mathsf{T}
++
+P_{\delta\epsilon,\,\phi/f}\,h_{\phi/f}^\mathsf{T}
++
+P_{\delta\epsilon}\,h_{\delta\epsilon}^\mathsf{T}.
+\end{equation}
+
+Stack them into one column vector
+\begin{equation}
+u
+=
+\begin{pmatrix}
+u_{\mathrm{GW}}\\[3pt]
+u_{\phi/f}\\[3pt]
+u_{\delta\epsilon}
+\end{pmatrix}
+=
+P_{k\mid k-1}\,H_k^\mathsf{T}.
+\end{equation}
+
+\paragraph{3.2 Compute \(S_k\) (Scalar).}
+
+\begin{equation}
+S_k
+=
+H_k\,P_{k\mid k-1}\,H_k^\mathsf{T} 
++ 
+R_k
+=
+\bigl(h_{\mathrm{GW}},\,h_{\phi/f},\,h_{\delta\epsilon}\bigr)
+\begin{pmatrix}
+u_{\mathrm{GW}}\\
+u_{\phi/f}\\
+u_{\delta\epsilon}
+\end{pmatrix}
++
+R_k.
+\end{equation}
+In other words,
+\begin{equation}
+S_k 
+=
+h_{\mathrm{GW}}\,u_{\mathrm{GW}}
++
+h_{\phi/f}\,u_{\phi/f}
++
+h_{\delta\epsilon}\,u_{\delta\epsilon}
++
+R_k.
+\end{equation}
+
+\paragraph{3.3 Updated State.}
+
+\begin{equation}
+\nu_k
+=
+y_k 
+-
+\bigl(
+h_{\mathrm{GW}}\,x_{\mathrm{GW}}
++
+h_{\phi/f}\,x_{\phi/f}
++
+h_{\delta\epsilon}\,x_{\delta\epsilon}
+\bigr).
+\end{equation}
+Define $\alpha = 1/S_k$. Then
+\begin{equation}
+K_k 
+= 
+\alpha\,u
+\quad\Longrightarrow\quad
+K_{\mathrm{GW}} = \alpha\,u_{\mathrm{GW}},~
+K_{\phi/f} = \alpha\,u_{\phi/f},~
+K_{\delta\epsilon} = \alpha\,u_{\delta\epsilon}.
+\end{equation}
+Hence each block of the state is updated via
+\begin{equation}
+x_{\mathrm{GW}}^+
+=
+x_{\mathrm{GW}}
++
+K_{\mathrm{GW}}\;\nu_k,
+\quad
+x_{\phi/f}^+
+=
+x_{\phi/f}
++
+K_{\phi/f}\;\nu_k,
+\quad
+x_{\delta\epsilon}^+
+=
+x_{\delta\epsilon}
++
+K_{\delta\epsilon}\;\nu_k.
+\end{equation}	
+
+\paragraph{3.4 Rank-1 Covariance Update.}
+
+\begin{equation}
+P_{k\mid k}
+=
+P_{k\mid k-1}
+-
+\alpha
+\,
+\bigl(u\,u^\mathsf{T}\bigr).
+\end{equation}
+Equivalently,
+\[
+P_{k\mid k}
+=
+(I - K_k\,H_k)\,P_{k\mid k-1}.
+\]
+In block form, each block is updated by subtracting the appropriate outer products. For example,
+\[
+P_{\mathrm{GW}}^+
+=
+P_{\mathrm{GW}}
+-
+\alpha\,u_{\mathrm{GW}}\,u_{\mathrm{GW}}^\mathsf{T},
+\quad
+P_{\mathrm{GW},\,\phi/f}^+
+=
+P_{\mathrm{GW},\,\phi/f}
+-
+\alpha\,u_{\mathrm{GW}}\,u_{\phi/f}^\mathsf{T},
+\]
+and so on for all 6 blocks \(\{P_{\mathrm{GW}},P_{\mathrm{GW},\phi/f},\ldots\}\).
+
+\bigskip
+\noindent
+\textbf{Remark:} 
+Even though only one pulsar may be observed at time $k$, if the GW block couples different pulsars, the rank-1 subtraction automatically updates those cross-covariances as well.
+
 
 
 

@@ -76,6 +76,90 @@ class ScalarKalmanFilter:
         self.P = (np.eye(len(self.xp)) - K @ self.H) @ self.Pp  # Updated covariance, dimension (n_x, n_x)
         
         # self.ll += self._log_likelihood(y, S)  # update the likelihood
+
+
+
+
+    def kalman_update_scalar_symmetric(
+        # --- State blocks ---
+        x_gw:     np.ndarray,  # shape (2N,)
+        x_spin:   np.ndarray,  # shape (2N,)
+        x_eps:    np.ndarray,  # shape (sum(M^{(n)}),)
+
+        # --- Covariance blocks (only storing one side of cross terms) ---
+        P_gw:        np.ndarray,  # (2N, 2N)
+        P_gw_spin:   np.ndarray,  # (2N, 2N) = cross-block for (GW,spin)
+        P_gw_eps:    np.ndarray,  # (2N, sum(M))
+        P_spin:      np.ndarray,  # (2N, 2N)
+        P_spin_eps:  np.ndarray,  # (2N, sum(M))
+        P_eps:       np.ndarray,  # (sum(M), sum(M))
+
+        # --- Measurement noise, scalar measurement ---
+        R: float,  # measurement noise variance
+        y: float   # scalar measurement
+    ):
+        """
+        Perform one Kalman update for a single scalar measurement y
+
+        Returns
+        -------
+        Updated (x_gw, x_spin, x_eps, P_gw, P_gw_spin, P_gw_eps, P_spin, P_spin_eps, P_eps).
+        """
+
+        # 1) Innovation (residual)
+        #    nu = y - [h_gw @ x_gw + h_spin @ x_spin + h_eps @ x_eps]
+        nu = y - (h_gw @ x_gw + h_spin @ x_spin + h_eps @ x_eps)
+
+        # 2) Vector "u" = P * H^T, in block form.
+        #    Each u_* is the partial result for that block of the state.
+        u_gw   = P_gw @ h_gw + P_gw_spin @ h_spin + P_gw_eps @ h_eps
+        u_spin = P_gw_spin.T @ h_gw + P_spin @ h_spin + P_spin_eps @ h_eps
+        # Note: P_gw_spin is (2N,2N), so P_gw_spin.T is (2N,2N)
+        # We do not store P_spin_gw, so we use the transpose here.
+        u_eps  = P_gw_eps.T @ h_gw + P_spin_eps.T @ h_spin + P_eps @ h_eps
+        # Similarly, P_gw_eps is (2N, sum(M)), so P_gw_eps.T is (sum(M), 2N), etc.
+
+        # 3) Innovation variance: S = H * P * H^T + R
+        S = (h_gw @ u_gw) + (h_spin @ u_spin) + (h_eps @ u_eps) + R
+
+        # 4) Kalman gain scale
+        alpha = 1.0 / S
+
+        # 5) Updated state
+        x_gw_up   = x_gw   + alpha * u_gw   * nu
+        x_spin_up = x_spin + alpha * u_spin * nu
+        x_eps_up  = x_eps  + alpha * u_eps  * nu
+
+        # 6) Rank-1 covariance update
+        #    P <- P - alpha * u * u^T, done in block form.
+        #    We'll do each "kept" block, then set its symmetric counterpart.
+
+        # 6a) GW-GW block
+        P_gw_up = P_gw - alpha * np.outer(u_gw, u_gw)
+
+        # 6b) GW-Spin block (we store only P_gw_spin, mirror is P_gw_spin_up.T)
+        P_gw_spin_up = P_gw_spin - alpha * np.outer(u_gw, u_spin)
+
+        # 6c) Spin-Spin block
+        P_spin_up = P_spin - alpha * np.outer(u_spin, u_spin)
+
+        # 6d) GW-Eps block
+        P_gw_eps_up = P_gw_eps - alpha * np.outer(u_gw, u_eps)
+
+        # 6e) Spin-Eps block
+        P_spin_eps_up = P_spin_eps - alpha * np.outer(u_spin, u_eps)
+
+        # 6f) Eps-Eps block
+        P_eps_up = P_eps - alpha * np.outer(u_eps, u_eps)
+
+
+        return (
+            x_gw_up, x_spin_up, x_eps_up,
+            P_gw_up, P_gw_spin_up, P_gw_eps_up,
+            P_spin_up, P_spin_eps_up, P_eps_up
+        )
+
+        
     @profile
     def get_likelihood(self, θ):
         """Run the Kalman filter algorithm over all observations and return a log likelihood."""

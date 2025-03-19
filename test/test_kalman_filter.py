@@ -66,13 +66,19 @@ def test_filter_run():
         "EQUAD": np.ones(len(pulsar_metadata)),
     }
 
-    print("Running the filter")
-    start_time = time.time()
+    print("Running the filter")   
+    # Create profiler and profile only the get_likelihood call
+    profiler = cProfile.Profile()
+    profiler.enable()
     ll = KF.get_likelihood(params)
-    end_time = time.time()
-    
+    profiler.disable()
     print(f"Log-likelihood: {ll}")
-    print(f"Time taken: {end_time - start_time:.4f} seconds")
+    
+    # Print profiling results with more detail
+    print("\nDetailed Performance Profile:")
+    stats = pstats.Stats(profiler)
+    stats.sort_stats('cumulative').print_stats(20)
+    stats.sort_stats('tottime').print_stats(20)
 
 
 

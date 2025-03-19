@@ -261,17 +261,17 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         # update spin term
         H[0, self.Npsr * 2 + 2 * psr_idx] = 1.0 / self.f0[psr_idx]
 
-        # update timing term
-        # Use a precomputed start index
-        start_idx = self.M_start_indices[psr_idx]
-        end_idx = self.M_start_indices[psr_idx + 1]
-        row_idx = int(self.design_matrix_counter[psr_idx])
-        H[0, start_idx:end_idx] = self.pulsar_design_matrices[psr_idx][
-            row_idx, :
-        ]  # length M[psr_idx]
+        # # update timing term
+        # # Use a precomputed start index
+        # start_idx = self.M_start_indices[psr_idx]
+        # end_idx = self.M_start_indices[psr_idx + 1]
+        # row_idx = int(self.design_matrix_counter[psr_idx])
+        # H[0, start_idx:end_idx] = self.pulsar_design_matrices[psr_idx][
+        #     row_idx, :
+        # ]  # length M[psr_idx]
 
-        # increment the counter for this pulsar
-        self.design_matrix_counter[psr_idx] += 1
+        # # increment the counter for this pulsar
+        # self.design_matrix_counter[psr_idx] += 1 # I think this will need to be moved for if we are doing repeated calls of the likelihood function 
 
         return H
 
