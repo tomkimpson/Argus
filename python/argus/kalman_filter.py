@@ -2,44 +2,7 @@
 
 import numpy as np
 from tqdm import tqdm
-#from argus.jmath import get_Pp, get_xp, get_P_blocks, get_Pp_blocks
 from line_profiler import profile
-
-# def pick_column(P, col_idx, scale):
-#     """
-#     Return scale * the 'col_idx'-th column of matrix P.
-    
-#     Parameters
-#     ----------
-#     P : ndarray of shape (rows, cols)
-#         The covariance (sub-)matrix.
-#     col_idx : int
-#         Which column to pick out from P.
-#     scale : float
-#         Multiply that column by 'scale'.
-    
-#     Returns
-#     -------
-#     ndarray of shape (rows,)
-#         The scaled column.
-#     """
-#     return scale * P[:, col_idx]
-
-# def get_ith_submatrix(P, M_cumsum, i):
-#     # Slice out columns [offset : offset_end]
-#     return  P[:, M_cumsum[i] : M_cumsum[i+1]]
-
-
-# def pick_column_vector(P, col_idx, scale,M_cumsum):
-#     """
-#     Return scale * the 'col_idx'-th column of matrix P.
-#     """
-#     submatrix  = get_ith_submatrix(P, M_cumsum, col_idx)
-#     return submatrix@scale
-
-
-
-
 
 def get_ith_pair(x,i):
     """
@@ -50,8 +13,6 @@ def get_ith_pair(x,i):
 
 def get_ith_vector(x, M_cumsum, i):
     return x[M_cumsum[i]:M_cumsum[i + 1]]
-
-
 
 
 class ScalarKalmanFilter:
@@ -86,11 +47,16 @@ class ScalarKalmanFilter:
         self.t_diffs = np.diff(self.toa)
 
 
-
-
         #new stuff
         self.pulsar_design_matrices = self.model.pulsar_design_matrices
         self.design_matrix_counter = np.zeros(self.model.Npsr)
+
+
+        #Initialise the state vectors
+        self.x_gw0,self.x_spin0,self.x_eps0 =  x0
+        self.P_gw0,self.P_spin0,self.P_eps0,self.P_gw_spin0,self.P_gw_eps0,self.P_spin_eps0 =  P0
+
+
 
         assert np.isscalar(self.data[0])
 
@@ -124,6 +90,7 @@ class ScalarKalmanFilter:
         P_eps:       np.ndarray,  # (sum(M), sum(M))
     ):
     
+        
 
         #Define the F matrices for each block
         F_gw, F_spin,F_eps = self.model.F_matrix(dt)
@@ -268,15 +235,6 @@ class ScalarKalmanFilter:
         # 6f) Eps-Eps block
         P_eps_up = P_eps - alpha * np.outer(u_eps, u_eps)
 
-
-        # assert P_gw_up.shape == (2*self.model.Npsr, 2*self.model.Npsr)
-        # assert P_gw_spin_up.shape == (2*self.model.Npsr, 2*self.model.Npsr)
-        # assert P_gw_eps_up.shape == (2*self.model.Npsr, self.model.M_sum)
-        # assert P_spin_up.shape == (2*self.model.Npsr, 2*self.model.Npsr)
-        # assert P_spin_eps_up.shape == (2*self.model.Npsr, self.model.M_sum)
-        # assert P_eps_up.shape == (self.model.M_sum, self.model.M_sum)   
-
-
         return (
             x_gw_up, x_spin_up, x_eps_up,
             P_gw_up, P_gw_spin_up, P_gw_eps_up,
@@ -296,42 +254,28 @@ class ScalarKalmanFilter:
         #Initialise the state vectors
         # Handles the states in an explicit block format
         # Covariances are handled similarly
-        self.x_gw   = np.zeros((2*self.model.Npsr)) 
-        self.x_spin = np.zeros((2*self.model.Npsr))
-        self.x_eps  = np.zeros((self.model.M_sum))
 
-        #Initialise the covariance matrices
-        self.P_gw   = np.zeros((2*self.model.Npsr, 2*self.model.Npsr))
-        self.P_spin = np.zeros((2*self.model.Npsr, 2*self.model.Npsr))
-        self.P_eps  = np.zeros((self.model.M_sum, self.model.M_sum))
-        
-        self.P_gw_spin = np.zeros((2*self.model.Npsr, 2*self.model.Npsr))
-        self.P_gw_eps = np.zeros((2*self.model.Npsr, self.model.M_sum))
-        self.P_spin_eps = np.zeros((2*self.model.Npsr, self.model.M_sum))
-        
 
         #Initialise the likelihood
         self.ll = 0.0
 
         #Initialise the index
         i = 0
-
-
         # Update step
         #Need to correct self handiling, but leaving returns explicit for now
         (x_gw, x_spin, x_eps,
          P_gw, P_gw_spin, P_gw_eps,
          P_spin, P_spin_eps, P_eps) = self.update(
             psr_index=int(self.psr_indices[i]),
-            x_gw=self.x_gw,
-            x_spin=self.x_spin,
-            x_eps=self.x_eps,
-            P_gw=self.P_gw,
-            P_gw_spin=self.P_gw_spin,
-            P_gw_eps=self.P_gw_eps,
-            P_spin=self.P_spin,
-            P_spin_eps=self.P_spin_eps,
-            P_eps=self.P_eps,
+            x_gw=self.x_gw0,
+            x_spin=self.x_spin0,
+            x_eps=self.x_eps0,
+            P_gw=self.P_gw0,
+            P_gw_spin=self.P_gw_spin0,
+            P_gw_eps=self.P_gw_eps0,
+            P_spin=self.P_spin0,
+            P_spin_eps=self.P_spin_eps0,
+            P_eps=self.P_eps0,
             R=self.data_errors[i],
             y=self.data[i]
         )

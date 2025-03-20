@@ -10,7 +10,7 @@ import time
 
 def test_filter_run():
     """Test the KalmanFilter class by loading data, initializing the model, setting parameters, and running the filter."""
-    # Generate some data
+ 
     # Load some data to test on
     # Get the directory of the current script
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -49,8 +49,25 @@ def test_filter_run():
 
 
     # Initialize the Kalman Filter
-    x0 = np.zeros(model.nx)
-    P0 = np.eye(model.nx) * 1e-12
+    # x0 = np.zeros(model.nx)
+    # P0 = np.eye(model.nx) * 1e-12
+
+    x_gw0   = np.zeros((2*model.Npsr)) 
+    x_spin0 = np.zeros((2*model.Npsr))
+    x_eps0  = np.zeros((model.M_sum))
+    x0 = [x_gw0, x_spin0, x_eps0]
+
+    #Initialise the covariance matrices
+    P_gw0   = np.zeros((2*model.Npsr, 2*model.Npsr))
+    P_spin0 = np.zeros((2*model.Npsr, 2*model.Npsr))
+    P_eps0  = np.zeros((model.M_sum, model.M_sum))
+    
+    P_gw_spin0 = np.zeros((2*model.Npsr, 2*model.Npsr))
+    P_gw_eps0 = np.zeros((2*model.Npsr, model.M_sum))
+    P_spin_eps0 = np.zeros((2*model.Npsr, model.M_sum))
+    
+    P0 = [P_gw0, P_spin0, P_eps0, P_gw_spin0, P_gw_eps0, P_spin_eps0]
+
 
     KF = kalman_filter.ScalarKalmanFilter(model=model, observations=processed_pulsar_residuals, x0=x0, P0=P0)
 
