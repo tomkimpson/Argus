@@ -3,6 +3,8 @@
 import numpy as np
 from tqdm import tqdm
 from line_profiler import profile
+import jax.numpy as jnp
+from jax import jit
 
 def get_ith_pair(x,i):
     """
@@ -244,6 +246,7 @@ class ScalarKalmanFilter:
 
         
     @profile
+    @jit
     def get_likelihood(self, θ):
         """Run the Kalman filter algorithm over all observations and return a log likelihood."""
         # Define all the free parameters for the model. Note this exludes dt, which is not a parameter we need to infer.

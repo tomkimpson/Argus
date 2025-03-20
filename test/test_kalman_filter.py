@@ -87,6 +87,9 @@ def test_filter_run():
     # Create profiler and profile only the get_likelihood call
     profiler = cProfile.Profile()
     profiler.enable()
+    print("first run")
+    ll = KF.get_likelihood(params)
+    print("second run")
     ll = KF.get_likelihood(params)
     profiler.disable()
     print(f"Log-likelihood: {ll}")
