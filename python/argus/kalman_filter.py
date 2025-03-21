@@ -38,12 +38,14 @@ class ScalarKalmanFilter:
 
         assert np.isscalar(self.data[0])
 
+        #Precompute the observation matrices an assign them to model.H_matrix_list
+        self.model.precompute_H_matrix(self.psr_indices)
+    
+
+
     def _log_likelihood(self, y, cov):
         """Given the innovation and innovation covariance, get the likelihood."""
         log_likelihood = -0.5 * (np.log(2.0 * np.pi * cov) + (y * y) / cov)
-
-        if hasattr(log_likelihood, "item"):
-            log_likelihood = log_likelihood.item()
 
         return log_likelihood
     @profile
@@ -54,17 +56,12 @@ class ScalarKalmanFilter:
         self.xp = get_xp(F_list, self.x, 72, 72)
         P_list = get_P_blocks(self.P, 72, 72)
         self.Pp = get_Pp_blocks(F_list, P_list, Q_list)
-        # breakpoint()
 
-        # self.xp = F @ self.x
-        # # self.Pp = F @ self.P @ F.T + Q
-        # self.Pp = get_Pp(F, self.P, Q)
-        # breakpoint()
     @profile
-    def update(self, z, z_err, psr_index):
+    def update(self, z, z_err, psr_index,i):
         """Update the state and covariance with a new observation."""
         # Define the time-dependent H and R matrices for this timestep
-        self.H = self.model.H_matrix(psr_index)
+        self.H = self.model.H_matrix(i)
         self.R = self.model.R_matrix(z_err, psr_index)
 
         # Now run through the update algorithm
@@ -72,7 +69,7 @@ class ScalarKalmanFilter:
         S = self.H @ self.Pp @ self.H.T + self.R  # innovation covariance, a scalar
         K = self.Pp @ self.H.T / S  # Kalman gain, dimension (n_x, 1)
         self.x = self.xp + K * y  # Updated state, dimension (n_x, 1)
-        # breakpoint()
+        
         self.P = (np.eye(len(self.xp)) - K @ self.H) @ self.Pp  # Updated covariance, dimension (n_x, n_x)
         
         # self.ll += self._log_likelihood(y, S)  # update the likelihood
@@ -89,10 +86,10 @@ class ScalarKalmanFilter:
         # Do the first update step
         ##For the first update step, just assign the predicted values to be the states
         self.xp, self.Pp = self.x, self.P
-        # breakpoint()
+
         ##Update step
         self.update(
-            self.data[i], self.data_errors[i], self.psr_indices[i]
+            self.data[i], self.data_errors[i], self.psr_indices[i],i
         )  # Updates x,P,and the likelihood_value
 
         # Iterate over the data.
@@ -106,7 +103,8 @@ class ScalarKalmanFilter:
 
             # Update step
             self.update(
-                self.data[i], self.data_errors[i], self.psr_indices[i]
+                self.data[i], self.data_errors[i], self.psr_indices[i],i
             )  # Updates x,P,and the likelihood_value
 
         return self.ll
+

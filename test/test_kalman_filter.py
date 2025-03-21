@@ -6,7 +6,7 @@ import pandas as pd
 import cProfile
 import pstats
 import time
-
+import sys 
 
 def test_filter_run():
     """Test the KalmanFilter class by loading data, initializing the model, setting parameters, and running the filter."""
@@ -54,6 +54,8 @@ def test_filter_run():
 
     KF = kalman_filter.ScalarKalmanFilter(model=model, observations=processed_pulsar_residuals, x0=x0, P0=P0)
 
+
+
     # # Set global parameters. In an inference run we will search for the best parameters.
     params = {
         "γa": 1e-1,  # s⁻¹
@@ -61,19 +63,36 @@ def test_filter_run():
         "σp": 1e-20 * np.ones(len(pulsar_metadata)),
         "h2": 1e-12,
         "σeps": 1e-20 * np.ones(model.M_sum),
-        "f0": 100 * np.ones(len(pulsar_metadata)),  # everything is 100 Hz for now
         "EFAC": np.ones(len(pulsar_metadata)),
         "EQUAD": np.ones(len(pulsar_metadata)),
     }
 
     print("Running the filter")
+    
+    # Set up cProfile
+    profiler = cProfile.Profile()
     start_time = time.time()
+    
+    profiler.enable()
     ll = KF.get_likelihood(params)
+    profiler.disable()
+    stats = pstats.Stats(profiler)
+
     end_time = time.time()
     
     print(f"Log-likelihood: {ll}")
     print(f"Time taken: {end_time - start_time:.4f} seconds")
 
-
+    # Filter and print stats for your modules only
+    print("\n--- Profiling Results ---")
+    stats.sort_stats(pstats.SortKey.TIME)
+    # Filter to only include your modules
+    stats.print_stats('argus')  # This will include all functions from the argus package
+    
+    #Run it one more time
+    #Model must be reinitialised to get around the H indexig
+    # model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix,pulsar_design_matrices)
+    # KF = kalman_filter.ScalarKalmanFilter(model=model, observations=processed_pulsar_residuals, x0=x0, P0=P0)
+    # ll = KF.get_likelihood(params)
 
 
