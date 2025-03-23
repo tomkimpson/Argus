@@ -7,6 +7,15 @@ import cProfile
 import pstats
 import time
 import sys 
+from flax import struct
+import jax.numpy as jnp
+import jax 
+
+
+jax.config.update('jax_log_compiles', True) #show when compiles 
+jax.config.update("jax_enable_x64", True)   # Enforce 64 bit precision
+
+
 
 def test_filter_run():
     """Test the KalmanFilter class by loading data, initializing the model, setting parameters, and running the filter."""
@@ -53,19 +62,23 @@ def test_filter_run():
     P0 = np.eye(model.nx) * 1e-12
 
     KF = kalman_filter.ScalarKalmanFilter(model=model, observations=processed_pulsar_residuals, x0=x0, P0=P0)
+    #KF = kalman_filter.JaxKalmanFilter(model=model, observations=processed_pulsar_residuals, x0=x0, P0=P0)
 
 
 
-    # # Set global parameters. In an inference run we will search for the best parameters.
-    params = {
-        "γa": 1e-1,  # s⁻¹
-        "γp": 1e-1 * np.ones(len(pulsar_metadata)),
-        "σp": 1e-20 * np.ones(len(pulsar_metadata)),
-        "h2": 1e-12,
-        "σeps": 1e-20 * np.ones(model.M_sum),
-        "EFAC": np.ones(len(pulsar_metadata)),
-        "EQUAD": np.ones(len(pulsar_metadata)),
-    }
+    # Create parameter struct
+    @struct.dataclass
+    class KalmanParams:
+        γa: float
+        γp: jnp.ndarray
+        σeps: jnp.ndarray
+        σp: jnp.ndarray
+
+    Npsr = len(pulsar_metadata)
+    M_sum = model.M_sum
+    params = KalmanParams(γa=1e-1, γp=1e-1 * np.ones(Npsr), σeps=1e-20 * np.ones(M_sum),σp=1e-20 * np.ones(Npsr))
+
+
 
     print("Running the filter")
     
@@ -82,6 +95,20 @@ def test_filter_run():
     
     print(f"Log-likelihood: {ll}")
     print(f"Time taken: {end_time - start_time:.4f} seconds")
+
+
+
+    print("Running again")
+    start_time = time.time()
+    ll = KF.get_likelihood(params)
+    end_time = time.time()
+    print(f"Time taken for round 2: {end_time - start_time:.4f} seconds")
+
+
+
+
+
+
 
     # Filter and print stats for your modules only
     print("\n--- Profiling Results ---")
