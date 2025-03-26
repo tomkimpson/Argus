@@ -7,7 +7,6 @@ INSTRUCTIONS.template
 
 # Prevent the commit of analysis products
 *.npy
-*.png
 
 # Build products
 *.o
