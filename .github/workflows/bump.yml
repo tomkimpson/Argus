@@ -42,6 +42,3 @@ jobs:
         if: "!contains(github.event.head_commit.message, '[version:major]') && contains(github.event.head_commit.message, '[version:minor]')"
         run: .github/workflows/bump.sh minor
 
-      - name: Bump patch
-        if: "!contains(github.event.head_commit.message, '[version:major]') && !contains(github.event.head_commit.message, '[version:minor]')"
-        run: .github/workflows/bump.sh patch
