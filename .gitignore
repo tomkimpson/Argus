@@ -8,6 +8,8 @@ INSTRUCTIONS.template
 # Prevent the commit of analysis products
 *.npy
 *.png
+*.gz
+*.pb
 
 # Build products
 *.o

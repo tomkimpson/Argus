@@ -10,31 +10,63 @@ import jax
 import jax.numpy as jnp
 from jax import lax 
 
-@profile
-def _log_likelihood(y, cov):
-    """Given the innovation and innovation covariance, get the likelihood."""
+@jax.named_call
+def _log_likelihood(y: jax.Array, cov: jax.Array) -> jax.Array:
+    """Calculate the log likelihood given innovation and innovation covariance.
+    
+    Args:
+        y: Innovation term (measurement residual), scalar
+        cov: Innovation covariance, scalar
+        
+    Returns:
+        float: Log likelihood value
+    """
     log_likelihood = -0.5 * (jnp.log(2.0 * jnp.pi * cov) + (y * y) / cov)
     return log_likelihood
 
-@profile
-def _predict(x, P, F_list, Q_list):
-    """Predict the next state and covariance."""
+@jax.named_call
+def _predict(x: jax.Array, P: jax.Array, F_list: tuple, Q_list: tuple) -> tuple[jax.Array, jax.Array]:
+    """Predict the next state and covariance.
+    
+    Args:
+        x: Current state vector
+        P: Current covariance matrix
+        F_list: Tuple of state transition matrices
+        Q_list: Tuple of process noise matrices
+        
+    Returns:
+        tuple: (predicted state, predicted covariance)
+        
+    Note:
+        TODO: Hard-coded dimensions (72,72) should be passed as parameters
+    """
     xp = get_xp(F_list, x, 72, 72)
     P_list = get_P_blocks(P, 72, 72)
     Pp = get_Pp_blocks(F_list, P_list, Q_list)
     return xp, Pp
 
-@profile    
-def _update(xp, Pp, H, R, z):
-    """Update the state and covariance with a new observation."""
-    # Now run through the update algorithm
-    y = z - H @ xp                                  # innovation. For this class, this is just a scalar
-    S = H @ Pp @ H.T + R                           # innovation covariance, a scalar  
-    K = Pp @ H.T / S                               # Kalman gain, dimension (n_x, 1)
-    x = xp + K * y                                 # Updated state, dimension (n_x, 1)
-    P = (jnp.eye(len(xp)) - K @ H) @ Pp           # Updated covariance, dimension (n_x, n_x)
+@jax.named_call
+def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Array) -> tuple[jax.Array, jax.Array, jax.Array, jax.Array]:
+    """Update the state and covariance with a new observation.
+    
+    Args:
+        xp: Predicted state vector
+        Pp: Predicted covariance matrix
+        H: Observation matrix
+        R: Observation noise (scalar)
+        z: Observation (scalar)
+        
+    Returns:
+        tuple: (updated state, updated covariance, innovation, innovation covariance)
+    """
+    y = z - H @ xp                                  # innovation (scalar)
+    S = H @ Pp @ H.T + R                           # innovation covariance (scalar)
+    K = Pp @ H.T / S                               # Kalman gain
+    x = xp + K * y                                 # Updated state
+    P = (jnp.eye(len(xp)) - K @ H) @ Pp           # Updated covariance
     return x, P, y, S
 
+@jax.named_call
 @partial(jax.jit, static_argnames=('Npsr', 'M_sum'))
 def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr, M_sum, dt_array, x0, P0):
     """Run the Kalman filter algorithm over all observations and return a log likelihood."""
@@ -84,8 +116,17 @@ class JaxScalarKalmanFilter:
         P0: The uncertainty in the guess of P0
     """
 
-    def __init__(self, model, observations, x0, P0, **kwargs):
+    def __init__(self, model, observations: np.ndarray, x0: np.ndarray, P0: np.ndarray, **kwargs):
         """Initialize the class."""
+        if observations.ndim != 2:
+            raise ValueError("observations must be a 2D array")
+        
+        if observations.shape[1] != 4:
+            raise ValueError("observations must have 4 columns: time, data, errors, psr_indices")
+            
+        if x0.shape[0] != P0.shape[0] or P0.shape[0] != P0.shape[1]:
+            raise ValueError("Inconsistent dimensions between x0 and P0")
+        
         self.model = model
         self.observations = observations
         self.x0 = x0

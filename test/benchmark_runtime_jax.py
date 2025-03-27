@@ -7,6 +7,12 @@ import time
 from flax import struct
 import jax.numpy as jnp
 import jax
+from jax.profiler import trace
+import contextlib
+from jax.experimental.compilation_cache import compilation_cache as cc
+import jax.profiler
+import socket
+from contextlib import closing
 
 # Check available devices
 devices = jax.devices()
@@ -35,6 +41,7 @@ class Parameters:
     f0: jnp.ndarray  # Frequencies (Hz)
     EFAC: jnp.ndarray  # Error factors
     EQUAD: jnp.ndarray  # Extra quadrature noise
+
 
 def test_filter_run():
     """Test the JAX KalmanFilter class by loading data, initializing the model, setting parameters, and running the filter."""
@@ -97,22 +104,21 @@ def test_filter_run():
         EQUAD=jnp.ones(len(pulsar_metadata))
     )
 
-    print("Running the filter")
+    # Time compilation
+    print("\nStarting compilation phase...")
+    compilation_start = time.time()
+    _ = KF.get_likelihood(params)
+    compilation_end = time.time()
+    print(f"Compilation time: {compilation_end - compilation_start:.4f} seconds")
+
+    print("\nRunning profiled execution")
     start_time = time.time()
     ll = KF.get_likelihood(params)
+    jax.block_until_ready(ll)  # Ensure computation is complete
     end_time = time.time()
     
     print(f"Log-likelihood: {ll}")
-    print(f"Time taken: {end_time - start_time:.4f} seconds")
-
-
-    print("Running the filter again")
-    start_time = time.time()
-    ll = KF.get_likelihood(params)
-    end_time = time.time()
-    
-    print(f"Log-likelihood: {ll}")
-    print(f"Time taken: {end_time - start_time:.4f} seconds")
+    print(f"Execution time: {end_time - start_time:.4f} seconds")
 
 
 if __name__ == "__main__":
