@@ -9,3 +9,4 @@ dependencies:
   - enterprise-pulsar >= 3.4
   - jax >= 0.5.2 
   - jaxlib >= 0.5.2 
+  - flax >=0.10.2
