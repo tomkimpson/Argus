@@ -1,3 +1,5 @@
+"""Module which implements JAX-based math operations for Kalman filtering."""
+
 import jax
 import jax.numpy as jnp
 from jax.scipy.linalg import block_diag
@@ -7,18 +9,21 @@ from line_profiler import profile
 
 @profile
 def get_F_block(gamma, dt):
+    """Compute F block matrix using JAX."""
     exp_term = jnp.exp(-gamma * dt)
     return jnp.array([[1.0, (1-exp_term)/gamma],
-                      [0.0, exp_term]])
+                     [0.0, exp_term]])
 
 @profile
 def get_F_spin(gamma, dt):
+    """Compute F spin matrix using JAX."""
     res = vmap(lambda x: get_F_block(x, dt))(gamma)
     return block_diag(*res)
 
 @profile
 @partial(jax.jit, static_argnums=(3,4))
 def get_F(gamma, gamma_spin, dt, Npsr, M_sum):
+    """Get transition matrices using JAX."""
     F_gw_block = get_F_block(gamma, dt)
     F_gw = jnp.kron(jnp.eye(Npsr), F_gw_block)
     F_spin = get_F_spin(gamma_spin, dt)
@@ -26,6 +31,7 @@ def get_F(gamma, gamma_spin, dt, Npsr, M_sum):
 
 @profile
 def get_Q_block(γ, dt):
+    """Compute Q block matrix using JAX."""
     exp_term = jnp.exp(-γ * dt)
     exp_2term = jnp.exp(-2 * γ * dt)
 
@@ -37,12 +43,14 @@ def get_Q_block(γ, dt):
 
 @profile
 def get_Q_spin(gamma, dt):
+    """Compute Q spin matrix using JAX."""
     res = vmap(lambda x: get_Q_block(x, dt))(gamma)
     return block_diag(*res)
 
 @profile
 @partial(jax.jit, static_argnums=(3,4))
 def get_Q(gamma, gamma_spin, dt, Npsr, M_sum, eps):
+    """Get process noise matrices using JAX."""
     Q_gw_block = get_Q_block(gamma, dt)
     Q_gw = jnp.kron(jnp.eye(Npsr), Q_gw_block)
     Q_spin = get_Q_spin(gamma_spin, dt)
@@ -52,6 +60,7 @@ def get_Q(gamma, gamma_spin, dt, Npsr, M_sum, eps):
 @profile
 @partial(jax.jit, static_argnums=(2,3))
 def get_xp(F_list, x, gw_size, spin_size):
+    """Predict state using JAX."""
     F_gw, F_spin = F_list
     x_gw = x[:gw_size]
     x_spin = x[gw_size:gw_size+spin_size]
@@ -62,6 +71,7 @@ def get_xp(F_list, x, gw_size, spin_size):
 @profile
 @partial(jax.jit, static_argnums=(1,2))
 def get_P_blocks(P, gw_size, spin_size):
+    """Get covariance blocks using JAX."""
     P1 = P[:gw_size, :gw_size]
     P2 = P[gw_size:gw_size+spin_size, gw_size:gw_size+spin_size]
     P3 = P[gw_size+spin_size:, gw_size+spin_size:]
@@ -74,6 +84,7 @@ def get_P_blocks(P, gw_size, spin_size):
 @profile
 @jax.jit
 def get_Pp_blocks(list_A, list_B, list_C):
+    """Get predicted covariance blocks using JAX."""
     F1, F2 = list_A
     P1, P2, P3, P4, P5, P6 = list_B
     Q1, Q2, Q3 = list_C
@@ -90,31 +101,47 @@ def get_Pp_blocks(list_A, list_B, list_C):
 
     return jnp.vstack([block_row1, block_row2, block_row3])
 
-
-# Pre-compute F matrices for each dt
 @profile
 @partial(jax.jit, static_argnums=(3, 4))
 def precompute_F_matrices(gamma_a, gamma_p, dt_array, Npsr, M_sum):
     """Precompute all F matrices for a given parameter set and sequence of dt values.
     
-    This computes F matrices for all time steps at once with a given parameter set.
-    Returns a tuple of arrays where each array contains matrices for all timesteps.
+    This computes F matrices for all time steps at once with JAX vectorization.
+    
+    Args:
+        gamma_a: float, GWB parameter
+        gamma_p: array, pulsar-specific parameters
+        dt_array: array of time differences between observations
+        Npsr: int, number of pulsars
+        M_sum: int, sum of model components
+        
+    Returns:
+        tuple: (F_gw_matrices, F_spin_matrices) where each element is a JAX array
+               containing matrices for all timesteps
     """
-    # Define a function that returns the F matrices for a single dt
     def get_F_for_dt(dt):
         F_gw, F_spin = get_F(gamma_a, gamma_p, dt, Npsr, M_sum)
         return F_gw, F_spin
     
-    # Vectorize this function over all dt values
     return jax.vmap(get_F_for_dt)(dt_array)
 
-
-
-# Similarly for Q matrices
 @profile
 @partial(jax.jit, static_argnums=(3, 4))
 def precompute_Q_matrices(gamma_a, gamma_p, dt_array, Npsr, M_sum, eps):
-    """Precompute all Q matrices for a given parameter set and sequence of dt values."""
+    """Precompute all Q matrices for a given parameter set and sequence of dt values.
+    
+    Args:
+        gamma_a: float, GWB parameter
+        gamma_p: array, pulsar-specific parameters
+        dt_array: array of time differences between observations
+        Npsr: int, number of pulsars
+        M_sum: int, sum of model components
+        eps: float, timing parameter
+        
+    Returns:
+        tuple: (Q_gw_matrices, Q_spin_matrices, Q_timing_matrices) where each element 
+               is a JAX array containing matrices for all timesteps
+    """
     def get_Q_for_dt(dt):
         Q_gw, Q_spin, Q_timing = get_Q(gamma_a, gamma_p, dt, Npsr, M_sum, eps)
         return Q_gw, Q_spin, Q_timing
