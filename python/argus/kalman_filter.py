@@ -36,6 +36,9 @@ class ScalarKalmanFilter:
         self.N_timesteps = len(self.observations)
         self.t_diffs = np.diff(self.toa)
 
+        #Precompute the observation matrices
+        self.model.precompute_H_matrix(self.psr_indices)
+
         assert np.isscalar(self.data[0])
 
     def _log_likelihood(self, y, cov):
@@ -61,10 +64,10 @@ class ScalarKalmanFilter:
         # self.Pp = get_Pp(F, self.P, Q)
         # breakpoint()
     @profile
-    def update(self, z, z_err, psr_index):
+    def update(self, z, z_err, psr_index,i):
         """Update the state and covariance with a new observation."""
         # Define the time-dependent H and R matrices for this timestep
-        self.H = self.model.H_matrix(psr_index)
+        self.H = self.model.H_matrix(i)
         self.R = self.model.R_matrix(z_err, psr_index)
 
         # Now run through the update algorithm
@@ -92,7 +95,7 @@ class ScalarKalmanFilter:
         # breakpoint()
         ##Update step
         self.update(
-            self.data[i], self.data_errors[i], self.psr_indices[i]
+            self.data[i], self.data_errors[i], self.psr_indices[i],i
         )  # Updates x,P,and the likelihood_value
 
         # Iterate over the data.
@@ -106,7 +109,7 @@ class ScalarKalmanFilter:
 
             # Update step
             self.update(
-                self.data[i], self.data_errors[i], self.psr_indices[i]
+                self.data[i], self.data_errors[i], self.psr_indices[i],i
             )  # Updates x,P,and the likelihood_value
 
         return self.ll

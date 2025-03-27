@@ -74,7 +74,7 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
     total_ll = ll0 + jnp.sum(ll_arr)
     return total_ll
 
-class JaxKalmanFilter:
+class JaxScalarKalmanFilter:
     """A class to implement the linear Kalman filter on scalar inputs using JAX.
 
     Args:

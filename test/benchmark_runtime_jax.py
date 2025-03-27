@@ -1,28 +1,25 @@
 import os
 import glob
-from argus import data_loader, models, kalman_filter,gravitational_waves
+from argus import data_loader, models, jax_kalman_filter, gravitational_waves
 import numpy as np
 import pandas as pd
-import cProfile
-import pstats
 import time
 from flax import struct
+import jax.numpy as jnp
 
 @struct.dataclass
 class Parameters:
     γa: float  # s⁻¹
-    γp: np.ndarray  # Pulsar-specific gamma values
-    σp: np.ndarray  # Pulsar-specific sigma values
+    γp: jnp.ndarray  # Pulsar-specific gamma values
+    σp: jnp.ndarray  # Pulsar-specific sigma values
     h2: float  # GWB amplitude
-    σeps: np.ndarray  # Measurement noise
-    f0: np.ndarray  # Frequencies (Hz)
-    EFAC: np.ndarray  # Error factors
-    EQUAD: np.ndarray  # Extra quadrature noise
+    σeps: jnp.ndarray  # Measurement noise
+    f0: jnp.ndarray  # Frequencies (Hz)
+    EFAC: jnp.ndarray  # Error factors
+    EQUAD: jnp.ndarray  # Extra quadrature noise
 
 def test_filter_run():
-    """Test the KalmanFilter class by loading data, initializing the model, setting parameters, and running the filter."""
-    # Generate some data
-    # Load some data to test on
+    """Test the JAX KalmanFilter class by loading data, initializing the model, setting parameters, and running the filter."""
     # Get the directory of the current script
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -40,7 +37,9 @@ def test_filter_run():
 
     # Get the data
     print(f"Getting the data. Loading {len(par_files)} pulsars from {data_path}")
-    pulsar_residuals, pulsar_metadata,pulsar_design_matrices = (data_loader.LoadWidebandPulsarData.read_multiple_par_tim(par_files, tim_files))
+    pulsar_residuals, pulsar_metadata, pulsar_design_matrices = (
+        data_loader.LoadWidebandPulsarData.read_multiple_par_tim(par_files, tim_files)
+    )
 
     # Get the separation angles and compute HD correlation
     ra = pulsar_metadata["RA"].to_numpy(dtype=float)
@@ -48,33 +47,36 @@ def test_filter_run():
     angular_separation_matrix = data_loader.LoadWidebandPulsarData.pairwise_angular_separation(ra, dec)
     hd_correlation_matrix = gravitational_waves.hellings_downs(angular_separation_matrix)
 
-    # Post-process the residuals. 
+    # Post-process the residuals
     processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.post_process_residuals(pulsar_residuals)
 
     print("Total length of the data is ", len(processed_pulsar_residuals))
     print("Total number of pulsars is ", len(pulsar_metadata))
 
     print("Initializing the model")
-    model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix,pulsar_design_matrices)
+    model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
 
+    # Initialize the JAX Kalman Filter
+    x0 = jnp.zeros(model.nx)
+    P0 = jnp.eye(model.nx) * 1e-12
 
+    KF = jax_kalman_filter.JaxScalarKalmanFilter(
+        model=model, 
+        observations=processed_pulsar_residuals, 
+        x0=x0, 
+        P0=P0
+    )
 
-    # Initialize the Kalman Filter
-    x0 = np.zeros(model.nx)
-    P0 = np.eye(model.nx) * 1e-12
-
-    KF = kalman_filter.ScalarKalmanFilter(model=model, observations=processed_pulsar_residuals, x0=x0, P0=P0)
-
-    # # Set global parameters. In an inference run we will search for the best parameters.
+    # Set global parameters
     params = Parameters(
         γa=1e-1,
-        γp=1e-1 * np.ones(len(pulsar_metadata)),
-        σp=1e-20 * np.ones(len(pulsar_metadata)),
+        γp=jnp.ones(len(pulsar_metadata)) * 1e-1,
+        σp=jnp.ones(len(pulsar_metadata)) * 1e-20,
         h2=1e-12,
-        σeps=1e-20 * np.ones(model.M_sum),
-        f0=100 * np.ones(len(pulsar_metadata)),
-        EFAC=np.ones(len(pulsar_metadata)),
-        EQUAD=np.ones(len(pulsar_metadata))
+        σeps=jnp.ones(model.M_sum) * 1e-20,
+        f0=jnp.ones(len(pulsar_metadata)) * 100,
+        EFAC=jnp.ones(len(pulsar_metadata)),
+        EQUAD=jnp.ones(len(pulsar_metadata))
     )
 
     print("Running the filter")
@@ -86,8 +88,14 @@ def test_filter_run():
     print(f"Time taken: {end_time - start_time:.4f} seconds")
 
 
-
+    print("Running the filter again")
+    start_time = time.time()
+    ll = KF.get_likelihood(params)
+    end_time = time.time()
+    
+    print(f"Log-likelihood: {ll}")
+    print(f"Time taken: {end_time - start_time:.4f} seconds")
 
 
 if __name__ == "__main__":
-    test_filter_run()
+    test_filter_run() 
