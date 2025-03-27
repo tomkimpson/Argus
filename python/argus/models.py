@@ -2,10 +2,8 @@
 
 from abc import ABC, abstractmethod
 import numpy as np
-from scipy.linalg import block_diag
-from typing import Any, Dict, List
-from line_profiler import profile
-from argus.jmath import get_F_spin, get_F, get_Q
+from typing import Any, List
+from argus.jmath import get_F, get_Q
 
 class ModelHyperClass(ABC):
     """Abstract base class for models used with the Kalman filter.
@@ -163,7 +161,6 @@ class StochasticGWBackgroundModel(ModelHyperClass):
             ]
         )
     
-    @profile
     def F_matrix(self, dt: float) -> np.ndarray:
         """Return the state–transition matrix for time step dt."""
         F_gw, F_spin = get_F(self.γa, self.γp, dt, self.Npsr, self.M_sum)
@@ -194,16 +191,16 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         q22 = (1 - exp_2term) / (2 * γ)
 
         return np.array([[q11, q12], [q12, q22]])
-    @profile
+
     def Q_matrix(self, dt: float) -> np.ndarray:
         """Return the process–noise covariance matrix for time step dt."""
         Q_gw, Q_spin, Q_timing = get_Q(self.γa, self.γp, dt, self.Npsr, self.M_sum, self.σeps)
         return Q_gw, Q_spin, Q_timing
 
 
-    @profile
+
     def H_matrix(self, t_idx: int) -> np.ndarray: 
-        """At timestep t_idx, get the correct H-matrix"""
+        """At timestep t_idx, get the correct H-matrix."""
         return self.H_matrix_list[t_idx]
     
 

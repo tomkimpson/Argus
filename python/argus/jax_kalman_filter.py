@@ -16,7 +16,8 @@ def _log_likelihood(y: jax.Array, cov: jax.Array) -> jax.Array:
         y: Innovation term (measurement residual), scalar
         cov: Innovation covariance, scalar
         
-    Returns:
+    Returns
+    -------
         float: Log likelihood value
     """
     log_likelihood = -0.5 * (jnp.log(2.0 * jnp.pi * cov) + (y * y) / cov)
@@ -32,7 +33,8 @@ def _predict(x: jax.Array, P: jax.Array, F_list: tuple, Q_list: tuple) -> tuple[
         F_list: Tuple of state transition matrices
         Q_list: Tuple of process noise matrices
         
-    Returns:
+    Returns
+    -------
         tuple: (predicted state, predicted covariance)
         
     Note:
@@ -53,7 +55,8 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
         R: Observation noise (scalar)
         z: Observation (scalar)
         
-    Returns:
+    Returns
+    -------
         tuple: (updated state, updated covariance, innovation, innovation covariance)
     """
     y = z - H @ xp                                  # innovation (scalar)
@@ -146,7 +149,7 @@ class JaxScalarKalmanFilter:
         self._prepare_jax_arrays()
 
     def _prepare_jax_arrays(self):
-        """Convert numpy arrays to JAX arrays"""
+        """Convert numpy arrays to JAX arrays."""
         # Convert observations and related data
         self.jax_data         = jnp.array(self.data)
         self.jax_data_errors  = jnp.array(self.data_errors)

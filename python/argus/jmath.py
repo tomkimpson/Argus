@@ -20,7 +20,8 @@ def get_F_block(gamma: float, dt: float) -> jax.Array:
         gamma: Decay rate parameter
         dt: Time step
         
-    Returns:
+    Returns
+    -------
         jax.Array: 2x2 state transition matrix
     """
     exp_term = jnp.exp(-gamma * dt)
@@ -49,7 +50,8 @@ def get_F_spin(gamma: jax.Array, dt: float) -> jax.Array:
         gamma: Array of decay rates for each component
         dt: Time step
         
-    Returns:
+    Returns
+    -------
         jax.Array: Block diagonal matrix composed of 2x2 blocks
     """
     res = vmap(lambda x: get_F_block(x, dt))(gamma)
@@ -87,7 +89,8 @@ def compute_predicted_state(F_list, x, gw_size, spin_size):
         gw_size: Size of gravitational wave state block
         spin_size: Size of spin state block
         
-    Returns:
+    Returns
+    -------
         jax.Array: Predicted state vector with same structure as input, computed by:
             - Applying F_gw transition to GW states
             - Applying F_spin transition to spin states  
@@ -119,7 +122,8 @@ def compute_predicted_covariance(P: jax.Array,
         gw_size: Size of GW block
         spin_size: Size of spin block
         
-    Returns:
+    Returns
+    -------
         jax.Array: Combined predicted covariance matrix
         
     Note:
@@ -168,7 +172,8 @@ def precompute_F_matrices(gamma_a: float,
         Npsr: Number of pulsars
         M_sum: Sum of model components
         
-    Returns:
+    Returns
+    -------
         tuple: (F_gw_matrices, F_spin_matrices) containing matrices for all timesteps
                F_gw_matrices.shape = (n_timesteps, n_gw, n_gw)
                F_spin_matrices.shape = (n_timesteps, n_spin, n_spin)
@@ -191,7 +196,8 @@ def precompute_Q_matrices(gamma_a, gamma_p, dt_array, Npsr, M_sum, eps):
         M_sum: int, sum of model components
         eps: float, timing parameter
         
-    Returns:
+    Returns
+    -------
         tuple: (Q_gw_matrices, Q_spin_matrices, Q_timing_matrices) where each element 
                is a JAX array containing matrices for all timesteps
     """
