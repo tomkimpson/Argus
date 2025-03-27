@@ -7,5 +7,5 @@ dependencies:
   - scikit-sparse == 0.4.14
   - libstempo >= 2.5.0
   - enterprise-pulsar >= 3.4
-  - jax >= 0.5.3 
-  - jaxlib >= 0.5.3 
+  - jax >= 0.5.2 
+  - jaxlib >= 0.5.2 
