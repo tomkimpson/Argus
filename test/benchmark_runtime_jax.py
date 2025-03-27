@@ -6,6 +6,24 @@ import pandas as pd
 import time
 from flax import struct
 import jax.numpy as jnp
+import jax
+
+# Check available devices
+devices = jax.devices()
+print("\nAvailable devices:", devices)
+
+# Check if GPU is available
+gpu_devices = [d for d in devices if d.platform == 'gpu']
+if gpu_devices:
+    print(f"\nGPU is available! Found {len(gpu_devices)} GPU device(s):")
+    for i, d in enumerate(gpu_devices):
+        print(f"  GPU {i}: {d}")
+else:
+    print("\nNo GPU devices found - running on CPU")
+
+# Print default device
+default_device = jax.devices()[0]
+print(f"Default device: {default_device}\n")
 
 @struct.dataclass
 class Parameters:
