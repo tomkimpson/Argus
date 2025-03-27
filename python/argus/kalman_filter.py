@@ -2,6 +2,7 @@
 
 import numpy as np
 from tqdm import tqdm
+from argus.jmath import get_xp, get_Pp_blocks
 from line_profiler import profile
 
 def get_ith_pair(x,i):
@@ -91,46 +92,31 @@ class ScalarKalmanFilter:
     ):
     
         
-
+        x_list = [x_gw, x_spin, x_eps]
+        P_list = [P_gw, P_gw_spin, P_gw_eps, P_spin, P_spin_eps, P_eps]
         #Define the F matrices for each block
-        F_gw, F_spin,F_eps = self.model.F_matrix(dt)
+        F_list = self.model.F_matrix(dt)
+        #Define the Q matrices for each block
+        Q_list = self.model.Q_matrix(dt)
 
         #Predict the next state
-        x_gw_predict = F_gw@x_gw
-        x_spin_predict =  F_spin@x_spin
-        x_eps_predict = F_eps@x_eps
-
-        #Define the Q matrices for each block
-        Q_gw, Q_spin, Q_eps = self.model.Q_matrix(dt)
-
+        xp_gw, xp_spin, xp_eps = get_xp(F_list, x_list)
 
         #Predict the next covariance
-
-        ## auto covariance terms
-        P_gw_predict     = F_gw@P_gw@F_gw.T + Q_gw
-        P_spin_predict   = F_spin@P_spin@F_spin.T + Q_spin
-        P_eps_predict    = F_eps@P_eps@F_eps.T + Q_eps
-
-        ## cross covariance terms
-        P_gw_spin_predict  = F_gw@P_gw_spin@F_spin.T 
-        P_gw_eps_predict   = F_gw@P_gw_eps@F_eps.T 
-        P_spin_eps_predict = F_spin@P_spin_eps@F_eps.T 
+        Pp_gw, Pp_spin, Pp_eps, Pp_gw_spin, Pp_gw_eps, Pp_spin_eps = get_Pp_blocks(F_list, P_list, Q_list)
 
 
         return (
-            x_gw_predict,
-            x_spin_predict,
-            x_eps_predict,
-            P_gw_predict,
-            P_gw_spin_predict,
-            P_gw_eps_predict,
-            P_spin_predict,
-            P_spin_eps_predict,
-            P_eps_predict
+            xp_gw,
+            xp_spin,
+            xp_eps,
+            Pp_gw,
+            Pp_gw_spin,
+            Pp_gw_eps,
+            Pp_spin,
+            Pp_spin_eps,
+            Pp_eps
         )
-
-
-
 
 
     @profile
@@ -180,7 +166,7 @@ class ScalarKalmanFilter:
         r  = get_ith_pair(x_gw, psr_index)[0] #scalar
         δφ = get_ith_pair(x_spin, psr_index)[0] #scalar
         δε = get_ith_vector(x_eps, self.model.M_cumsum, psr_index) #vector
-
+        breakpoint()
 
         nu = y - (-r + δφ /f0 + M@δε) #write out the measurement equation explicitly
         self.design_matrix_counter[psr_index] += 1 #increment the design matrix counter for this pulsar
