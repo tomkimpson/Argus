@@ -74,7 +74,7 @@ class ScalarKalmanFilter:
     #     self.xp = get_xp(F_list, self.x, 72, 72)
     #     P_list = get_P_blocks(self.P, 72, 72)
     #     self.Pp = get_Pp_blocks(F_list, P_list, Q_list)
-
+    @profile
     def predict(self, dt,
         # --- State blocks ---
         x_gw:     np.ndarray,  # shape (2N,)
@@ -133,7 +133,7 @@ class ScalarKalmanFilter:
 
 
 
-
+    @profile
     def update(
         self,
         psr_index,
