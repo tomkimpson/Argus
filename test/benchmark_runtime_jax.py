@@ -14,22 +14,6 @@ import jax.profiler
 import socket
 from contextlib import closing
 
-# Check available devices
-devices = jax.devices()
-print("\nAvailable devices:", devices)
-
-# Check if GPU is available
-gpu_devices = [d for d in devices if d.platform == 'gpu']
-if gpu_devices:
-    print(f"\nGPU is available! Found {len(gpu_devices)} GPU device(s):")
-    for i, d in enumerate(gpu_devices):
-        print(f"  GPU {i}: {d}")
-else:
-    print("\nNo GPU devices found - running on CPU")
-
-# Print default device
-default_device = jax.devices()[0]
-print(f"Default device: {default_device}\n")
 
 @struct.dataclass
 class Parameters:
@@ -121,5 +105,54 @@ def test_filter_run():
     print(f"Execution time: {end_time - start_time:.4f} seconds")
 
 
+    print("\nRunning again with the same params")
+    start_time = time.time()
+    ll = KF.get_likelihood(params)
+    jax.block_until_ready(ll)  # Ensure computation is complete
+    end_time = time.time()
+    
+    print(f"Log-likelihood: {ll}")
+    print(f"Execution time: {end_time - start_time:.4f} seconds")
+
+    print("\nRunning again with adjusted params")
+    params = Parameters(
+    γa=2e-1,
+    γp=jnp.ones(len(pulsar_metadata)) * 2e-1,
+    σp=jnp.ones(len(pulsar_metadata)) * 2e-20,
+    h2=2e-12,
+    σeps=jnp.ones(model.M_sum) * 2e-20,
+    f0=jnp.ones(len(pulsar_metadata)) * 200,
+    EFAC=jnp.ones(len(pulsar_metadata)),
+    EQUAD=jnp.ones(len(pulsar_metadata))
+    )
+
+    start_time = time.time()
+    ll = KF.get_likelihood(params)
+    jax.block_until_ready(ll)  # Ensure computation is complete
+    end_time = time.time()
+    
+    print(f"Log-likelihood: {ll}")
+    print(f"Execution time: {end_time - start_time:.4f} seconds")
+
+
 if __name__ == "__main__":
+
+    # Check available devices
+    print("=== JAX VERSION INFO ===")
+    print(f"JAX version: {jax.__version__}")
+
+    print("\n=== DEVICE INFO ===")
+    print("Default device:", jax.default_backend())
+
+    # Check if GPU is available
+    if any(d.platform == 'gpu' for d in jax.devices()):
+        print("JAX GPU acceleration is AVAILABLE!")
+        print("GPU devices:", [d for d in jax.devices() if d.platform == 'gpu'])
+    else:
+        print("JAX GPU acceleration is NOT available. Using CPU only.")
+    print('-----------------------------------------------')
+
+
+
+
     test_filter_run() 

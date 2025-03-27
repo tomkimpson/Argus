@@ -84,6 +84,19 @@ def get_Q(gamma, gamma_spin, dt, Npsr, M_sum, eps):
     Q_timing = jnp.eye(M_sum) * eps**2
     return Q_gw, Q_spin, Q_timing
 
+
+
+
+
+
+### model
+
+
+
+
+
+
+
 @profile
 @partial(jax.jit, static_argnums=(2,3))
 def get_xp(F_list, x, gw_size, spin_size):
@@ -136,6 +149,7 @@ def get_Pp_blocks(list_A: Tuple[jax.Array, jax.Array],
     # Compute individual blocks
     PF1 = F1 @ P1 @ F1.T + Q1
     PF2 = F2 @ P2 @ F2.T + Q2
+    #No PF3 term explicitly as the F matrix is just the identity for this block
     PF4 = F1 @ P4 @ F2.T
     PF5 = F2 @ P5
     PF6 = F1 @ P6
