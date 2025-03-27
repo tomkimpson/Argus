@@ -2,9 +2,8 @@
 
 from abc import ABC, abstractmethod
 import numpy as np
-from scipy.linalg import block_diag
-from typing import Any, Dict, List
-
+from typing import Any, List
+from argus.jmath import get_F, get_Q
 
 class ModelHyperClass(ABC):
     """Abstract base class for models used with the Kalman filter.
@@ -46,22 +45,33 @@ class ModelHyperClass(ABC):
 class StochasticGWBackgroundModel(ModelHyperClass):
     """A model class for the Stochastic Gravitational Wave Background.
 
-    The state vector for pulsar n is assumed to be:
+    The state vector for all pulsars is taken to be
 
-        X^(n) = [δφ, δf, r, a, δε₁, ..., δε_M]^T
+        X = [X_GW, X_spin, X_timing]
+    with
+        X_GW = [r^(1), a^(1),r^(2),a^(2),...,r^(N),a^(N)]
 
-    with measurement equation
+        X_spin = [δφ^(1), δf^(1), δφ^(2), δf^(2),..., δφ^(N), δf^(N)]
+
+        X_timing = [X_timing^(1), X_timing^(2),..., X_timing^(N)]
+
+    and
+        X_timing^(n) = [δε_1^(n), δε_2^(n),..., δε_M^(n)]
+
+    where M[n] is the number of extra (design) parameters for that pulsar.
+
+    The measurement equation is
 
         δt^(n) = (1/f₀)·δφ − r + (design row)·[δε].
 
-    The measurement row for pulsar n is therefore
-
-        [1/f₀, 0, -1, 0, zeros(M[n])],
-
-    where M[n] is the number of extra (design) parameters for that pulsar.
     """
 
-    def __init__(self, df_psr: Any) -> None:
+    def __init__(
+        self,
+        df_psr: Any,
+        hd_correlation_matrix: np.ndarray,
+        pulsar_design_matrices: np.ndarray,
+    ) -> None:
         """Initialize the StochasticGWBackgroundModel.
 
         Parameters
@@ -74,7 +84,8 @@ class StochasticGWBackgroundModel(ModelHyperClass):
                 - sigma_p: the spin–noise white noise amplitude.
                 - f0: the pulsar spin frequency.
                 - sigma_t: the measurement noise standard deviation.
-
+        hd_correlation_matrix : np.ndarray
+            Precomputed Hellings-Downs correlation matrix
         """
         self.Npsr = len(df_psr)
         print("The number of pulsars is:", self.Npsr)
@@ -82,292 +93,166 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         # Total state dimension: for each pulsar, two state variables from spin noise,
         # two from GW noise, and dim_M extra parameters.
         self.nx = self.Npsr * (2 + 2) + df_psr["dim_M"].sum()
-        self.M = df_psr["dim_M"].values.astype(int)
+        self.M = df_psr["dim_M"].values.astype(int)  # array of integers
+        self.M_sum = self.M.sum()
 
-    def set_global_parameters(self, params: Dict[str, Any]) -> None:
+        self.hd_correlation_matrix = hd_correlation_matrix
+
+        self.M_start_indices = np.cumsum([0] + [m for m in self.M]) + 4 * self.Npsr
+
+
+        self.f0 = 100 * np.ones(self.Npsr)  # everything is 100 Hz for now. This will need to be moved, probably to KF intiialisation. todo
+
+
+
+        # Used in the H_matrix function
+        self.pulsar_design_matrices = pulsar_design_matrices
+        self.design_matrix_counter = np.zeros(self.Npsr)
+        self.F = None
+
+
+    def set_global_parameters(self, params: Any) -> None:
         """Set global parameters for the model.
-
-        The params dictionary must include:
-            "γp" : np.ndarray
-                Array of spin–noise damping rates for each pulsar.
-            "σp" : np.ndarray
-                Array of spin–noise white noise amplitudes for each pulsar.
-            "γa" : float
-                GW damping rate.
-            "h2" : float
-                Mean–square GW strain (<h²>).
-            "σeps" : float
-                White–noise amplitude for timing model parameters.
-            "separation_angle_matrix": np.ndarray
-                (N x N) symmetric array of angular separations (radians)
-                between pulsars.
-            "f0" : np.ndarray
-                Array of pulsar spin frequencies.
-            "EFAC" : np.ndarray
-                Array of EFAC values for each pulsar.
-            "EQUAD" : np.ndarray
-                Array of EQUAD values for each pulsar.
-
-        Note:
-        ----
-        The parameter dt is calculated from the data and passed directly to F_matrix and Q_matrix.
-
-        """
-        self.γp = params["γp"]  # shape: (Npsr,)
-        self.σp = params["σp"]  # shape: (Npsr,)
-        self.γa = params["γa"]  # scalar
-        self.h2 = params["h2"]  # scalar
-        self.σeps = params["σeps"]  # scalar (could be extended per pulsar)
-        self.separation_angle_matrix = params["separation_angle_matrix"]
-        self.f0 = params["f0"]
-        self.EFAC = params["EFAC"]
-        self.EQUAD = params["EQUAD"]
-
-    @staticmethod
-    def _hellings_downs(θ: np.ndarray) -> np.ndarray:
-        """Compute the Hellings–Downs function for an angle θ (in radians).
-
-        For θ == 0 the autocorrelation is defined to be 1.
-
+        
         Parameters
         ----------
-        θ : np.ndarray or float
-            Angular separation(s) in radians.
-
-        Returns
-        -------
-        np.ndarray
-            Hellings–Downs values.
-
-        Notes
-        -----
-        To avoid computing log(0), np.where is used to set the value to 1 when
-        θ is 0.
-
+        params : Parameters
+            Flax struct containing model parameters including:
+            - γp: Pulsar-specific gamma values
+            - σp: Pulsar-specific sigma values
+            - γa: GWB damping rate
+            - h2: GWB amplitude
+            - σeps: Measurement noise
+            - f0: Frequencies (Hz)
+            - EFAC: Error factors
+            - EQUAD: Extra quadrature noise
         """
-        x = (1 - np.cos(θ)) / 2.0
-        return np.where(
-            np.isclose(θ, 0.0),
-            1.0,
-            (3 / 2) * x * np.log(x) - x / 4 + 0.5,
-        )
+        self.γp = params.γp
+        self.σp = params.σp
+        self.γa = params.γa
+        self.h2 = params.h2
+        self.σeps = params.σeps
+        self.f0 = params.f0
+        self.EFAC = params.EFAC
+        self.EQUAD = params.EQUAD
 
     @staticmethod
-    def _compute_F_p(γp: float, dt: float) -> np.ndarray:
-        """Compute the 2x2 state–transition matrix for the (δφ, δf) block.
-
-        Parameters
-        ----------
-        γp : float
-            Spin–noise damping rate.
-        dt : float
-            Time step.
-
-        Returns
-        -------
-        np.ndarray
-            2x2 state–transition matrix.
-
-        """
-        exp_term = np.exp(-γp * dt)
-        return np.array(
-            [
-                [1.0, (1 - exp_term) / γp],
-                [0.0, exp_term],
-            ]
-        )
-
-    @staticmethod
-    def _compute_F_a(γa: float, dt: float) -> np.ndarray:
-        """Compute the 2x2 state–transition matrix for the (r, a) block.
-
-        Parameters
-        ----------
-        γa : float
-            GW damping rate.
-        dt : float
-            Time step.
-
-        Returns
-        -------
-        np.ndarray
-            2x2 state–transition matrix.
-
-        """
-        exp_term = np.exp(-γa * dt)
-        return np.array(
-            [
-                [1.0, (1 - exp_term) / γa],
-                [0.0, exp_term],
-            ]
-        )
-
-    @staticmethod
-    def _compute_Q_block(γ: float, σ: float, dt: float) -> np.ndarray:
-        """Compute the 2x2 discretized noise covariance for a process with damping rate γ and white noise amplitude σ.
+    def _compute_F_block(γ: float, dt: float) -> np.ndarray:
+        """Compute the 2x2 state–transition matrix for the (r, a) block and the spin block.
 
         Parameters
         ----------
         γ : float
             Damping rate.
-        σ : float
-            White noise amplitude.
         dt : float
             Time step.
 
         Returns
         -------
         np.ndarray
-            2x2 noise covariance matrix.
+            2x2 state–transition matrix.
 
         """
         exp_term = np.exp(-γ * dt)
-        exp_2γ_dt = np.exp(-2 * γ * dt)
-        term1 = dt / γ**2 - 2 * (1 - exp_term) / γ**3 + (1 - exp_2γ_dt) / (2 * γ**3)
-        term2 = (1 - exp_term) / γ**2 - (1 - exp_2γ_dt) / (2 * γ**2)
-        term3 = (1 - exp_2γ_dt) / (2 * γ)
-        return σ**2 * np.array(
+        return np.array(
             [
-                [term1, term2],
-                [term2, term3],
+                [1.0, (1 - exp_term) / γ],
+                [0.0, exp_term],
             ]
         )
-
+    
     def F_matrix(self, dt: float) -> np.ndarray:
-        """Build the overall state–transition matrix F (block–diagonal over pulsars).
+        """Return the state–transition matrix for time step dt."""
+        F_gw, F_spin = get_F(self.γa, self.γp, dt, self.Npsr, self.M_sum)
+        return F_gw, F_spin
 
-        For pulsar n, the state block is:
-
-              [ F_p^(n)    0       0 ]
-              [    0      F_a     0 ]
-              [    0       0    I_(M[n]) ]
-
-        where F_p^(n) is 2x2, F_a is 2x2 (common to all pulsars), and
-        I_(M[n]) is an identity matrix of size M[n].
+    @staticmethod
+    def _compute_Q_block(γ: float, dt: float) -> np.ndarray:
+        """Compute the 2x2 state–transition matrix for the (r, a) block and the spin block.
 
         Parameters
         ----------
+        γ : float
+            Damping rate.
         dt : float
             Time step.
 
         Returns
         -------
         np.ndarray
-            Block–diagonal state–transition matrix.
+            2x2 state–transition matrix.
 
         """
-        F_a = self._compute_F_a(self.γa, dt)
-        F_blocks = [
-            block_diag(
-                self._compute_F_p(self.γp[i], dt),
-                F_a,
-                np.eye(self.M[i]),
-            )
-            for i in range(self.Npsr)
-        ]
-        return block_diag(*F_blocks)
+        exp_term = np.exp(-γ * dt)
+        exp_2term = np.exp(-2 * γ * dt)
+
+        q11 = (dt - 2 * (1 - exp_term) / γ + (1 - exp_2term) / (2 * γ)) / γ**3
+        q12 = ((1 - exp_term) - (1 - exp_2term) / 2) / (γ**2)
+        q22 = (1 - exp_2term) / (2 * γ)
+
+        return np.array([[q11, q12], [q12, q22]])
 
     def Q_matrix(self, dt: float) -> np.ndarray:
-        """Build the full process–noise covariance matrix Q.
+        """Return the process–noise covariance matrix for time step dt."""
+        Q_gw, Q_spin, Q_timing = get_Q(self.γa, self.γp, dt, self.Npsr, self.M_sum, self.σeps)
+        return Q_gw, Q_spin, Q_timing
 
-        For each pulsar n the diagonal block is:
-            Q^(n,n) = block_diag(Q_p^(n), Q_a^(n,n), Q_ε^(n))
-        where:
-          - Q_p^(n) is the 2x2 spin–noise covariance (using γp and σp).
-          - Q_a^(n,n) is a 2x2 GW noise covariance with
-              σ_a^(n,n) = sqrt((h2/6) * γa)
-            (using Γ = 1 for the autocorrelation).
-          - Q_ε^(n) is the timing–model covariance:
-              σeps² · dt · I_(M[n]).
 
-        Off–diagonal blocks (n ≠ m) are zero except in the GW sector. For
-        pulsars n and m one uses:
-              σ_a^(n,m)² = (h2/6) * γa * Γ(θ_nm),
-        placing the corresponding 2x2 covariance in the GW blocks.
+
+    def H_matrix(self, t_idx: int) -> np.ndarray: 
+        """At timestep t_idx, get the correct H-matrix."""
+        return self.H_matrix_list[t_idx]
+    
+
+    def _H_matrix_row(self, psr_idx: int) -> np.ndarray: 
+        """
+        Return the observation matrix H for a given pulsar.
+
+        For pulsar n the measurement equation is:
+            δt = (1/f₀)·δφ − r + (design row)·[δε],
+        so that H^(n) is the row vector:
+            [1/f₀, 0, -1, 0, zeros(M[n])].
 
         Parameters
         ----------
-        dt : float
-            Time step.
+        psr_idx : int
+            Index of the pulsar.
 
         Returns
         -------
         np.ndarray
-            Process–noise covariance matrix.
-
+            Observation matrix (a row vector of length nx) for the specified pulsar.
         """
-        block_sizes = [2 + 2 + self.M[i] for i in range(self.Npsr)]
-        cum_sizes = np.concatenate(([0], np.cumsum(block_sizes)))
-        total_size = cum_sizes[-1]
-        Q = np.zeros((total_size, total_size))
-        Q_a_template = lambda σ: self._compute_Q_block(self.γa, σ, dt)
+        # initialization
+        H = np.zeros((1, self.nx))
 
-        for n in range(self.Npsr):
-            i0, i1 = cum_sizes[n], cum_sizes[n + 1]
-            Q_p = self._compute_Q_block(self.γp[n], self.σp[n], dt)
-            σ_a_nn = np.sqrt((self.h2 / 6) * self.γa)
-            Q_a_nn = Q_a_template(σ_a_nn)
-            M_dim = self.M[n]
-            Q_ε = self.σeps**2 * dt * np.eye(M_dim)
-            Q_block = block_diag(Q_p, Q_a_nn, Q_ε)
-            Q[i0:i1, i0:i1] = Q_block
+        # update GW term
+        H[0, 2 * psr_idx] = -1.0
 
-        for n in range(self.Npsr):
-            for m in range(n + 1, self.Npsr):
-                θ_nm = self.separation_angle_matrix[n, m]
-                Γ_nm = self._hellings_downs(θ_nm)
-                σ_a_nm = np.sqrt((self.h2 / 6) * self.γa * Γ_nm)
-                Q_a_nm = Q_a_template(σ_a_nm)
-                i0_n = cum_sizes[n] + 2
-                i1_n = i0_n + 2
-                i0_m = cum_sizes[m] + 2
-                i1_m = i0_m + 2
-                Q[i0_n:i1_n, i0_m:i1_m] = Q_a_nm
-                Q[i0_m:i1_m, i0_n:i1_n] = Q_a_nm.T
+        # update spin term
+        H[0, self.Npsr * 2 + 2 * psr_idx] = 1.0 / self.f0[psr_idx]
 
-        return Q
+        # update timing term
+        # Use a precomputed start index
+        start_idx = self.M_start_indices[psr_idx]
+        end_idx = self.M_start_indices[psr_idx + 1]
+        row_idx = int(self.design_matrix_counter[psr_idx])
+        H[0, start_idx:end_idx] = self.pulsar_design_matrices[psr_idx][row_idx, :]  
 
-    def H_matrix(self, psr_idx: int) -> np.ndarray:
-        """Build a list of measurement matrices H (one per pulsar).
+        # increment the counter for this pulsar
+        self.design_matrix_counter[psr_idx] += 1
 
-        For pulsar n the measurement equation is:
+        return H
 
-            δt = (1/f₀)·δφ − r + (design row)·[δε],
 
-        so that H^(n) is the row vector:
-
-            [1/f₀, 0, -1, 0, zeros(M[n])].
-
-        The design row (beyond the first four elements) is assumed to be zero.
-
-        Returns
-        -------
-        List[np.ndarray]
-            A list of 1 x (4 + M[n]) arrays (one per pulsar).
-
-        """
-        output = np.zeros(self.nx)
-
-        # 1. Compute the start index for segment i
-        #    Each segment j has length (4 + M[j]).
-        #    So, to find the start of segment i, sum all lengths up to i.
-        start_idx = sum(
-            4 + self.M[j] for j in range(psr_idx)
-        )  # Compute the start index for the ith segement
-
-        # 2. Construct the i-th segment
-        #    It's basically [1/f0[i], 0, -1, 0] concatenated with zeros(M[i]).
-        segment = np.concatenate(
-            (
-                np.array([1.0 / self.f0[psr_idx], 0.0, -1.0, 0.0]),
-                np.zeros(self.M[psr_idx]),
-            )
-        )
-        seg_len = len(segment)  # This should be 4 + M[i]
-
-        output[start_idx : start_idx + seg_len] = segment
-
-        return output
+    def precompute_H_matrix(self, pulsar_observation_ordering):
+        """Precompute the observation matrices for the pulsars in the order specified by pulsar_observation_ordering."""
+        self.H_matrix_list = []
+        print("Precomputing the observation matrices")
+        print("This might take a few seconds, but only needs to be done once.")
+        for i in pulsar_observation_ordering:
+            Hrow = self._H_matrix_row(i)
+            self.H_matrix_list.append(Hrow)
 
     def R_matrix(self, σ, psr_idx: int) -> np.ndarray:
         """Build the measurement–noise covariance matrix R for the pulsars observed at a given epoch.

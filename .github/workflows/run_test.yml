@@ -19,7 +19,7 @@ jobs:
       - name: Setup miniconda
         uses: conda-incubator/setup-miniconda@v3
         with: 
-          activate-environment: tkimpson_2025a
+          activate-environment: Argus
           environment-file: conda_env.yml
 
       - name: Verify Environment

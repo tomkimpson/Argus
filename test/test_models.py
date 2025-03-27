@@ -1,7 +1,8 @@
-from argus import data_loader, models
+from argus import data_loader, models,gravitational_waves
 import os
 import glob
 import numpy as np
+from types import SimpleNamespace
 
 
 def test_StochasticGWBackgroundModel():
@@ -20,56 +21,72 @@ def test_StochasticGWBackgroundModel():
     par_files = sorted(glob.glob(directory + "*.par"))
     tim_files = sorted(glob.glob(os.path.join(directory, "*.tim")))
 
-    assert len(par_files) == len(
-        tim_files
-    ), "Mismatch between .par and .tim file counts."
+    assert len(par_files) == len(tim_files), "Mismatch between .par and .tim file counts."
 
-    # Instead of manually merging dataframes and computing angles, use the new function.
-    # Select the first 2 file pairs.
-    pulsar_residuals, pulsar_metadata = (
+    # Select the first J pulsars for quick loading and testing
+    J = 3
+    pulsar_residuals, pulsar_metadata, pulsar_design_matrices = (
         data_loader.LoadWidebandPulsarData.read_multiple_par_tim(
-            par_files[0:2], tim_files[0:2]
+            par_files[0:J], tim_files[0:J]
         )
     )
 
     # Also get the separation angles between all pulsars.
     ra = pulsar_metadata["RA"].to_numpy(dtype=float)
     dec = pulsar_metadata["DEC"].to_numpy(dtype=float)
-    angular_separation_matrix = (
-        data_loader.LoadWidebandPulsarData.pairwise_angular_separation(ra, dec)
-    )
-
+    angular_separation_matrix = data_loader.LoadWidebandPulsarData.pairwise_angular_separation(ra, dec)
+    hd_correlation_matrix = gravitational_waves.hellings_downs(angular_separation_matrix)
     # Post-process the residuals
-    processed_pulsar_residuals = (
-        data_loader.LoadWidebandPulsarData.post_process_residuals(pulsar_residuals)
-    )
+    processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.post_process_residuals(pulsar_residuals)
+    
+    print("Total length of the data is ", len(processed_pulsar_residuals))
+    print("Total number of pulsars is ", len(pulsar_metadata))
+
 
     # Initialize the GW background model
-    model = models.StochasticGWBackgroundModel(pulsar_metadata)
+    model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
 
-    # Initialize the GW background model with the metadata dataframe.
-    model = models.StochasticGWBackgroundModel(pulsar_metadata)
-
-    # Set global parameters.
-    params = {
-        "γa": 1e-1,  # s⁻¹
-        "γp": 1e-1 * np.ones(len(pulsar_metadata)),
-        "σp": 1e-20 * np.ones(len(pulsar_metadata)),
-        "h2": 1e-12,
-        "σeps": 1e-20,
-        "separation_angle_matrix": angular_separation_matrix,
-        "f0": 100 * np.ones(len(pulsar_metadata)),  # everything is 100 Hz for now
-        "EFAC": np.ones(len(pulsar_metadata)),
-        "EQUAD": np.ones(len(pulsar_metadata)),
-    }
+    # Set global parameters using a more structured approach
+    params = SimpleNamespace(
+        γa=1e-1,  # s⁻¹
+        γp=1e-1 * np.ones(len(pulsar_metadata)),
+        σp=1e-20 * np.ones(len(pulsar_metadata)),
+        h2=1e-12,
+        σeps=1e-20 * np.ones(model.M_sum),
+        f0=100 * np.ones(len(pulsar_metadata)),
+        EFAC=np.ones(len(pulsar_metadata)),
+        EQUAD=np.ones(len(pulsar_metadata))
+    )
 
     model.set_global_parameters(params)
 
     dt = 0.50
-    F = model.F_matrix(dt)
-    Q = model.Q_matrix(dt)
-    # H = model.H_matrix()
-    # R = model.R_matrix()
+    F_gw, F_spin = model.F_matrix(dt)
+    Q_gw, Q_spin, Q_timing = model.Q_matrix(dt)
 
-    assert F.shape == (model.nx, model.nx)
-    assert Q.shape == F.shape
+    # Test shapes of returned matrices
+    nx_gw = 2 * model.Npsr
+    nx_spin = 2 * model.Npsr
+    
+    assert F_gw.shape == (nx_gw, nx_gw)
+    assert F_spin.shape == (nx_spin, nx_spin)
+    assert Q_gw.shape == F_gw.shape
+    assert Q_spin.shape == F_spin.shape
+    assert Q_timing.shape == (model.M_sum, model.M_sum)
+
+    # Test H matrix functionality
+    # First precompute H matrices for a simple test sequence
+    test_pulsar_ordering = [0, 1, 0, 2]  # Example sequence
+    model.precompute_H_matrix(test_pulsar_ordering)
+    
+    # Test that H matrices were properly precomputed
+    assert len(model.H_matrix_list) == len(test_pulsar_ordering)
+    
+    # Test shape of individual H matrix
+    H = model.H_matrix(0)  # Get first H matrix
+    assert H.shape[0] == 1  # Should be a row vector
+    assert H.shape[1] == model.nx  # Should match state vector size
+
+    # Test R matrix
+    R = model.R_matrix(1e-10, 0)  # Test for first pulsar
+    assert np.isscalar(R)  # Should return a scalar value

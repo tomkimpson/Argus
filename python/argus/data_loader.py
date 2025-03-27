@@ -250,7 +250,7 @@ class LoadWidebandPulsarData:
 
         dfs = []  # List to hold individual pulsar TOA/residual DataFrames.
         dfs_meta = []  # List to hold individual pulsar metadata DataFrames.
-
+        np_arrays_design = []  # List to hold individual pulsar design matrix DataFrames.
         for i, (par_file, tim_file) in enumerate(file_pairs):
             psr = cls.read_par_tim(par_file, tim_file, **kwargs)
 
@@ -259,7 +259,7 @@ class LoadWidebandPulsarData:
                 {
                     "toas": psr.toas,
                     f"residuals_{i}": psr.residuals,
-                    f"error_{i}": psr.toaerrs,
+                    f"error_{i}": psr.toaerrs
                 }
             )
 
@@ -273,13 +273,15 @@ class LoadWidebandPulsarData:
                 }
             )
 
+
             dfs.append(df)
             dfs_meta.append(df_meta)
+            np_arrays_design.append(psr.M_matrix)
 
         # Merge all individual pulsar DataFrames on 'toas' using an outer merge.
         merged_df = reduce(
             lambda left, right: pd.merge(left, right, on="toas", how="outer"), dfs
         )
         meta_df = pd.concat(dfs_meta, ignore_index=True)
-
-        return merged_df, meta_df
+    
+        return merged_df, meta_df, np_arrays_design
