@@ -2,6 +2,7 @@ from argus import data_loader, models,gravitational_waves
 import os
 import glob
 import numpy as np
+from types import SimpleNamespace
 
 
 def test_StochasticGWBackgroundModel():
@@ -43,30 +44,49 @@ def test_StochasticGWBackgroundModel():
 
 
     # Initialize the GW background model
-    model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix,pulsar_design_matrices)
+    model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
 
-
-
-    # Set global parameters.
-    params = {
-        "γa": 1e-1,  # s⁻¹
-        "γp": 1e-1 * np.ones(len(pulsar_metadata)),
-        "σp": 1e-20 * np.ones(len(pulsar_metadata)),
-        "h2": 1e-12,
-        "σeps": 1e-20 * np.ones(model.M_sum),
-        "f0": 100 * np.ones(len(pulsar_metadata)),  # everything is 100 Hz for now
-        "EFAC": np.ones(len(pulsar_metadata)),
-        "EQUAD": np.ones(len(pulsar_metadata)),
-    }
+    # Set global parameters using a more structured approach
+    params = SimpleNamespace(
+        γa=1e-1,  # s⁻¹
+        γp=1e-1 * np.ones(len(pulsar_metadata)),
+        σp=1e-20 * np.ones(len(pulsar_metadata)),
+        h2=1e-12,
+        σeps=1e-20 * np.ones(model.M_sum),
+        f0=100 * np.ones(len(pulsar_metadata)),
+        EFAC=np.ones(len(pulsar_metadata)),
+        EQUAD=np.ones(len(pulsar_metadata))
+    )
 
     model.set_global_parameters(params)
 
     dt = 0.50
-    F = model.F_matrix(dt)
-    Q = model.Q_matrix(dt)
-    H = model.H_matrix(psr_idx=0)
-    R = model.R_matrix(1e-10,0)
+    F_gw, F_spin = model.F_matrix(dt)
+    Q_gw, Q_spin, Q_timing = model.Q_matrix(dt)
 
-    assert F.shape == (model.nx, model.nx)
-    assert Q.shape == F.shape
-    #more good tests needed here
+    # Test shapes of returned matrices
+    nx_gw = 2 * model.Npsr
+    nx_spin = 2 * model.Npsr
+    
+    assert F_gw.shape == (nx_gw, nx_gw)
+    assert F_spin.shape == (nx_spin, nx_spin)
+    assert Q_gw.shape == F_gw.shape
+    assert Q_spin.shape == F_spin.shape
+    assert Q_timing.shape == (model.M_sum, model.M_sum)
+
+    # Test H matrix functionality
+    # First precompute H matrices for a simple test sequence
+    test_pulsar_ordering = [0, 1, 0, 2]  # Example sequence
+    model.precompute_H_matrix(test_pulsar_ordering)
+    
+    # Test that H matrices were properly precomputed
+    assert len(model.H_matrix_list) == len(test_pulsar_ordering)
+    
+    # Test shape of individual H matrix
+    H = model.H_matrix(0)  # Get first H matrix
+    assert H.shape[0] == 1  # Should be a row vector
+    assert H.shape[1] == model.nx  # Should match state vector size
+
+    # Test R matrix
+    R = model.R_matrix(1e-10, 0)  # Test for first pulsar
+    assert np.isscalar(R)  # Should return a scalar value

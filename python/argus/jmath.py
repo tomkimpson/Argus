@@ -12,9 +12,7 @@ from jax.scipy.linalg import block_diag
 from jax import vmap
 from functools import partial
 from typing import Tuple
-from line_profiler import profile
 
-@profile
 def get_F_block(gamma: float, dt: float) -> jax.Array:
     """Compute 2x2 state transition block matrix for a single component.
     
@@ -29,7 +27,6 @@ def get_F_block(gamma: float, dt: float) -> jax.Array:
     return jnp.array([[1.0, (1-exp_term)/gamma],
                      [0.0, exp_term]])
 
-@profile
 def get_Q_block(γ: float, dt: float) -> jax.Array:
     """Compute Q block matrix using JAX.
     
@@ -45,7 +42,6 @@ def get_Q_block(γ: float, dt: float) -> jax.Array:
 
     return jnp.array([[q11, q12], [q12, q22]])
 
-@profile
 def get_F_spin(gamma: jax.Array, dt: float) -> jax.Array:
     """Compute block diagonal state transition matrix for spin noise.
     
@@ -59,7 +55,6 @@ def get_F_spin(gamma: jax.Array, dt: float) -> jax.Array:
     res = vmap(lambda x: get_F_block(x, dt))(gamma)
     return block_diag(*res)
 
-@profile
 @partial(jax.jit, static_argnums=(3,4))
 def get_F(gamma, gamma_spin, dt, Npsr, M_sum):
     """Get transition matrices using JAX."""
@@ -68,13 +63,11 @@ def get_F(gamma, gamma_spin, dt, Npsr, M_sum):
     F_spin = get_F_spin(gamma_spin, dt)
     return F_gw, F_spin
 
-@profile
 def get_Q_spin(gamma, dt):
     """Compute Q spin matrix using JAX."""
     res = vmap(lambda x: get_Q_block(x, dt))(gamma)
     return block_diag(*res)
 
-@profile
 @partial(jax.jit, static_argnums=(3,4))
 def get_Q(gamma, gamma_spin, dt, Npsr, M_sum, eps):
     """Get process noise matrices using JAX."""
@@ -84,23 +77,26 @@ def get_Q(gamma, gamma_spin, dt, Npsr, M_sum, eps):
     Q_timing = jnp.eye(M_sum) * eps**2
     return Q_gw, Q_spin, Q_timing
 
-
-
-
-
-
-### model
-
-
-
-
-
-
-
-@profile
 @partial(jax.jit, static_argnums=(2,3))
-def get_xp(F_list, x, gw_size, spin_size):
-    """Predict state using JAX."""
+def compute_predicted_state(F_list, x, gw_size, spin_size):
+    """Compute the predicted state vector by applying transition matrices to state blocks.
+    
+    Args:
+        F_list: Tuple of (F_gw, F_spin) transition matrices for GW and spin components
+        x: Current state vector containing GW, spin and timing components
+        gw_size: Size of gravitational wave state block
+        spin_size: Size of spin state block
+        
+    Returns:
+        jax.Array: Predicted state vector with same structure as input, computed by:
+            - Applying F_gw transition to GW states
+            - Applying F_spin transition to spin states  
+            - Keeping timing states unchanged
+            
+    Note:
+        The state vector x is assumed to have structure [x_gw, x_spin, x_timing]
+        where each component has size determined by gw_size and spin_size parameters.
+    """
     F_gw, F_spin = F_list
     x_gw = x[:gw_size]
     x_spin = x[gw_size:gw_size+spin_size]
@@ -108,58 +104,53 @@ def get_xp(F_list, x, gw_size, spin_size):
     
     return jnp.vstack([F_gw@x_gw, F_spin@x_spin, x_timing])
 
-@profile
-@partial(jax.jit, static_argnums=(1,2))
-def get_P_blocks(P, gw_size, spin_size):
-    """Get covariance blocks using JAX."""
+@partial(jax.jit, static_argnums=(3,4))
+def compute_predicted_covariance(P: jax.Array,
+                               F_list: Tuple[jax.Array, jax.Array],
+                               Q_list: Tuple[jax.Array, ...],
+                               gw_size: int,
+                               spin_size: int) -> jax.Array:
+    """Compute predicted covariance matrix in one operation.
+    
+    Args:
+        P: Full covariance matrix
+        F_list: Tuple of (F_gw, F_spin) transition matrices
+        Q_list: Tuple of (Q_gw, Q_spin, Q_timing) process noise matrices
+        gw_size: Size of GW block
+        spin_size: Size of spin block
+        
+    Returns:
+        jax.Array: Combined predicted covariance matrix
+        
+    Note:
+        Computing the predicted covariance by slicing the matrix into blocks and doing
+        individual matrix products is significantly faster than doing the full matrix
+        multiplication FPF^T + Q. This is because the block structure allows us to avoid
+        many unnecessary multiplications with zero elements.
+    """
+    F1, F2 = F_list
+    Q1, Q2, Q3 = Q_list
+    
+    # Extract blocks directly from P
     P1 = P[:gw_size, :gw_size]
     P2 = P[gw_size:gw_size+spin_size, gw_size:gw_size+spin_size]
     P3 = P[gw_size+spin_size:, gw_size+spin_size:]
     P4 = P[:gw_size, gw_size:gw_size+spin_size]
     P5 = P[gw_size:gw_size+spin_size, gw_size+spin_size:]
     P6 = P[:gw_size, gw_size+spin_size:]
-
-    return P1, P2, P3, P4, P5, P6
-
-@profile
-@jax.jit
-def get_Pp_blocks(list_A: Tuple[jax.Array, jax.Array],
-                  list_B: Tuple[jax.Array, ...],
-                  list_C: Tuple[jax.Array, ...]) -> jax.Array:
-    """Get predicted covariance blocks using JAX.
-    
-    Args:
-        list_A: Tuple of (F_gw, F_spin) transition matrices
-        list_B: Tuple of (P1, P2, P3, P4, P5, P6) covariance blocks
-        list_C: Tuple of (Q1, Q2, Q3) process noise matrices
-        
-    Returns:
-        jax.Array: Combined predicted covariance matrix
-        
-    Note:
-        Uses jnp.block instead of separate hstack/vstack operations because:
-        - It's more readable - the block structure is visually apparent
-        - Potentially more efficient - JAX sees entire matrix structure at once
-        - More memory efficient - avoids creating intermediate arrays
-    """
-    F1, F2 = list_A
-    P1, P2, P3, P4, P5, P6 = list_B
-    Q1, Q2, Q3 = list_C
     
     # Compute individual blocks
     PF1 = F1 @ P1 @ F1.T + Q1
     PF2 = F2 @ P2 @ F2.T + Q2
-    #No PF3 term explicitly as the F matrix is just the identity for this block
     PF4 = F1 @ P4 @ F2.T
     PF5 = F2 @ P5
     PF6 = F1 @ P6
     
-    # Assemble full matrix using block structure for clarity and efficiency
+    # Assemble full matrix
     return jnp.block([[PF1,   PF4,   PF6],
                      [PF4.T,  PF2,   PF5],
                      [PF6.T,  PF5.T, P3 + Q3]])
 
-@profile
 @partial(jax.jit, static_argnums=(3, 4))
 def precompute_F_matrices(gamma_a: float, 
                          gamma_p: jax.Array, 
@@ -188,7 +179,6 @@ def precompute_F_matrices(gamma_a: float,
     
     return jax.vmap(get_F_for_dt)(dt_array)
 
-@profile
 @partial(jax.jit, static_argnums=(3, 4))
 def precompute_Q_matrices(gamma_a, gamma_p, dt_array, Npsr, M_sum, eps):
     """Precompute all Q matrices for a given parameter set and sequence of dt values.

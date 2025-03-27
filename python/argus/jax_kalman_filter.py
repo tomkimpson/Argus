@@ -1,10 +1,8 @@
 """Module which implements JAX-based Kalman filter algorithm."""
 
 import numpy as np
-from tqdm import tqdm
-from argus.jmath import get_xp, get_P_blocks, get_Pp_blocks, precompute_F_matrices, precompute_Q_matrices
-from line_profiler import profile
 
+from argus.jmath import precompute_F_matrices, precompute_Q_matrices,compute_predicted_covariance,compute_predicted_state
 from functools import partial
 import jax
 import jax.numpy as jnp
@@ -40,9 +38,8 @@ def _predict(x: jax.Array, P: jax.Array, F_list: tuple, Q_list: tuple) -> tuple[
     Note:
         TODO: Hard-coded dimensions (72,72) should be passed as parameters
     """
-    xp = get_xp(F_list, x, 72, 72)
-    P_list = get_P_blocks(P, 72, 72)
-    Pp = get_Pp_blocks(F_list, P_list, Q_list)
+    xp = compute_predicted_state(F_list, x, 72, 72)
+    Pp = compute_predicted_covariance(P,F_list,Q_list,72,72)
     return xp, Pp
 
 @jax.named_call
@@ -151,17 +148,17 @@ class JaxScalarKalmanFilter:
     def _prepare_jax_arrays(self):
         """Convert numpy arrays to JAX arrays"""
         # Convert observations and related data
-        self.jax_data = jnp.array(self.data)
-        self.jax_data_errors = jnp.array(self.data_errors)
-        self.jax_psr_indices = jnp.array(self.psr_indices)
-        self.jax_t_diffs = jnp.array(self.t_diffs)
+        self.jax_data         = jnp.array(self.data)
+        self.jax_data_errors  = jnp.array(self.data_errors)
+        self.jax_psr_indices  = jnp.array(self.psr_indices)
+        self.jax_t_diffs      = jnp.array(self.t_diffs)
         
         # Convert initial state and covariance
-        self.jax_x0 = jnp.array(self.x0.reshape(-1, 1))
-        self.jax_P0 = jnp.array(self.P0)
+        self.jax_x0          = jnp.array(self.x0.reshape(-1, 1))
+        self.jax_P0          = jnp.array(self.P0)
         
         # Convert H matrices
-        self.jax_H_matrices = jnp.array([h for h in self.model.H_matrix_list])
+        self.jax_H_matrices  = jnp.array([h for h in self.model.H_matrix_list])
 
     def get_likelihood(self, θ):
         """Run the Kalman filter algorithm over all observations and return a log likelihood."""

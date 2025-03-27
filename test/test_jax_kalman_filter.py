@@ -26,8 +26,22 @@ class Parameters:
     EFAC: jnp.ndarray  # Error factors
     EQUAD: jnp.ndarray  # Extra quadrature noise
 
+# Check available devices
+print("=== JAX VERSION INFO ===")
+print(f"JAX version: {jax.__version__}")
 
-def benchmark_jax_runtime():
+print("\n=== DEVICE INFO ===")
+print("Default device:", jax.default_backend())
+
+# Check if GPU is available
+if any(d.platform == 'gpu' for d in jax.devices()):
+    print("JAX GPU acceleration is AVAILABLE!")
+    print("GPU devices:", [d for d in jax.devices() if d.platform == 'gpu'])
+else:
+    print("JAX GPU acceleration is NOT available. Using CPU only.")
+print('-----------------------------------------------')
+
+def test_filter_run():
     """Test the JAX KalmanFilter class by loading data, initializing the model, setting parameters, and running the filter."""
     # Get the directory of the current script
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -134,25 +148,3 @@ def benchmark_jax_runtime():
     print(f"Log-likelihood: {ll}")
     print(f"Execution time: {end_time - start_time:.4f} seconds")
 
-
-if __name__ == "__main__":
-
-    # Check available devices
-    print("=== JAX VERSION INFO ===")
-    print(f"JAX version: {jax.__version__}")
-
-    print("\n=== DEVICE INFO ===")
-    print("Default device:", jax.default_backend())
-
-    # Check if GPU is available
-    if any(d.platform == 'gpu' for d in jax.devices()):
-        print("JAX GPU acceleration is AVAILABLE!")
-        print("GPU devices:", [d for d in jax.devices() if d.platform == 'gpu'])
-    else:
-        print("JAX GPU acceleration is NOT available. Using CPU only.")
-    print('-----------------------------------------------')
-
-
-
-    #go
-    benchmark_jax_runtime() 

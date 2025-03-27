@@ -92,7 +92,7 @@ def test_load_MDC1_multiple_data():
     sample_tim_files = [pair[1] for pair in sample_pairs]
 
     try:
-        merged_df, meta_df = data_loader.LoadWidebandPulsarData.read_multiple_par_tim(
+        merged_df, meta_df,pulsar_design_matrices = data_loader.LoadWidebandPulsarData.read_multiple_par_tim(
             sample_par_files, sample_tim_files
         )
     except Exception as e:
@@ -109,10 +109,6 @@ def test_load_MDC1_multiple_data():
         set(meta_df.columns)
     ), "meta_df is missing required columns."
 
-    # # Check that angle_matrix is a NumPy array and has shape (N, N)
-    # assert isinstance(angle_matrix, np.ndarray), "angle_matrix is not a numpy array."
-    # n_pulsars = len(meta_df)
-    # assert angle_matrix.shape == (n_pulsars, n_pulsars), "angle_matrix does not have the correct shape."
 
 
 def test_load_NANOGrav15_multiple_data():
@@ -137,7 +133,7 @@ def test_load_NANOGrav15_multiple_data():
     sample_tim_files = [pair[1] for pair in sample_pairs]
 
     try:
-        merged_df, meta_df = data_loader.LoadWidebandPulsarData.read_multiple_par_tim(
+        merged_df, meta_df,pulsar_design_matrices = data_loader.LoadWidebandPulsarData.read_multiple_par_tim(
             sample_par_files,
             sample_tim_files,
             timing_package="pint",
@@ -158,8 +154,3 @@ def test_load_NANOGrav15_multiple_data():
     assert required_meta_cols.issubset(
         set(meta_df.columns)
     ), "meta_df is missing required columns."
-
-    # # Check that angle_matrix is a NumPy array and has shape (N, N)
-    # assert isinstance(angle_matrix, np.ndarray), "angle_matrix is not a numpy array."
-    # n_pulsars = len(meta_df)
-    # assert angle_matrix.shape == (n_pulsars, n_pulsars), "angle_matrix does not have the correct shape."
