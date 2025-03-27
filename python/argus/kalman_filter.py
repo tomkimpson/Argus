@@ -2,7 +2,7 @@
 
 import numpy as np
 from tqdm import tqdm
-from argus.jmath import get_xp, get_Pp_blocks
+from argus.jmath import get_xp, get_Pp_blocks, get_kalman
 from line_profiler import profile
 
 def get_ith_pair(x,i):
@@ -150,14 +150,14 @@ class ScalarKalmanFilter:
         """
 
         #Define the extra covariance terms. We can probably drop this and just use the symmetric covariances
-        P_spin_gw  = P_gw_spin.T
-        P_eps_gw   = P_gw_eps.T
-        P_eps_spin = P_spin_eps.T
+        # P_spin_gw  = P_gw_spin.T
+        # P_eps_gw   = P_gw_eps.T
+        # P_eps_spin = P_spin_eps.T
 
         #Define some relevant parameters for this pulsar and timestep
 
 
-        row_idx = int(self.design_matrix_counter[psr_index])
+        row_idx = int(self.model.design_matrix_counter[psr_index])
         f0 = self.model.f0[psr_index]
         M = self.pulsar_design_matrices[psr_index][row_idx,:] #self.pulsar_design_matrices is a list of design matrices for each pulsar, length Npsr. And individual design mastrix has shape (Ntimesteps,Nparameters)
 
@@ -166,21 +166,18 @@ class ScalarKalmanFilter:
         r  = get_ith_pair(x_gw, psr_index)[0] #scalar
         δφ = get_ith_pair(x_spin, psr_index)[0] #scalar
         δε = get_ith_vector(x_eps, self.model.M_cumsum, psr_index) #vector
-        breakpoint()
 
         nu = y - (-r + δφ /f0 + M@δε) #write out the measurement equation explicitly
-        self.design_matrix_counter[psr_index] += 1 #increment the design matrix counter for this pulsar
+        # self.design_matrix_counter[psr_index] += 1 #increment the design matrix counter for this pulsar
 
 
         # 2) The vector "u_gw" = P_gw @ h_gw^T, but h_gw^T has only one nonzero at col_r_n
         #    with scale val_r_n. So we pick that column from P_gw:
-
-        u_gw   = -P_gw[:,psr_index]      + P_gw_spin[:,psr_index]/f0  + P_gw_eps[:, self.model.M_cumsum[psr_index] : self.model.M_cumsum[psr_index+1]]@M
-        u_spin = -P_spin_gw[:,psr_index] + P_spin[:,psr_index]/f0     + P_spin_eps[:, self.model.M_cumsum[psr_index] : self.model.M_cumsum[psr_index+1]]@M
-        u_eps  = -P_eps_gw[:,psr_index]  + P_eps_spin[:,psr_index]/f0 + P_eps[:, self.model.M_cumsum[psr_index] : self.model.M_cumsum[psr_index+1]]@M
-
-
+        gw_param, spin_param, H_eps = self.model.H_matrix(psr_index)
     
+        P_list = [P_gw, P_gw_spin, P_gw_eps, P_spin, P_spin_eps, P_eps]
+        u_gw, u_spin, u_eps = get_kalman(P_list, psr_index, f0, H_eps)
+       
 
         # 3) Innovation variance: S = H * P * H^T + R
         #S = (h_gw @ u_gw) + (h_spin @ u_spin) + (h_eps @ u_eps) + R

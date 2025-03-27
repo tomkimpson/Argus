@@ -100,7 +100,7 @@ class StochasticGWBackgroundModel(ModelHyperClass):
 
         self.hd_correlation_matrix = hd_correlation_matrix
 
-        self.M_start_indices = np.cumsum([0] + [m for m in self.M]) + 4 * self.Npsr
+        self.M_start_indices = np.cumsum([0] + [m for m in self.M])
 
 
         self.M_cumsum = np.concatenate(([0], np.cumsum(self.M)))
@@ -205,28 +205,28 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         np.ndarray
             Observation matrix (a row vector of length nx) for the specified pulsar.
         """
-        # initialization
-        H = np.zeros((1, self.nx))
-
         # update GW term
-        H[0, 2 * psr_idx] = -1.0
+        gw_param = -1.0
 
         # update spin term
-        H[0, self.Npsr * 2 + 2 * psr_idx] = 1.0 / self.f0[psr_idx]
+        spin_param = 1.0 / self.f0[psr_idx]
+
+        # initialization of timing term
+        H_eps = np.zeros((self.M_sum, 1))
 
         # # update timing term
         # # Use a precomputed start index
-        # start_idx = self.M_start_indices[psr_idx]
-        # end_idx = self.M_start_indices[psr_idx + 1]
-        # row_idx = int(self.design_matrix_counter[psr_idx])
-        # H[0, start_idx:end_idx] = self.pulsar_design_matrices[psr_idx][
-        #     row_idx, :
-        # ]  # length M[psr_idx]
+        start_idx = self.M_start_indices[psr_idx]
+        end_idx = self.M_start_indices[psr_idx + 1]
+        row_idx = int(self.design_matrix_counter[psr_idx])
+        H_eps[start_idx:end_idx,0] = self.pulsar_design_matrices[psr_idx][
+            row_idx, :
+        ]  # length M[psr_idx]
 
         # # increment the counter for this pulsar
-        # self.design_matrix_counter[psr_idx] += 1 # I think this will need to be moved for if we are doing repeated calls of the likelihood function 
+        self.design_matrix_counter[psr_idx] += 1 # I think this will need to be moved for if we are doing repeated calls of the likelihood function 
 
-        return H
+        return gw_param, spin_param, H_eps
 
     def R_matrix(self, σ, psr_idx: int) -> np.ndarray:
         """Build the measurement–noise covariance matrix R for the pulsars observed at a given epoch.

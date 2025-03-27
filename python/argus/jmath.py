@@ -68,3 +68,11 @@ def get_Pp_blocks(F_list, P_list, Q_list):
     Pp_spin_eps = F_spin@P_spin_eps
 
     return Pp_gw, Pp_spin, Pp_eps, Pp_gw_spin, Pp_gw_eps, Pp_spin_eps
+
+@jax.jit
+def get_kalman(P_list, psr_index, f0, H_eps):
+    P_gw, P_gw_spin, P_gw_eps, P_spin, P_spin_eps, P_eps = P_list
+    u_gw   = -P_gw[:,psr_index]      + P_gw_spin[:,psr_index]/f0  + P_gw_eps@H_eps.reshape(-1)
+    u_spin = -P_gw_spin[psr_index,:] + P_spin[:,psr_index]/f0     + P_spin_eps@H_eps.reshape(-1)
+    u_eps  = -P_gw_eps[psr_index,:]  + P_spin_eps[psr_index,:]/f0 + P_eps@H_eps.reshape(-1)
+    return u_gw, u_spin, u_eps
