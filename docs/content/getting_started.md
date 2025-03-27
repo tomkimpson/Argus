@@ -2,10 +2,10 @@
 
 Getting started with this package is easy.  To install it you just need to run the following command:
 ```console
-$ pip install tkimpson_2025a
+$ pip install argus
 ```
 
-::: {note}
+<!-- ::: {note}
 This section is intended to be a place where you can show how great your project is and how easy easy it is to use.  Taylor it to your own needs and see the *Markup Tips* section below for some guidance on the extended markdown elements that the Myst Parser gives you for building content.
 :::
 
@@ -18,7 +18,7 @@ Some useful elements include:
 Command line execution can be marked-up as follows:
 
 ```console
-$ pip install tkimpson_2025a
+$ pip install argus
 ```
 
 Python code can be marked-up as follows:
@@ -50,4 +50,4 @@ This is an important thing to know.  Please take note.
 
 A figure can be included as follows:
 
-![Figure 1](../assets/figure_example.png){align=center}
+![Figure 1](../assets/figure_example.png){align=center} -->

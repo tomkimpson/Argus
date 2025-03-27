@@ -15,6 +15,6 @@ build:
       # Install project and dependencies with 'docs' dependency group.
       - VIRTUAL_ENV=$READTHEDOCS_VIRTUALENV_PATH poetry install --only main,docs
       # Generate API documentation, etc. (if needed)
-      - make -f docs/Makefile content
+      - make -f Makefile content
 sphinx:
   configuration: docs/conf.py
