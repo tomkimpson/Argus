@@ -70,9 +70,36 @@ def get_Pp_blocks(F_list, P_list, Q_list):
     return Pp_gw, Pp_spin, Pp_eps, Pp_gw_spin, Pp_gw_eps, Pp_spin_eps
 
 @jax.jit
-def get_kalman(P_list, psr_index, f0, H_eps):
+def get_kalman(P_list, psr_index, f0, H_eps, R):
     P_gw, P_gw_spin, P_gw_eps, P_spin, P_spin_eps, P_eps = P_list
-    u_gw   = -P_gw[:,psr_index]      + P_gw_spin[:,psr_index]/f0  + P_gw_eps@H_eps.reshape(-1)
-    u_spin = -P_gw_spin[psr_index,:] + P_spin[:,psr_index]/f0     + P_spin_eps@H_eps.reshape(-1)
-    u_eps  = -P_gw_eps[psr_index,:]  + P_spin_eps[psr_index,:]/f0 + P_eps@H_eps.reshape(-1)
-    return u_gw, u_spin, u_eps
+    u_gw   = -P_gw[:,2*psr_index]      + P_gw_spin[:,2*psr_index]/f0  + P_gw_eps@H_eps.reshape(-1)
+    u_spin = -P_gw_spin[2*psr_index,:] + P_spin[:,2*psr_index]/f0     + P_spin_eps@H_eps.reshape(-1)
+    u_eps  = -P_gw_eps[2*psr_index,:]  + P_spin_eps[2*psr_index,:]/f0 + P_eps@H_eps.reshape(-1)
+
+    S = (-1 * u_gw[2*psr_index]) + (1.0/f0 * u_spin[2*psr_index]) + (H_eps.reshape(-1))@u_eps + R
+    return u_gw, u_spin, u_eps, 1/S
+
+@jax.jit
+def update_P_blocks(P_list, u_list, alpha):
+    P_gw, P_gw_spin, P_gw_eps, P_spin, P_spin_eps, P_eps = P_list
+    u_gw, u_spin, u_eps = u_list
+    P_gw_up = P_gw - alpha * jnp.outer(u_gw, u_gw)
+    P_gw_spin_up = P_gw_spin - alpha * jnp.outer(u_gw, u_spin)
+    P_spin_up = P_spin - alpha * jnp.outer(u_spin, u_spin)
+    P_gw_eps_up = P_gw_eps - alpha * jnp.outer(u_gw, u_eps)
+    P_spin_eps_up = P_spin_eps - alpha * jnp.outer(u_spin, u_eps)
+    P_eps_up = P_eps - alpha * jnp.outer(u_eps, u_eps)
+    return P_gw_up, P_gw_spin_up, P_gw_eps_up, P_spin_up, P_spin_eps_up, P_eps_up
+
+@jax.jit
+def update_x(x_list, u_list, psr_index, f0, H_eps, y, alpha):
+    x_gw, x_spin, x_eps = x_list
+    u_gw, u_spin, u_eps = u_list
+    nu = y - (-x_gw[psr_index*2] + x_spin[psr_index*2]/f0 + (H_eps.reshape(-1))@x_eps)
+    x_gw_up = x_gw + alpha * u_gw * nu
+    x_spin_up = x_spin + alpha * u_spin * nu
+    x_eps_up = x_eps + alpha * u_eps * nu
+    return x_gw_up, x_spin_up, x_eps_up
+
+
+

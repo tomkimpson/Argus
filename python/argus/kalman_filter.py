@@ -2,7 +2,7 @@
 
 import numpy as np
 from tqdm import tqdm
-from argus.jmath import get_xp, get_Pp_blocks, get_kalman
+from argus.jmath import get_xp, get_Pp_blocks, get_kalman, update_P_blocks, update_x
 from line_profiler import profile
 
 def get_ith_pair(x,i):
@@ -157,67 +157,55 @@ class ScalarKalmanFilter:
         #Define some relevant parameters for this pulsar and timestep
 
 
-        row_idx = int(self.model.design_matrix_counter[psr_index])
+        # row_idx = int(self.model.design_matrix_counter[psr_index])
         f0 = self.model.f0[psr_index]
-        M = self.pulsar_design_matrices[psr_index][row_idx,:] #self.pulsar_design_matrices is a list of design matrices for each pulsar, length Npsr. And individual design mastrix has shape (Ntimesteps,Nparameters)
+        # M = self.pulsar_design_matrices[psr_index][row_idx,:] #self.pulsar_design_matrices is a list of design matrices for each pulsar, length Npsr. And individual design mastrix has shape (Ntimesteps,Nparameters)
 
         # 1) Innovation (residual)
 
-        r  = get_ith_pair(x_gw, psr_index)[0] #scalar
-        δφ = get_ith_pair(x_spin, psr_index)[0] #scalar
-        δε = get_ith_vector(x_eps, self.model.M_cumsum, psr_index) #vector
+        # r  = get_ith_pair(x_gw, psr_index)[0] #scalar
+        # δφ = get_ith_pair(x_spin, psr_index)[0] #scalar
+        # δε = get_ith_vector(x_eps, self.model.M_cumsum, psr_index) #vector
 
-        nu = y - (-r + δφ /f0 + M@δε) #write out the measurement equation explicitly
+        # nu = y - (-r + δφ /f0 + M@δε) #write out the measurement equation explicitly
         # self.design_matrix_counter[psr_index] += 1 #increment the design matrix counter for this pulsar
-
+        # breakpoint()
 
         # 2) The vector "u_gw" = P_gw @ h_gw^T, but h_gw^T has only one nonzero at col_r_n
         #    with scale val_r_n. So we pick that column from P_gw:
         gw_param, spin_param, H_eps = self.model.H_matrix(psr_index)
     
         P_list = [P_gw, P_gw_spin, P_gw_eps, P_spin, P_spin_eps, P_eps]
-        u_gw, u_spin, u_eps = get_kalman(P_list, psr_index, f0, H_eps)
-       
+        u_gw, u_spin, u_eps, alpha = get_kalman(P_list, psr_index, f0, H_eps, R)
+        
 
         # 3) Innovation variance: S = H * P * H^T + R
         #S = (h_gw @ u_gw) + (h_spin @ u_spin) + (h_eps @ u_eps) + R
         # Note: is slicing like this any more efficient that creating the h vectors?
-        u_gw_value   = get_ith_pair(u_gw, psr_index)[0] # get (r,a) pair then select the r value. Equivalent to h_gw @ u_gw priduct as h_gw is all zeros apart from -1 factor
-        u_spin_value = get_ith_pair(u_spin, psr_index)[0]
-        u_eps_value  = get_ith_vector(u_eps, self.model.M_cumsum, psr_index)
-        S = (-1 * u_gw_value) + (1.0/f0 * u_spin_value) + (M @ u_eps_value) + R
-    
-       
+        # u_gw_value   = get_ith_pair(u_gw, psr_index)[0] # get (r,a) pair then select the r value. Equivalent to h_gw @ u_gw priduct as h_gw is all zeros apart from -1 factor
+        # u_spin_value = get_ith_pair(u_spin, psr_index)[0]
+        # u_eps_value  = get_ith_vector(u_eps, self.model.M_cumsum, psr_index)
+        # S = (-1 * u_gw_value) + (1.0/f0 * u_spin_value) + (M @ u_eps_value) + R
+        # breakpoint()
+        # breakpoint()
         # 4) Kalman gain scale
-        alpha = 1.0 / S
+        # alpha = 1.0 / S
 
         # 5) Updated state
-        x_gw_up   = x_gw   + alpha * u_gw   * nu
-        x_spin_up = x_spin + alpha * u_spin * nu
-        x_eps_up  = x_eps  + alpha * u_eps  * nu
+        # x_gw_up   = x_gw   + alpha * u_gw   * nu
+        # x_spin_up = x_spin + alpha * u_spin * nu
+        # x_eps_up  = x_eps  + alpha * u_eps  * nu
 
         # 6) Rank-1 covariance update
         #    P <- P - alpha * u * u^T, done in block form.
         #    We'll do each "kept" block, then set its symmetric counterpart.
+        u_list = [u_gw, u_spin, u_eps]
+        P_gw_up, P_gw_spin_up, P_gw_eps_up, P_spin_up, P_spin_eps_up, P_eps_up = update_P_blocks(P_list, u_list, alpha)
 
-        # 6a) GW-GW block
-        P_gw_up = P_gw - alpha * np.outer(u_gw, u_gw)
+        x_list = [x_gw, x_spin, x_eps]
 
-        # 6b) GW-Spin block (we store only P_gw_spin, mirror is P_gw_spin_up.T)
-        P_gw_spin_up = P_gw_spin - alpha * np.outer(u_gw, u_spin)
-
-        # 6c) Spin-Spin block
-        P_spin_up = P_spin - alpha * np.outer(u_spin, u_spin)
-
-        # 6d) GW-Eps block
-        P_gw_eps_up = P_gw_eps - alpha * np.outer(u_gw, u_eps)
-
-        # 6e) Spin-Eps block
-        P_spin_eps_up = P_spin_eps - alpha * np.outer(u_spin, u_eps)
-
-        # 6f) Eps-Eps block
-        P_eps_up = P_eps - alpha * np.outer(u_eps, u_eps)
-
+        x_gw_up, x_spin_up, x_eps_up = update_x(x_list, u_list, psr_index, f0, H_eps, y, alpha)
+        # breakpoint()
         return (
             x_gw_up, x_spin_up, x_eps_up,
             P_gw_up, P_gw_spin_up, P_gw_eps_up,
