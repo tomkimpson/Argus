@@ -20,8 +20,8 @@ def get_F(gamma, gamma_spin, dt, Npsr, M_sum):
     F_gw_block = get_F_block(gamma, dt)
     F_gw = jnp.kron(jnp.eye(Npsr), F_gw_block)
     F_spin = get_F_spin(gamma_spin, dt)
-    F_timing = jnp.eye(M_sum)
-    return F_gw, F_spin, F_timing
+   
+    return F_gw, F_spin
 
 def get_Q_block(γ, dt):
     exp_term = jnp.exp(-γ * dt)
@@ -42,13 +42,13 @@ def get_Q(gamma, gamma_spin, dt, Npsr, M_sum, eps):
     Q_gw_block = get_Q_block(gamma, dt)
     Q_gw = jnp.kron(jnp.eye(Npsr), Q_gw_block)
     Q_spin = get_Q_spin(gamma_spin, dt)
-    Q_timing = jnp.eye(M_sum) * eps**2
+    Q_eps = eps**2
     # return block_diag(Q_gw, Q_spin, Q_timing)
-    return Q_gw, Q_spin, Q_timing
+    return Q_gw, Q_spin, Q_eps
 
 @jax.jit
 def get_xp(F_list, x_list):
-    F_gw, F_spin, F_eps = F_list
+    F_gw, F_spin = F_list
     x_gw, x_spin, x_eps = x_list
     
     return F_gw@x_gw, F_spin@x_spin, x_eps
@@ -56,7 +56,7 @@ def get_xp(F_list, x_list):
 
 @jax.jit
 def get_Pp_blocks(F_list, P_list, Q_list):
-    F_gw, F_spin, F_eps = F_list
+    F_gw, F_spin = F_list
     P_gw, P_gw_spin, P_gw_eps, P_spin, P_spin_eps, P_eps = P_list
     Q_gw, Q_spin, Q_eps = Q_list
    

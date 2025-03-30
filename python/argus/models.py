@@ -152,8 +152,8 @@ class StochasticGWBackgroundModel(ModelHyperClass):
     @profile
     def F_matrix(self, dt: float) -> np.ndarray:
         """Return the state–transition matrix for time step dt."""
-        F_gw, F_spin, F_timing = get_F(self.γa, self.γp, dt, self.Npsr, self.M_sum)
-        return F_gw, F_spin,F_timing
+        F_gw, F_spin = get_F(self.γa, self.γp, dt, self.Npsr, self.M_sum)
+        return F_gw, F_spin
 
     @staticmethod
     def _compute_Q_block(γ: float, dt: float) -> np.ndarray:
@@ -183,8 +183,8 @@ class StochasticGWBackgroundModel(ModelHyperClass):
     @profile
     def Q_matrix(self, dt: float) -> np.ndarray:
         """Return the process–noise covariance matrix for time step dt."""
-        Q_gw, Q_spin, Q_timing = get_Q(self.γa, self.γp, dt, self.Npsr, self.M_sum, self.σeps)
-        return Q_gw, Q_spin, Q_timing
+        Q_gw, Q_spin, Q_eps = get_Q(self.γa, self.γp, dt, self.Npsr, self.M_sum, self.σeps)
+        return Q_gw, Q_spin, Q_eps
     @profile
     def H_matrix(self, psr_idx: int) -> np.ndarray:
         """
