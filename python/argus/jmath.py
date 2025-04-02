@@ -65,17 +65,17 @@ def get_F(gamma, gamma_spin, dt, Npsr, M_sum):
     F_spin = get_F_spin(gamma_spin, dt)
     return F_gw, F_spin
 
-def get_Q_spin(gamma, dt):
+def get_Q_spin(gamma, dt,sigma_p):
     """Compute Q spin matrix using JAX."""
-    res = vmap(lambda x: get_Q_block(x, dt))(gamma)
+    res = vmap(lambda g, s: get_Q_block(g, dt) * s)(gamma, sigma_p)
     return block_diag(*res)
 
-@partial(jax.jit, static_argnums=(3,4))
-def get_Q(gamma, gamma_spin, dt, Npsr, M_sum, eps):
+@partial(jax.jit, static_argnums=(5,6))
+def get_Q(gamma,σa2, gamma_spin,σp2, dt, Npsr, M_sum, eps):
     """Get process noise matrices using JAX."""
     Q_gw_block = get_Q_block(gamma, dt)
-    Q_gw = jnp.kron(jnp.eye(Npsr), Q_gw_block)
-    Q_spin = get_Q_spin(gamma_spin, dt)
+    Q_gw = jnp.kron(σa2, Q_gw_block)
+    Q_spin = get_Q_spin(gamma_spin, dt, σp2)
     Q_timing = jnp.eye(M_sum) * eps**2
     return Q_gw, Q_spin, Q_timing
 
@@ -149,7 +149,21 @@ def compute_predicted_covariance(P: jax.Array,
     PF4 = F1 @ P4 @ F2.T
     PF5 = F2 @ P5
     PF6 = F1 @ P6
-    
+
+
+    jax.debug.print("###############predict debug###############", ordered=True)
+    jax.debug.print("F_gw max abs: {}", jnp.max(jnp.abs(F1)), ordered=True)
+    jax.debug.print("F_spin max abs: {}", jnp.max(jnp.abs(F2)), ordered=True)
+    jax.debug.print("Q1 max abs: {}", jnp.max(jnp.abs(Q1)), ordered=True)
+    jax.debug.print("Q2 max abs: {}", jnp.max(jnp.abs(Q2)), ordered=True)
+    jax.debug.print("Q3 max abs: {}", jnp.max(jnp.abs(Q3)), ordered=True)
+
+    jax.debug.print("PF1 max abs: {}", jnp.max(jnp.abs(PF1)), ordered=True)
+    jax.debug.print("PF2 max abs: {}", jnp.max(jnp.abs(PF2)), ordered=True)
+    jax.debug.print("PF4 max abs: {}", jnp.max(jnp.abs(PF4)), ordered=True)
+    jax.debug.print("PF6 max abs: {}", jnp.max(jnp.abs(PF6)), ordered=True)
+
+
     # Assemble full matrix
     return jnp.block([[PF1,   PF4,   PF6],
                      [PF4.T,  PF2,   PF5],
@@ -184,8 +198,9 @@ def precompute_F_matrices(gamma_a: float,
     
     return jax.vmap(get_F_for_dt)(dt_array)
 
-@partial(jax.jit, static_argnums=(3, 4))
-def precompute_Q_matrices(gamma_a, gamma_p, dt_array, Npsr, M_sum, eps):
+
+@partial(jax.jit, static_argnums=(5, 6))
+def precompute_Q_matrices(gamma_a, σa2, gamma_p,σp2, dt_array, Npsr, M_sum, eps):
     """Precompute all Q matrices for a given parameter set and sequence of dt values.
     
     Args:
@@ -202,11 +217,24 @@ def precompute_Q_matrices(gamma_a, gamma_p, dt_array, Npsr, M_sum, eps):
                is a JAX array containing matrices for all timesteps
     """
     def get_Q_for_dt(dt):
-        Q_gw, Q_spin, Q_timing = get_Q(gamma_a, gamma_p, dt, Npsr, M_sum, eps)
+        Q_gw, Q_spin, Q_timing = get_Q(gamma_a,σa2, gamma_p,σp2, dt, Npsr, M_sum, eps)
         return Q_gw, Q_spin, Q_timing
     
     return jax.vmap(get_Q_for_dt)(dt_array)
 
+
+
+
+
+@jax.jit
+def precompute_R_matrices(σ: jax.Array, EFAC: jax.Array, EQUAD: jax.Array, psr_indices: int) -> jax.Array:
+    """Build the measurement-noise covariance matrix R for the pulsars observed at a given epoch.
+
+    For pulsar n, the measurement noise variance is (σt[n])².
+    Currently, this method returns a scalar
+    or a per-pulsar value.
+    """
+    return jnp.square(σ* EFAC[psr_indices]) + jnp.square(EQUAD[psr_indices])
 
 
 

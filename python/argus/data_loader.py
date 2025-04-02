@@ -6,6 +6,25 @@ from functools import reduce
 from enterprise.pulsar import Pulsar as EnterprisePulsar
 
 
+
+def get_par_value(filename, parameter):
+    """Get the value of a parameter from a parameter file.
+        It feels like there should be a better way to do this, just using the enterprise.pulsar.Pulsar object.
+        However, I have not been able to figure out how to do this yet.
+        We require F0 as part of the measurement model. 
+        I take it as a known parameter.
+    """
+    with open(filename, 'r') as f:
+        for line in f:
+            parts = line.strip().split()
+            if not parts or parts[0].startswith('#'):  # skip empty or commented lines
+                continue
+            if parts[0] == parameter:
+                return float(parts[1])  # assumes the value is the second item
+    return None  # if the parameter isn't found
+
+
+
 class LoadWidebandPulsarData:
     """A class to load and process pulsar data at a single frequency channel.
 
@@ -54,15 +73,23 @@ class LoadWidebandPulsarData:
             with attributes: toas, toaerrs, residuals, fitpars, Mmat, name, _raj, and _decj.
 
         """
-        self.toas = ds_psr.toas
-        self.toaerrs = ds_psr.toaerrs
+       
+        self.toas      = ds_psr.toas
+        self.toaerrs   = ds_psr.toaerrs
         self.residuals = ds_psr.residuals
-        self.fitpars = ds_psr.fitpars
-        self.M_matrix = ds_psr.Mmat
-        self.name = ds_psr.name
-        self.RA = ds_psr._raj
-        self.DEC = ds_psr._decj
+        self.fitpars   = ds_psr.fitpars
+        self.M_matrix  = ds_psr.Mmat
+        self.name      = ds_psr.name
+        self.RA        = ds_psr._raj
+        self.DEC       = ds_psr._decj
 
+
+        # Scale the M matrix columns to have unit norm
+        col_scales = np.sqrt(np.sum(self.M_matrix**2, axis=0))
+        self.M_scaled = self.M_matrix / col_scales
+
+        
+    
         # Compute differences between consecutive TOAs and propagate errors.
         self.toa_diffs = np.diff(self.toas)
         self.toa_diff_errors = np.sqrt(self.toaerrs[1:] ** 2 + self.toaerrs[:-1] ** 2)
@@ -254,6 +281,9 @@ class LoadWidebandPulsarData:
         for i, (par_file, tim_file) in enumerate(file_pairs):
             psr = cls.read_par_tim(par_file, tim_file, **kwargs)
 
+            f0 = get_par_value(par_file, 'F0')
+            print(psr.name,f0)
+
             # DataFrame for TOAs and residuals for this pulsar.
             df = pd.DataFrame(
                 {
@@ -270,14 +300,15 @@ class LoadWidebandPulsarData:
                     "dim_M": [psr.M_matrix.shape[-1]],
                     "RA": [psr.RA],
                     "DEC": [psr.DEC],
+                    "F0": [f0]
                 }
             )
 
 
             dfs.append(df)
             dfs_meta.append(df_meta)
-            np_arrays_design.append(psr.M_matrix)
-
+            #np_arrays_design.append(psr.M_matrix)
+            np_arrays_design.append(psr.M_scaled)
         # Merge all individual pulsar DataFrames on 'toas' using an outer merge.
         merged_df = reduce(
             lambda left, right: pd.merge(left, right, on="toas", how="outer"), dfs

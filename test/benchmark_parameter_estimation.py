@@ -11,23 +11,11 @@ from jax.profiler import trace
 import contextlib
 from jax.experimental.compilation_cache import compilation_cache as cc
 import jax.profiler
-import socket
-from contextlib import closing
+from jax import random
 
-
-jax.config.update("jax_enable_x64", True)
-
-# @struct.dataclass
-# class Parameters:
-#     γa: float  # s⁻¹
-#     γp: jnp.ndarray  # Pulsar-specific gamma values
-#     σp: jnp.ndarray  # Pulsar-specific sigma values
-#     h2: float  # GWB amplitude
-#     σeps: jnp.ndarray  # Measurement noise
-#     f0: jnp.ndarray  # Frequencies (Hz)
-#     EFAC: jnp.ndarray  # Error factors
-#     EQUAD: jnp.ndarray  # Extra quadrature noise
-
+import numpyro
+import numpyro.distributions as dist
+from numpyro.infer import MCMC, NUTS
 
 @struct.dataclass
 class Parameters:
@@ -47,10 +35,6 @@ class Parameters:
     EFAC: jnp.ndarray  # Error factors
     EQUAD: jnp.ndarray # Extra quadrature noise
 
-
-
-
-
 def benchmark_jax_runtime():
     """Test the JAX KalmanFilter class by loading data, initializing the model, setting parameters, and running the filter."""
     # Get the directory of the current script
@@ -67,11 +51,6 @@ def benchmark_jax_runtime():
     par_files = sorted(glob.glob(directory + "*.par"))
     tim_files = sorted(glob.glob(directory + "*.tim"))
     assert len(par_files) == len(tim_files), "Mismatch between .par and .tim file counts."
-
-    #select only 2 pulsars
-    par_files = par_files[:2]
-    tim_files = tim_files[:2]
-
 
     # Get the data
     print(f"Getting the data. Loading {len(par_files)} pulsars from {data_path}")
@@ -95,8 +74,8 @@ def benchmark_jax_runtime():
     model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
 
     # Initialize the JAX Kalman Filter
-    x0 = jnp.ones(model.nx)
-    P0 = jnp.eye(model.nx) * 1e1
+    x0 = jnp.zeros(model.nx)
+    P0 = jnp.eye(model.nx) * 1e-1
 
     KF = jax_kalman_filter.JaxScalarKalmanFilter(
         model=model, 
@@ -105,18 +84,6 @@ def benchmark_jax_runtime():
         P0=P0
     )
 
-    # # Set global parameters
-    # params = Parameters(
-    #     γa=1e-1,
-    #     γp=jnp.ones(len(pulsar_metadata)) * 1e-1,
-    #     σp=jnp.ones(len(pulsar_metadata)) * 1e-20,
-    #     h2=1e-12,
-    #     σeps=jnp.ones(model.M_sum) * 1e-20,
-    #     f0=jnp.ones(len(pulsar_metadata)) * 100,
-    #     EFAC=jnp.ones(len(pulsar_metadata)),
-    #     EQUAD=jnp.ones(len(pulsar_metadata))
-    # )
-
     # Guess of the model parameters
     params = Parameters(
         #GW parameters
@@ -124,8 +91,8 @@ def benchmark_jax_runtime():
         h2=1e-12,
 
         #Spin parameters
-        γp=jnp.ones(model.Npsr) * 1e-8, #1/year timescale. 
-        σp=jnp.ones(model.Npsr) * 1e-24,
+        γp=jnp.ones(model.Npsr) * 1e-13,
+        σp=jnp.ones(model.Npsr) * 1e-20,
 
         #Timing model noise parameters
         σeps=jnp.ones(model.M_sum) * 1e-20,
@@ -135,10 +102,6 @@ def benchmark_jax_runtime():
         EQUAD=jnp.ones(model.Npsr) * (-6.7)
     )
 
-
-    #utils.estimate_memory_usage(model, params)
-
-
     # Time compilation
     print("\nStarting compilation phase...")
     compilation_start = time.time()
@@ -146,22 +109,50 @@ def benchmark_jax_runtime():
     compilation_end = time.time()
     print(f"Compilation time: {compilation_end - compilation_start:.4f} seconds")
 
-    print("--------------------------------")
-    print("--------------------------------")
-    print("--------------------------------")
-    print("--------------------------------")
-    print("--------------------------------")
-    print("--------------------------------")
-    print("--------------------------------")
-    print("--------------------------------")
-    print("\n Running compiled execution")
+    print("\nRunning profiled execution")
     start_time = time.time()
     ll = KF.get_likelihood(params)
     jax.block_until_ready(ll)  # Ensure computation is complete
     end_time = time.time()
-    
     print(f"Log-likelihood: {ll}")
     print(f"Execution time: {end_time - start_time:.4f} seconds")
+
+
+
+    # print("Starting NumPyro")
+
+    # # NumPyro model
+    # def model(kf):
+
+    #     # Parameters of the GW background. These are just scalars
+    #     γa = numpyro.sample("γa", dist.LogUniform(1e-11, 1e-6))
+    #     h2 = numpyro.sample("h2", dist.LogUniform(1e-16, 1e-11)) 
+
+    #     # # Sample array parameters with appropriate shapes
+    #     # γp = numpyro.sample("γp", dist.Normal(-2, 1), sample_shape=(n_pulsars,))
+    #     # σp = numpyro.sample("σp", dist.LogNormal(-20, 1), sample_shape=(n_pulsars,))
+    #     # σeps = numpyro.sample("σeps", dist.LogNormal(-20, 1), sample_shape=(m_sum,))
+    #     # f0 = numpyro.sample("f0", dist.Normal(100, 10), sample_shape=(n_pulsars,))
+    #     # EFAC = numpyro.sample("EFAC", dist.Normal(1, 0.1), sample_shape=(n_pulsars,))
+    #     # EQUAD = numpyro.sample("EQUAD", dist.Normal(1, 0.1), sample_shape=(n_pulsars,))
+
+    #     # # Construct the Parameters object
+    #     params = Parameters(
+    #         γa=γa,
+    #         h2=h2,
+    #     )
+
+    #     # Call the likelihood
+    #     log_likelihood = kf.get_likelihood(params)
+    #     numpyro.factor("likelihood", log_likelihood)
+
+    # # Run MCMC
+    # rng_key = random.PRNGKey(0)
+    # nuts_kernel = NUTS(model)
+    # mcmc = MCMC(nuts_kernel, num_samples=1000, num_warmup=500)
+    # mcmc.run(rng_key, kf=KF)
+    # mcmc.print_summary()  # Posterior estimates
+
 
 
 
@@ -174,16 +165,12 @@ if __name__ == "__main__":
     print("\n=== DEVICE INFO ===")
     print("Default device:", jax.default_backend())
 
-    print("\n=== JAX CONFIG SETTINGS ===")
-    for name, value in sorted(jax.config.values.items()):
-        print(f"{name}: {value}")
-
     # Check if GPU is available
     if any(d.platform == 'gpu' for d in jax.devices()):
-        print("\nJAX GPU acceleration is AVAILABLE!")
+        print("JAX GPU acceleration is AVAILABLE!")
         print("GPU devices:", [d for d in jax.devices() if d.platform == 'gpu'])
     else:
-        print("\nJAX GPU acceleration is NOT available. Using CPU only.")
+        print("JAX GPU acceleration is NOT available. Using CPU only.")
     print('-----------------------------------------------')
 
 
