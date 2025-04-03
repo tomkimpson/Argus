@@ -52,11 +52,12 @@ def _predict(x: jax.Array, P: jax.Array, F_list: tuple, Q_list: tuple) -> tuple[
     #xp = compute_predicted_state(F_list, x, 72, 72)
     #Pp = compute_predicted_covariance(P,F_list,Q_list,72,72)
 
-    dim_x = 4
+    dim_x = 72
     xp = compute_predicted_state(F_list, x, dim_x, dim_x)
     Pp = compute_predicted_covariance(P,F_list,Q_list,dim_x,dim_x)
 
-
+    Pp = 0.5 * (Pp + Pp.T)  # Symmetrize
+   # Pp += 1e-12 * jnp.eye(Pp.shape[0])  # Regularize
     
     return xp, Pp
 
@@ -77,42 +78,34 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     """
 
     jax.debug.print("P matrix is posdef? {}", is_positive_definite(Pp), ordered=True)
-    #jax.debug.print("The P matrix input to the update function is: {}", Pp, ordered=True)
+ 
 
 
     y = z - H @ xp                                  
     S = H @ Pp @ H.T + R                           
+
+    # Check if innovation covariance is negative and raise error if it is
+    # jax.lax.cond(
+    #     S[0,0] <= 0,
+    #     lambda _: jax.debug.breakpoint(),
+    #     lambda _: None,
+    #     operand=None
+    # )
+    
+    jax.debug.print("Innovation covariance (S): {}", S[0,0], ordered=True)
+
     K = Pp @ H.T / S                               
     x = xp + K * y                                 
-    P = (jnp.eye(len(xp)) - K @ H) @ Pp           
+    #P = (jnp.eye(len(xp)) - K @ H) @ Pp    
+
+    #Following FilterPy https://github.com/rlabbe/filterpy/blob/master/filterpy/kalman/EKF.py by using
+    #Joseph form for numerically stable update of the covariance matrix
+    # P = (I-KH)P(I-KH)' + KRK' which is more numerically stable
+    # and works for non-optimal K vs the equation
+    # P = (I-KH)P usually seen in the literature.   
+    I_KH = jnp.eye(len(xp)) - K @ H
+    P = I_KH @ Pp @ I_KH.T + R*(K@ K.T)
     
-    #jax.debug.print("Innovation (y): {}", y, ordered=True)
-    jax.debug.print("Innovation covariance (S): {}", S[0,0], ordered=True)
-    jax.debug.print("Innovation covariance product (HPH): {}", H@Pp@H.T, ordered=True)
-    jax.debug.print("R matrix (R): {}", R, ordered=True)
-
-
-    cond = jax.numpy.linalg.cond(Pp)
-    jax.debug.print("Condition number of P matrix: {}", cond, ordered=True)
-
-
-    HPH = H @ Pp @ H.T
-    jax.debug.print("HPH: {}", HPH, ordered=True)
-    jax.debug.print("Min eigenvalue of HPH: {}", jax.numpy.linalg.eigvalsh(HPH).min(), ordered=True)
-
-
-    jax.debug.print("Log10 max(abs(Pp)): {}", jax.numpy.log10(jax.numpy.abs(Pp)).max(), ordered=True)
-    jax.debug.print("Log10 max(abs(H)): {}", jax.numpy.log10(jax.numpy.abs(H)).max(), ordered=True)
-
-
-
-    #jax.debug.print("Innovation covariance components: {} {} {}", H, Pp, R)
-    #jax.debug.print("Kalman gain min/max: {} to {}", jnp.min(K), jnp.max(K), ordered=True)
-    #jax.debug.print("Updated state min/max: {} to {}", jnp.min(x), jnp.max(x), ordered=True)
-    #jax.debug.print("Updated covariance min/max: {} to {}", jnp.min(P), jnp.max(P), ordered=True)
-    
-
-    #jax.debug.print("P matrix condition {}", jnp.linalg.cond(P), ordered=True)
     return x, P, y, S
 
 
@@ -125,32 +118,30 @@ def _compute_sigma_matrix(h2, γa, Γ):
 def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr, M_sum,hellings_downs_matrix, dt_array, x0, P0):
     """Run the Kalman filter algorithm over all observations and return a log likelihood."""
     
-    #Define the 
-    σa2 = _compute_sigma_matrix(θ.h2, θ.γa, hellings_downs_matrix)
+    σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
 
-    jax.debug.print("The length of the data is: {}", len(data), ordered=True)
-    jax.debug.print("The size of σa2 is: {}", σa2, ordered=True)
-    jax.debug.print("The size of σp2 is: {}", θ.σp**2, ordered=True)
-    jax.debug.print("The dt_array is: {}", dt_array, ordered=True)
+    #jax.debug.print("The length of the data is: {}", len(data), ordered=True)
+    #jax.debug.print("The size of σa2 is: {}", σa2, ordered=True)
+    #jax.debug.print("The size of σp2 is: {}", θ.σp**2, ordered=True)
+    #jax.debug.print("The dt_array is: {}", dt_array, ordered=True)
 
     
     # Precompute all matrices for this parameter set
-    jax.debug.print("### Precomputing matrices ###", ordered=True)
+    #jax.debug.print("### Precomputing matrices ###", ordered=True)
     F_matrices = precompute_F_matrices(θ.γa, θ.γp, dt_array, Npsr, M_sum)
     Q_matrices = precompute_Q_matrices(θ.γa,σa2, θ.γp,θ.σp**2, dt_array, Npsr, M_sum, θ.σeps)
     R_matrices = precompute_R_matrices(data_errors,θ.EFAC, θ.EQUAD, psr_indices)
     
-    jax.debug.print("R matrices min/max: {} to {}", jnp.min(R_matrices), jnp.max(R_matrices), ordered=True)
+    #jax.debug.print("R matrices min/max: {} to {}", jnp.min(R_matrices), jnp.max(R_matrices), ordered=True)
 
     # First update
-    jax.debug.print("### Calling the update function for the first time ###", ordered=True)
+    #jax.debug.print("### Calling the update function for the first time ###", ordered=True)
 
     H = H_matrices[0]
     x, P, y, S = _update(xp=x0, Pp=P0, H=H, R=R_matrices[0], z=data[0])
     ll0 = _log_likelihood(y, S)
     
     # Check initial likelihood for NaN
-    jax.debug.print("Initial likelihood: {}", ll0)
     is_valid = ~jnp.isnan(ll0)
     
     def step(carry, inputs):
@@ -159,7 +150,7 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
                 #jax.debug.print("Step {} likelihood: {}", dt_idx, ll, ordered=True)
 
 
-        jax.debug.print("### STEP NUMBER: {} ###", dt_idx, ordered=True)
+        #jax.debug.print("### STEP NUMBER: {} ###", dt_idx, ordered=True)
 
         # Get precomputed matrices for this timestep
         F_gw_at_timestep = F_matrices[0][dt_idx]
@@ -183,12 +174,20 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
         return (x_new, P_new), ll
 
     # Pack inputs for scan
-    # Take only first 5 timesteps of each input
-    n_steps = 5 #len(data) - 1
-    inputs = (jnp.arange(n_steps), 
-             data[1:n_steps+1], 
-             R_matrices[1:n_steps+1], 
-             H_matrices[1:n_steps+1])
+    # n_steps = 50  # Limit processing to first 5 steps
+    # inputs = (jnp.arange(n_steps), 
+    #          data[1:n_steps+1], 
+    #          R_matrices[1:n_steps+1], 
+    #          H_matrices[1:n_steps+1])
+
+    inputs = (jnp.arange(len(data) - 1), 
+             data[1:], 
+             R_matrices[1:], 
+             H_matrices[1:])
+
+
+
+
 
     # Run scan loop
     (xf, Pf), ll_arr = lax.scan(step, (x, P), inputs)
@@ -230,9 +229,6 @@ class JaxScalarKalmanFilter:
         self.psr_indices = self.observations[:, 3].astype(int)
         self.N_timesteps = len(self.observations)
         self.t_diffs = np.diff(self.toa)
-
-        print("The data is:", self.data)
-        print("The data errors are:", self.data_errors)
 
         assert np.isscalar(self.data[0])
 

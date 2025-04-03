@@ -14,27 +14,15 @@ import jax.profiler
 import socket
 from contextlib import closing
 
-
+import sys 
 jax.config.update("jax_enable_x64", True)
-
-# @struct.dataclass
-# class Parameters:
-#     γa: float  # s⁻¹
-#     γp: jnp.ndarray  # Pulsar-specific gamma values
-#     σp: jnp.ndarray  # Pulsar-specific sigma values
-#     h2: float  # GWB amplitude
-#     σeps: jnp.ndarray  # Measurement noise
-#     f0: jnp.ndarray  # Frequencies (Hz)
-#     EFAC: jnp.ndarray  # Error factors
-#     EQUAD: jnp.ndarray  # Extra quadrature noise
-
 
 @struct.dataclass
 class Parameters:
     
     #GW parameters
     γa: float  # s⁻¹
-    h2: float  # GWB amplitude
+    ha: float  # GWB amplitude
 
     #Pulsar parameters for the OU process
     γp: jnp.ndarray  # Pulsar-specific gamma values
@@ -46,6 +34,7 @@ class Parameters:
     #Measurement noise parameters
     EFAC: jnp.ndarray  # Error factors
     EQUAD: jnp.ndarray # Extra quadrature noise
+
 
 
 
@@ -69,8 +58,8 @@ def benchmark_jax_runtime():
     assert len(par_files) == len(tim_files), "Mismatch between .par and .tim file counts."
 
     #select only 2 pulsars
-    par_files = par_files[:2]
-    tim_files = tim_files[:2]
+    # par_files = par_files[:2]
+    # tim_files = tim_files[:2]
 
 
     # Get the data
@@ -105,30 +94,23 @@ def benchmark_jax_runtime():
         P0=P0
     )
 
-    # # Set global parameters
-    # params = Parameters(
-    #     γa=1e-1,
-    #     γp=jnp.ones(len(pulsar_metadata)) * 1e-1,
-    #     σp=jnp.ones(len(pulsar_metadata)) * 1e-20,
-    #     h2=1e-12,
-    #     σeps=jnp.ones(model.M_sum) * 1e-20,
-    #     f0=jnp.ones(len(pulsar_metadata)) * 100,
-    #     EFAC=jnp.ones(len(pulsar_metadata)),
-    #     EQUAD=jnp.ones(len(pulsar_metadata))
-    # )
+ 
+
+  
 
     # Guess of the model parameters
+    # See notebooks/PSD_for_OU_process.ipynb for discussion on the parameter values
     params = Parameters(
         #GW parameters
-        γa=1e-10,
-        h2=1e-12,
+        γa=1e-9,
+        ha=1e-12,
 
         #Spin parameters
-        γp=jnp.ones(model.Npsr) * 1e-8, #1/year timescale. 
-        σp=jnp.ones(model.Npsr) * 1e-24,
+        γp=jnp.ones(model.Npsr) * 1e-8, #1/year timescale. Assumed the same for all pulsars
+        σp=jnp.ones(model.Npsr) * 1e-14, #For now, assume the same noise for all pulsars
 
         #Timing model noise parameters
-        σeps=jnp.ones(model.M_sum) * 1e-20,
+        σeps=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
 
         #Measurement noise parameters
         EFAC=jnp.ones(model.Npsr),

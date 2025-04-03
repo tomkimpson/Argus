@@ -5,7 +5,7 @@ import pandas as pd
 from functools import reduce
 from enterprise.pulsar import Pulsar as EnterprisePulsar
 
-
+import sys 
 
 def get_par_value(filename, parameter):
     """Get the value of a parameter from a parameter file.
@@ -74,9 +74,9 @@ class LoadWidebandPulsarData:
 
         """
        
-        self.toas      = ds_psr.toas
-        self.toaerrs   = ds_psr.toaerrs
-        self.residuals = ds_psr.residuals
+        self.toas      = ds_psr.toas   #units of seconds, https://github.com/nanograv/enterprise/blob/master/enterprise/pulsar.py#L201
+        self.toaerrs   = ds_psr.toaerrs #units of seconds, https://github.com/nanograv/enterprise/blob/master/enterprise/pulsar.py#L216
+        self.residuals = ds_psr.residuals #units of seconds, https://github.com/nanograv/enterprise/blob/master/enterprise/pulsar.py#L211
         self.fitpars   = ds_psr.fitpars
         self.M_matrix  = ds_psr.Mmat
         self.name      = ds_psr.name
@@ -89,10 +89,27 @@ class LoadWidebandPulsarData:
         self.M_scaled = self.M_matrix / col_scales
 
         
+
+
+
+
+
+
     
         # Compute differences between consecutive TOAs and propagate errors.
         self.toa_diffs = np.diff(self.toas)
         self.toa_diff_errors = np.sqrt(self.toaerrs[1:] ** 2 + self.toaerrs[:-1] ** 2)
+
+        #print("Approximate exp term size: ", np.exp(-1e-9 * np.mean(self.toa_diffs)))
+               
+        # print("Mvals")
+        # mu = np.mean(self.M_scaled,axis=0)
+        # mu_dt = np.mean(self.toa_diffs)
+        # mu_rms = np.mean(self.toaerrs)
+        # S = 0.01
+        # sigs = (mu_rms**2 *S**2) / (mu**2 * mu_dt)
+        # print(np.sqrt(sigs))
+        
 
     @staticmethod
     def pairwise_angular_separation(ra_rad, dec_rad):
@@ -148,6 +165,7 @@ class LoadWidebandPulsarData:
     @staticmethod
     def post_process_residuals(residuals_data: pd.DataFrame) -> np.ndarray:
         """Post-process residuals data to extract the non-NaN residuals and their indices.
+           TK note: I am sure there is a better way to do this.
 
         Parameters
         ----------

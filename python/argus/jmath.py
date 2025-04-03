@@ -37,11 +37,13 @@ def get_Q_block(γ: float, dt: float) -> jax.Array:
     exp_term = jnp.exp(-γ * dt)
     exp_2term = jnp.exp(-2 * γ * dt)
 
+
     q11 = (dt - 2 * (1 - exp_term) / γ + (1 - exp_2term) / (2 * γ)) / γ**3
     q12 = ((1 - exp_term) - (1 - exp_2term) / 2) / (γ**2)
     q22 = (1 - exp_2term) / (2 * γ)
 
     return jnp.array([[q11, q12], [q12, q22]])
+
 
 def get_F_spin(gamma: jax.Array, dt: float) -> jax.Array:
     """Compute block diagonal state transition matrix for spin noise.
@@ -150,20 +152,6 @@ def compute_predicted_covariance(P: jax.Array,
     PF5 = F2 @ P5
     PF6 = F1 @ P6
 
-
-    jax.debug.print("###############predict debug###############", ordered=True)
-    jax.debug.print("F_gw max abs: {}", jnp.max(jnp.abs(F1)), ordered=True)
-    jax.debug.print("F_spin max abs: {}", jnp.max(jnp.abs(F2)), ordered=True)
-    jax.debug.print("Q1 max abs: {}", jnp.max(jnp.abs(Q1)), ordered=True)
-    jax.debug.print("Q2 max abs: {}", jnp.max(jnp.abs(Q2)), ordered=True)
-    jax.debug.print("Q3 max abs: {}", jnp.max(jnp.abs(Q3)), ordered=True)
-
-    jax.debug.print("PF1 max abs: {}", jnp.max(jnp.abs(PF1)), ordered=True)
-    jax.debug.print("PF2 max abs: {}", jnp.max(jnp.abs(PF2)), ordered=True)
-    jax.debug.print("PF4 max abs: {}", jnp.max(jnp.abs(PF4)), ordered=True)
-    jax.debug.print("PF6 max abs: {}", jnp.max(jnp.abs(PF6)), ordered=True)
-
-
     # Assemble full matrix
     return jnp.block([[PF1,   PF4,   PF6],
                      [PF4.T,  PF2,   PF5],
@@ -235,6 +223,59 @@ def precompute_R_matrices(σ: jax.Array, EFAC: jax.Array, EQUAD: jax.Array, psr_
     or a per-pulsar value.
     """
     return jnp.square(σ* EFAC[psr_indices]) + jnp.square(EQUAD[psr_indices])
+
+
+
+
+
+
+############## Scratch space 
+# def get_Q_block(gamma: float, dt: float, eps: float = 1e-3) -> jnp.ndarray:
+#     """
+#     Compute a numerically stable 2x2 process noise covariance block Q
+#     for an Ornstein–Uhlenbeck process with decay rate gamma and time step dt.
+
+#     Uses series expansion for small gamma*dt to avoid numerical instability.
+
+#     Parameters
+#     ----------
+#     gamma : float
+#         Decay rate parameter.
+#     dt : float
+#         Time step.
+#     eps : float
+#         Threshold for switching between Taylor expansion and exponentials.
+
+#     Returns
+#     -------
+#     jnp.ndarray
+#         2x2 process noise covariance matrix.
+#     """
+#     γdt = gamma * dt
+#     use_series = γdt < eps
+
+#     # Series expansions
+#     exp1_series = 1 - γdt + 0.5 * γdt**2 - (1/6) * γdt**3
+#     exp2_series = 1 - 2*γdt + 2 * γdt**2 - (4/3) * γdt**3
+
+#     exp1 = jnp.where(use_series, exp1_series, jnp.exp(-γdt))
+#     exp2 = jnp.where(use_series, exp2_series, jnp.exp(-2 * γdt))
+
+#     # Guard against zero division
+#     gamma_safe = jnp.maximum(gamma, 1e-12)
+
+#     q11 = (dt - 2 * (1 - exp1) / gamma_safe + (1 - exp2) / (2 * gamma_safe)) / gamma_safe**3
+#     q12 = ((1 - exp1) - (1 - exp2) / 2) / gamma_safe**2
+#     q22 = (1 - exp2) / (2 * gamma_safe)
+
+#     Q = jnp.array([[q11, q12], [q12, q22]])
+
+#     # Regularize and symmetrize to ensure positive-definiteness
+#     Q = 0.5 * (Q + Q.T)
+#     Q += 1e-12 * jnp.eye(2)
+
+#     return Q
+
 
 
 
