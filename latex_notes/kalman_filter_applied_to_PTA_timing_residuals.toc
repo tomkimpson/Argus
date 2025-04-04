@@ -1,0 +1,29 @@
+\babel@toc {english}{}\relax 
+\contentsline {section}{\numberline {1}Requirements}{2}{section.1}%
+\contentsline {section}{\numberline {2}System definition in continuous time}{2}{section.2}%
+\contentsline {section}{\numberline {3}Block organisation}{3}{section.3}%
+\contentsline {section}{\numberline {4}Kalman filter implementation}{5}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Predict step}{5}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Update}{6}{subsection.4.2}%
+\contentsline {section}{\numberline {A}Derivation of matrices}{8}{appendix.A}%
+\contentsline {subsection}{\numberline {A.1}GW block}{8}{subsection.A.1}%
+\contentsline {subsection}{\numberline {A.2}Spin-down block}{9}{subsection.A.2}%
+\contentsline {subsection}{\numberline {A.3}Timing model block}{11}{subsection.A.3}%
+\contentsline {section}{\numberline {A}Derivation of the Measurement Equation}{14}{appendix.A}%
+\contentsline {subsection}{\numberline {A.1}Introduction}{14}{subsection.A.1}%
+\contentsline {subsection}{\numberline {A.2}Definition of phases, $\phi (t)$}{14}{subsection.A.2}%
+\contentsline {subsection}{\numberline {A.3}Definition of the timing residual, $\delta t$}{15}{subsection.A.3}%
+\contentsline {subsection}{\numberline {A.4}Expanding $\phi _m(t)$}{15}{subsection.A.4}%
+\contentsline {subsection}{\numberline {A.5}Putting it all together}{16}{subsection.A.5}%
+\contentsline {section}{\numberline {B}Single pulsar}{16}{appendix.B}%
+\contentsline {subsection}{\numberline {B.1}State vector}{16}{subsection.B.1}%
+\contentsline {subsection}{\numberline {B.2}Dynamical Equations (continuous time)}{17}{subsection.B.2}%
+\contentsline {subsection}{\numberline {B.3}Discretisation}{18}{subsection.B.3}%
+\contentsline {subsubsection}{F-matrix}{18}{section*.2}%
+\contentsline {subsubsection}{Q-matrix}{18}{section*.3}%
+\contentsline {subsubsection}{H-matrix}{19}{section*.4}%
+\contentsline {subsubsection}{R-matrix}{19}{section*.5}%
+\contentsline {section}{\numberline {C}Multiple pulsars}{19}{appendix.C}%
+\contentsline {subsection}{\numberline {C.1}Discretisation for multiple pulsars}{20}{subsection.C.1}%
+\contentsline {section}{\numberline {A}A worked example for the Q-matrix}{23}{appendix.A}%
+\contentsfinish 

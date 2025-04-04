@@ -1,18 +1,67 @@
-\documentclass[]{scrartcl}
+\documentclass{tufte-handout} % A4 paper and 11pt font size
+\usepackage[activate={true,nocompatibility},final,tracking=true,kerning=true,spacing=true,factor=1100,stretch=10,shrink=10]{microtype}
+\usepackage[T1]{fontenc} % Use 8-bit encoding that has 256 glyphs
+\usepackage{mathpazo} % Use the Adobe Utopia font for the document - comment this line to return to the LaTeX default
+\usepackage[english]{babel} % English language/hyphenation
+\usepackage{amsmath,amsfonts,amsthm, amssymb} % Math packages
+\usepackage{pgf,tikz}
+\usetikzlibrary{positioning,matrix,arrows}
+\usepackage{float}
+\usepackage{tikz-cd}
+\usepackage{caption}
+\usepackage{stmaryrd}
+\usepackage{multicol}
+\usepackage{booktabs}
+\usepackage{verbatim}
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage{sectsty} % Allows customizing section commands
+\allsectionsfont{\normalfont \bfseries} % Make all sections centered, the default font and small caps
+\usepackage{enumerate}
+\usepackage{pythonhighlight}
+\usepackage{fancyhdr} % Custom headers and footers
+\pagestyle{fancyplain} % Makes all pages in the document conform to the custom headers and footers
+\fancyhead{} % No page header - if you want one, create it in the same way as the footers below
+\fancyfoot[L]{} % Empty left footer
+\fancyfoot[C]{} % Empty center footer
+\fancyfoot[R]{\thepage} % Page numbering for right footer
+\renewcommand{\headrulewidth}{0pt} % Remove header underlines
+\renewcommand{\footrulewidth}{0pt} % Remove footer underlines
+\setlength{\headheight}{13.6pt} % Customize the height of the header
+\allowdisplaybreaks
+
+\usepackage{graphicx}
+\usepackage{subcaption}
 
 
-%packages
-\usepackage{amsmath}
-\usepackage{xcolor}
 \usepackage{hyperref}
-\hypersetup{
-	colorlinks   = true, %Colours links instead of ugly boxes
-	urlcolor = teal
+\hypersetup{  
+	colorlinks=true,
+	urlcolor=cyan,
 }
 
-%opening
-\title{Notes on Kalman filter for PTA analysis}
-\author{T. Kimpson}
+\urlstyle{same}
+
+% Turn on numbering for section and subsection headings
+\setcounter{secnumdepth}{2}
+
+
+\geometry{
+	left=13mm, % left margin
+	textwidth=130mm, % main text block
+	marginparsep=8mm, % gutter between main text block and margin notes
+	marginparwidth=55mm % width of margin notes
+}
+\fontsize{10}{20}\selectfont
+%----------------------------------------------------------------------------------------
+%	TITLE SECTION
+%----------------------------------------------------------------------------------------
+
+\title{	
+	\normalfont\normalsize 
+	{University of Melbourne} \\ 
+	 Notes on Kalman filter for PTA analysis
+}\author{\small T. Kimpson} % Your name
+\date{\small \today} % Today's date or a custom date
 
 \begin{document}
 
@@ -20,6 +69,11 @@
 \begin{abstract}
 	This note defines the Kalman ``machinery" for the state-space formulation of PTA analysis in terms of timing residuals. It is heavily based on work by P. Meyers and the \textsc{minnow} package, with extensions to handle multiple pulsars and the influence of the stochastic GW background, with contributions from A. Vargas. This work builds on our previous papers, continuing from their state-space formulation in the frequency domain.
 \end{abstract}
+\tableofcontents
+
+
+
+
 
 \section{Requirements}
 
@@ -34,13 +88,10 @@ For the purposes of running state-space algorithms, we define the following:
 	\item $\boldsymbol{R}$ : the measurement noise covariance matrix, dimension $n_Y \times n_Y$
 \end{itemize}
 
-The goal of this note is to define the above matrices.
+The goal of this note is to define the above matrices. 
 
-
-
-\section{System definition}
-
-We have a set of $N$ pulsars. Each pulsar has $4 + M^{(n)}$ states, where $M^{(n)}$ is the number of timing model parameters for the $n$-th pulsar. The states evolve according to the following set of dynamical equations.
+\section{System definition in continuous time}\label{sec:continuous_time_system}
+We have a set of $N$ pulsars. Each pulsar has $4 + M^{(n)}$ states, where $M^{(n)}$ is the number of timing model parameters for the $n$-th pulsar \footnote{These are things like corrections to RA/DEC, DM, etc. Typically $M^{(n)} \sim 10$ or so.}. The states evolve according to the following set of dynamical equations.
 \begin{align}
 	\frac{d}{dt} \delta \phi^{(n)} &= \delta f^{(n)}, \\
 	\frac{d}{dt} \delta f^{(n)} &= -\gamma_p^{(n)} \delta f^{(n)} + \chi_p^{(n)}(t), \\
@@ -48,21 +99,19 @@ We have a set of $N$ pulsars. Each pulsar has $4 + M^{(n)}$ states, where $M^{(n
 	\frac{d}{dt} a^{(n)} &= -\gamma_a a^{(n)} + \chi_{\mathrm a}^{(n)}(t), \\
 	\frac{d}{dt} \delta \epsilon^{(n)}_{m} &= \chi_{\epsilon_{m}}^{(n)}(t) \quad \forall m \in [1, M^{(n)}].
 \end{align}
-where $\chi_{i}$ denotes a white noise stochastic process and $\gamma_i$ are daming constants. The processes  $\chi_p^{(n)}$ and  $\chi_\epsilon^{(n)}$ are uncorrelated between different $n$. Their statistics are defined by
+where $\chi_{i}$ denotes a white noise stochastic process and $\gamma_i$ are damping constants. The processes  $\chi_p^{(n)}$ and  $\chi_\epsilon^{(n)}$ are uncorrelated between different $n$. Their statistics are defined by
 
 \begin{align}
 	\langle \chi_p^{(n)}(t) \rangle &= 0 \ , \\
 	\langle \chi_p^{(n)}(t) \chi_p^{(n')}(t') \rangle &= [\sigma_p^{(n)}]^2 \delta_{n,n'} \delta(t - t') \ .
 \end{align}
-The factor $\delta_{n,n'}$ in the right-hand side ensures that the non-GW-induced spin fluctuations in distinct pulsars $n\neq n'$ are uncorrelated, as expected physically. 
-
+\footnote{The factor $\delta_{n,n'}$ in the right-hand side ensures that the non-GW-induced spin fluctuations in distinct pulsars $n\neq n'$ are uncorrelated, as expected physically.}
+and
 \begin{align}
 	\langle \chi_{\epsilon_m}^{(n)}(t) \rangle &= 0 \ , \\
-	\langle \chi_{\epsilon_m}^{(n)}(t) \chi_{\epsilon_m'}^{(n')}(t') \rangle &= [\sigma_{\epsilon_m}^{(n)}]^2 \delta_{n,n'} \delta(t - t') \ .
+	\langle \chi_{\epsilon_m}^{(n)}(t) \chi_{\epsilon_m'}^{(n')}(t') \rangle &= [\sigma_{\epsilon_m}^{(n)}]^2 \delta_{n,n'} \delta(t - t') \ 
 \end{align}
-
-Note that I am not sure if it makes sense for the timing model parameter errors to be treated in this way; perhaps there is some correlation between the parameters for a single pulsar . For now we just assume that they are all uncorrelated for simplicity. \newline 
-
+\footnote{I am not sure if it makes sense for the timing model parameter errors to be treated in this way; perhaps there is some correlation between the parameters for a single pulsar . For now we just assume that they are all uncorrelated for simplicity.} \newline 
 The correlation between pulsars manifests due to the GW, i.e. the $a^{(n)}$ state. The ensemble statistics of $\chi_{\mathrm a}^{(n)}$ are
 \begin{align}
 	\langle \chi^{(n)}_{\mathrm a}(t) \rangle &= 0 \ , 	\label{eq:xieqn1} \\
@@ -80,10 +129,9 @@ with $x_{nn'} = \left[1 - \cos \theta^{(n,n')}\right]/2$. \newline
 
 The states described by the SDEs are related to the observables, $\boldsymbol{Y} = \left(\delta t \right) $ via a measurement equation
 \begin{equation}
-	\delta t^{(n)} = \frac{\delta \phi^{(n)}}{f_0^{(n)}} + \mathbf{M}^{(n)} \boldsymbol{\delta \epsilon}^{(n)} - r^{(n)}
+	\delta t^{(n)} = \frac{\delta \phi^{(n)}}{f_0^{(n)}} + \mathbf{M}^{(n)} \boldsymbol{\delta \epsilon}^{(n)} - r^{(n)} \label{eq:meas}
 \end{equation}
-where $\mathbf{M}^{(n)}$ is the design matrix of partial derivatives of the phases with respect to the timing model parameters. It is provided by standard pulsar timing libraries such as TEMPO and is a (row)vector of dimension $M^{(n)}$ (note the clumsy notation; $\mathbf{M}^{(n)}$ is a vector, the normal $M^{(n)}$ is a scalar which sets the dimension of $\mathbf{M}^{(n)}$) 
-The quantity $\boldsymbol{\delta \epsilon}^{(n)}$ is a (column) vector, also of length $M^{(n)}$, which holds all the $\delta \epsilon^{(n)}_{m}$ terms for pulsar $n$.
+where $\mathbf{M}^{(n)}$ is the design matrix of partial derivatives of the phases with respect to the timing model parameters. It is provided by standard pulsar timing libraries such as TEMPO and is a (row)vector of dimension $M^{(n)}$. \footnote{Note the clumsy notation; $\mathbf{M}^{(n)}$ is a vector while $M^{(n)}$ is a scalar which sets the dimension of $\mathbf{M}^{(n)}$. In standard PSR timing notation $\mathbf{M}^{(n)}$ is a matrix which goes over all times; here we can just consider it to be a time-varying vector.} The quantity $\boldsymbol{\delta \epsilon}^{(n)}$ is a (column) vector, also of length $M^{(n)}$, which holds all the $\delta \epsilon^{(n)}_{m}$ terms for pulsar $n$.
 The quantity $f_0^{(n)}$ is the nominal spin frequency of pulsar $n$.
 
 
@@ -93,19 +141,333 @@ The quantity $f_0^{(n)}$ is the nominal spin frequency of pulsar $n$.
 
 
 \section{Block organisation}
-
-
-The structure of the system invictes a block organisation of the state vector.
+The structure of the equations in Section \ref{sec:continuous_time_system} suggests a block organisation of the state vector as follows. \newline 
 
 There are three blocks which are uncorrelated.
 \begin{itemize}
-	\item The spin-down states,$\delta \phi^{(n)}$ and $\delta f^{(n)}$.
-	\item The GW states, $r^{(n)}$ and $a^{(n)}$.
-	\item The timing model parameters, $\delta \epsilon^{(n)}_{m}$.
+	\item The GW block, $r^{(n)}$ and $a^{(n)}$.
+	\item The spin-down block, $\delta \phi^{(n)}$ and $\delta f^{(n)}$.
+	\item The timing model parameters block, $\delta \epsilon^{(n)}_{m}$.
+\end{itemize}
+We will note these as $\boldsymbol{X}_{\text{gw}}$, $\boldsymbol{X}_{\text{spin}}$ and $\boldsymbol{X}_{\text{tm}}$ respectively. The states stretch across all pulsars. So for example $\boldsymbol{X}_{\text{spin}}  = \left(\delta \phi^{(1)}, \delta f^{(1)}, \delta \phi^{(2)}, \delta f^{(2)}, \cdots, \delta \phi^{(N)}, \delta f^{(N)}\right)$. We summarise the $\boldsymbol{F}$ and $\boldsymbol{Q}$ matrices of each of the blocks below. Their derivation can be found in Appendix \ref{sec:derivation_of_matrices}.
+
+
+\begin{equation}
+	F = \begin{pmatrix}
+		F_{GW} & 0 & 0\\[1mm]
+		0 & F_{\phi/f} & 0\\[1mm]
+		0 & 0 & F_{\delta\epsilon}
+	\end{pmatrix},\qquad
+	Q = \begin{pmatrix}
+		Q_{GW} & 0 & 0\\[1mm]
+		0 & Q_{\phi/f} & 0\\[1mm]
+		0 & 0 & Q_{\delta\epsilon}
+	\end{pmatrix}.
+\end{equation}
+\hrule \vspace{2mm}
+\noindent \textbf{Components}
+\begin{equation}
+	F_{\text{block}} \left( \gamma\right) =
+	\begin{pmatrix}
+		1 & \dfrac{1-e^{-\gamma\Delta t}}{\gamma} \\[1mm]
+		0 & e^{-\gamma\Delta t}
+	\end{pmatrix}.
+\end{equation}
+\begin{equation}
+	Q_{\text{block}} \left( \gamma\right) = \begin{pmatrix}
+		q_{11}\left( \gamma\right) & q_{12}\left( \gamma\right)\\[1mm]
+		q_{12}\left( \gamma\right) & q_{22}\left( \gamma\right)
+	\end{pmatrix},
+\end{equation}
+where
+\begin{equation}
+	q_{22} = \frac{1-e^{-2\gamma\Delta t}}{2\gamma},
+\end{equation}
+\begin{equation}
+	q_{12} = \frac{1}{\gamma^2}\left[\left(1-e^{-\gamma\Delta t}\right)-\frac{1-e^{-2\gamma\Delta t}}{2}\right],
+\end{equation}
+\begin{equation}
+	q_{11} = \frac{1}{\gamma^3}\left[\Delta t-\frac{2}{\gamma}\left(1-e^{-\gamma\Delta t}\right)+\frac{1-e^{-2\gamma\Delta t}}{2\gamma}\right].
+\end{equation}
+\hrule \vspace{2mm}
+
+
+\noindent \textbf{GW block}
+\begin{align}
+	F_{GW} &= I_N \otimes F_{\text{block}} = \text{diag} \left(F_{\text{block}},F_{\text{block}},\cdots\right) \\
+		Q_{\rm GW} &=  \Bigl[\sigma^{(n,n')}_a\Bigr]^2 \otimes Q_{\text{block}}.
+\end{align}
+
+
+where $I_N$ is the $N\times N$ identity matrix and $\otimes$ denotes the Kronecker product. \footnote{For all pulsars, the deterministic part of the GW is the same, governed by $\gamma_{\rm a}$. The per-pulsar dependence arises in the stochastic part / Q-matrix.}
+
+\hrule \vspace{2mm}
+
+\noindent \textbf{Spin-down block}
+
+\begin{equation}
+	F_{\phi/f} = \operatorname{diag}\Bigl[ F_{\rm block} \left(\gamma_{\rm p}^{(1)} \right),\,F_{\rm block} \left(\gamma_{\rm p}^{(2)} \right),\,\ldots,\,F_{\rm block} \left(\gamma_{\rm p}^{(N)} \right)\Bigr].
+\end{equation}
+
+\begin{equation}
+Q_{\phi/f} = \operatorname{diag}\Bigl[ Q_{\rm block} \left(\gamma_{\rm p}^{(1)} \right),\,Q_{\rm block} \left(\gamma_{\rm p}^{(2)} \right),\,\ldots,\,Q_{\rm block} \left(\gamma_{\rm p}^{(N)} \right)\Bigr].
+\end{equation}
+
+
+\hrule \vspace{2mm}
+
+\noindent \textbf{Timing ephemeris block}
+
+
+    \begin{equation}
+	F_{\delta\epsilon} = \operatorname{diag}\Bigl(I_{M^{(1)}},\,I_{M^{(2)}},\,\dots,\,I_{M^{(N)}}\Bigr),
+\end{equation}
+\begin{equation}
+	Q_{\delta\epsilon}  = \operatorname{diag}\Bigl(Q^{(1)}_{\delta\epsilon},\,Q^{(2)}_{\delta\epsilon},\,\dots,\,Q^{(N)}_{\delta\epsilon}\Bigr).
+\end{equation}
+with
+\begin{equation}
+	Q^{(n)}_{\delta\epsilon} =  \Delta t\,\operatorname{diag}\Bigl(\left[\sigma_{\epsilon_1}^{(n)}\right]^2,\left[\sigma_{\epsilon_2}^{(n)}\right]^2,\dots,\left[\sigma_{\epsilon_{M^{(n)}}}^{(n)}\right]^2\Bigr).
+\end{equation}
+
+
+
+\section{Kalman filter implementation}
+In general our matrices are large and sparse. This introduces computational challenges \footnote{Slow matrix multiplication, numerical stability and cost of matrix inverse,...}. We can leverage the block diagonal structure of $\mathbf{F}$ and $\mathbf{Q}$, and the simple form of the measurement equation, Equation \eqref{eq:meas}, we can sidestep some of these issues. \newline 
+
+Specifically, we will now handle 3 state vectors
+ $\boldsymbol{X}_{\text{gw}}  \boldsymbol{X}_{\phi/f} \boldsymbol{X}_{\delta\epsilon}$ and the 6 unique block components of the covariance matrix, separately. 
+
+\subsection{Predict step}
+Assume the state is ordered as
+\begin{equation}
+	\boldsymbol{X}= \begin{pmatrix} \boldsymbol{X}_{\text{gw}} \\[1mm] \boldsymbol{X}_{\phi/f} \\[1mm] \boldsymbol{X}_{\delta\epsilon} \end{pmatrix},
+\end{equation}
+with covariance \footnote{at a given timestep, e.g. after the update step}
+\begin{equation}
+	P = \begin{pmatrix}
+		P_{GW} & P_{GW,\phi/f} & P_{GW,\delta\epsilon}\\[1mm]
+		P_{\phi/f,GW} & P_{\phi/f} & P_{\phi/f,\delta\epsilon}\\[1mm]
+		P_{\delta\epsilon,GW} & P_{\delta\epsilon,\phi/f} & P_{\delta\epsilon}
+	\end{pmatrix}.
+\end{equation}
+The new states are straightforwardly $\boldsymbol{X}(k+1) = F \boldsymbol{X}(k)$, or
+\begin{align}
+	 \boldsymbol{X}_{\text{gw}}(k+1) &= F_{\text{GW}} \boldsymbol{X}_{\text{gw}}(k) \\
+	 	\boldsymbol{X}_{\phi/f}(k+1) &= F_{\phi / f} \boldsymbol{X}_{\phi/f}(k) \\
+	 	 	 \boldsymbol{X}_{\delta\epsilon}(k+1) &=  \boldsymbol{X}_{\delta\epsilon}(k)
+\end{align}
+The new covariances are $P_p = F\,P\,F^T + Q$, which expands to
+\begin{equation}
+	P_p = \begin{pmatrix}
+		F_{GW}\,P^+_{GW}\,F_{GW}^T + Q_{GW} & F_{GW}\,P^+_{GW,\phi/f}\,F_{\phi/f}^T & F_{GW}\,P^+_{GW,\delta\epsilon}\,F_{\delta\epsilon}^T\\[1mm]
+		F_{\phi/f}\,P^+_{\phi/f,GW}\,F_{GW}^T & F_{\phi/f}\,P^+_{\phi/f}\,F_{\phi/f}^T + Q_{\phi/f} & F_{\phi/f}\,P^+_{\phi/f,\delta\epsilon}\,F_{\delta\epsilon}^T\\[1mm]
+		F_{\delta\epsilon}\,P^+_{\delta\epsilon,GW}\,F_{GW}^T & F_{\delta\epsilon}\,P^+_{\delta\epsilon,\phi/f}\,F_{\phi/f}^T & F_{\delta\epsilon}\,P^+_{\delta\epsilon}\,F_{\delta\epsilon}^T + Q_{\delta\epsilon}
+	\end{pmatrix}.
+\end{equation}
+Because $P$ is symmetric, we only need to track 6 blocks\footnote{3 diagonal, 3 off diagonal}
+\begin{itemize}
+	\item The GW block is 
+	\begin{equation}
+		P_{p}^{GW} = F_{GW}\,P^+_{GW}\,F_{GW}^T + Q_{GW}.
+	\end{equation}
+	\item The \(\phi/f\) block is 
+	\begin{equation}
+		P_{p}^{\phi/f} = F_{\phi/f}\,P^+_{\phi/f}\,F_{\phi/f}^T + Q_{\phi/f}.
+	\end{equation}
+	\item The \(\delta\epsilon\) block is 
+	\begin{equation}
+		P_{p}^{\delta\epsilon} = F_{\delta\epsilon}\,P^+_{\delta\epsilon}\,F_{\delta\epsilon}^T + Q_{\delta\epsilon}.
+	\end{equation}
+	\item The cross–covariance between GW and \(\phi/f\) is 
+	\begin{equation}
+		P_{p}^{GW,\phi/f} = F_{GW}\,P^+_{GW,\phi/f}\,F_{\phi/f}^T.
+	\end{equation}
+	\item The cross–covariance between GW and \(\delta\epsilon\) is 
+	\begin{equation}
+		P_{p}^{GW,\delta\epsilon} = F_{GW}\,P^+_{GW,\delta\epsilon}\,F_{\delta\epsilon}^T.
+	\end{equation}
+	\item The cross–covariance between \(\phi/f\) and \(\delta\epsilon\) is 
+	\begin{equation}
+		P_{p}^{\phi/f,\delta\epsilon} = F_{\phi/f}\,P^+_{\phi/f,\delta\epsilon}\,F_{\delta\epsilon}^T.
+	\end{equation}
 \end{itemize}
 
-We will note these as $\boldsymbol{X}_{\text{spin}}$, $\boldsymbol{X}_{\text{gw}}$, and $\boldsymbol{X}_{\text{tm}}$, which stretch across all pulsars.
-So for example $\boldsymbol{X}_{\text{spin}}  = \left(\delta \phi^{(1)}, \delta f^{(1)}, \delta \phi^{(2)}, \delta f^{(2)}, \cdots, \delta \phi^{(N)}, \delta f^{(N)}\right)$.
+
+
+\subsection{Update}
+
+
+At time step $k$, we obtain a single scalar measurement $y_k$ with a $1\times n_x$ matrix (row vector) $H_k$ and scalar measurement noise $R_k$. The measurement equation is
+\begin{equation}
+	y_k = H_k\,x_{k\mid k-1} + \text{(noise)}.
+\end{equation}
+ Partition $H_k$ into three sub-blocks,
+\begin{equation}
+	H_k 
+	=
+	\bigl[
+	h_{\mathrm{GW}},\;
+	h_{\phi/f},\;
+	h_{\delta\epsilon}
+	\bigr].
+\end{equation}
+The innovation is
+\begin{equation}
+	\nu_k
+	=
+	y_k 
+	-
+	\bigl(
+	h_{\mathrm{GW}}\,x_{\mathrm{GW}}
+	+
+	h_{\phi/f}\,x_{\phi/f}
+	+
+	h_{\delta\epsilon}\,x_{\delta\epsilon}
+	\bigr).
+\end{equation}
+To get the innovation covariance we proceed as follows. Define
+\begin{equation}
+	u_{\mathrm{GW}}
+	=
+	P_{\mathrm{GW}}\,h_{\mathrm{GW}}^\mathsf{T}
+	+
+	P_{\mathrm{GW},\,\phi/f}\,h_{\phi/f}^\mathsf{T}
+	+
+	P_{\mathrm{GW},\,\delta\epsilon}\,h_{\delta\epsilon}^\mathsf{T},
+\end{equation}
+
+\begin{equation}
+	u_{\phi/f}
+	=
+	P_{\phi/f,\,\mathrm{GW}}\,h_{\mathrm{GW}}^\mathsf{T}
+	+
+	P_{\phi/f}\,h_{\phi/f}^\mathsf{T}
+	+
+	P_{\phi/f,\,\delta\epsilon}\,h_{\delta\epsilon}^\mathsf{T},
+\end{equation}
+
+\begin{equation}
+	u_{\delta\epsilon}
+	=
+	P_{\delta\epsilon,\,\mathrm{GW}}\,h_{\mathrm{GW}}^\mathsf{T}
+	+
+	P_{\delta\epsilon,\,\phi/f}\,h_{\phi/f}^\mathsf{T}
+	+
+	P_{\delta\epsilon}\,h_{\delta\epsilon}^\mathsf{T}.
+\end{equation}
+and
+\begin{equation}
+	u
+	=
+	\begin{pmatrix}
+		u_{\mathrm{GW}}\\[3pt]
+		u_{\phi/f}\\[3pt]
+		u_{\delta\epsilon}
+	\end{pmatrix}
+	=
+	P_{k\mid k-1}\,H_k^\mathsf{T}.
+\end{equation}
+\footnote{$u_{\mathrm{GW}}$ (e.g.) is shape $(2N,1)$}. The innovation covariance is a scalar:
+\begin{equation}
+	S_k
+	=
+	H_k\,P_{k\mid k-1}\,H_k^\mathsf{T} 
+	+ 
+	R_k
+	=
+	\bigl(h_{\mathrm{GW}},\,h_{\phi/f},\,h_{\delta\epsilon}\bigr)
+	\begin{pmatrix}
+		u_{\mathrm{GW}}\\
+		u_{\phi/f}\\
+		u_{\delta\epsilon}
+	\end{pmatrix}
+	+
+	R_k.
+\end{equation}
+or in other words,
+\begin{equation}
+	S_k 
+	=
+	h_{\mathrm{GW}}\,u_{\mathrm{GW}}
+	+
+	h_{\phi/f}\,u_{\phi/f}
+	+
+	h_{\delta\epsilon}\,u_{\delta\epsilon}
+	+
+	R_k.
+\end{equation}
+\footnote{Note that when coding this up one can take advantage of the sparsity of $H$ and just grab the corresponding entry of $u$}. 
+Define $\alpha = 1/S_k$. Then
+\begin{equation}
+	K_k 
+	= 
+	\alpha\,u
+	\quad\Longrightarrow\quad
+	K_{\mathrm{GW}} = \alpha\,u_{\mathrm{GW}},~
+	K_{\phi/f} = \alpha\,u_{\phi/f},~
+	K_{\delta\epsilon} = \alpha\,u_{\delta\epsilon}.
+\end{equation}
+Hence each block of the state is updated via
+\begin{equation}
+	x_{\mathrm{GW}}^+
+	=
+	x_{\mathrm{GW}}
+	+
+	K_{\mathrm{GW}}\;\nu_k,
+	\quad
+	x_{\phi/f}^+
+	=
+	x_{\phi/f}
+	+
+	K_{\phi/f}\;\nu_k,
+	\quad
+	x_{\delta\epsilon}^+
+	=
+	x_{\delta\epsilon}
+	+
+	K_{\delta\epsilon}\;\nu_k.
+\end{equation}	
+\footnote{Look out for extra savings to be made here. $u$ is sparse, so only the pulsar-relevant component of x gets updated. }
+The covariance is updated as 
+\begin{equation}
+P_{k\mid k}
+=
+(I - K_k\,H_k)\,P_{k\mid k-1}.
+\end{equation}
+or equivalently.
+\begin{equation}
+	P_{k\mid k}
+	=
+	P_{k\mid k-1}
+	-
+	\alpha
+	\,
+	\bigl(u\,u^\mathsf{T}\bigr).
+\end{equation}
+That is to say, in block form, each block is updated by subtracting the appropriate outer products. For example,
+\[
+P_{\mathrm{GW}}^+
+=
+P_{\mathrm{GW}}
+-
+\alpha\,u_{\mathrm{GW}}\,u_{\mathrm{GW}}^\mathsf{T},
+\quad
+P_{\mathrm{GW},\,\phi/f}^+
+=
+P_{\mathrm{GW},\,\phi/f}
+-
+\alpha\,u_{\mathrm{GW}}\,u_{\phi/f}^\mathsf{T},
+\]
+and so on for all 6 blocks \(\{P_{\mathrm{GW}},P_{\mathrm{GW},\phi/f},\ldots\}\).
+
+
+
+\newpage 
+
+\appendix
+
+\section{Derivation of matrices}\label{sec:derivation_of_matrices}
 
 
 During the predict step of the Kalman filter, the block states can be evolved independently of each other
@@ -404,226 +766,6 @@ Q = \operatorname{diag}\Bigl(Q^{(1)},\,Q^{(2)},\,\dots,\,Q^{(N)}\Bigr).
     \end{equation}
 \end{itemize}
 
-
-
-
-\section{Kalman filter implementation}
-
-
-
-\subsection{Predict step}
-Assume the state is ordered as
-\begin{equation}
-x = \begin{pmatrix} x_{GW} \\[1mm] x_{\phi/f} \\[1mm] x_{\delta\epsilon} \end{pmatrix},
-\end{equation}
-and that after the measurement update the covariance is
-\begin{equation}
-P^+ = \begin{pmatrix}
-P^+_{GW} & P^+_{GW,\phi/f} & P^+_{GW,\delta\epsilon}\\[1mm]
-P^+_{\phi/f,GW} & P^+_{\phi/f} & P^+_{\phi/f,\delta\epsilon}\\[1mm]
-P^+_{\delta\epsilon,GW} & P^+_{\delta\epsilon,\phi/f} & P^+_{\delta\epsilon}
-\end{pmatrix}.
-\end{equation}
-Suppose also that the state transition matrix and process noise are block diagonal:
-\begin{equation}
-F = \begin{pmatrix}
-F_{GW} & 0 & 0\\[1mm]
-0 & F_{\phi/f} & 0\\[1mm]
-0 & 0 & F_{\delta\epsilon}
-\end{pmatrix},\qquad
-Q = \begin{pmatrix}
-Q_{GW} & 0 & 0\\[1mm]
-0 & Q_{\phi/f} & 0\\[1mm]
-0 & 0 & Q_{\delta\epsilon}
-\end{pmatrix}.
-\end{equation}
-Then the prediction step is given by
-\begin{equation}
-P_p = F\,P^+\,F^T + Q,
-\end{equation}
-which expands to
-\begin{equation}
-P_p = \begin{pmatrix}
-F_{GW}\,P^+_{GW}\,F_{GW}^T + Q_{GW} & F_{GW}\,P^+_{GW,\phi/f}\,F_{\phi/f}^T & F_{GW}\,P^+_{GW,\delta\epsilon}\,F_{\delta\epsilon}^T\\[1mm]
-F_{\phi/f}\,P^+_{\phi/f,GW}\,F_{GW}^T & F_{\phi/f}\,P^+_{\phi/f}\,F_{\phi/f}^T + Q_{\phi/f} & F_{\phi/f}\,P^+_{\phi/f,\delta\epsilon}\,F_{\delta\epsilon}^T\\[1mm]
-F_{\delta\epsilon}\,P^+_{\delta\epsilon,GW}\,F_{GW}^T & F_{\delta\epsilon}\,P^+_{\delta\epsilon,\phi/f}\,F_{\phi/f}^T & F_{\delta\epsilon}\,P^+_{\delta\epsilon}\,F_{\delta\epsilon}^T + Q_{\delta\epsilon}
-\end{pmatrix}.
-\end{equation}
-Thus:
-\begin{itemize}
-    \item The GW block is 
-    \begin{equation}
-    P_{p}^{GW} = F_{GW}\,P^+_{GW}\,F_{GW}^T + Q_{GW}.
-    \end{equation}
-    \item The \(\phi/f\) block is 
-    \begin{equation}
-    P_{p}^{\phi/f} = F_{\phi/f}\,P^+_{\phi/f}\,F_{\phi/f}^T + Q_{\phi/f}.
-    \end{equation}
-    \item The \(\delta\epsilon\) block is 
-    \begin{equation}
-    P_{p}^{\delta\epsilon} = F_{\delta\epsilon}\,P^+_{\delta\epsilon}\,F_{\delta\epsilon}^T + Q_{\delta\epsilon}.
-    \end{equation}
-    \item The cross–covariance between GW and \(\phi/f\) is 
-    \begin{equation}
-    P_{p}^{GW,\phi/f} = F_{GW}\,P^+_{GW,\phi/f}\,F_{\phi/f}^T.
-    \end{equation}
-    \item The cross–covariance between GW and \(\delta\epsilon\) is 
-    \begin{equation}
-    P_{p}^{GW,\delta\epsilon} = F_{GW}\,P^+_{GW,\delta\epsilon}\,F_{\delta\epsilon}^T.
-    \end{equation}
-    \item The cross–covariance between \(\phi/f\) and \(\delta\epsilon\) is 
-    \begin{equation}
-    P_{p}^{\phi/f,\delta\epsilon} = F_{\phi/f}\,P^+_{\phi/f,\delta\epsilon}\,F_{\delta\epsilon}^T.
-    \end{equation}
-\end{itemize}
-
-
-
-\subsection{Measurement update}
-
-
-
-
-Assume that the state is partitioned into three sectors:
-\begin{equation}
-x=\begin{pmatrix}
-x_{GW}\\[1mm]
-x_{\phi/f}\\[1mm]
-x_{\delta\epsilon}
-\end{pmatrix},
-\end{equation}
-and that the measurement equation for pulsar \(n\) is
-\begin{equation}
-y=\frac{1}{f_0^{(n)}}\,\delta\phi^{(n)}+\mathbf{M}^{(n)}\,\boldsymbol{\delta\epsilon}^{(n)}-r^{(n)}.
-\end{equation}
-In our state ordering, the measurement matrix has nonzero blocks only in the following positions:
-\begin{itemize}
-    \item In the GW sector, a \(-1\) in the entry corresponding to \(r^{(n)}\);
-    \item In the \(\phi/f\) sector, a \(1/f_0^{(n)}\) in the entry corresponding to \(\delta\phi^{(n)}\);
-    \item In the \(\delta\epsilon\) sector, the row vector \(\mathbf{M}^{(n)}\) in the block corresponding to pulsar \(n\).
-\end{itemize}
-Let
-\begin{equation}
-S=P^-_{r^{(n)}r^{(n)}}+\frac{1}{f_0^{(n)2}}P^-_{\delta\phi^{(n)}\delta\phi^{(n)}}+\mathbf{M}^{(n)}P^-_{\delta\epsilon^{(n)}\delta\epsilon^{(n)}}\mathbf{M}^{(n)T}+R.
-\end{equation}
-Then the Kalman gains for the measured components are
-\begin{align}
-K_{r^{(n)}} &= -\frac{P^-_{r^{(n)}r^{(n)}}}{S},\\[1mm]
-K_{\delta\phi^{(n)}} &= \frac{P^-_{\delta\phi^{(n)}\delta\phi^{(n)}}}{f_0^{(n)}\,S},\\[1mm]
-K_{\delta\epsilon^{(n)}} &= \frac{P^-_{\delta\epsilon^{(n)}\delta\epsilon^{(n)}}\,\mathbf{M}^{(n)T}}{S}.
-\end{align}
-All other entries of the gain \(K\) are zero.
-
-The covariance update is
-\begin{equation}
-P^+=P^--K\,H\,P^-.
-\end{equation}
-Thus, the updated variances for the measured components are
-\begin{align}
-P^+_{r^{(n)}r^{(n)}} &= P^-_{r^{(n)}r^{(n)}}-\frac{\Bigl(P^-_{r^{(n)}r^{(n)}}\Bigr)^2}{S},\\[1mm]
-P^+_{\delta\phi^{(n)}\delta\phi^{(n)}} &= P^-_{\delta\phi^{(n)}\delta\phi^{(n)}}-\frac{\Bigl(P^-_{\delta\phi^{(n)}\delta\phi^{(n)}/f_0^{(n)}}\Bigr)^2}{S},\\[1mm]
-P^+_{\delta\epsilon^{(n)}\delta\epsilon^{(n)}} &= P^-_{\delta\epsilon^{(n)}\delta\epsilon^{(n)}}-\frac{P^-_{\delta\epsilon^{(n)}\delta\epsilon^{(n)}}\,\mathbf{M}^{(n)T}\,\mathbf{M}^{(n)}\,P^-_{\delta\epsilon^{(n)}\delta\epsilon^{(n)}}}{S}.
-\end{align}
-Similarly, the cross–covariances are updated as
-\begin{align}
-P^+_{r^{(n)},\delta\phi^{(n)}} &= P^-_{r^{(n)},\delta\phi^{(n)}}+\frac{P^-_{r^{(n)}r^{(n)}}\,P^-_{\delta\phi^{(n)}\delta\phi^{(n)}/f_0^{(n)}}}{S},\\[1mm]
-P^+_{r^{(n)},\delta\epsilon^{(n)}} &= P^-_{r^{(n)},\delta\epsilon^{(n)}}+\frac{P^-_{r^{(n)}r^{(n)}}\,P^-_{\delta\epsilon^{(n)}\delta\epsilon^{(n)}}\,\mathbf{M}^{(n)T}}{S},\\[1mm]
-P^+_{\delta\phi^{(n)},\delta\epsilon^{(n)}} &= P^-_{\delta\phi^{(n)},\delta\epsilon^{(n)}}-\frac{P^-_{\delta\phi^{(n)}\delta\phi^{(n)}/f_0^{(n)}}\,P^-_{\delta\epsilon^{(n)}\delta\epsilon^{(n)}}\,\mathbf{M}^{(n)T}}{S}.
-\end{align}
-All other blocks of \(P^+\) remain unchanged.
-
-
-\subsection{Measurement update v2}
-
-
-
-Assume the full state is partitioned as
-\begin{equation}
-x=\begin{pmatrix}
-x_{GW}\\[1mm]
-x_{\phi/f}\\[1mm]
-x_{\delta\epsilon}
-\end{pmatrix},
-\end{equation}
-and the predicted covariance is
-\begin{equation}
-P^-=\begin{pmatrix}
-P^-_{GW} & P^-_{GW,\phi/f} & P^-_{GW,\delta\epsilon}\\[1mm]
-P^-_{\phi/f,GW} & P^-_{\phi/f} & P^-_{\phi/f,\delta\epsilon}\\[1mm]
-P^-_{\delta\epsilon,GW} & P^-_{\delta\epsilon,\phi/f} & P^-_{\delta\epsilon}
-\end{pmatrix}.
-\end{equation}
-Suppose that for pulsar \(n\) the measurement equation is
-\begin{equation}
-y=\frac{1}{f_0^{(n)}}\,\delta\phi+\mathbf{M}^{(n)}\,\boldsymbol{\delta\epsilon}-r,
-\end{equation}
-so that the measurement matrix is
-\begin{equation}
-H=\begin{pmatrix} H_{GW} & H_{\phi/f} & H_{\delta\epsilon} \end{pmatrix},
-\end{equation}
-with
-\begin{equation}
-H_{GW} = \text{(zero except a }-1\text{ at the entry for } r\text{)},
-\end{equation}
-\begin{equation}
-H_{\phi/f} = \text{(zero except } 1/f_0^{(n)} \text{ at the entry for } \delta\phi\text{)},
-\end{equation}
-\begin{equation}
-H_{\delta\epsilon} = \text{(zero except the block for pulsar \(n\) equals } \mathbf{M}^{(n)}\text{)}.
-\end{equation}
-
-Then, defining
-\begin{equation}
-S = H\,P^-\,H^T+R,
-\end{equation}
-which (using the sparsity of \(H\)) expands to
-\begin{equation}
-S = P^-_{rr} + \frac{1}{f_0^{(n)2}}\,P^-_{\delta\phi\,\delta\phi} + \mathbf{M}^{(n)}\,P^-_{\epsilon\,\epsilon}\,\mathbf{M}^{(n)T} - \frac{2}{f_0^{(n)}}\,P^-_{r,\delta\phi} - 2\,\mathbf{M}^{(n)}\,P^-_{r,\epsilon} + \frac{2}{f_0^{(n)}}\,\mathbf{M}^{(n)}\,P^-_{\delta\phi,\epsilon} + R.
-\end{equation}
-The Kalman gain is then given by
-\begin{equation}
-K=P^-H^T\,S^{-1},
-\end{equation}
-or, writing in block form,
-\begin{equation}
-K=\begin{pmatrix}
-K_{GW}\\[1mm]K_{\phi/f}\\[1mm]K_{\delta\epsilon}
-\end{pmatrix}=
-\begin{pmatrix}
-P^-_{GW}H_{GW}^T\\[1mm]P^-_{\phi/f}H_{\phi/f}^T\\[1mm]P^-_{\delta\epsilon}H_{\delta\epsilon}^T
-\end{pmatrix}\,S^{-1}.
-\end{equation}
-Because \(H_{GW}\) has only one nonzero entry (namely, \(-1\) at the \(r\) position), we have
-\begin{equation}
-K_{GW} = -\frac{P^-_{GW}(:,r)}{S},
-\end{equation}
-and similarly,
-\begin{equation}
-K_{\phi/f} = \frac{P^-_{\phi/f}(:,\delta\phi)}{f_0^{(n)}\,S},\qquad
-K_{\delta\epsilon} = \frac{P^-_{\delta\epsilon}(:,\epsilon)\,\mathbf{M}^{(n)T}}{S}.
-\end{equation}
-
-The state update is
-\begin{equation}
-x^+ = x^- + K\Bigl(y-H\,x^-\Bigr).
-\end{equation}
-The covariance update is
-\begin{equation}
-P^+ = P^- - K\,H\,P^-.
-\end{equation}
-Writing this in fully–expanded block form we have
-\begin{equation}
-P^+ = \begin{pmatrix}
-P^-_{GW}-K_{GW}H_{GW}P^-_{GW} & -K_{GW}H_{\phi/f}P^-_{\phi/f} & -K_{GW}H_{\delta\epsilon}P^-_{\delta\epsilon}\\[1mm]
--K_{\phi/f}H_{GW}P^-_{GW} & P^-_{\phi/f}-K_{\phi/f}H_{\phi/f}P^-_{\phi/f} & -K_{\phi/f}H_{\delta\epsilon}P^-_{\delta\epsilon}\\[1mm]
--K_{\delta\epsilon}H_{GW}P^-_{GW} & -K_{\delta\epsilon}H_{\phi/f}P^-_{\phi/f} & P^-_{\delta\epsilon}-K_{\delta\epsilon}H_{\delta\epsilon}P^-_{\delta\epsilon}
-\end{pmatrix}.
-\end{equation}
-Because \(H\) is sparse, only the entries corresponding to the measured components (namely, \(r\), \(\delta\phi\), and the pulsar \(n\) block of \(\delta\epsilon\)) appear in these products. For example, the update for the variance of \(r\) is
-\begin{equation}
-P^+_{rr} = P^-_{rr} - \frac{\left(P^-_{rr}\right)^2}{S},
-\end{equation}
-and similarly for the other blocks and the cross–terms.
 
 
 
