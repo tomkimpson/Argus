@@ -130,7 +130,7 @@ def benchmark_jax_parameter_estimation():
     # Run MCMC
     rng_key = random.PRNGKey(0)
     nuts_kernel = NUTS(numpyro_model)
-    mcmc = MCMC(nuts_kernel, num_samples=1000, num_warmup=500)
+    mcmc = MCMC(nuts_kernel, num_samples=1000, num_warmup=500,num_chains=1,progress_bar=True)
     mcmc.run(rng_key, kf=KF)
     mcmc.print_summary()  # Posterior estimates
 
