@@ -5,14 +5,14 @@ import pandas as pd
 from functools import reduce
 from enterprise.pulsar import Pulsar as EnterprisePulsar
 
-import sys 
 
 def get_par_value(filename, parameter):
     """Get the value of a parameter from a parameter file.
-        It feels like there should be a better way to do this, just using the enterprise.pulsar.Pulsar object.
-        However, I have not been able to figure out how to do this yet.
-        We require F0 as part of the measurement model. 
-        I take it as a known parameter.
+    
+    TK note: It feels like there should be a better way to do this, just using the enterprise.pulsar.Pulsar object.
+    However, I have not been able to figure out how to do this yet.
+    We require F0 as part of the measurement model. 
+    I take it as a known parameter.
     """
     with open(filename, 'r') as f:
         for line in f:
@@ -73,7 +73,6 @@ class LoadWidebandPulsarData:
             with attributes: toas, toaerrs, residuals, fitpars, Mmat, name, _raj, and _decj.
 
         """
-       
         self.toas      = ds_psr.toas   #units of seconds, https://github.com/nanograv/enterprise/blob/master/enterprise/pulsar.py#L201
         self.toaerrs   = ds_psr.toaerrs #units of seconds, https://github.com/nanograv/enterprise/blob/master/enterprise/pulsar.py#L216
         self.residuals = ds_psr.residuals #units of seconds, https://github.com/nanograv/enterprise/blob/master/enterprise/pulsar.py#L211
@@ -88,14 +87,6 @@ class LoadWidebandPulsarData:
         col_scales = np.sqrt(np.sum(self.M_matrix**2, axis=0))
         self.M_scaled = self.M_matrix / col_scales
 
-        
-
-
-
-
-
-
-    
         # Compute differences between consecutive TOAs and propagate errors.
         self.toa_diffs = np.diff(self.toas)
         self.toa_diff_errors = np.sqrt(self.toaerrs[1:] ** 2 + self.toaerrs[:-1] ** 2)
@@ -165,7 +156,8 @@ class LoadWidebandPulsarData:
     @staticmethod
     def post_process_residuals(residuals_data: pd.DataFrame) -> np.ndarray:
         """Post-process residuals data to extract the non-NaN residuals and their indices.
-           TK note: I am sure there is a better way to do this.
+           
+        TK note: I am sure there is a better way to do this.
 
         Parameters
         ----------

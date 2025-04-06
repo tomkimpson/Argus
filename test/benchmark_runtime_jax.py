@@ -2,19 +2,13 @@ import os
 import glob
 from argus import data_loader, models, jax_kalman_filter, gravitational_waves
 import numpy as np
-import pandas as pd
 import time
 from flax import struct
 import jax.numpy as jnp
 import jax
-from jax.profiler import trace
-import contextlib
-from jax.experimental.compilation_cache import compilation_cache as cc
-import jax.profiler
-import socket
-from contextlib import closing
+import matplotlib.pyplot as plt
+from jax.scipy.linalg import block_diag
 
-import sys 
 jax.config.update("jax_enable_x64", True)
 
 @struct.dataclass
@@ -36,17 +30,20 @@ class Parameters:
     EQUAD: jnp.ndarray # Extra quadrature noise
 
 
+def _get_processed_residuals(data_path):
 
 
 
 
-def benchmark_jax_runtime():
+
+
     """Test the JAX KalmanFilter class by loading data, initializing the model, setting parameters, and running the filter."""
     # Get the directory of the current script
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
     # Construct the invariant directory path
-    data_path = "../data/IPTA_MockDataChallenge/IPTA_Challenge1_open/Challenge_Data/Dataset2/"
+    # data_path = "../data/IPTA_MockDataChallenge/IPTA_Challenge1_open/Challenge_Data/Dataset2/"
+
     directory = os.path.join(
         script_dir,
         data_path
@@ -55,11 +52,16 @@ def benchmark_jax_runtime():
     # Get all .par and .tim files in the directory
     par_files = sorted(glob.glob(directory + "*.par"))
     tim_files = sorted(glob.glob(directory + "*.tim"))
+
     assert len(par_files) == len(tim_files), "Mismatch between .par and .tim file counts."
 
-    #select only 2 pulsars
-    # par_files = par_files[:2]
-    # tim_files = tim_files[:2]
+
+    #Load just one pulsar and check everything looks reasonable
+    psr = data_loader.LoadWidebandPulsarData.read_par_tim(par_files[0], tim_files[0])
+    plt.plot(psr.toas, psr.residuals)
+    plt.savefig("residuals.png")
+
+
 
 
     # Get the data
@@ -76,16 +78,52 @@ def benchmark_jax_runtime():
 
     # Post-process the residuals
     processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.post_process_residuals(pulsar_residuals)
+    processed_pulsar_residuals = processed_pulsar_residuals[:len(processed_pulsar_residuals)//2]
 
     print("Total length of the data is ", len(processed_pulsar_residuals))
     print("Total number of pulsars is ", len(pulsar_metadata))
 
-    print("Initializing the model")
-    model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
+    return processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,hd_correlation_matrix
+
+
+
+def initialize_kalman_filter(nx,Npsr,M_sum):
 
     # Initialize the JAX Kalman Filter
-    x0 = jnp.ones(model.nx)
-    P0 = jnp.eye(model.nx) * 1e1
+    x0 = jnp.zeros(nx) # Initial state vector. δφ=0,δf=0, etc. As all the states are effecitvely perturbations, this is a reasonable guess.
+
+
+    #Initialize the covariance matrices
+    P_GW = jnp.eye(Npsr * 2)
+    P_GW = P_GW.at[1::2, 1::2].multiply(1e-12) # All the odd diagonal elements, (1,1), (3,3) etc. are set to 1e-12
+    P_GW = P_GW.at[0::2, 0::2].multiply(1e-18) # All the even diagonal elements, (0,0), (2,2) etc. are set to 1e-18
+
+
+    P_spin = jnp.eye(Npsr * 2)
+    P_spin = P_spin.at[1::2, 1::2].multiply(1e-8) # All the odd diagonal elements, (1,1), (3,3) etc. are set to 1e-12
+    P_spin = P_spin.at[0::2, 0::2].multiply(1e-18) # All the even diagonal elements, (0,0), (2,2) etc. are set to 1e-18
+
+
+    P_eps = jnp.eye(M_sum) * 1e-1
+
+    P0 = block_diag(P_GW, P_spin, P_eps)
+
+    return x0, P0
+
+
+
+def benchmark_jax_runtime():
+
+    #Get the data
+    data_path = "../data/IPTA_MockDataChallenge2/dataset_1b/" # https://github.com/ipta/mdc2/tree/master
+    processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)
+
+    #Initialize the model
+    model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
+
+
+    x0,P0 = initialize_kalman_filter(model.nx,model.Npsr,model.M_sum) #this could go inside the model class....
+
 
     KF = jax_kalman_filter.JaxScalarKalmanFilter(
         model=model, 
@@ -116,9 +154,6 @@ def benchmark_jax_runtime():
         EFAC=jnp.ones(model.Npsr),
         EQUAD=jnp.ones(model.Npsr) * (-6.7)
     )
-
-
-    #utils.estimate_memory_usage(model, params)
 
 
     # Time compilation

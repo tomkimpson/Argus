@@ -1,81 +1,36 @@
-import os
-import glob
-from argus import data_loader, models, jax_kalman_filter, gravitational_waves
-import numpy as np
-import pandas as pd
 import time
 from flax import struct
-import jax.numpy as jnp
 import jax
-from jax.profiler import trace
-import contextlib
-from jax.experimental.compilation_cache import compilation_cache as cc
-import jax.profiler
+import jax.numpy as jnp
 from jax import random
-
+from jax.scipy.linalg import block_diag
 import numpyro
 import numpyro.distributions as dist
 from numpyro.infer import MCMC, NUTS
 
-@struct.dataclass
-class Parameters:
-    
-    #GW parameters
-    γa: float  # s⁻¹
-    h2: float  # GWB amplitude
+# Configure JAX
+jax.config.update("jax_enable_x64", True)
 
-    #Pulsar parameters for the OU process
-    γp: jnp.ndarray  # Pulsar-specific gamma values
-    σp: jnp.ndarray  # Pulsar-specific sigma values 
+# Configure NumPyro to use the same device as JAX
+numpyro.set_platform(jax.default_backend())
+numpyro.set_host_device_count(len(jax.devices()))
 
-    #Timing model noise parameters
-    σeps: jnp.ndarray 
+from benchmark_runtime_jax import Parameters, _get_processed_residuals, initialize_kalman_filter
+from argus import models, jax_kalman_filter
 
-    #Measurement noise parameters
-    EFAC: jnp.ndarray  # Error factors
-    EQUAD: jnp.ndarray # Extra quadrature noise
 
-def benchmark_jax_runtime():
-    """Test the JAX KalmanFilter class by loading data, initializing the model, setting parameters, and running the filter."""
-    # Get the directory of the current script
-    script_dir = os.path.dirname(os.path.abspath(__file__))
+def benchmark_jax_parameter_estimation():
 
-    # Construct the invariant directory path
-    data_path = "../data/IPTA_MockDataChallenge/IPTA_Challenge1_open/Challenge_Data/Dataset2/"
-    directory = os.path.join(
-        script_dir,
-        data_path
-    )
+    #Get the data
+    data_path = "../data/IPTA_MockDataChallenge2/dataset_1b/" # https://github.com/ipta/mdc2/tree/master
+    processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)
 
-    # Get all .par and .tim files in the directory
-    par_files = sorted(glob.glob(directory + "*.par"))
-    tim_files = sorted(glob.glob(directory + "*.tim"))
-    assert len(par_files) == len(tim_files), "Mismatch between .par and .tim file counts."
-
-    # Get the data
-    print(f"Getting the data. Loading {len(par_files)} pulsars from {data_path}")
-    pulsar_residuals, pulsar_metadata, pulsar_design_matrices = (
-        data_loader.LoadWidebandPulsarData.read_multiple_par_tim(par_files, tim_files)
-    )
-
-    # Get the separation angles and compute HD correlation
-    ra = pulsar_metadata["RA"].to_numpy(dtype=float)
-    dec = pulsar_metadata["DEC"].to_numpy(dtype=float)
-    angular_separation_matrix = data_loader.LoadWidebandPulsarData.pairwise_angular_separation(ra, dec)
-    hd_correlation_matrix = gravitational_waves.hellings_downs(angular_separation_matrix)
-
-    # Post-process the residuals
-    processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.post_process_residuals(pulsar_residuals)
-
-    print("Total length of the data is ", len(processed_pulsar_residuals))
-    print("Total number of pulsars is ", len(pulsar_metadata))
-
-    print("Initializing the model")
+    #Initialize the model
     model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
 
-    # Initialize the JAX Kalman Filter
-    x0 = jnp.zeros(model.nx)
-    P0 = jnp.eye(model.nx) * 1e-1
+
+    x0,P0 = initialize_kalman_filter(model.nx,model.Npsr,model.M_sum) #this could go inside the model class....
+
 
     KF = jax_kalman_filter.JaxScalarKalmanFilter(
         model=model, 
@@ -85,22 +40,24 @@ def benchmark_jax_runtime():
     )
 
     # Guess of the model parameters
+    # See notebooks/PSD_for_OU_process.ipynb for discussion on the parameter values
     params = Parameters(
         #GW parameters
-        γa=1e-10,
-        h2=1e-12,
+        γa=1e-9,
+        ha=1e-12,
 
         #Spin parameters
-        γp=jnp.ones(model.Npsr) * 1e-13,
-        σp=jnp.ones(model.Npsr) * 1e-20,
+        γp=jnp.ones(model.Npsr) * 1e-8, #1/year timescale. Assumed the same for all pulsars
+        σp=jnp.ones(model.Npsr) * 1e-14, #For now, assume the same noise for all pulsars
 
         #Timing model noise parameters
-        σeps=jnp.ones(model.M_sum) * 1e-20,
+        σeps=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
 
         #Measurement noise parameters
         EFAC=jnp.ones(model.Npsr),
         EQUAD=jnp.ones(model.Npsr) * (-6.7)
     )
+
 
     # Time compilation
     print("\nStarting compilation phase...")
@@ -109,49 +66,104 @@ def benchmark_jax_runtime():
     compilation_end = time.time()
     print(f"Compilation time: {compilation_end - compilation_start:.4f} seconds")
 
-    print("\nRunning profiled execution")
+    print("--------------------------------")
+    print("--------------------------------")
+    print("--------------------------------")
+    print("--------------------------------")
+    print("--------------------------------")
+    print("--------------------------------")
+    print("--------------------------------")
+    print("--------------------------------")
+    print("\n Running compiled execution")
     start_time = time.time()
     ll = KF.get_likelihood(params)
     jax.block_until_ready(ll)  # Ensure computation is complete
     end_time = time.time()
+    
     print(f"Log-likelihood: {ll}")
     print(f"Execution time: {end_time - start_time:.4f} seconds")
 
 
 
-    # print("Starting NumPyro")
+    #Now do parameter estimation
+    print("Starting NumPyro")
+    
+    # Check NumPyro device usage
+    print("\n=== NUMPYRO DEVICE INFO ===")
+    print(f"NumPyro version: {numpyro.__version__}")
+    print("--------------------------------")
 
-    # # NumPyro model
-    # def model(kf):
+    # NumPyro model
+    def numpyro_model(kf):
+        # Parameters of the GW background
+        γa = numpyro.sample("γa", dist.LogUniform(1e-11, 1e-6))
+        ha = numpyro.sample("ha", dist.LogUniform(1e-16, 1e-11))
 
-    #     # Parameters of the GW background. These are just scalars
-    #     γa = numpyro.sample("γa", dist.LogUniform(1e-11, 1e-6))
-    #     h2 = numpyro.sample("h2", dist.LogUniform(1e-16, 1e-11)) 
+        #Parameters of the pulsar process
+        γp = numpyro.sample("γp", dist.LogUniform(1e-11, 1e-6),sample_shape=(model.Npsr,))
+        σp = numpyro.sample("σp", dist.LogUniform(1e-16, 1e-11),sample_shape=(model.Npsr,))
 
-    #     # # Sample array parameters with appropriate shapes
-    #     # γp = numpyro.sample("γp", dist.Normal(-2, 1), sample_shape=(n_pulsars,))
-    #     # σp = numpyro.sample("σp", dist.LogNormal(-20, 1), sample_shape=(n_pulsars,))
-    #     # σeps = numpyro.sample("σeps", dist.LogNormal(-20, 1), sample_shape=(m_sum,))
-    #     # f0 = numpyro.sample("f0", dist.Normal(100, 10), sample_shape=(n_pulsars,))
-    #     # EFAC = numpyro.sample("EFAC", dist.Normal(1, 0.1), sample_shape=(n_pulsars,))
-    #     # EQUAD = numpyro.sample("EQUAD", dist.Normal(1, 0.1), sample_shape=(n_pulsars,))
+        #Timing model noise parameters
+        σeps = numpyro.sample("σeps", dist.LogUniform(1e-16, 1e-11),sample_shape=(model.M_sum,))
+        
+        
+        #Measurement noise parameters
+        EFAC = numpyro.sample("EFAC", dist.Uniform(0.5, 2),sample_shape=(model.Npsr,))
+        EQUAD = numpyro.sample("EQUAD", dist.Uniform(-10, -5),sample_shape=(model.Npsr,))
 
-    #     # # Construct the Parameters object
-    #     params = Parameters(
-    #         γa=γa,
-    #         h2=h2,
-    #     )
 
-    #     # Call the likelihood
-    #     log_likelihood = kf.get_likelihood(params)
-    #     numpyro.factor("likelihood", log_likelihood)
+        # Construct the Parameters object
+        params = Parameters(
+            γa=γa,
+            ha=ha,
+            γp=γp,
+            σp=σp,
+            σeps=σeps,
+            EFAC=EFAC,
+            EQUAD=EQUAD
+        )
+        
+        # Call the likelihood
+        log_likelihood = kf.get_likelihood(params)
+        numpyro.factor("likelihood", log_likelihood)
+    
+    # Run MCMC
+    rng_key = random.PRNGKey(0)
+    nuts_kernel = NUTS(numpyro_model)
+    mcmc = MCMC(nuts_kernel, num_samples=1000, num_warmup=500)
+    mcmc.run(rng_key, kf=KF)
+    mcmc.print_summary()  # Posterior estimates
 
-    # # Run MCMC
-    # rng_key = random.PRNGKey(0)
-    # nuts_kernel = NUTS(model)
-    # mcmc = MCMC(nuts_kernel, num_samples=1000, num_warmup=500)
-    # mcmc.run(rng_key, kf=KF)
-    # mcmc.print_summary()  # Posterior estimates
+
+
+
+    # Guess of the model parameters
+    # See notebooks/PSD_for_OU_process.ipynb for discussion on the parameter values
+    params = Parameters(
+        #GW parameters
+        γa=1e-9,
+        ha=1e-12,
+
+        #Spin parameters
+        γp=jnp.ones(model.Npsr) * 1e-8, #1/year timescale. Assumed the same for all pulsars
+        σp=jnp.ones(model.Npsr) * 1e-14, #For now, assume the same noise for all pulsars
+
+        #Timing model noise parameters
+        σeps=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
+
+        #Measurement noise parameters
+        EFAC=jnp.ones(model.Npsr),
+        EQUAD=jnp.ones(model.Npsr) * (-6.7)
+    )
+
+
+
+
+
+
+
+
+
 
 
 
@@ -165,15 +177,19 @@ if __name__ == "__main__":
     print("\n=== DEVICE INFO ===")
     print("Default device:", jax.default_backend())
 
+    print("\n=== JAX CONFIG SETTINGS ===")
+    for name, value in sorted(jax.config.values.items()):
+        print(f"{name}: {value}")
+
     # Check if GPU is available
     if any(d.platform == 'gpu' for d in jax.devices()):
-        print("JAX GPU acceleration is AVAILABLE!")
+        print("\nJAX GPU acceleration is AVAILABLE!")
         print("GPU devices:", [d for d in jax.devices() if d.platform == 'gpu'])
     else:
-        print("JAX GPU acceleration is NOT available. Using CPU only.")
+        print("\nJAX GPU acceleration is NOT available. Using CPU only.")
     print('-----------------------------------------------')
 
 
 
     #go
-    benchmark_jax_runtime() 
+    benchmark_jax_parameter_estimation() 
