@@ -6,10 +6,17 @@ from jax import random
 from jax.scipy.linalg import block_diag
 import numpyro
 import numpyro.distributions as dist
-from numpyro.infer import MCMC, NUTS
+from numpyro.infer import MCMC, NUTS, HMC
+import gc
+import jax.profiler 
+#from numpyro.infer import HMC  # Less memory-intensive than NUTS
+
+
+
 
 # Configure JAX
 jax.config.update("jax_enable_x64", True)
+#jax.config.update("jax_enable_x64", False)
 
 # Configure NumPyro to use the same device as JAX
 numpyro.set_platform(jax.default_backend())
@@ -17,6 +24,82 @@ numpyro.set_host_device_count(len(jax.devices()))
 
 from benchmark_runtime_jax import Parameters, _get_processed_residuals, initialize_kalman_filter
 from argus import models, jax_kalman_filter
+
+
+
+
+
+def test_memory_usage():
+    """Test just likelihood computation with memory profiling."""
+    
+    print("\n=== MEMORY USAGE TEST ===")
+    
+    # Get the data
+    data_path = "../data/IPTA_MockDataChallenge2/dataset_1b/"
+    processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices, hd_correlation_matrix = _get_processed_residuals(data_path)
+    
+    # Initialize the model
+    model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
+    x0, P0 = initialize_kalman_filter(model.nx, model.Npsr, model.M_sum)
+    
+    # For testing, use only a small subset of the data
+    n_samples = min(100, len(processed_pulsar_residuals))
+    test_residuals = processed_pulsar_residuals[:n_samples]
+    
+    # Create filter with reduced data
+    KF = jax_kalman_filter.JaxScalarKalmanFilter(
+        model=model, 
+        observations=test_residuals, 
+        x0=x0, 
+        P0=P0
+    )
+    
+    # Guess of the model parameters
+    params = Parameters(
+        γa=1e-9,
+        ha=1e-12,
+        γp=jnp.ones(model.Npsr) * 1e-8,
+        σp=jnp.ones(model.Npsr) * 1e-14,
+        σeps=jnp.ones(model.M_sum) * 1e-12,
+        EFAC=jnp.ones(model.Npsr),
+        EQUAD=jnp.ones(model.Npsr) * (-6.7)
+    )
+    
+    # Pre-compile and measure memory
+    print("Pre-compiling likelihood function...")
+    _ = KF.get_likelihood(params)
+    jax.block_until_ready(_)
+    jax.profiler.save_device_memory_profile("memory_precompile.prof")
+    
+    # Measure memory during actual computation
+    print("Computing likelihood...")
+    ll = KF.get_likelihood(params)
+    jax.block_until_ready(ll)
+    jax.profiler.save_device_memory_profile("memory_likelihood.prof")
+    print(f"Likelihood value: {ll}")
+    
+    # Now test gradient computation (this will trigger autodiff)
+    print("Computing gradient (this may cause OOM)...")
+    try:
+        grad_fn = jax.grad(lambda p: KF.get_likelihood(p))
+        grad_val = grad_fn(params)
+        jax.block_until_ready(grad_val)
+        jax.profiler.save_device_memory_profile("memory_gradient.prof")
+        print("Gradient computation succeeded!")
+    except Exception as e:
+        print(f"Gradient computation failed with: {type(e).__name__}: {e}")
+    
+    print("=== TEST COMPLETE ===\n")
+    
+    return KF, params
+
+
+
+
+
+
+
+
 
 
 def benchmark_jax_parameter_estimation():
@@ -59,31 +142,44 @@ def benchmark_jax_parameter_estimation():
     )
 
 
-    # Time compilation
-    print("\nStarting compilation phase...")
-    compilation_start = time.time()
-    _ = KF.get_likelihood(params)
-    compilation_end = time.time()
-    print(f"Compilation time: {compilation_end - compilation_start:.4f} seconds")
+    #pre-compile
 
-    print("--------------------------------")
-    print("--------------------------------")
-    print("--------------------------------")
-    print("--------------------------------")
-    print("--------------------------------")
-    print("--------------------------------")
-    print("--------------------------------")
-    print("--------------------------------")
-    print("\n Running compiled execution")
-    start_time = time.time()
+    _ = KF.get_likelihood(params)
+    jax.profiler.save_device_memory_profile("memory_precompile.prof")
+
     ll = KF.get_likelihood(params)
     jax.block_until_ready(ll)  # Ensure computation is complete
-    end_time = time.time()
-    
-    print(f"Log-likelihood: {ll}")
-    print(f"Execution time: {end_time - start_time:.4f} seconds")
+    jax.profiler.save_device_memory_profile("memory_postcompile.prof")
 
 
+   
+
+
+    new_params = Parameters(
+        #GW parameters
+        γa=2e-9,
+        ha=2e-12,
+
+        #Spin parameters
+        γp=jnp.ones(model.Npsr) * 2e-8, #1/year timescale. Assumed the same for all pulsars
+        σp=jnp.ones(model.Npsr) * 1e-14, #For now, assume the same noise for all pulsars
+
+        #Timing model noise parameters
+        σeps=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
+
+        #Measurement noise parameters
+        EFAC=jnp.ones(model.Npsr),
+        EQUAD=jnp.ones(model.Npsr) * (-6.7)
+    )
+
+
+
+
+
+
+    ll = KF.get_likelihood(params)
+    jax.block_until_ready(ll)  # Ensure computation is complete
+    jax.profiler.save_device_memory_profile("memory_postcompile_second.prof")
 
     #Now do parameter estimation
     print("Starting NumPyro")
@@ -93,8 +189,12 @@ def benchmark_jax_parameter_estimation():
     print(f"NumPyro version: {numpyro.__version__}")
     print("--------------------------------")
 
+
+
     # NumPyro model
     def numpyro_model(kf):
+        jax.profiler.save_device_memory_profile("memory_during_model_call.prof")
+
         # Parameters of the GW background
         γa = numpyro.sample("γa", dist.LogUniform(1e-11, 1e-6))
         ha = numpyro.sample("ha", dist.LogUniform(1e-16, 1e-11))
@@ -124,37 +224,43 @@ def benchmark_jax_parameter_estimation():
         )
         
         # Call the likelihood
+        jax.profiler.save_device_memory_profile("memory_during_likelihood_call.prof")
+
         log_likelihood = kf.get_likelihood(params)
+
+
         numpyro.factor("likelihood", log_likelihood)
     
     # Run MCMC
     rng_key = random.PRNGKey(0)
     nuts_kernel = NUTS(numpyro_model)
+    jax.profiler.save_device_memory_profile("memory_nut_kernel.prof")
     mcmc = MCMC(nuts_kernel, num_samples=1000, num_warmup=500,num_chains=1,progress_bar=True)
+    jax.profiler.save_device_memory_profile("memory_mcmc.prof")
     mcmc.run(rng_key, kf=KF)
     mcmc.print_summary()  # Posterior estimates
 
 
 
 
-    # Guess of the model parameters
-    # See notebooks/PSD_for_OU_process.ipynb for discussion on the parameter values
-    params = Parameters(
-        #GW parameters
-        γa=1e-9,
-        ha=1e-12,
+    # # Guess of the model parameters
+    # # See notebooks/PSD_for_OU_process.ipynb for discussion on the parameter values
+    # params = Parameters(
+    #     #GW parameters
+    #     γa=1e-9,
+    #     ha=1e-12,
 
-        #Spin parameters
-        γp=jnp.ones(model.Npsr) * 1e-8, #1/year timescale. Assumed the same for all pulsars
-        σp=jnp.ones(model.Npsr) * 1e-14, #For now, assume the same noise for all pulsars
+    #     #Spin parameters
+    #     γp=jnp.ones(model.Npsr) * 1e-8, #1/year timescale. Assumed the same for all pulsars
+    #     σp=jnp.ones(model.Npsr) * 1e-14, #For now, assume the same noise for all pulsars
 
-        #Timing model noise parameters
-        σeps=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
+    #     #Timing model noise parameters
+    #     σeps=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
 
-        #Measurement noise parameters
-        EFAC=jnp.ones(model.Npsr),
-        EQUAD=jnp.ones(model.Npsr) * (-6.7)
-    )
+    #     #Measurement noise parameters
+    #     EFAC=jnp.ones(model.Npsr),
+    #     EQUAD=jnp.ones(model.Npsr) * (-6.7)
+    # )
 
 
 
@@ -188,8 +294,10 @@ if __name__ == "__main__":
     else:
         print("\nJAX GPU acceleration is NOT available. Using CPU only.")
     print('-----------------------------------------------')
+    print(jax.devices())
 
 
 
     #go
+    test_memory_usage()
     benchmark_jax_parameter_estimation() 
