@@ -7,3 +7,7 @@ dependencies:
   - scikit-sparse == 0.4.14
   - libstempo >= 2.5.0
   - enterprise-pulsar >= 3.4
+  - pip
+  - pip:
+    - line_profiler
+    - jax >= 0.4

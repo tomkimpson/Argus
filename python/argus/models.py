@@ -2,10 +2,16 @@
 
 from abc import ABC, abstractmethod
 import numpy as np
-from scipy.linalg import block_diag
-from typing import Any, Dict, List
+import jax.numpy as jnp
+
+from typing import Any, Dict, List, Tuple
+
+from argus.utils import construct_fields, construct_namedtuple_class
+from argus.jmath import get_F, get_Q
+from argus.types import Array
+
+
 from line_profiler import profile
-from argus.jmath import get_F_spin, get_F, get_Q
 
 class ModelHyperClass(ABC):
     """Abstract base class for models used with the Kalman filter.
@@ -67,6 +73,9 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         δt^(n) = (1/f₀)·δφ − r + (design row)·[δε].
 
     """
+    # set state and covariance classnames
+    _state_classname = "SGWBState"
+    _cov_classname = "SGWBCovariance"
 
     def __init__(
         self,
@@ -99,20 +108,40 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         self.M_sum = self.M.sum()
 
         self.hd_correlation_matrix = hd_correlation_matrix
-
         self.M_start_indices = np.cumsum([0] + [m for m in self.M])
-
-
         self.M_cumsum = np.concatenate(([0], np.cumsum(self.M)))
-
-
-
 
         # Used in the H_matrix function
         self.pulsar_design_matrices = pulsar_design_matrices
         self.design_matrix_counter = np.zeros(self.Npsr)
-        self.F = None
 
+        # construct namedtuple classes for state and covariance
+        self.stateclass = self.construct_x_namedtuple()
+        self.covclass = self.construct_cov_namedtuple()
+
+
+    @property 
+    def block_metadata(self):
+        gw_block_size = self.Npsr * 2
+        spin_block_size = self.Npsr * 2
+        eps_block_size = self.M_sum
+
+        meta = {"gw": gw_block_size, "spin": spin_block_size, "eps": eps_block_size}
+        return meta
+    
+    @property
+    def block_matrix_shapes(self):
+        """expected shapes of state (x) and covariance (P) block matrices """
+        return construct_fields(self.block_metadata)
+    
+    def construct_x_namedtuple(self):
+        stateclass = construct_namedtuple_class(self._state_classname, self.block_matrix_shapes["x"])
+        return stateclass
+           
+    def construct_cov_namedtuple(self):
+        covclass = construct_namedtuple_class(self._cov_classname, self.block_matrix_shapes["cov"])
+        return covclass
+    
     def set_global_parameters(self, params: Dict[str, Any]) -> None:
         """Set global parameters for the model."""
         self.γp = params["γp"]
@@ -150,9 +179,9 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         )
     
     @profile
-    def F_matrix(self, dt: float) -> np.ndarray:
+    def F_matrix(self, dt: float) -> Tuple[Array, Array]:
         """Return the state–transition matrix for time step dt."""
-        F_gw, F_spin = get_F(self.γa, self.γp, dt, self.Npsr, self.M_sum)
+        F_gw, F_spin = get_F(gamma_gw=self.γa, gamma_spin=self.γp, Npsr=self.Npsr, dt=dt)
         return F_gw, F_spin
 
     @staticmethod
@@ -180,15 +209,17 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         q22 = (1 - exp_2term) / (2 * γ)
 
         return np.array([[q11, q12], [q12, q22]])
+    
     @profile
-    def Q_matrix(self, dt: float) -> np.ndarray:
+    def Q_matrix(self, dt: float) -> Tuple[Array, Array, Array]:
         """Return the process–noise covariance matrix for time step dt."""
-        Q_gw, Q_spin, Q_eps = get_Q(self.γa, self.γp, dt, self.Npsr, self.M_sum, self.σeps)
+        Q_gw, Q_spin, Q_eps = get_Q(gamma_gw=self.γa, gamma_spin=self.γp, dt=dt, Npsr=self.Npsr, sigma_eps=self.σeps)
         return Q_gw, Q_spin, Q_eps
+    
     @profile
-    def H_matrix(self, psr_idx: int) -> np.ndarray:
+    def H_matrix(self, psr_idx: int) -> Array:
         """
-        Return the observation matrix H for a given pulsar.
+        Return the observation timing noise H_eps for a given pulsar.
 
         For pulsar n the measurement equation is:
             δt = (1/f₀)·δφ − r + (design row)·[δε],
@@ -206,16 +237,16 @@ class StochasticGWBackgroundModel(ModelHyperClass):
             Observation matrix (a row vector of length nx) for the specified pulsar.
         """
         # update GW term
-        gw_param = -1.0
+        # gw_param = -1.0
 
         # update spin term
-        spin_param = 1.0 / self.f0[psr_idx]
+        # spin_param = 1.0 / self.f0[psr_idx]
 
         # initialization of timing term
         H_eps = np.zeros((self.M_sum, 1))
 
-        # # update timing term
-        # # Use a precomputed start index
+        # update timing term
+        # Use a precomputed start index
         start_idx = self.M_start_indices[psr_idx]
         end_idx = self.M_start_indices[psr_idx + 1]
         row_idx = int(self.design_matrix_counter[psr_idx])
@@ -224,9 +255,18 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         ]  # length M[psr_idx]
 
         # # increment the counter for this pulsar
-        self.design_matrix_counter[psr_idx] += 1 # I think this will need to be moved for if we are doing repeated calls of the likelihood function 
+        self.design_matrix_counter[psr_idx] += 1
+        return H_eps
+    
+    def H_matrix_full_list(self, psr_indices):
+        """Get a list of H_eps for all pulsar observations"""
+        H_list = []
+        for i in psr_indices:
+            res = self.H_matrix(i)
+            H_list.append(res)
 
-        return gw_param, spin_param, H_eps
+        return H_list
+
 
     def R_matrix(self, σ, psr_idx: int) -> np.ndarray:
         """Build the measurement–noise covariance matrix R for the pulsars observed at a given epoch.
