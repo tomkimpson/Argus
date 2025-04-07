@@ -1,18 +1,11 @@
 import os
 import glob
 from argus import data_loader, models, jax_kalman_filter, gravitational_waves
-import numpy as np
-import pandas as pd
 import time
 from flax import struct
 import jax.numpy as jnp
 import jax
-from jax.profiler import trace
-import contextlib
-from jax.experimental.compilation_cache import compilation_cache as cc
 import jax.profiler
-import socket
-from contextlib import closing
 
 
 @struct.dataclass

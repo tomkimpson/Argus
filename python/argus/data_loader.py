@@ -6,6 +6,25 @@ from functools import reduce
 from enterprise.pulsar import Pulsar as EnterprisePulsar
 
 
+def get_par_value(filename, parameter):
+    """Get the value of a parameter from a parameter file.
+    
+    TK note: It feels like there should be a better way to do this, just using the enterprise.pulsar.Pulsar object.
+    However, I have not been able to figure out how to do this yet.
+    We require F0 as part of the measurement model. 
+    I take it as a known parameter.
+    """
+    with open(filename, 'r') as f:
+        for line in f:
+            parts = line.strip().split()
+            if not parts or parts[0].startswith('#'):  # skip empty or commented lines
+                continue
+            if parts[0] == parameter:
+                return float(parts[1])  # assumes the value is the second item
+    return None  # if the parameter isn't found
+
+
+
 class LoadWidebandPulsarData:
     """A class to load and process pulsar data at a single frequency channel.
 
@@ -54,18 +73,34 @@ class LoadWidebandPulsarData:
             with attributes: toas, toaerrs, residuals, fitpars, Mmat, name, _raj, and _decj.
 
         """
-        self.toas = ds_psr.toas
-        self.toaerrs = ds_psr.toaerrs
-        self.residuals = ds_psr.residuals
-        self.fitpars = ds_psr.fitpars
-        self.M_matrix = ds_psr.Mmat
-        self.name = ds_psr.name
-        self.RA = ds_psr._raj
-        self.DEC = ds_psr._decj
+        self.toas      = ds_psr.toas   #units of seconds, https://github.com/nanograv/enterprise/blob/master/enterprise/pulsar.py#L201
+        self.toaerrs   = ds_psr.toaerrs #units of seconds, https://github.com/nanograv/enterprise/blob/master/enterprise/pulsar.py#L216
+        self.residuals = ds_psr.residuals #units of seconds, https://github.com/nanograv/enterprise/blob/master/enterprise/pulsar.py#L211
+        self.fitpars   = ds_psr.fitpars
+        self.M_matrix  = ds_psr.Mmat
+        self.name      = ds_psr.name
+        self.RA        = ds_psr._raj
+        self.DEC       = ds_psr._decj
+
+
+        # Scale the M matrix columns to have unit norm
+        col_scales = np.sqrt(np.sum(self.M_matrix**2, axis=0))
+        self.M_scaled = self.M_matrix / col_scales
 
         # Compute differences between consecutive TOAs and propagate errors.
         self.toa_diffs = np.diff(self.toas)
         self.toa_diff_errors = np.sqrt(self.toaerrs[1:] ** 2 + self.toaerrs[:-1] ** 2)
+
+        #print("Approximate exp term size: ", np.exp(-1e-9 * np.mean(self.toa_diffs)))
+               
+        # print("Mvals")
+        # mu = np.mean(self.M_scaled,axis=0)
+        # mu_dt = np.mean(self.toa_diffs)
+        # mu_rms = np.mean(self.toaerrs)
+        # S = 0.01
+        # sigs = (mu_rms**2 *S**2) / (mu**2 * mu_dt)
+        # print(np.sqrt(sigs))
+        
 
     @staticmethod
     def pairwise_angular_separation(ra_rad, dec_rad):
@@ -121,6 +156,8 @@ class LoadWidebandPulsarData:
     @staticmethod
     def post_process_residuals(residuals_data: pd.DataFrame) -> np.ndarray:
         """Post-process residuals data to extract the non-NaN residuals and their indices.
+           
+        TK note: I am sure there is a better way to do this.
 
         Parameters
         ----------
@@ -254,6 +291,9 @@ class LoadWidebandPulsarData:
         for i, (par_file, tim_file) in enumerate(file_pairs):
             psr = cls.read_par_tim(par_file, tim_file, **kwargs)
 
+            f0 = get_par_value(par_file, 'F0')
+            print(psr.name,f0)
+
             # DataFrame for TOAs and residuals for this pulsar.
             df = pd.DataFrame(
                 {
@@ -270,14 +310,15 @@ class LoadWidebandPulsarData:
                     "dim_M": [psr.M_matrix.shape[-1]],
                     "RA": [psr.RA],
                     "DEC": [psr.DEC],
+                    "F0": [f0]
                 }
             )
 
 
             dfs.append(df)
             dfs_meta.append(df_meta)
-            np_arrays_design.append(psr.M_matrix)
-
+            #np_arrays_design.append(psr.M_matrix)
+            np_arrays_design.append(psr.M_scaled)
         # Merge all individual pulsar DataFrames on 'toas' using an outer merge.
         merged_df = reduce(
             lambda left, right: pd.merge(left, right, on="toas", how="outer"), dfs

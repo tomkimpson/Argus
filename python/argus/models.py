@@ -87,12 +87,14 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         hd_correlation_matrix : np.ndarray
             Precomputed Hellings-Downs correlation matrix
         """
-        self.Npsr = len(df_psr)
+        self.Npsr = int(len(df_psr))
         print("The number of pulsars is:", self.Npsr)
         self.name = "Stochastic GW background model"
         # Total state dimension: for each pulsar, two state variables from spin noise,
         # two from GW noise, and dim_M extra parameters.
+        
         self.nx = self.Npsr * (2 + 2) + df_psr["dim_M"].sum()
+
         self.M = df_psr["dim_M"].values.astype(int)  # array of integers
         self.M_sum = self.M.sum()
 
@@ -101,7 +103,9 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         self.M_start_indices = np.cumsum([0] + [m for m in self.M]) + 4 * self.Npsr
 
 
-        self.f0 = 100 * np.ones(self.Npsr)  # everything is 100 Hz for now. This will need to be moved, probably to KF intiialisation. todo
+        self.f0 = df_psr["F0"].values
+
+        print("The frequencies are:", self.f0)
 
 
 
@@ -111,56 +115,6 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         self.F = None
 
 
-    def set_global_parameters(self, params: Any) -> None:
-        """Set global parameters for the model.
-        
-        Parameters
-        ----------
-        params : Parameters
-            Flax struct containing model parameters including:
-            - γp: Pulsar-specific gamma values
-            - σp: Pulsar-specific sigma values
-            - γa: GWB damping rate
-            - h2: GWB amplitude
-            - σeps: Measurement noise
-            - f0: Frequencies (Hz)
-            - EFAC: Error factors
-            - EQUAD: Extra quadrature noise
-        """
-        self.γp = params.γp
-        self.σp = params.σp
-        self.γa = params.γa
-        self.h2 = params.h2
-        self.σeps = params.σeps
-        self.f0 = params.f0
-        self.EFAC = params.EFAC
-        self.EQUAD = params.EQUAD
-
-    @staticmethod
-    def _compute_F_block(γ: float, dt: float) -> np.ndarray:
-        """Compute the 2x2 state–transition matrix for the (r, a) block and the spin block.
-
-        Parameters
-        ----------
-        γ : float
-            Damping rate.
-        dt : float
-            Time step.
-
-        Returns
-        -------
-        np.ndarray
-            2x2 state–transition matrix.
-
-        """
-        exp_term = np.exp(-γ * dt)
-        return np.array(
-            [
-                [1.0, (1 - exp_term) / γ],
-                [0.0, exp_term],
-            ]
-        )
-    
     def F_matrix(self, dt: float) -> np.ndarray:
         """Return the state–transition matrix for time step dt."""
         F_gw, F_spin = get_F(self.γa, self.γp, dt, self.Npsr, self.M_sum)
@@ -238,6 +192,8 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         end_idx = self.M_start_indices[psr_idx + 1]
         row_idx = int(self.design_matrix_counter[psr_idx])
         H[0, start_idx:end_idx] = self.pulsar_design_matrices[psr_idx][row_idx, :]  
+
+        #print("H matrix row: {}".format(H))
 
         # increment the counter for this pulsar
         self.design_matrix_counter[psr_idx] += 1

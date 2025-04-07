@@ -37,11 +37,13 @@ def get_Q_block(γ: float, dt: float) -> jax.Array:
     exp_term = jnp.exp(-γ * dt)
     exp_2term = jnp.exp(-2 * γ * dt)
 
+
     q11 = (dt - 2 * (1 - exp_term) / γ + (1 - exp_2term) / (2 * γ)) / γ**3
     q12 = ((1 - exp_term) - (1 - exp_2term) / 2) / (γ**2)
     q22 = (1 - exp_2term) / (2 * γ)
 
     return jnp.array([[q11, q12], [q12, q22]])
+
 
 def get_F_spin(gamma: jax.Array, dt: float) -> jax.Array:
     """Compute block diagonal state transition matrix for spin noise.
@@ -65,17 +67,17 @@ def get_F(gamma, gamma_spin, dt, Npsr, M_sum):
     F_spin = get_F_spin(gamma_spin, dt)
     return F_gw, F_spin
 
-def get_Q_spin(gamma, dt):
+def get_Q_spin(gamma, dt,sigma_p):
     """Compute Q spin matrix using JAX."""
-    res = vmap(lambda x: get_Q_block(x, dt))(gamma)
+    res = vmap(lambda g, s: get_Q_block(g, dt) * s)(gamma, sigma_p)
     return block_diag(*res)
 
-@partial(jax.jit, static_argnums=(3,4))
-def get_Q(gamma, gamma_spin, dt, Npsr, M_sum, eps):
+@partial(jax.jit, static_argnums=(5,6))
+def get_Q(gamma,σa2, gamma_spin,σp2, dt, Npsr, M_sum, eps):
     """Get process noise matrices using JAX."""
     Q_gw_block = get_Q_block(gamma, dt)
-    Q_gw = jnp.kron(jnp.eye(Npsr), Q_gw_block)
-    Q_spin = get_Q_spin(gamma_spin, dt)
+    Q_gw = jnp.kron(σa2, Q_gw_block)
+    Q_spin = get_Q_spin(gamma_spin, dt, σp2)
     Q_timing = jnp.eye(M_sum) * eps**2
     return Q_gw, Q_spin, Q_timing
 
@@ -149,7 +151,7 @@ def compute_predicted_covariance(P: jax.Array,
     PF4 = F1 @ P4 @ F2.T
     PF5 = F2 @ P5
     PF6 = F1 @ P6
-    
+
     # Assemble full matrix
     return jnp.block([[PF1,   PF4,   PF6],
                      [PF4.T,  PF2,   PF5],
@@ -184,8 +186,9 @@ def precompute_F_matrices(gamma_a: float,
     
     return jax.vmap(get_F_for_dt)(dt_array)
 
-@partial(jax.jit, static_argnums=(3, 4))
-def precompute_Q_matrices(gamma_a, gamma_p, dt_array, Npsr, M_sum, eps):
+
+@partial(jax.jit, static_argnums=(5, 6))
+def precompute_Q_matrices(gamma_a, σa2, gamma_p,σp2, dt_array, Npsr, M_sum, eps):
     """Precompute all Q matrices for a given parameter set and sequence of dt values.
     
     Args:
@@ -202,10 +205,129 @@ def precompute_Q_matrices(gamma_a, gamma_p, dt_array, Npsr, M_sum, eps):
                is a JAX array containing matrices for all timesteps
     """
     def get_Q_for_dt(dt):
-        Q_gw, Q_spin, Q_timing = get_Q(gamma_a, gamma_p, dt, Npsr, M_sum, eps)
+        Q_gw, Q_spin, Q_timing = get_Q(gamma_a,σa2, gamma_p,σp2, dt, Npsr, M_sum, eps)
         return Q_gw, Q_spin, Q_timing
     
     return jax.vmap(get_Q_for_dt)(dt_array)
+
+
+
+
+
+@partial(jax.jit, static_argnums=(3, 4))
+def precompute_F_matrices_non_vectorised(gamma_a: float, 
+                         gamma_p: jax.Array, 
+                         dt_array: jax.Array, 
+                         Npsr: int, 
+                         M_sum: int) -> Tuple[jax.Array, jax.Array]:
+    """Precompute F matrices for a single timestep only.
+    
+    Instead of vectorizing over all timesteps, this function only handles one timestep.
+    
+    Args:
+        gamma_a: GWB parameter
+        gamma_p: Pulsar-specific parameters, shape (n_components,)
+        dt_array: Time difference for ONE observation, scalar
+        Npsr: Number of pulsars
+        M_sum: Sum of model components
+        
+    Returns
+    -------
+        tuple: (F_gw_matrix, F_spin_matrix) for the single timestep
+    """
+    # Get F matrices for a single dt (not vectorized)
+    F_gw, F_spin = get_F(gamma_a, gamma_p, dt_array, Npsr, M_sum)
+    return F_gw, F_spin
+
+
+
+@partial(jax.jit, static_argnums=(5, 6))
+def precompute_Q_matrices_non_vectorised(gamma_a, σa2, gamma_p, σp2, dt_array, Npsr, M_sum, eps):
+    """Precompute Q matrices for a single timestep only.
+    
+    Args:
+        gamma_a: float, GWB parameter
+        σa2: array, GW covariance matrix 
+        gamma_p: array, pulsar-specific parameters
+        σp2: array, pulsar-specific noise parameters
+        dt_array: scalar, time difference for ONE observation
+        Npsr: int, number of pulsars
+        M_sum: int, sum of model components
+        eps: float, timing parameter
+        
+    Returns
+    -------
+        tuple: (Q_gw_matrix, Q_spin_matrix, Q_timing_matrix) for the single timestep
+    """
+    # Get Q matrices for a single dt (not vectorized)
+    Q_gw, Q_spin, Q_timing = get_Q(gamma_a, σa2, gamma_p, σp2, dt_array, Npsr, M_sum, eps)
+    return Q_gw, Q_spin, Q_timing
+
+
+
+
+
+@jax.jit
+def precompute_R_matrices(σ: jax.Array, EFAC: jax.Array, EQUAD: jax.Array, psr_indices: int) -> jax.Array:
+    """Build the measurement-noise covariance matrix R for the pulsars observed at a given epoch.
+
+    For pulsar n, the measurement noise variance is (σt[n])².
+    Currently, this method returns a scalar
+    or a per-pulsar value.
+    """
+    return jnp.square(σ* EFAC[psr_indices]) + jnp.square(EQUAD[psr_indices])
+
+
+
+
+
+
+############## Scratch space 
+# def get_Q_block(gamma: float, dt: float, eps: float = 1e-3) -> jnp.ndarray:
+#     """
+#     Compute a numerically stable 2x2 process noise covariance block Q
+#     for an Ornstein–Uhlenbeck process with decay rate gamma and time step dt.
+
+#     Uses series expansion for small gamma*dt to avoid numerical instability.
+
+#     Parameters
+#     ----------
+#     gamma : float
+#         Decay rate parameter.
+#     dt : float
+#         Time step.
+#     eps : float
+#         Threshold for switching between Taylor expansion and exponentials.
+
+#     Returns
+#     -------
+#     jnp.ndarray
+#         2x2 process noise covariance matrix.
+#     """
+#     γdt = gamma * dt
+#     use_series = γdt < eps
+
+#     # Series expansions
+#     exp1_series = 1 - γdt + 0.5 * γdt**2 - (1/6) * γdt**3
+#     exp2_series = 1 - 2*γdt + 2 * γdt**2 - (4/3) * γdt**3
+
+#     exp1 = jnp.where(use_series, exp1_series, jnp.exp(-γdt))
+#     exp2 = jnp.where(use_series, exp2_series, jnp.exp(-2 * γdt))
+
+#     # Guard against zero division
+#     gamma_safe = jnp.maximum(gamma, 1e-12)
+
+#     q11 = (dt - 2 * (1 - exp1) / gamma_safe + (1 - exp2) / (2 * gamma_safe)) / gamma_safe**3
+#     q12 = ((1 - exp1) - (1 - exp2) / 2) / gamma_safe**2
+#     q22 = (1 - exp2) / (2 * gamma_safe)
+
+#     Q = jnp.array([[q11, q12], [q12, q22]])
+
+#     # Regularize and symmetrize to ensure positive-definiteness
+#     Q = 0.5 * (Q + Q.T)
+#     Q += 1e-12 * jnp.eye(2)
+
+#     return Q
 
 
 
