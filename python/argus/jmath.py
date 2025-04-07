@@ -231,7 +231,8 @@ def precompute_F_matrices_non_vectorised(gamma_a: float,
         Npsr: Number of pulsars
         M_sum: Sum of model components
         
-    Returns:
+    Returns
+    -------
         tuple: (F_gw_matrix, F_spin_matrix) for the single timestep
     """
     # Get F matrices for a single dt (not vectorized)
@@ -254,7 +255,8 @@ def precompute_Q_matrices_non_vectorised(gamma_a, σa2, gamma_p, σp2, dt_array,
         M_sum: int, sum of model components
         eps: float, timing parameter
         
-    Returns:
+    Returns
+    -------
         tuple: (Q_gw_matrix, Q_spin_matrix, Q_timing_matrix) for the single timestep
     """
     # Get Q matrices for a single dt (not vectorized)

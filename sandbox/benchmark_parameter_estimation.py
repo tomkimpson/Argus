@@ -1,13 +1,10 @@
 import time
-from flax import struct
 import jax
 import jax.numpy as jnp
 from jax import random
-from jax.scipy.linalg import block_diag
 import numpyro
 import numpyro.distributions as dist
-from numpyro.infer import MCMC, NUTS, HMC
-import gc
+from numpyro.infer import MCMC
 import jax.profiler 
 #from numpyro.infer import HMC  # Less memory-intensive than NUTS
 from numpyro.infer import SA
@@ -31,7 +28,6 @@ from argus import models, jax_kalman_filter
 
 def test_memory_usage():
     """Test just likelihood computation with memory profiling."""
-    
     print("\n=== MEMORY USAGE TEST ===")
     
     # Get the data

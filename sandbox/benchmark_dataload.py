@@ -14,5 +14,5 @@ for i in range(5):
     pulsar_object = Pulsar(par_files[i], tim_files[i])
 
     plt.plot(pulsar_object.toas, pulsar_object.residuals)
-plt.savefig(f"residualsls.png")
+plt.savefig("residualsls.png")
 

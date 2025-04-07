@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from argus.jmath import precompute_F_matrices, precompute_Q_matrices,precompute_R_matrices,compute_predicted_covariance,compute_predicted_state,precompute_Q_matrices_non_vectorised,precompute_F_matrices_non_vectorised
+from argus.jmath import precompute_R_matrices,compute_predicted_covariance,compute_predicted_state,precompute_Q_matrices_non_vectorised,precompute_F_matrices_non_vectorised
 from functools import partial
 import jax
 import jax.numpy as jnp

@@ -1,7 +1,6 @@
 import os
 import glob
 from argus import data_loader, models, jax_kalman_filter, gravitational_waves
-import numpy as np
 import time
 from flax import struct
 import jax.numpy as jnp
@@ -31,12 +30,6 @@ class Parameters:
 
 
 def _get_processed_residuals(data_path):
-
-
-
-
-
-
     """Test the JAX KalmanFilter class by loading data, initializing the model, setting parameters, and running the filter."""
     # Get the directory of the current script
     script_dir = os.path.dirname(os.path.abspath(__file__))
