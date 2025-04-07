@@ -10,7 +10,7 @@ from numpyro.infer import MCMC, NUTS, HMC
 import gc
 import jax.profiler 
 #from numpyro.infer import HMC  # Less memory-intensive than NUTS
-
+from numpyro.infer import SA
 
 
 
@@ -43,7 +43,9 @@ def test_memory_usage():
     x0, P0 = initialize_kalman_filter(model.nx, model.Npsr, model.M_sum)
     
     # For testing, use only a small subset of the data
-    n_samples = min(100, len(processed_pulsar_residuals))
+    #n_samples = min(100, len(processed_pulsar_residuals))
+    n_samples = max(100, len(processed_pulsar_residuals))
+
     test_residuals = processed_pulsar_residuals[:n_samples]
     
     # Create filter with reduced data
@@ -64,7 +66,9 @@ def test_memory_usage():
         EFAC=jnp.ones(model.Npsr),
         EQUAD=jnp.ones(model.Npsr) * (-6.7)
     )
-    
+
+
+
     # Pre-compile and measure memory
     print("Pre-compiling likelihood function...")
     _ = KF.get_likelihood(params)
@@ -73,19 +77,42 @@ def test_memory_usage():
     
     # Measure memory during actual computation
     print("Computing likelihood...")
+    t1=time.time()
     ll = KF.get_likelihood(params)
     jax.block_until_ready(ll)
-    jax.profiler.save_device_memory_profile("memory_likelihood.prof")
+    t2=time.time()
     print(f"Likelihood value: {ll}")
+    print(f"Approximate time taken for a single compiled likelihood call: {t2-t1} seconds")
     
     # Now test gradient computation (this will trigger autodiff)
     print("Computing gradient (this may cause OOM)...")
+
+
+
+    # Define a custom gradient function that stops gradients for σeps
+    def custom_grad_fn(params):
+        # Create a new Parameters object with σeps wrapped in stop_gradient
+        params_no_σeps_grad = Parameters(
+            γa=params.γa,
+            ha=jax.lax.stop_gradient(params.ha),
+            γp=jax.lax.stop_gradient(params.γp),
+            σp=jax.lax.stop_gradient(params.σp),
+            σeps=jax.lax.stop_gradient(params.σeps),  # Stop gradient for this component
+            EFAC=jax.lax.stop_gradient(params.EFAC),
+            EQUAD=jax.lax.stop_gradient(params.EQUAD)
+        )
+        
+        # Get likelihood with the modified parameters
+        return KF.get_likelihood(params_no_σeps_grad)
+
+    # Now create the gradient function using the custom function
+
     try:
-        grad_fn = jax.grad(lambda p: KF.get_likelihood(p))
+        grad_fn = jax.grad(custom_grad_fn)
         grad_val = grad_fn(params)
         jax.block_until_ready(grad_val)
         jax.profiler.save_device_memory_profile("memory_gradient.prof")
-        print("Gradient computation succeeded!")
+        print("Gradient computation succeeded!",grad_val)
     except Exception as e:
         print(f"Gradient computation failed with: {type(e).__name__}: {e}")
     
@@ -145,11 +172,11 @@ def benchmark_jax_parameter_estimation():
     #pre-compile
 
     _ = KF.get_likelihood(params)
-    jax.profiler.save_device_memory_profile("memory_precompile.prof")
+    #jax.profiler.save_device_memory_profile("memory_precompile.prof")
 
     ll = KF.get_likelihood(params)
     jax.block_until_ready(ll)  # Ensure computation is complete
-    jax.profiler.save_device_memory_profile("memory_postcompile.prof")
+    #jax.profiler.save_device_memory_profile("memory_postcompile.prof")
 
 
    
@@ -167,6 +194,8 @@ def benchmark_jax_parameter_estimation():
         #Timing model noise parameters
         σeps=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
 
+
+
         #Measurement noise parameters
         EFAC=jnp.ones(model.Npsr),
         EQUAD=jnp.ones(model.Npsr) * (-6.7)
@@ -179,7 +208,7 @@ def benchmark_jax_parameter_estimation():
 
     ll = KF.get_likelihood(params)
     jax.block_until_ready(ll)  # Ensure computation is complete
-    jax.profiler.save_device_memory_profile("memory_postcompile_second.prof")
+    #jax.profiler.save_device_memory_profile("memory_postcompile_second.prof")
 
     #Now do parameter estimation
     print("Starting NumPyro")
@@ -193,7 +222,7 @@ def benchmark_jax_parameter_estimation():
 
     # NumPyro model
     def numpyro_model(kf):
-        jax.profiler.save_device_memory_profile("memory_during_model_call.prof")
+        #jax.profiler.save_device_memory_profile("memory_during_model_call.prof")
 
         # Parameters of the GW background
         γa = numpyro.sample("γa", dist.LogUniform(1e-11, 1e-6))
@@ -204,8 +233,12 @@ def benchmark_jax_parameter_estimation():
         σp = numpyro.sample("σp", dist.LogUniform(1e-16, 1e-11),sample_shape=(model.Npsr,))
 
         #Timing model noise parameters
-        σeps = numpyro.sample("σeps", dist.LogUniform(1e-16, 1e-11),sample_shape=(model.M_sum,))
-        
+        #σeps = numpyro.sample("σeps", dist.LogUniform(1e-16, 1e-11),sample_shape=(model.M_sum,))
+        #σeps
+
+
+        known_σeps = jnp.ones(model.M_sum) * 1e-12
+        σeps = numpyro.deterministic("σeps", known_σeps)
         
         #Measurement noise parameters
         EFAC = numpyro.sample("EFAC", dist.Uniform(0.5, 2),sample_shape=(model.Npsr,))
@@ -224,7 +257,7 @@ def benchmark_jax_parameter_estimation():
         )
         
         # Call the likelihood
-        jax.profiler.save_device_memory_profile("memory_during_likelihood_call.prof")
+        #jax.profiler.save_device_memory_profile("memory_during_likelihood_call.prof")
 
         log_likelihood = kf.get_likelihood(params)
 
@@ -232,10 +265,29 @@ def benchmark_jax_parameter_estimation():
         numpyro.factor("likelihood", log_likelihood)
     
     # Run MCMC
+    print("RNG")
     rng_key = random.PRNGKey(0)
-    nuts_kernel = NUTS(numpyro_model)
-    jax.profiler.save_device_memory_profile("memory_nut_kernel.prof")
-    mcmc = MCMC(nuts_kernel, num_samples=1000, num_warmup=500,num_chains=1,progress_bar=True)
+    
+    
+    
+    
+    # nuts_kernel = NUTS(numpyro_model)
+    # jax.profiler.save_device_memory_profile("memory_nut_kernel.prof")
+    # mcmc = MCMC(nuts_kernel, num_samples=1000, num_warmup=500,num_chains=1,progress_bar=True)
+    
+    
+
+    # Use Simulated Annealing kernel
+    print("SA kernel")
+    sa_kernel = SA(numpyro_model)
+    print("MCMC")
+    mcmc = MCMC(sa_kernel, num_samples=1000, num_warmup=500, num_chains=1, progress_bar=True)
+
+    mcmc.run(rng_key, kf=KF)
+    
+    
+    
+    
     jax.profiler.save_device_memory_profile("memory_mcmc.prof")
     mcmc.run(rng_key, kf=KF)
     mcmc.print_summary()  # Posterior estimates

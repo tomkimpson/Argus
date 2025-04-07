@@ -87,13 +87,14 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         hd_correlation_matrix : np.ndarray
             Precomputed Hellings-Downs correlation matrix
         """
-        self.Npsr = len(df_psr)
+        self.Npsr = int(len(df_psr))
         print("The number of pulsars is:", self.Npsr)
         self.name = "Stochastic GW background model"
         # Total state dimension: for each pulsar, two state variables from spin noise,
         # two from GW noise, and dim_M extra parameters.
         
         self.nx = self.Npsr * (2 + 2) + df_psr["dim_M"].sum()
+
         self.M = df_psr["dim_M"].values.astype(int)  # array of integers
         self.M_sum = self.M.sum()
 

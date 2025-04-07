@@ -117,13 +117,13 @@ def benchmark_jax_runtime():
     #Get the data
     data_path = "../data/IPTA_MockDataChallenge2/dataset_1b/" # https://github.com/ipta/mdc2/tree/master
     processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)
-
+    print("Got the data")
     #Initialize the model
     model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
-
+    print("Initialized the model")
 
     x0,P0 = initialize_kalman_filter(model.nx,model.Npsr,model.M_sum) #this could go inside the model class....
-
+    print("Initialized the Kalman filter")
 
     KF = jax_kalman_filter.JaxScalarKalmanFilter(
         model=model, 

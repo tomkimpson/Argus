@@ -1,11 +1,11 @@
 #!/bin/bash 
  
-#SBATCH --job-name=numpyro_sandbox 
-#SBATCH --output=test_output.txt
+#SBATCH --job-name=SA_benchmark
+#SBATCH --output=SA_output.txt
 #SBATCH --export=ALL 
 #SBATCH --gres=gpu:1
-#SBATCH --time=00:5:00 
-#SBATCH --mem=50G
+#SBATCH --time=2:0:00 
+#SBATCH --mem=10G
 
 
 source ~/.bashrc
