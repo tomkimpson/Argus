@@ -44,6 +44,9 @@ class ScalarKalmanFilter:
 
         assert np.isscalar(self.data[0])
 
+        # pre-calculate H
+        self.H_eps_full = self.model.H_matrix_full_list(self.psr_indices)
+
     def _unpack_state(self, x: NamedTuple):
         """unpack namedtuple state to tuple (for faster execution)"""
         return x.gw, x.spin, x.eps
@@ -101,9 +104,6 @@ class ScalarKalmanFilter:
         #Initialise the likelihood
         self.ll = 0.0
         
-        # calculate H for all data
-        self.H_eps_full = self.model.H_matrix_full_list(self.psr_indices)
-
         #Initialise the index
         i = 0
         # Update step
