@@ -90,4 +90,12 @@ params = {
     "EQUAD": np.ones(len(pulsar_metadata)),
 }
 
+
+print("First likelihood evaluation")
 ll = KF.get_likelihood(params)
+print(f"Likelihood: {ll}")
+
+print("Second likelihood evaluation")
+ll = KF.get_likelihood(params)
+print(f"Likelihood: {ll}")
+
