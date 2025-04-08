@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from argus.jmath import precompute_R_matrices,compute_predicted_covariance,compute_predicted_state,precompute_Q_matrices_non_vectorised,precompute_F_matrices_non_vectorised
+from argus.jmath import precompute_R_matrices,compute_predicted_covariance,compute_predicted_state,precompute_Q_matrices,precompute_F_matrices#,precompute_Q_matrices_non_vectorised,precompute_F_matrices_non_vectorised
 from functools import partial
 import jax
 import jax.numpy as jnp
@@ -61,19 +61,10 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
         tuple: (updated state, updated covariance, innovation, innovation covariance)
     """
     y = z - H @ xp                                  
-    S = H @ Pp @ H.T + R                           
-
-    # Check if innovation covariance is negative and raise error if it is
-    # jax.lax.cond(
-    #     S[0,0] <= 0,
-    #     lambda _: jax.debug.breakpoint(),
-    #     lambda _: None,
-    #     operand=None
-    # )
-    
+    S = H @ Pp @ H.T + R                               
     K = Pp @ H.T / S                               
     x = xp + K * y                                 
-    #P = (jnp.eye(len(xp)) - K @ H) @ Pp    
+
 
     #Following FilterPy https://github.com/rlabbe/filterpy/blob/master/filterpy/kalman/EKF.py by using
     #Joseph form for numerically stable update of the covariance matrix
@@ -102,8 +93,8 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
     σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
     
     # Precompute all matrices for this parameter set
-    #F_matrices = precompute_F_matrices(θ.γa, θ.γp, dt_array, Npsr, M_sum)
-    #Q_matrices = precompute_Q_matrices(θ.γa,σa2, θ.γp,θ.σp**2, dt_array, Npsr, M_sum, θ.σeps)
+    F_matrices = precompute_F_matrices(θ.γa, θ.γp, dt_array, Npsr, M_sum)
+    Q_matrices = precompute_Q_matrices(θ.γa,σa2, θ.γp,θ.σp**2, dt_array, Npsr, M_sum, θ.σeps)
     R_matrices = precompute_R_matrices(data_errors,θ.EFAC, θ.EQUAD, psr_indices)
 
     # First update
@@ -115,25 +106,15 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
         x, P = carry
         dt_idx, z, R, H = inputs
 
-        # Get dt for this step and precompute matrices just for this step
-        dt = dt_array[dt_idx]
-        # # Get precomputed matrices for this timestep
-        # F_gw_at_timestep = F_matrices[0][dt_idx]
-        # F_spin_at_timestep = F_matrices[1][dt_idx]
-        # F = (F_gw_at_timestep, F_spin_at_timestep)
+        # Get precomputed matrices for this timestep
+        F_gw_at_timestep = F_matrices[0][dt_idx]
+        F_spin_at_timestep = F_matrices[1][dt_idx]
+        F = (F_gw_at_timestep, F_spin_at_timestep)
 
-        # Q_gw_at_timestep = Q_matrices[0][dt_idx]
-        # Q_spin_at_timestep = Q_matrices[1][dt_idx]
-        # Q_timing_at_timestep = Q_matrices[2][dt_idx]
-        # Q = (Q_gw_at_timestep, Q_spin_at_timestep, Q_timing_at_timestep)
-
-
-        # Compute F and Q matrices for this specific timestep only
-        F_gw, F_spin = precompute_F_matrices_non_vectorised(θ.γa, θ.γp, dt, Npsr, M_sum)
-        F = (F_gw, F_spin)
-        
-        Q_gw, Q_spin, Q_timing = precompute_Q_matrices_non_vectorised(θ.γa, σa2, θ.γp, θ.σp**2, dt, Npsr, M_sum, θ.σeps)
-        Q = (Q_gw, Q_spin, Q_timing)
+        Q_gw_at_timestep = Q_matrices[0][dt_idx]
+        Q_spin_at_timestep = Q_matrices[1][dt_idx]
+        Q_timing_at_timestep = Q_matrices[2][dt_idx]
+        Q = (Q_gw_at_timestep, Q_spin_at_timestep, Q_timing_at_timestep)
 
 
         x_predict, P_predict = _predict(x, P, F, Q, dim_x)

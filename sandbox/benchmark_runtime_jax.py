@@ -127,8 +127,6 @@ def benchmark_jax_runtime():
 
  
 
-  
-
     # Guess of the model parameters
     # See notebooks/PSD_for_OU_process.ipynb for discussion on the parameter values
     params = Parameters(
@@ -150,21 +148,16 @@ def benchmark_jax_runtime():
 
 
     # Time compilation
-    print("\nStarting compilation phase...")
     compilation_start = time.time()
-    _ = KF.get_likelihood(params)
+    _ = jax.block_until_ready(KF.get_likelihood(params))  # Ensure computation is complete
     compilation_end = time.time()
     print(f"Compilation time: {compilation_end - compilation_start:.4f} seconds")
 
-    print("--------------------------------")
-    print("--------------------------------")
-    print("--------------------------------")
-    print("--------------------------------")
-    print("--------------------------------")
-    print("--------------------------------")
-    print("--------------------------------")
-    print("--------------------------------")
-    print("\n Running compiled execution")
+
+    # Get memory after compilation
+    jax.profiler.save_device_memory_profile("outputs/memory_after_compilation.prof")
+
+
     start_time = time.time()
     ll = KF.get_likelihood(params)
     jax.block_until_ready(ll)  # Ensure computation is complete
@@ -172,6 +165,12 @@ def benchmark_jax_runtime():
     
     print(f"Log-likelihood: {ll}")
     print(f"Execution time: {end_time - start_time:.4f} seconds")
+
+    # Get memory after execution
+    jax.profiler.save_device_memory_profile("outputs/memory_after_execution.prof")
+
+
+
 
 
 
