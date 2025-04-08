@@ -171,9 +171,6 @@ def benchmark_jax_runtime():
 
 
 
-
-
-
 if __name__ == "__main__":
 
     # Check available devices
