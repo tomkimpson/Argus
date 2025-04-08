@@ -5,6 +5,7 @@ import glob
 from argus import data_loader, models, kalman_filter, gravitational_waves
 import numpy as np
 import jax.numpy as jnp
+import timeit
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 data_path = (
@@ -95,7 +96,8 @@ print("First likelihood evaluation")
 ll = KF.get_likelihood(params)
 print(f"Likelihood: {ll}")
 
-print("Second likelihood evaluation")
-ll = KF.get_likelihood(params)
-print(f"Likelihood: {ll}")
+# measure average time of calculating likelihood
+t = timeit.timeit(lambda: KF.get_likelihood(params), number=10)
+avg = t / 10
+print(f"Average running time: {avg}")
 
