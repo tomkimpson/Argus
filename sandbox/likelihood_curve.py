@@ -10,11 +10,11 @@ from numpyro.infer import SA
 
 import arviz as az
 
-
+import matplotlib.pyplot as plt
 
 # Configure JAX
 jax.config.update("jax_enable_x64", True)
-#jax.config.update("jax_enable_x64", False)
+jax.config.update("jax_platforms", 'cpu')
 
 # Configure NumPyro to use the same device as JAX
 numpyro.set_platform(jax.default_backend())
@@ -26,7 +26,7 @@ from argus import models, jax_kalman_filter
 
 
 
-def sample_adaptive():
+def likelihood_curve():
     #Get the data
     data_path = "../data/IPTA_MockDataChallenge2/dataset_1b/" # https://github.com/ipta/mdc2/tree/master
     processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)
@@ -37,6 +37,7 @@ def sample_adaptive():
 
     x0,P0 = initialize_kalman_filter(model.nx,model.Npsr,model.M_sum) #this could go inside the model class....
 
+    print(P0)
 
     KF = jax_kalman_filter.JaxScalarKalmanFilter(
         model=model, 
@@ -50,85 +51,64 @@ def sample_adaptive():
     params = Parameters(
         #GW parameters
         γa=1e-9,
-        ha=1e-12,
+        ha=6e-14,
 
         #Spin parameters
-        γp=jnp.ones(model.Npsr) * 1e-8, #1/year timescale. Assumed the same for all pulsars
-        σp=jnp.ones(model.Npsr) * 1e-14, #For now, assume the same noise for all pulsars
+        γp=jnp.ones(model.Npsr) * 1e-13, #1/year timescale. Assumed the same for all pulsars
+        σp=jnp.ones(model.Npsr) * 1e-22, #For now, assume the same noise for all pulsars
 
         #Timing model noise parameters
         #σeps=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
         thetaIC=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
         #Measurement noise parameters
-        EFAC=jnp.ones(model.Npsr),
+        EFAC=jnp.ones(model.Npsr)*1e10,
         EQUAD=jnp.ones(model.Npsr) * (-6.7)
     )
 
 
     #pre-compile
-    _ = KF.get_likelihood(params)
+    ll1 = KF.get_likelihood(params)
+    print(ll1)
+    import numpy as np
+    num = 3
+    plot_y = np.zeros(num)
+    #plot_x = np.logspace(-11, -6, num)
+    plot_x = np.array([1e-11, 1e-9,1e-6])
+    for i in range(num):
 
-    #Now do parameter estimation
-    print("Starting NumPyro")
-    
-    # Check NumPyro device usage
-    print("\n=== NUMPYRO DEVICE INFO ===")
-    print(f"NumPyro version: {numpyro.__version__}")
-    print("--------------------------------")
-
-
-    # NumPyro model
-    def numpyro_model(kf):
-        #jax.profiler.save_device_memory_profile("memory_during_model_call.prof")
-
-        # Parameters of the GW background
-        γa = numpyro.sample("γa", dist.LogUniform(1e-11, 1e-6))
-        ha = numpyro.sample("ha", dist.LogUniform(1e-16, 1e-11))
-
-        #Parameters of the pulsar process
-        γp = numpyro.sample("γp", dist.LogUniform(1e-13, 1e-5),sample_shape=(model.Npsr,))
-        σp = numpyro.sample("σp", dist.LogUniform(1e-22, 1e-10),sample_shape=(model.Npsr,))
-
-        #known_σeps = jnp.ones(model.M_sum) * 1e-10
-        #σeps = numpyro.deterministic("σeps", known_σeps)
-
-        thetaIC = numpyro.sample("thetaIC", dist.LogUniform(1e-12, 1e-3),sample_shape=(model.M_sum,))
+        gamma_a = plot_x[i]
 
 
-        #σeps = numpyro.sample("σp", dist.LogUniform(1e-7, 1e-12),sample_shape=(model.M_sum,))
-
-        
-        #Measurement noise parameters
-        EFAC = numpyro.sample("EFAC", dist.Uniform(0.5, 2),sample_shape=(model.Npsr,))
-        EQUAD = numpyro.sample("EQUAD", dist.Uniform(-10, -5),sample_shape=(model.Npsr,))
-
-
-        # Construct the Parameters object
         params = Parameters(
-            γa=γa,
-            ha=ha,
-            γp=γp,
-            σp=σp,
-            thetaIC=thetaIC,
-            EFAC=EFAC,
-            EQUAD=EQUAD
+            #GW parameters
+            γa=gamma_a,
+            ha=1e-14,
+
+            #Spin parameters
+            γp=jnp.ones(model.Npsr) * 1e-13, #1/year timescale. Assumed the same for all pulsars
+            σp=jnp.ones(model.Npsr) * 1e-22, #For now, assume the same noise for all pulsars
+
+            #Timing model noise parameters
+            #σeps=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
+            thetaIC=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
+
+            #Measurement noise parameters
+            EFAC=jnp.ones(model.Npsr),
+            EQUAD=jnp.ones(model.Npsr) * (-6.7)
         )
-        
-        log_likelihood = kf.get_likelihood(params)
-        numpyro.factor("likelihood", log_likelihood)
-    
-    # Run MCMC
-    rng_key = random.PRNGKey(0)
-    sa_kernel = SA(numpyro_model)
-    mcmc = MCMC(sa_kernel, num_samples=1000, num_warmup=500, num_chains=4, progress_bar=True)
-    mcmc.run(rng_key, kf=KF)
-    mcmc.print_summary()  # Posterior estimates
+        ll = KF.get_likelihood(params)
+        plot_y[i] = ll
+
+        print(f"gamma_a: {plot_x[i]}, ll: {ll}")
 
 
-
-    print("Completed. Saving results to disk...")
-    inf_data = az.from_numpyro(mcmc)
-    inf_data.to_netcdf("outputs/SA_data_4_chains.nc")
+    plt.plot(plot_x, plot_y)
+    plt.xscale("log")
+    plt.xlim(1e-11, 1e-6)
+    plt.ylim(np.min(plot_y), np.max(plot_y))
+    print("saving")
+    plt.savefig("outputs/likelihood_curve.png")
+    plt.show()
 
 
 
@@ -161,4 +141,4 @@ if __name__ == "__main__":
 
 
     #go
-    sample_adaptive() 
+    likelihood_curve() 

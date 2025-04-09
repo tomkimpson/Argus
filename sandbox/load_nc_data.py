@@ -5,7 +5,7 @@ import corner
 
 # Load the netCDF file
 # Replace 'your_file.nc' with the actual path to your netCDF file
-data = az.from_netcdf('outputs/inf_data.nc')
+data = az.from_netcdf('outputs/inf_data_2.nc')
 
 # Print information about the dataset
 print("\nDataset information:")
@@ -20,6 +20,11 @@ samples = np.column_stack([
     data.posterior['ha'].values.flatten(),
     data.posterior['γa'].values.flatten()
 ])
+
+
+print("Mean of selected parameters:")
+print(data.posterior['ha'].mean())
+print(data.posterior['γa'].mean())
 
 # Transform to log space
 log_samples = np.log10(samples)
@@ -48,4 +53,34 @@ fig = corner.corner(
 
 plt.tight_layout()
 plt.savefig('outputs/corner_plot.png')
+plt.show()
+
+# Plot EFAC components
+plt.figure(figsize=(10, 6))
+efac_samples = data.posterior['EFAC'].values
+
+# Select first 3 EFAC components
+selected_efac_samples = np.column_stack([
+    efac_samples[..., 0].flatten(),
+    efac_samples[..., 1].flatten(),
+    efac_samples[..., 2].flatten()
+])
+
+# Create corner plot for EFAC parameters
+fig = corner.corner(
+    selected_efac_samples,
+    labels=['EFAC_0', 'EFAC_1', 'EFAC_2'],
+    quantiles=[0.16, 0.5, 0.84],
+    show_titles=True,
+    title_kwargs={"fontsize": 12},
+    bins=30,
+    smooth=1.0,
+    plot_datapoints=True,
+    fill_contours=True,
+    levels=[0.68, 0.95],  # 1 and 2 sigma contours
+    range=[(0.5, 2.0), (0.5, 2.0), (0.5, 2.0)]  # Set axis limits for all three parameters
+)
+
+plt.tight_layout()
+plt.savefig('outputs/efac_corner_plot.png')
 plt.show()
