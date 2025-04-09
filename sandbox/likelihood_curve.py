@@ -58,12 +58,23 @@ def likelihood_curve():
         σp=jnp.ones(model.Npsr) * 1e-22, #For now, assume the same noise for all pulsars
 
         #Timing model noise parameters
-        #σeps=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
-        thetaIC=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
+        σeps=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
         #Measurement noise parameters
         EFAC=jnp.ones(model.Npsr)*1e10,
         EQUAD=jnp.ones(model.Npsr) * (-6.7)
     )
+
+
+    #Load some "truth" parameters from file
+    import pandas as pd
+    truth_params = pd.read_pickle("../notebooks/spindown_results.pkl")
+
+
+
+
+
+
+
 
 
     #pre-compile
@@ -89,8 +100,7 @@ def likelihood_curve():
             σp=jnp.ones(model.Npsr) * 1e-22, #For now, assume the same noise for all pulsars
 
             #Timing model noise parameters
-            #σeps=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
-            thetaIC=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
+            σeps=jnp.ones(model.M_sum) * 1e-10, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
 
             #Measurement noise parameters
             EFAC=jnp.ones(model.Npsr),

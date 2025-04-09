@@ -22,8 +22,7 @@ class Parameters:
     σp: jnp.ndarray  # Pulsar-specific sigma values 
 
     #Timing model noise parameters
-    #σeps: jnp.ndarray 
-    thetaIC: jnp.ndarray 
+    σeps: jnp.ndarray 
 
     #Measurement noise parameters
     EFAC: jnp.ndarray  # Error factors
@@ -98,8 +97,8 @@ def initialize_kalman_filter(nx,Npsr,M_sum):
     P_spin = P_spin.at[0::2, 0::2].multiply(1e-18) # All the even diagonal elements, (0,0), (2,2) etc. are set to 1e-18
 
 
-    #P_eps = jnp.eye(M_sum) * 1e-1
-    P_eps = jnp.eye(M_sum) * 0.0 #1e-12 #suppose our guess is perfect
+    P_eps = jnp.eye(M_sum) * 1e-1
+
     P0 = block_diag(P_GW, P_spin, P_eps)
 
     return x0, P0

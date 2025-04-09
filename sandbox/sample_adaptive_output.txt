@@ -1,0 +1,538 @@
+[tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
+[preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[tempo2Util.C:401] Warning: [DUP1] duplicated warnings have been suppressed.
+[preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0034-0534. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0034-0534 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0218+4232. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0218+4232 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J0437-4715 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J0613-0200 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0621+1002. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0621+1002 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J0711-6830 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0751+1807. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0751+1807 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0900-3144. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0900-3144 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1012+5307 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1022+1001 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1024-0719 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1045-4509 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1455-3330 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1600-3053 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1603-7202 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J1614-2230. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J1614-2230 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1640+2224 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1643-1224 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1713+0747 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1730-2304 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1744-1134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1857+0943 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1909-3744 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1918-0642 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1939+2134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J1944+0907. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J1944+0907 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J2010-1323. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J2010-1323 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2124-3358 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2129-5721 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2145-0750 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J2229+2643. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J2229+2643 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2317+1439 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+=== JAX VERSION INFO ===
+JAX version: 0.5.3
+
+=== DEVICE INFO ===
+Default device: gpu
+
+=== JAX CONFIG SETTINGS ===
+eager_constant_folding: False
+jax2tf_associative_scan_reductions: False
+jax2tf_default_native_serialization: True
+jax_array_garbage_collection_guard: None
+jax_backend_target: 
+jax_bcoo_cusparse_lowering: False
+jax_check_proxy_envs: True
+jax_check_tracer_leaks: False
+jax_compilation_cache_dir: None
+jax_compilation_cache_expect_pgle: False
+jax_compilation_cache_include_metadata_in_key: False
+jax_compilation_cache_max_size: -1
+jax_compiler_detailed_logging_min_ops: 10
+jax_compiler_enable_remat_pass: True
+jax_cpu_collectives_implementation: None
+jax_cpu_enable_async_dispatch: True
+jax_cpu_enable_gloo_collectives: False
+jax_cuda_visible_devices: all
+jax_custom_vjp_disable_shape_check: False
+jax_data_dependent_tracing_fallback: False
+jax_debug_infs: False
+jax_debug_key_reuse: False
+jax_debug_log_modules: 
+jax_debug_nans: False
+jax_default_device: None
+jax_default_dtype_bits: 64
+jax_default_matmul_precision: None
+jax_default_prng_impl: threefry2x32
+jax_disable_jit: False
+jax_disable_most_optimizations: False
+jax_disable_vmap_shmap_error: False
+jax_disallow_mesh_context_manager: False
+jax_distributed_debug: False
+jax_dump_ir_to: 
+jax_dynamic_shapes: False
+jax_eager_pmap: True
+jax_enable_checks: False
+jax_enable_compilation_cache: True
+jax_enable_custom_prng: False
+jax_enable_custom_vjp_by_custom_transpose: False
+jax_enable_empty_arrays: False
+jax_enable_pgle: False
+jax_enable_x64: True
+jax_exec_time_optimization_effort: 0.0
+jax_experimental_unsafe_xla_runtime_errors: False
+jax_explain_cache_misses: False
+jax_export_calling_convention_version: 9
+jax_export_ignore_forward_compatibility: False
+jax_high_dynamic_range_gumbel: False
+jax_hlo_source_file_canonicalization_regex: None
+jax_include_debug_info_in_dumps: True
+jax_include_full_tracebacks_in_locations: True
+jax_legacy_prng_key: allow
+jax_log_checkpoint_residuals: False
+jax_log_compiles: False
+jax_logging_level: NOTSET
+jax_memory_fitting_effort: 0.0
+jax_memory_fitting_level: UNKNOWN
+jax_mock_gpu_topology: 
+jax_mutable_array_checks: False
+jax_no_tracing: False
+jax_num_cpu_devices: -1
+jax_numpy_dtype_promotion: standard
+jax_numpy_rank_promotion: allow
+jax_optimization_level: UNKNOWN
+jax_persistent_cache_enable_xla_caches: xla_gpu_per_fusion_autotune_cache_dir
+jax_persistent_cache_min_compile_time_secs: 1.0
+jax_persistent_cache_min_entry_size_bytes: 0
+jax_pgle_aggregation_percentile: 90
+jax_pgle_profiling_runs: 3
+jax_pjrt_client_create_options: None
+jax_platform_name: gpu
+jax_platforms: None
+jax_pmap_no_rank_reduction: True
+jax_pmap_shmap_merge: False
+jax_pprint_use_color: True
+jax_raise_persistent_cache_errors: False
+jax_random_seed_offset: 0
+jax_remat_opt_barrier: True
+jax_remove_custom_partitioning_ptr_from_cache_key: False
+jax_rocm_visible_devices: all
+jax_serialization_version: 0
+jax_share_binary_between_hosts: False
+jax_share_binary_between_hosts_timeout_ms: 1200000
+jax_softmax_custom_jvp: False
+jax_spmd_mode: allow_jit
+jax_threefry_gpu_kernel_lowering: False
+jax_threefry_partitionable: True
+jax_traceback_filtering: auto
+jax_traceback_in_locations_limit: 10
+jax_tracer_error_num_traceback_frames: 5
+jax_transfer_guard: None
+jax_transfer_guard_device_to_device: None
+jax_transfer_guard_device_to_host: None
+jax_transfer_guard_host_to_device: None
+jax_use_direct_linearize: False
+jax_use_magma: auto
+jax_use_shardy_partitioner: False
+jax_varying_axes_in_types: False
+jax_xla_backend: 
+jax_xla_profile_version: 0
+mock_num_gpu_processes: 0
+
+JAX GPU acceleration is AVAILABLE!
+GPU devices: [CudaDevice(id=0)]
+-----------------------------------------------
+[CudaDevice(id=0)]
+Timespan: 14.957676828928976 years
+Average cadence: 29.99753869537954 days
+Mvals
+[2.67430113e-10 8.01932221e-09 7.94263699e-09 9.90814252e-10
+ 3.74166268e-10 7.52560262e-09 7.91802815e-09 3.27534259e-10]
+Getting the data. Loading 33 pulsars from ../data/IPTA_MockDataChallenge2/dataset_1b/
+Timespan: 14.957676828928976 years
+Average cadence: 29.99753869537954 days
+Mvals
+[2.67430113e-10 8.01932221e-09 7.94263699e-09 9.90814252e-10
+ 3.74166268e-10 7.52560262e-09 7.91802815e-09 3.27534259e-10]
+J0030+0451 205.53069593846152
+Timespan: 14.96402717264457 years
+Average cadence: 30.010274274809166 days
+Mvals
+[9.95875519e-10 2.94899149e-08 3.14293807e-08 3.68966010e-09
+ 1.39345263e-09 2.55283432e-08 2.25357211e-08 1.47720464e-08
+ 1.11419427e-07 3.56186635e-08 1.73429432e-08 7.46933476e-09]
+J0034-0534 532.7134293952242
+Timespan: 14.954550643158557 years
+Average cadence: 29.99126914699381 days
+Mvals
+[1.17675205e-09 4.06616693e-08 6.14373708e-07 4.36021523e-09
+ 1.64651420e-09 4.79283596e-08 6.37172640e-08 1.17442900e-07
+ 4.22677774e-07 7.96499872e-08 4.40236016e-07 1.95870382e-08]
+J0218+4232 430.46105454575843
+Timespan: 14.962514096871661 years
+Average cadence: 30.0072398096602 days
+Mvals
+[2.78487251e-11 1.69358195e-09 9.57076613e-10 1.03194824e-10
+ 3.89642669e-11 1.36969040e-08 6.81905152e-10 2.78970498e-11
+ 8.62814059e-10 5.90762370e-10 1.59385408e-10 5.91276414e-10
+ 2.06323013e-08 8.61516695e-10 8.62905255e-10 3.15638009e-10
+ 1.04222357e-09 4.68631730e-09]
+J0437-4715 173.68794573751967
+Timespan: 14.962670146186571 years
+Average cadence: 30.00755276570384 days
+Mvals
+[4.35493966e-10 1.00111537e-07 1.38133553e-08 1.61326435e-09
+ 6.09391879e-10 2.40376623e-08 1.10560169e-08 4.84485847e-10
+ 9.80666700e-10 6.31994956e-09 5.91334021e-09 8.27389021e-09
+ 1.10034181e-08 3.34716210e-08 1.18335425e-07 1.07472460e-09]
+J0613-0200 326.60056202349193
+Timespan: 14.959550902330289 years
+Average cadence: 30.001297139288766 days
+Mvals
+[1.92621396e-09 5.43791979e-07 5.91832174e-08 7.13479001e-09
+ 2.69516197e-09 1.10887168e-07 4.68033339e-08 6.05143263e-08
+ 4.22948392e-08 3.10047747e-07 4.77217227e-08 3.62091941e-09
+ 5.86483233e-08]
+J0621+1002 34.65740662142043
+Timespan: 14.95891260121387 years
+Average cadence: 30.00001702990694 days
+Mvals
+[4.41447490e-10 1.07489883e-07 1.30040459e-08 1.63599667e-09
+ 6.17660030e-10 1.60654399e-08 1.27235979e-08]
+J0711-6830 182.1172346472276
+Timespan: 14.962043408002845 years
+Average cadence: 30.006295845719993 days
+Mvals
+[4.79003396e-10 5.89174991e-08 2.88294034e-08 1.77472842e-09
+ 6.70262364e-10 1.46501124e-08 1.22489446e-08 5.85853936e-10
+ 3.08998216e-09 3.59577760e-09 2.57352723e-09 6.86859259e-09
+ 5.60412373e-09 7.61116392e-09 2.34823414e-08 7.01021817e-09
+ 4.31587446e-09]
+J0751+1807 287.4578539950941
+Timespan: 14.953947124000674 years
+Average cadence: 29.990058792638717 days
+Mvals
+[4.53964640e-10 2.70545571e-08 1.44535468e-08 1.68173618e-09
+ 6.35210235e-10 1.11734882e-08 1.66242424e-08 4.65274926e-10
+ 5.31136208e-08 2.82021436e-08 2.09485127e-08 2.46489687e-08
+ 5.08982015e-08]
+J0900-3144 90.01184191936728
+Timespan: 14.959802688931948 years
+Average cadence: 30.00180209593495 days
+Mvals
+[5.42337118e-10 2.12480168e-08 6.27336734e-08 2.00961035e-09
+ 7.58805273e-10 1.26467310e-08 4.93323234e-08 5.67699297e-10
+ 1.08871246e-07 4.56647910e-09 3.16831570e-07 4.30211301e-09
+ 5.71582472e-09 8.07285120e-09 2.26900837e-08]
+J1012+5307 190.26783444155498
+Timespan: 14.953730788380255 years
+Average cadence: 29.98962493274062 days
+Mvals
+[2.28096766e-10 8.60051802e-09 1.99768032e-09 8.45118507e-10
+ 3.19163071e-10 5.55621181e-09 5.24112381e-09 2.79580910e-10
+ 2.84951965e-08 5.40815204e-09 2.14789274e-09 5.40414530e-09
+ 2.34239573e-10 1.32438238e-07 2.17899976e-09 2.85846398e-08
+ 2.94481299e-09 2.23027586e-09]
+J1022+1001 60.77944795669458
+Timespan: 14.954078759076086 years
+Average cadence: 29.990322786059185 days
+Mvals
+[3.92335982e-10 1.44491700e-08 1.10027478e-08 1.45368534e-09
+ 5.48929373e-10 9.05647850e-09 1.11209224e-08 4.59537093e-10]
+J1024-0719 193.71568344854623
+Timespan: 14.961219228341578 years
+Average cadence: 30.00464295793778 days
+Mvals
+[5.06133645e-10 1.72117826e-08 2.02808976e-08 1.87515725e-09
+ 7.08151099e-10 1.15329614e-08 4.50900822e-08 1.06069594e-08
+ 8.57142084e-08 1.90295478e-08 8.53638424e-08 5.22410020e-10]
+J1045-4509 133.79314954119278
+Timespan: 14.962116483107367 years
+Average cadence: 30.006442397440598 days
+Mvals
+[7.91860951e-10 3.19818432e-08 1.90160507e-07 2.93431022e-09
+ 1.10794115e-09 4.27001211e-08 4.88243567e-08 9.26441443e-10
+ 1.35767972e-07 1.13260297e-07 8.96969047e-08 1.09187279e-07
+ 8.37259445e-10 9.79032539e-07]
+J1455-3330 125.20024324499536
+Timespan: 14.965494977535087 years
+Average cadence: 30.013217949452233 days
+Mvals
+[8.25704955e-11 4.11683341e-09 5.34200011e-08 3.05883015e-10
+ 1.15531769e-10 1.83714384e-08 3.20754203e-09 9.89841019e-11
+ 2.71330581e-09 3.39614927e-09 4.23801273e-09 3.44841995e-09
+ 6.26064712e-10 1.06532338e-08 2.70905504e-09 3.67635942e-08
+ 5.19916035e-09]
+J1600-3053 277.93770698961544
+Timespan: 14.95665290628149 years
+Average cadence: 29.995485224135955 days
+Mvals
+[3.72801133e-10 1.88506147e-08 1.68056118e-08 1.38123025e-09
+ 5.21590291e-10 5.20277980e-08 8.95296724e-09 1.25064382e-08
+ 1.39884394e-08 3.50317292e-08 1.39985406e-08 5.55012431e-10
+ 5.01928373e-09 1.06529854e-08]
+J1603-7202 67.37658112877924
+Timespan: 14.95892718052607 years
+Average cadence: 30.00004626863745 days
+Mvals
+[2.24580683e-10 1.31623074e-08 1.59167577e-08 1.70274204e-09
+ 3.04692926e-10 2.85785548e-08 2.92137564e-07 2.74914370e-10
+ 1.17129999e-09 4.01250452e-09 1.58511157e-08 1.04214825e-08
+ 2.88314388e-09 3.61222898e-09 6.15636782e-10]
+J1614-2230 317.37893706872126
+Timespan: 14.951574663087294 years
+Average cadence: 29.985300835312433 days
+Mvals
+[2.64885502e-10 1.68363537e-08 8.88181687e-09 9.81561016e-10
+ 3.70635289e-10 9.98580114e-08 6.29073469e-09 2.72829434e-10
+ 6.26059081e-10 3.08205182e-07 2.35732413e-08 6.16060804e-08
+ 2.15212889e-08 2.76957838e-10 1.85591365e-08 1.75156254e-07
+ 9.95744823e-10]
+J1640+2224 316.1239793318562
+Timespan: 14.959757189825003 years
+Average cadence: 30.001710847725967 days
+Mvals
+[1.82920260e-10 1.16755498e-08 5.70694110e-09 6.77894285e-10
+ 2.55918980e-10 1.93301676e-07 5.47031739e-09 2.20171383e-10
+ 3.65589668e-08 6.90048807e-08 1.61619852e-08 5.23450667e-08
+ 1.95831099e-10 1.52543454e-08]
+J1643-1224 216.37333714263337
+Timespan: 14.95860191225065 years
+Average cadence: 29.99939394489828 days
+Mvals
+[1.42605080e-10 1.26509825e-08 4.43777811e-09 5.28389378e-10
+ 1.99535820e-10 2.08411671e-08 3.50478420e-09 1.54298372e-10
+ 1.45060603e-07 1.74304908e-08 2.05452052e-08 1.70988330e-08
+ 5.07549333e-10 3.69893442e-08 4.04057557e-10 6.91777103e-08
+ 3.50751488e-10]
+J1713+0747 218.81184041715784
+Timespan: 14.95601130433826 years
+Average cadence: 29.994198494964092 days
+Mvals
+[3.05918219e-10 2.77727084e-08 2.03716333e-08 1.13331227e-09
+ 4.28031905e-10 3.30096021e-08 4.02702329e-08 3.74550665e-10]
+J1730-2304 123.1102871473716
+Timespan: 14.959452511327482 years
+Average cadence: 30.001099816673246 days
+Mvals
+[9.18875649e-11 9.19537275e-09 2.76663855e-09 3.40379080e-10
+ 1.28567776e-10 6.38389781e-09 2.45699002e-09 1.09597104e-10]
+J1744-1134 245.4261196898099
+Timespan: 14.958782957192183 years
+Average cadence: 29.99975702953377 days
+Mvals
+[2.08490967e-10 2.38564889e-07 6.44585035e-09 7.72599710e-10
+ 2.91717797e-10 8.14609307e-09 5.34232400e-09 2.23918588e-10
+ 2.07530731e-09 5.36611452e-09 6.72918610e-09 8.11948087e-09
+ 6.73012426e-09 2.13556202e-10 3.21963134e-08 6.15598394e-10]
+J1857+0943 186.49407837798236
+Timespan: 14.954082029214945 years
+Average cadence: 29.990329344304698 days
+Mvals
+[3.16111243e-11 1.39081484e-08 1.09043037e-09 1.17088911e-10
+ 4.42312331e-11 1.19620568e-09 1.55565012e-09 3.71317433e-11
+ 1.60860938e-10 1.92649378e-09 1.30967861e-08 1.43542639e-09
+ 2.60706296e-09 2.22648966e-09 2.48627288e-09 5.05892053e-10
+ 8.75131655e-11]
+J1909-3744 339.3156872184855
+Timespan: 14.955715626613342 years
+Average cadence: 29.993605514911373 days
+Mvals
+[4.78711000e-10 9.10727049e-08 1.48827352e-08 1.77407821e-09
+ 6.69839144e-10 1.84718492e-08 1.13231832e-08 5.61544135e-10
+ 4.84135091e-08 2.06292897e-07 1.78447138e-07 2.09326958e-07
+ 5.12607995e-10 7.28534768e-09 2.04127195e-08]
+J1918-0642 130.78951412337267
+Timespan: 14.959304686063108 years
+Average cadence: 30.00080335391777 days
+Mvals
+[1.28231450e-11 1.90368949e-09 3.84468658e-10 4.75123412e-11
+ 1.79421894e-11 4.03101706e-10 3.83574776e-10 1.32728072e-11]
+J1939+2134 641.9282245822369
+Timespan: 14.958123947137024 years
+Average cadence: 29.998435388489085 days
+Mvals
+[6.06597966e-10 1.00732412e-07 1.92444549e-08 2.24713700e-09
+ 8.48766807e-10 1.99138998e-08 1.51673273e-08 6.59015570e-10]
+J1944+0907 192.85651792018598
+Timespan: 14.958125564966723 years
+Average cadence: 29.99843863303766 days
+Mvals
+[3.88786039e-10 3.78403201e-08 1.63969881e-08 1.44013090e-09
+ 5.43997633e-10 1.22891829e-08 9.71073630e-09 4.72738710e-10]
+J2010-1323 191.45090909263828
+Timespan: 14.958654372444466 years
+Average cadence: 29.999499153528735 days
+Mvals
+[5.24780025e-10 2.69978884e-08 9.83106672e-08 1.94457729e-09
+ 7.34295919e-10 1.30587433e-08 3.74816766e-08 6.07805658e-10]
+J2124-3358 202.7938937460303
+Timespan: 14.957290564648092 years
+Average cadence: 29.99676404448656 days
+Mvals
+[2.60699451e-10 1.20105728e-08 1.58710718e-08 9.65933914e-10
+ 3.64764930e-10 6.52938092e-09 1.08166592e-07 2.71198878e-09
+ 1.90817208e-07 8.21747091e-09 1.87414012e-07 3.31614329e-10
+ 4.83647088e-09]
+J2129-5721 268.3592272938659
+Timespan: 14.959160569811218 years
+Average cadence: 30.000514329566457 days
+Mvals
+[4.15702603e-10 1.95277984e-08 1.50116962e-08 1.53996981e-09
+ 5.81648569e-10 1.03998581e-08 1.01394557e-08 5.06891229e-10
+ 1.32248115e-08 1.29042373e-08 1.25087601e-08 3.94451171e-08
+ 9.94311781e-09 6.39023739e-09 1.28106234e-08]
+J2145-0750 62.29588783738885
+Timespan: 14.957813700870593 years
+Average cadence: 29.99781319130641 days
+Mvals
+[1.71196119e-09 6.66838605e-08 6.19505132e-08 6.34326087e-09
+ 2.39541904e-09 4.07534576e-08 8.02229757e-08 8.93020896e-08
+ 2.29465505e-06 3.21166568e-07 1.34506674e-06 2.37315780e-09]
+J2229+2643 335.8162081968717
+Timespan: 14.958736151822867 years
+Average cadence: 29.99966316162278 days
+Mvals
+[2.16800481e-10 6.79538409e-09 6.77898426e-09 8.03284235e-10
+ 3.03342364e-10 5.22363945e-09 7.91557297e-09 2.51639755e-10
+ 3.63157611e-09 4.05935715e-09 3.85105891e-09 1.27791291e-09
+ 2.41187018e-09 1.64072365e-08]
+J2317+1439 290.25460366486976
+Total length of the data is  3019
+Total number of pulsars is  33
+The number of pulsars is: 33
+The frequencies are: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
+  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
+  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
+  67.37658113 317.37893707 316.12397933 216.37333714 218.81184042
+ 123.11028715 245.42611969 186.49407838 339.31568722 130.78951412
+ 641.92822458 192.85651792 191.45090909 202.79389375 268.35922729
+  62.29588784 335.8162082  290.25460366]
+Precomputing the observation matrices
+This might take a few seconds, but only needs to be done once.
+Traceback (most recent call last):
+  File "/fred/oz022/tkimpson/Argus/sandbox/sample_adaptive.py", line 164, in <module>
+    sample_adaptive() 
+    ^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/Argus/sandbox/sample_adaptive.py", line 69, in sample_adaptive
+    _ = KF.get_likelihood(params)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/Argus/python/argus/jax_kalman_filter.py", line 208, in get_likelihood
+    return _run_kalman_filter_scan(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/Argus/python/argus/jax_kalman_filter.py", line 97, in _run_kalman_filter_scan
+    Q_matrices = precompute_Q_matrices(θ.γa,σa2, θ.γp,θ.σp**2, dt_array, Npsr, M_sum, θ.σeps)
+                                                                                      ^^^^^^
+AttributeError: 'Parameters' object has no attribute 'σeps'
+--------------------
+For simplicity, JAX has removed its internal frames from the traceback of the following exception. Set JAX_TRACEBACK_FILTERING=off to include these.
+
+real	5m46.660s
+user	0m13.342s
+sys	0m6.445s
+
++------------------- Job Report: 66754204 (FAILED) --------------------+
+| Memory (RAM)  [                    ]  2.5% (253.1 MB peak / 10 GB)   |
+| CPU           [                    ]  3.8% average                   |
+| GPU           [                    ]  0.0% average                   |
+| Time          [>                   ]  2.5% (0-00:06:04 / 0-04:00:00) |
+|                                                                      |
+| Lustre Filesystem:                                                   |
+|   Path    Total Read    Total Write    Total IOPS                    |
+|   ------  ------------  -------------  ------------                  |
+|   /apps   848 KB        0 B            12                            |
+|   /fred   295.2 MB      45.7 KB        14.4 K                        |
+|   /home   60 KB         0 B            10                            |
+|   OS      14.4 MB       0 B            14                            |
+|                                                                      |
+| Warnings:                                                            |
+|   - Too much memory requested                                        |
+|   - CPU usage is low                                                 |
+|   - GPU usage is low                                                 |
+|   - Too much time requested                                          |
++----------------------------------------------------------------------+

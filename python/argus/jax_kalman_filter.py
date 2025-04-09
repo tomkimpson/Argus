@@ -94,9 +94,7 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
     
     # Precompute all matrices for this parameter set
     F_matrices = precompute_F_matrices(θ.γa, θ.γp, dt_array, Npsr, M_sum)
-    #Q_matrices = precompute_Q_matrices(θ.γa,σa2, θ.γp,θ.σp**2, dt_array, Npsr, M_sum, θ.σeps)
-    Q_matrices = precompute_Q_matrices(θ.γa,σa2, θ.γp,θ.σp**2, dt_array, Npsr, M_sum, M_sum)
-
+    Q_matrices = precompute_Q_matrices(θ.γa,σa2, θ.γp,θ.σp**2, dt_array, Npsr, M_sum, θ.σeps)
     R_matrices = precompute_R_matrices(data_errors,θ.EFAC, θ.EQUAD, psr_indices)
 
     # First update
@@ -201,13 +199,9 @@ class JaxScalarKalmanFilter:
         self.hellings_downs_matrix = jnp.array(self.model.hd_correlation_matrix)
 
 
-
-
-
     def get_likelihood(self, θ):
         """Run the Kalman filter algorithm over all observations and return a log likelihood."""
         # Create a modified version of x0 where elements after 4Npsr are set to thetaIC
-        modified_x0 = self.jax_x0.at[4*self.model.Npsr:].set(θ.thetaIC.reshape(-1, 1)) 
         return _run_kalman_filter_scan(
             θ=θ,
             data=self.jax_data,
@@ -218,7 +212,7 @@ class JaxScalarKalmanFilter:
             M_sum=self.model.M_sum,
             hellings_downs_matrix=self.hellings_downs_matrix,
             dt_array=self.jax_t_diffs,
-            x0=modified_x0,
+            x0=self.jax_x0,
             P0=self.jax_P0,
             dim_x=2*self.model.Npsr
         ) 
