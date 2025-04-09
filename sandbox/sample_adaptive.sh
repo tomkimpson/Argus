@@ -4,7 +4,7 @@
 #SBATCH --output=sample_adaptive_output.txt
 #SBATCH --export=ALL 
 #SBATCH --gres=gpu:1
-#SBATCH --time=2:0:00 
+#SBATCH --time=4:0:00 
 #SBATCH --mem=10G
 
 
