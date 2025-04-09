@@ -168,7 +168,6 @@ class JaxScalarKalmanFilter:
         self.psr_indices = self.observations[:, 3].astype(int)
         self.N_timesteps = len(self.observations)
         self.t_diffs = np.diff(self.toa)
-
         assert np.isscalar(self.data[0])
 
         # Precompute the observation matrices and assign them to model.H_matrix_list
@@ -200,11 +199,9 @@ class JaxScalarKalmanFilter:
         self.hellings_downs_matrix = jnp.array(self.model.hd_correlation_matrix)
 
 
-
-
-
     def get_likelihood(self, θ):
         """Run the Kalman filter algorithm over all observations and return a log likelihood."""
+        # Create a modified version of x0 where elements after 4Npsr are set to thetaIC
         return _run_kalman_filter_scan(
             θ=θ,
             data=self.jax_data,

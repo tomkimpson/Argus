@@ -78,7 +78,7 @@ def get_Q(gamma,σa2, gamma_spin,σp2, dt, Npsr, M_sum, eps):
     Q_gw_block = get_Q_block(gamma, dt)
     Q_gw = jnp.kron(σa2, Q_gw_block)
     Q_spin = get_Q_spin(gamma_spin, dt, σp2)
-    Q_timing = jnp.eye(M_sum) * eps**2
+    Q_timing = jnp.eye(M_sum) * 0.0 #eps**2 #assume these are known exactly. We will tune the initial condition
     return Q_gw, Q_spin, Q_timing
 
 @partial(jax.jit, static_argnums=(2,3))

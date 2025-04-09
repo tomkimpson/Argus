@@ -57,8 +57,8 @@ def sample_adaptive():
         σp=jnp.ones(model.Npsr) * 1e-14, #For now, assume the same noise for all pulsars
 
         #Timing model noise parameters
-        σeps=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
-
+        #σeps=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
+        thetaIC=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
         #Measurement noise parameters
         EFAC=jnp.ones(model.Npsr),
         EQUAD=jnp.ones(model.Npsr) * (-6.7)
@@ -86,11 +86,17 @@ def sample_adaptive():
         ha = numpyro.sample("ha", dist.LogUniform(1e-16, 1e-11))
 
         #Parameters of the pulsar process
-        γp = numpyro.sample("γp", dist.LogUniform(1e-11, 1e-6),sample_shape=(model.Npsr,))
-        σp = numpyro.sample("σp", dist.LogUniform(1e-16, 1e-11),sample_shape=(model.Npsr,))
+        γp = numpyro.sample("γp", dist.LogUniform(1e-13, 1e-5),sample_shape=(model.Npsr,))
+        σp = numpyro.sample("σp", dist.LogUniform(1e-22, 1e-10),sample_shape=(model.Npsr,))
 
-        known_σeps = jnp.ones(model.M_sum) * 1e-12
-        σeps = numpyro.deterministic("σeps", known_σeps)
+        #known_σeps = jnp.ones(model.M_sum) * 1e-10
+        #σeps = numpyro.deterministic("σeps", known_σeps)
+
+        thetaIC = numpyro.sample("thetaIC", dist.LogUniform(1e-12, 1e-3),sample_shape=(model.M_sum,))
+
+
+        #σeps = numpyro.sample("σp", dist.LogUniform(1e-7, 1e-12),sample_shape=(model.M_sum,))
+
         
         #Measurement noise parameters
         EFAC = numpyro.sample("EFAC", dist.Uniform(0.5, 2),sample_shape=(model.Npsr,))
@@ -103,7 +109,7 @@ def sample_adaptive():
             ha=ha,
             γp=γp,
             σp=σp,
-            σeps=σeps,
+            thetaIC=thetaIC,
             EFAC=EFAC,
             EQUAD=EQUAD
         )
@@ -114,7 +120,7 @@ def sample_adaptive():
     # Run MCMC
     rng_key = random.PRNGKey(0)
     sa_kernel = SA(numpyro_model)
-    mcmc = MCMC(sa_kernel, num_samples=1000, num_warmup=500, num_chains=1, progress_bar=True)
+    mcmc = MCMC(sa_kernel, num_samples=1000, num_warmup=500, num_chains=4, progress_bar=True)
     mcmc.run(rng_key, kf=KF)
     mcmc.print_summary()  # Posterior estimates
 
@@ -122,7 +128,7 @@ def sample_adaptive():
 
     print("Completed. Saving results to disk...")
     inf_data = az.from_numpyro(mcmc)
-    inf_data.to_netcdf("outputs/inf_data.nc")
+    inf_data.to_netcdf("outputs/SA_data_4_chains.nc")
 
 
 
