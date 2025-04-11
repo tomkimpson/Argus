@@ -95,13 +95,13 @@ class LoadWidebandPulsarData:
         print("Average cadence:", np.mean(self.toa_diffs)/(24*3600), 'days')
         #print("Approximate exp term size: ", np.exp(-1e-9 * np.mean(self.toa_diffs)))
                
-        print("Mvals")
+        #print("Mvals")
         mu = np.mean(self.M_scaled,axis=0)
         mu_dt = np.mean(self.toa_diffs)
         mu_rms = np.mean(self.toaerrs)
         S = 0.01
         sigs = (mu_rms**2 *S**2) / (mu**2 * mu_dt)
-        print(np.sqrt(sigs))
+        #print(np.sqrt(sigs))
         
 
     @staticmethod

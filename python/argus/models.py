@@ -96,6 +96,7 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         self.nx = self.Npsr * (2 + 2) + df_psr["dim_M"].sum()
 
         self.M = df_psr["dim_M"].values.astype(int)  # array of integers
+        self.M_sizes = self.M.copy()
         self.M_sum = self.M.sum()
 
         self.hd_correlation_matrix = hd_correlation_matrix
@@ -149,6 +150,7 @@ class StochasticGWBackgroundModel(ModelHyperClass):
     def Q_matrix(self, dt: float) -> np.ndarray:
         """Return the process–noise covariance matrix for time step dt."""
         Q_gw, Q_spin, Q_timing = get_Q(self.γa, self.γp, dt, self.Npsr, self.M_sum, self.σeps)
+
         return Q_gw, Q_spin, Q_timing
 
 
@@ -223,4 +225,12 @@ class StochasticGWBackgroundModel(ModelHyperClass):
             The measurement noise covariance (for now, simply σt²).
 
         """
-        return (σ * self.EFAC[psr_idx]) ** 2 + self.EQUAD[psr_idx] ** 2
+
+
+        equad = 10.0 ** self.EQUAD[psr_idx]
+        return (σ * self.EFAC[psr_idx]) ** 2 + equad ** 2
+
+
+
+
+        #return (σ * self.EFAC[psr_idx]) ** 2 + self.EQUAD[psr_idx] ** 2

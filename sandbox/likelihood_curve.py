@@ -46,32 +46,42 @@ def likelihood_curve():
         P0=P0
     )
 
-    # Guess of the model parameters
-    # See notebooks/PSD_for_OU_process.ipynb for discussion on the parameter values
-    params = Parameters(
-        #GW parameters
-        γa=1e-9,
-        ha=6e-14,
-
-        #Spin parameters
-        γp=jnp.ones(model.Npsr) * 1e-13, #1/year timescale. Assumed the same for all pulsars
-        σp=jnp.ones(model.Npsr) * 1e-22, #For now, assume the same noise for all pulsars
-
-        #Timing model noise parameters
-        σeps=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
-        #Measurement noise parameters
-        EFAC=jnp.ones(model.Npsr)*1e10,
-        EQUAD=jnp.ones(model.Npsr) * (-6.7)
-    )
-
 
     #Load some "truth" parameters from file
     import pandas as pd
     truth_params = pd.read_pickle("../notebooks/spindown_results.pkl")
 
+    # Check same pulsars
+    assert len(pulsar_metadata) == len(truth_params)
+    assert all(pulsar_metadata['name'] == truth_params['psr'])
+
+    σp_truth = truth_params['optimal_sigma']
+    γp_truth = truth_params['optimal_gamma']
+    EFAC_truth = truth_params['EFAC']
+    EQUAD_truth = truth_params['EQUAD']
+
+    #psr	f0	optimal_sigma	optimal_gamma	result_fun	EFAC	EQUAD
 
 
 
+    # Guess of the model parameters
+    # See notebooks/PSD_for_OU_process.ipynb for discussion on the parameter values
+    params = Parameters(
+        #GW parameters
+        γa=1e-9,
+        ha=1e-14,
+
+        #Spin parameters
+        γp=jnp.array(γp_truth), #jnp.ones(model.Npsr) * 1e-13, #1/year timescale. Assumed the same for all pulsars
+        σp=jnp.array(σp_truth), #jnp.ones(model.Npsr) * 1e-22, #For now, assume the same noise for all pulsars
+
+        #Timing model noise parameters
+        σeps=jnp.ones(model.M_sum) * 1e-2, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
+
+        #Measurement noise parameters
+        EFAC=jnp.array(EFAC_truth),
+        EQUAD=jnp.array(EQUAD_truth)
+    )
 
 
 
@@ -81,10 +91,10 @@ def likelihood_curve():
     ll1 = KF.get_likelihood(params)
     print(ll1)
     import numpy as np
-    num = 3
+    num = 4
     plot_y = np.zeros(num)
     #plot_x = np.logspace(-11, -6, num)
-    plot_x = np.array([1e-11, 1e-9,1e-6])
+    plot_x = np.array([1e-11, 1e-9,1e-6,1e-3])
     for i in range(num):
 
         gamma_a = plot_x[i]
@@ -96,15 +106,15 @@ def likelihood_curve():
             ha=1e-14,
 
             #Spin parameters
-            γp=jnp.ones(model.Npsr) * 1e-13, #1/year timescale. Assumed the same for all pulsars
-            σp=jnp.ones(model.Npsr) * 1e-22, #For now, assume the same noise for all pulsars
+            γp=jnp.array(γp_truth), #jnp.ones(model.Npsr) * 1e-13, #1/year timescale. Assumed the same for all pulsars
+            σp=jnp.array(σp_truth), #jnp.ones(model.Npsr) * 1e-22, #For now, assume the same noise for all pulsars
 
             #Timing model noise parameters
-            σeps=jnp.ones(model.M_sum) * 1e-10, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
+            σeps=jnp.ones(model.M_sum) * 1e-2, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
 
             #Measurement noise parameters
-            EFAC=jnp.ones(model.Npsr),
-            EQUAD=jnp.ones(model.Npsr) * (-6.7)
+            EFAC=jnp.array(EFAC_truth),
+            EQUAD=jnp.array(EQUAD_truth)
         )
         ll = KF.get_likelihood(params)
         plot_y[i] = ll

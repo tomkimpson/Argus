@@ -12,6 +12,8 @@ from jax.scipy.linalg import block_diag
 from jax import vmap
 from functools import partial
 from typing import Tuple
+from jax import lax
+
 
 def get_F_block(gamma: float, dt: float) -> jax.Array:
     """Compute 2x2 state transition block matrix for a single component.
@@ -28,21 +30,69 @@ def get_F_block(gamma: float, dt: float) -> jax.Array:
     return jnp.array([[1.0, (1-exp_term)/gamma],
                      [0.0, exp_term]])
 
-def get_Q_block(γ: float, dt: float) -> jax.Array:
-    """Compute Q block matrix using JAX.
+# def get_Q_block(γ: float, dt: float) -> jax.Array:
+#     """Compute Q block matrix using JAX.
     
-    Note: For very small γ or dt values, exponential terms may need 
-    special handling to maintain numerical stability.
+#     Note: For very small γ or dt values, exponential terms may need 
+#     special handling to maintain numerical stability.
+#     """
+#     exp_term = jnp.exp(-γ * dt)
+#     exp_2term = jnp.exp(-2 * γ * dt)
+
+#     q11 = (dt - 2 * (1 - exp_term) / γ + (1 - exp_2term) / (2 * γ)) / γ**3
+#     q12 = ((1 - exp_term) - (1 - exp_2term) / 2) / (γ**2)
+#     q22 = (1 - exp_2term) / (2 * γ)
+
+#     return jnp.array([[q11, q12], [q12, q22]])
+
+
+
+def get_Q_block(γ: float, dt: float) -> jnp.ndarray:
+    """Compute Q block matrix for the Ornstein–Uhlenbeck process.
+
+    Uses numerically stable formulas and switches to Taylor approximation for small γ*dt.
     """
-    exp_term = jnp.exp(-γ * dt)
-    exp_2term = jnp.exp(-2 * γ * dt)
+    γdt = γ * dt
+
+    def stable_case(args):
+        γ, dt, γdt = args
+        e1 = -jnp.expm1(-γdt)
+        e2 = -jnp.expm1(-2 * γdt)
+
+        q11 = (dt - 2 * e1 / γ + e2 / (2 * γ)) / γ**3
+        q12 = (e1 - e2 / 2) / γ**2
+        q22 = e2 / (2 * γ)
+
+        return jnp.array([[q11, q12], [q12, q22]])
+
+    def taylor_case(args):
+        γ, dt, γdt = args
+        # These are the moments of the integrated Wiener process
+        q11 = dt**3 / 3
+        q12 = dt**2 / 2
+        q22 = dt
+
+        return jnp.array([[q11, q12], [q12, q22]])
 
 
-    q11 = (dt - 2 * (1 - exp_term) / γ + (1 - exp_2term) / (2 * γ)) / γ**3
-    q12 = ((1 - exp_term) - (1 - exp_2term) / 2) / (γ**2)
-    q22 = (1 - exp_2term) / (2 * γ)
 
-    return jnp.array([[q11, q12], [q12, q22]])
+
+
+
+    return lax.cond(
+        γdt < 1e-3,
+        taylor_case,
+        stable_case,
+        operand=(γ, dt, γdt)
+    )
+
+
+
+
+
+
+
+
 
 
 def get_F_spin(gamma: jax.Array, dt: float) -> jax.Array:
@@ -67,6 +117,36 @@ def get_F(gamma, gamma_spin, dt, Npsr, M_sum):
     F_spin = get_F_spin(gamma_spin, dt)
     return F_gw, F_spin
 
+
+def get_Q_matrices_single_blocks(gamma_gw, sigma_matrix, gamma_spin, sigma_spin2, dt, Npsr, M_sum, sigma_eps, p_idx, M_sizes):
+    """Constructs a full-size Q matrix with nonzero blocks for the observed pulsar only."""
+    nx = 4 * Npsr + M_sum
+    Q = jnp.zeros((nx, nx))
+
+    # GW block (size 2x2)
+    Q_gw_block = get_Q_block(gamma_gw, dt)
+    Q_gw = sigma_matrix[p_idx, p_idx] * Q_gw_block
+    i0 = 2 * p_idx
+    i1 = i0 + 2
+    Q = Q.at[i0:i1, i0:i1].set(Q_gw)
+
+    # Spin block (2x2)
+    Q_spin = sigma_spin2 * get_Q_block(gamma_spin, dt)
+    s0 = 2 * Npsr + 2 * p_idx
+    s1 = s0 + 2
+    Q = Q.at[s0:s1, s0:s1].set(Q_spin)
+
+    # Epsilon block (variable size)
+    eps_offset = jnp.sum(jnp.array(M_sizes[:p_idx]))
+    e0 = 4 * Npsr + eps_offset
+    e1 = e0 + M_sizes[p_idx]
+    Q_eps = jnp.eye(M_sizes[p_idx]) * sigma_eps
+    Q = Q.at[e0:e1, e0:e1].set(Q_eps)
+
+    return Q_gw, Q_spin, Q_eps
+
+
+
 def get_Q_spin(gamma, dt,sigma_p):
     """Compute Q spin matrix using JAX."""
     res = vmap(lambda g, s: get_Q_block(g, dt) * s)(gamma, sigma_p)
@@ -78,7 +158,7 @@ def get_Q(gamma,σa2, gamma_spin,σp2, dt, Npsr, M_sum, eps):
     Q_gw_block = get_Q_block(gamma, dt)
     Q_gw = jnp.kron(σa2, Q_gw_block)
     Q_spin = get_Q_spin(gamma_spin, dt, σp2)
-    Q_timing = jnp.eye(M_sum) * 0.0 #eps**2 #assume these are known exactly. We will tune the initial condition
+    Q_timing = jnp.eye(M_sum) * eps**2 #assume these are known exactly. We will tune the initial condition
     return Q_gw, Q_spin, Q_timing
 
 @partial(jax.jit, static_argnums=(2,3))
@@ -136,6 +216,10 @@ def compute_predicted_covariance(P: jax.Array,
     """
     F1, F2 = F_list
     Q1, Q2, Q3 = Q_list
+
+
+    #jax.debug.print("Qgw block values: q11={q11}, q22={q22}", q11=Q1[0,0], q22=Q1[1,1])
+    #jax.debug.print("Qspin block values: q11={q11}, q22={q22}", q11=Q2[0,0], q22=Q2[1,1])
     
     # Extract blocks directly from P
     P1 = P[:gw_size, :gw_size]
