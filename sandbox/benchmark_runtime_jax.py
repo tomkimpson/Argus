@@ -8,6 +8,7 @@ import jax
 import matplotlib.pyplot as plt
 from jax.scipy.linalg import block_diag
 
+
 jax.config.update("jax_enable_x64", True)
 
 @struct.dataclass
@@ -80,28 +81,77 @@ def _get_processed_residuals(data_path):
 
 
 
-def initialize_kalman_filter(nx,Npsr,M_sum):
+# def initialize_kalman_filter(nx,Npsr,M_sum):
 
+#     # Initialize the JAX Kalman Filter
+#     x0 = jnp.zeros(nx) # Initial state vector. δφ=0,δf=0, etc. As all the states are effecitvely perturbations, this is a reasonable guess.
+
+
+#     #Initialize the covariance matrices
+#     P_GW = jnp.eye(Npsr * 2)
+#     P_GW = P_GW.at[1::2, 1::2].multiply(1e-12) # All the odd diagonal elements, (1,1), (3,3) etc. are set to 1e-12
+#     P_GW = P_GW.at[0::2, 0::2].multiply(1e-18) # All the even diagonal elements, (0,0), (2,2) etc. are set to 1e-18
+
+
+#     P_spin = jnp.eye(Npsr * 2)
+#     P_spin = P_spin.at[1::2, 1::2].multiply(1e-8) # All the odd diagonal elements, (1,1), (3,3) etc. are set to 1e-12
+#     P_spin = P_spin.at[0::2, 0::2].multiply(1e-18) # All the even diagonal elements, (0,0), (2,2) etc. are set to 1e-18
+
+
+#     P_eps = jnp.eye(M_sum) * 1e-1
+
+#     P0 = block_diag(P_GW, P_spin, P_eps)
+
+#     return x0, P0
+
+
+
+def initialize_kalman_filter(nx, Npsr, M_sum,Γ):
     # Initialize the JAX Kalman Filter
-    x0 = jnp.zeros(nx) # Initial state vector. δφ=0,δf=0, etc. As all the states are effecitvely perturbations, this is a reasonable guess.
+    x0 = jnp.zeros(nx)  # Initial state vector
 
-
-    #Initialize the covariance matrices
+    # Initialize the covariance matrices with more reasonable scales
     P_GW = jnp.eye(Npsr * 2)
-    P_GW = P_GW.at[1::2, 1::2].multiply(1e-12) # All the odd diagonal elements, (1,1), (3,3) etc. are set to 1e-12
-    P_GW = P_GW.at[0::2, 0::2].multiply(1e-18) # All the even diagonal elements, (0,0), (2,2) etc. are set to 1e-18
+    P_GW = P_GW.at[1::2, 1::2].multiply(1e-2)  # Frequency perturbations
+    P_GW = P_GW.at[0::2, 0::2].multiply(1e-4)  # Phase perturbations
+
+
+    ε = 1e2
+    h2 = 1e-12
+    γa = 1e-9
+    #Γ = 1e-1
+    σa2 = jax_kalman_filter._compute_sigma_matrix(h2, Γ)
+    print(σa2.shape)
+    Q_gw_block = jnp.array([[1e2, 0.0],
+                        [0.0, 1e2]])  # shape (2, 2)
+
+    P_GW = jnp.kron(σa2, Q_gw_block) * ε
+
+
+
+    print(P_GW.shape)
 
 
     P_spin = jnp.eye(Npsr * 2)
-    P_spin = P_spin.at[1::2, 1::2].multiply(1e-8) # All the odd diagonal elements, (1,1), (3,3) etc. are set to 1e-12
-    P_spin = P_spin.at[0::2, 0::2].multiply(1e-18) # All the even diagonal elements, (0,0), (2,2) etc. are set to 1e-18
+    P_spin = P_spin.at[1::2, 1::2].multiply(1e2)  # Frequency perturbations
+    P_spin = P_spin.at[0::2, 0::2].multiply(1e2)  # Phase perturbations
 
+    # Avoid zeros in the error covariance - use a small positive value instead
+    P_eps = jnp.eye(M_sum) * 1e2  # Small but non-zero
 
-    P_eps = jnp.eye(M_sum) * 1e-1
-
+    # Create block diagonal matrix
     P0 = block_diag(P_GW, P_spin, P_eps)
-
+    
+    # Add a small regularization term to ensure positive definiteness
+    P0 = P0 + jnp.eye(nx) * 1e-10
+    
     return x0, P0
+
+
+
+
+
+
 
 
 
@@ -115,7 +165,7 @@ def benchmark_jax_runtime():
     model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
     print("Initialized the model")
 
-    x0,P0 = initialize_kalman_filter(model.nx,model.Npsr,model.M_sum) #this could go inside the model class....
+    x0,P0 = initialize_kalman_filter(model.nx,model.Npsr,model.M_sum,hd_correlation_matrix) #this could go inside the model class....
     print("Initialized the Kalman filter")
 
     KF = jax_kalman_filter.JaxScalarKalmanFilter(
@@ -134,18 +184,18 @@ def benchmark_jax_runtime():
     params = Parameters(
         #GW parameters
         γa=1e-9,
-        ha=1e-12,
+        ha=1e-14,
 
         #Spin parameters
         γp=jnp.ones(model.Npsr) * 1e-8, #1/year timescale. Assumed the same for all pulsars
-        σp=jnp.ones(model.Npsr) * 1e-14, #For now, assume the same noise for all pulsars
+        σp=jnp.ones(model.Npsr) * 1e-16, #For now, assume the same noise for all pulsars
 
         #Timing model noise parameters
-        σeps=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
+        σeps=jnp.ones(model.M_sum) * 1e-10, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
 
         #Measurement noise parameters
         EFAC=jnp.ones(model.Npsr),
-        EQUAD=jnp.ones(model.Npsr) * (-6.7)
+        EQUAD=jnp.ones(model.Npsr) * 10**(-7)
     )
 
 
@@ -165,14 +215,66 @@ def benchmark_jax_runtime():
     print("--------------------------------")
     print("--------------------------------")
     print("\n Running compiled execution")
+    print(f"running with gamma: {params.γa}")
     start_time = time.time()
     ll = KF.get_likelihood(params)
     jax.block_until_ready(ll)  # Ensure computation is complete
     end_time = time.time()
     
-    print(f"Log-likelihood: {ll}")
+    print(f"Log-likelihood: {ll}, gamma: {params.γa}")
     print(f"Execution time: {end_time - start_time:.4f} seconds")
 
+
+
+
+
+    # Guess of the model parameters
+    # See notebooks/PSD_for_OU_process.ipynb for discussion on the parameter values
+    params = Parameters(
+        #GW parameters
+        γa=1e-6,
+        ha=1e-14,
+
+        #Spin parameters
+        γp=jnp.ones(model.Npsr) * 1e-8, #1/year timescale. Assumed the same for all pulsars
+        σp=jnp.ones(model.Npsr) * 1e-16, #For now, assume the same noise for all pulsars
+
+        #Timing model noise parameters
+        σeps=jnp.ones(model.M_sum) * 1e-10, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
+
+        #Measurement noise parameters
+        EFAC=jnp.ones(model.Npsr),
+        EQUAD=jnp.ones(model.Npsr) * 10**(-7)
+    )
+
+
+    print(f"running with gamma: {params.γa}")
+    ll = KF.get_likelihood(params)
+    print(f"Log-likelihood: {ll}, gamma: {params.γa}")
+
+
+
+
+    # params = Parameters(
+    #     #GW parameters
+    #     γa=1e-3,
+    #     ha=1e-14,
+
+    #     #Spin parameters
+    #     γp=jnp.ones(model.Npsr) * 1e-8, #1/year timescale. Assumed the same for all pulsars
+    #     σp=jnp.ones(model.Npsr) * 1e-16, #For now, assume the same noise for all pulsars
+
+    #     #Timing model noise parameters
+    #     σeps=jnp.ones(model.M_sum) * 1e-10, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
+
+    #     #Measurement noise parameters
+    #     EFAC=jnp.ones(model.Npsr),
+    #     EQUAD=jnp.ones(model.Npsr) * 10**(-6.7)
+    # )
+
+    # print(f"running with gamma: {params.γa}")
+    # ll = KF.get_likelihood(params)
+    # print(f"Log-likelihood: {ll}, gamma: {params.γa}")
 
 
 if __name__ == "__main__":

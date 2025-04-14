@@ -40,9 +40,19 @@ def _predict(x: jax.Array, P: jax.Array, F_list: tuple, Q_list: tuple, dim_x: in
     xp = compute_predicted_state(F_list, x, dim_x, dim_x)
     Pp = compute_predicted_covariance(P,F_list,Q_list,dim_x,dim_x)
 
+
+
     Pp = 0.5 * (Pp + Pp.T)  # Symmetrize
-   # Pp += 1e-12 * jnp.eye(Pp.shape[0])  # Regularize
+    Pp += 1e-12 * jnp.eye(Pp.shape[0])  # Regularize
     
+
+    
+
+    # evals = jnp.linalg.eigvalsh(Pp)
+    # jax.debug.print("Pp eigs: {e}", e=evals[-5:])
+
+    # cond = evals[-1] / (evals[0] + 1e-20)
+    # jax.debug.print("Pp cond #: {}", cond)
     return xp, Pp
 
 
@@ -63,14 +73,7 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     y = z - H @ xp                                  
     S = H @ Pp @ H.T + R                           
 
-    # Check if innovation covariance is negative and raise error if it is
-    # jax.lax.cond(
-    #     S[0,0] <= 0,
-    #     lambda _: jax.debug.breakpoint(),
-    #     lambda _: None,
-    #     operand=None
-    # )
-    
+    #jax.debug.print("S: {S}",S=S)
     K = Pp @ H.T / S                               
     x = xp + K * y                                 
     #P = (jnp.eye(len(xp)) - K @ H) @ Pp    
@@ -86,8 +89,9 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     return x, P, y, S
 
 
-def _compute_sigma_matrix(h2, γa, Γ):
-    return (h2 / 6) * γa * Γ
+def _compute_sigma_matrix(h2, Γ):
+    return h2* Γ
+
 
 
 @jax.named_call
@@ -99,7 +103,7 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
     Computing them on the fly is more memory efficient, but precomputing them might be faster.
     We are hitting some memory issues when we try to run with NUTS and construct the AD Jacobian, so for now we precompute them.
     """
-    σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
+    σa2 = _compute_sigma_matrix(θ.ha**2, hellings_downs_matrix)
     
     # Precompute all matrices for this parameter set
     #F_matrices = precompute_F_matrices(θ.γa, θ.γp, dt_array, Npsr, M_sum)
@@ -139,14 +143,16 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
         x_predict, P_predict = _predict(x, P, F, Q, dim_x)
         x_new, P_new, y, S = _update(x_predict, P_predict, H, R, z)
         ll = _log_likelihood(y, S)
+        #jax.debug.print("ll: {ll}",ll=ll)
         
         return (x_new, P_new), ll
 
     # Pack inputs for scan
-    inputs = (jnp.arange(len(data) - 1), 
-             data[1:], 
-             R_matrices[1:], 
-             H_matrices[1:])
+    num_timesteps = max(3000, len(data) - 1)  # Use first 100 timesteps or all if less than 100
+    inputs = (jnp.arange(num_timesteps), 
+             data[1:num_timesteps+1], 
+             R_matrices[1:num_timesteps+1], 
+             H_matrices[1:num_timesteps+1])
 
     # Run scan loop
     (xf, Pf), ll_arr = lax.scan(step, (x, P), inputs)

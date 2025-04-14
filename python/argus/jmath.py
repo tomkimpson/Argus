@@ -12,6 +12,7 @@ from jax.scipy.linalg import block_diag
 from jax import vmap
 from functools import partial
 from typing import Tuple
+from jax import lax
 
 def get_F_block(gamma: float, dt: float) -> jax.Array:
     """Compute 2x2 state transition block matrix for a single component.
@@ -34,15 +35,16 @@ def get_Q_block(γ: float, dt: float) -> jax.Array:
     Note: For very small γ or dt values, exponential terms may need 
     special handling to maintain numerical stability.
     """
-    exp_term = jnp.exp(-γ * dt)
-    exp_2term = jnp.exp(-2 * γ * dt)
+    γdt = γ * dt
+    e1 = -jnp.expm1(-γdt)
+    e2 = -jnp.expm1(-2 * γdt)
 
+    q11 = (dt - 2 * e1 / γ + e2 / (2 * γ)) / γ**3
+    q12 = (e1 - e2 / 2) / γ**2
+    q22 = e2 / (2 * γ)
 
-    q11 = (dt - 2 * (1 - exp_term) / γ + (1 - exp_2term) / (2 * γ)) / γ**3
-    q12 = ((1 - exp_term) - (1 - exp_2term) / 2) / (γ**2)
-    q22 = (1 - exp_2term) / (2 * γ)
+    return  jnp.array([[q11, q12], [q12, q22]])
 
-    return jnp.array([[q11, q12], [q12, q22]])
 
 
 def get_F_spin(gamma: jax.Array, dt: float) -> jax.Array:
@@ -76,6 +78,8 @@ def get_Q_spin(gamma, dt,sigma_p):
 def get_Q(gamma,σa2, gamma_spin,σp2, dt, Npsr, M_sum, eps):
     """Get process noise matrices using JAX."""
     Q_gw_block = get_Q_block(gamma, dt)
+
+    #jax.debug.print("Q_gw_block: {Q_gw_block}",Q_gw_block=Q_gw_block)
     Q_gw = jnp.kron(σa2, Q_gw_block)
     Q_spin = get_Q_spin(gamma_spin, dt, σp2)
     Q_timing = jnp.eye(M_sum) * eps**2
@@ -148,6 +152,7 @@ def compute_predicted_covariance(P: jax.Array,
     # Compute individual blocks
     PF1 = F1 @ P1 @ F1.T + Q1
     PF2 = F2 @ P2 @ F2.T + Q2
+    PF3 = P3 + Q3
     PF4 = F1 @ P4 @ F2.T
     PF5 = F2 @ P5
     PF6 = F1 @ P6
@@ -155,7 +160,7 @@ def compute_predicted_covariance(P: jax.Array,
     # Assemble full matrix
     return jnp.block([[PF1,   PF4,   PF6],
                      [PF4.T,  PF2,   PF5],
-                     [PF6.T,  PF5.T, P3 + Q3]])
+                     [PF6.T,  PF5.T, PF3 ]])
 
 @partial(jax.jit, static_argnums=(3, 4))
 def precompute_F_matrices(gamma_a: float, 
