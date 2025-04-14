@@ -5,7 +5,7 @@
 #SBATCH --export=ALL 
 #SBATCH --gres=gpu:1
 #SBATCH --time=4:0:00 
-#SBATCH --mem=20G
+#SBATCH --mem=10G
 
 
 source ~/.bashrc

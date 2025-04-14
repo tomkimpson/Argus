@@ -111,10 +111,6 @@ See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a
 [preProcess.C:158] Warning: PSR J2317+1439 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-2025-04-14 17:21:55.517972: W external/xla/xla/hlo/transforms/simplifiers/hlo_rematerialization.cc:3021] Can't reduce memory use below 8.45GiB (9076616350 bytes) by rematerialization; only reduced to 9.03GiB (9692548408 bytes), down from 9.03GiB (9692762240 bytes) originally
-2025-04-14 17:22:08.355003: W external/xla/xla/tsl/framework/bfc_allocator.cc:501] Allocator (GPU_0_bfc) ran out of memory trying to allocate 9.02GiB (rounded to 9690267648)requested by op 
-2025-04-14 17:22:08.355199: W external/xla/xla/tsl/framework/bfc_allocator.cc:512] *___________________________________________________________________________________________________
-E0414 17:22:08.355232 1309998 pjrt_stream_executor_client.cc:3077] Execution of replica 0 failed: RESOURCE_EXHAUSTED: Out of memory while trying to allocate 9690267640 bytes. [tf-allocator-allocation-error='']
 === JAX VERSION INFO ===
 JAX version: 0.5.3
 
@@ -368,33 +364,48 @@ Traceback (most recent call last):
   File "/fred/oz022/tkimpson/Argus/examples/parameter_estimation_example.py", line 202, in jax_parameter_estimation
     ll = KF.get_likelihood(params)
          ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/Argus/python/argus/jax_kalman_filter.py", line 228, in get_likelihood
+  File "/fred/oz022/tkimpson/Argus/python/argus/jax_kalman_filter.py", line 202, in get_likelihood
     return _run_kalman_filter_scan(
            ^^^^^^^^^^^^^^^^^^^^^^^^
   File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/contextlib.py", line 81, in inner
     return func(*args, **kwds)
            ^^^^^^^^^^^^^^^^^^^
-jaxlib.xla_extension.XlaRuntimeError: RESOURCE_EXHAUSTED: Out of memory while trying to allocate 9690267640 bytes.
+  File "/fred/oz022/tkimpson/Argus/python/argus/jax_kalman_filter.py", line 127, in _run_kalman_filter_scan
+    (xf, Pf), ll_arr = lax.scan(step, (x, P), inputs)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/Argus/python/argus/jax_kalman_filter.py", line 107, in step
+    F_gw, F_spin = F_matrices_non_precomputed(θ.γa, θ.γp, dt, Npsr, M_sum)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/Argus/python/argus/jmath.py", line 211, in F_matrices_non_precomputed
+    F_gw, F_spin = get_F(gamma_a, gamma_p, dt_array, Npsr, M_sum)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/Argus/python/argus/jmath.py", line 78, in get_F
+    F_gw_block = get_F_block(gamma, dt)
+                 ^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/Argus/python/argus/jmath.py", line 33, in get_F_block
+    F12 = -jnp.expm1(neg_gamma_dt) / gamma 
+                                     ^^^^^
+NameError: name 'gamma' is not defined
 --------------------
 For simplicity, JAX has removed its internal frames from the traceback of the following exception. Set JAX_TRACEBACK_FILTERING=off to include these.
 
-real	4m20.669s
-user	0m18.981s
-sys	0m7.394s
+real	3m34.284s
+user	0m8.762s
+sys	0m6.352s
 
-+------------------- Job Report: 66831881 (FAILED) --------------------+
-| Memory (RAM)  [                    ]  1.3% (267.7 MB peak / 20 GB)   |
-| CPU           [#                   ]  6.4% average                   |
++------------------- Job Report: 66833165 (FAILED) --------------------+
+| Memory (RAM)  [                    ]  2.6% (264.2 MB peak / 10 GB)   |
+| CPU           [                    ]  3.8% average                   |
 | GPU           [                    ]  0.0% average                   |
-| Time          [>                   ]  2.2% (0-00:05:13 / 0-04:00:00) |
+| Time          [>                   ]  1.7% (0-00:03:59 / 0-04:00:00) |
 |                                                                      |
 | Lustre Filesystem:                                                   |
 |   Path    Total Read    Total Write    Total IOPS                    |
 |   ------  ------------  -------------  ------------                  |
 |   /apps   0 B           0 B            3                             |
-|   /fred   303.1 MB      65.3 KB        14.5 K                        |
-|   /home   60 KB         0 B            11                            |
-|   OS      4 KB          0 B            6                             |
+|   /fred   206 MB        21.2 KB        13.9 K                        |
+|   /home   60 KB         0 B            10                            |
+|   OS      0 B           0 B            5                             |
 |                                                                      |
 | Warnings:                                                            |
 |   - Too much memory requested                                        |
