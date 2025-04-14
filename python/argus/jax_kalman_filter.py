@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from argus.jmath import precompute_R_matrices,compute_predicted_covariance,compute_predicted_state,precompute_Q_matrices_non_vectorised,precompute_F_matrices_non_vectorised
+from argus.jmath import precompute_F_matrices, precompute_Q_matrices,precompute_R_matrices,compute_predicted_covariance,compute_predicted_state
 from functools import partial
 import jax
 import jax.numpy as jnp
@@ -97,13 +97,13 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
     
     TK: Regarding the commented out F and Q matrices, I am still undecided whether to precompute them or not.
     Computing them on the fly is more memory efficient, but precomputing them might be faster.
-    We are hitting some memory issues when we try to run with NUTS and construct the AD Jacobian, so for now we precompute them.
+    We are hitting some memory issues when we try to run with NUTS and construct the AD Jacobian. 
     """
     σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
     
     # Precompute all matrices for this parameter set
-    #F_matrices = precompute_F_matrices(θ.γa, θ.γp, dt_array, Npsr, M_sum)
-    #Q_matrices = precompute_Q_matrices(θ.γa,σa2, θ.γp,θ.σp**2, dt_array, Npsr, M_sum, θ.σeps)
+    F_matrices = precompute_F_matrices(θ.γa, θ.γp, dt_array, Npsr, M_sum)
+    Q_matrices = precompute_Q_matrices(θ.γa,σa2, θ.γp,θ.σp**2, dt_array, Npsr, M_sum, θ.σeps)
     R_matrices = precompute_R_matrices(data_errors,θ.EFAC, θ.EQUAD, psr_indices)
 
     # First update
@@ -117,23 +117,24 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
 
         # Get dt for this step and precompute matrices just for this step
         dt = dt_array[dt_idx]
-        # # Get precomputed matrices for this timestep
-        # F_gw_at_timestep = F_matrices[0][dt_idx]
-        # F_spin_at_timestep = F_matrices[1][dt_idx]
-        # F = (F_gw_at_timestep, F_spin_at_timestep)
 
-        # Q_gw_at_timestep = Q_matrices[0][dt_idx]
-        # Q_spin_at_timestep = Q_matrices[1][dt_idx]
-        # Q_timing_at_timestep = Q_matrices[2][dt_idx]
-        # Q = (Q_gw_at_timestep, Q_spin_at_timestep, Q_timing_at_timestep)
+        # Get precomputed matrices for this timestep
+        F_gw_at_timestep = F_matrices[0][dt_idx]
+        F_spin_at_timestep = F_matrices[1][dt_idx]
+        F = (F_gw_at_timestep, F_spin_at_timestep)
+
+        Q_gw_at_timestep = Q_matrices[0][dt_idx]
+        Q_spin_at_timestep = Q_matrices[1][dt_idx]
+        Q_timing_at_timestep = Q_matrices[2][dt_idx]
+        Q = (Q_gw_at_timestep, Q_spin_at_timestep, Q_timing_at_timestep)
 
 
         # Compute F and Q matrices for this specific timestep only
-        F_gw, F_spin = precompute_F_matrices_non_vectorised(θ.γa, θ.γp, dt, Npsr, M_sum)
-        F = (F_gw, F_spin)
+        #F_gw, F_spin = precompute_F_matrices_non_vectorised(θ.γa, θ.γp, dt, Npsr, M_sum)
+        #F = (F_gw, F_spin)
         
-        Q_gw, Q_spin, Q_timing = precompute_Q_matrices_non_vectorised(θ.γa, σa2, θ.γp, θ.σp**2, dt, Npsr, M_sum, θ.σeps)
-        Q = (Q_gw, Q_spin, Q_timing)
+        #Q_gw, Q_spin, Q_timing = precompute_Q_matrices_non_vectorised(θ.γa, σa2, θ.γp, θ.σp**2, dt, Npsr, M_sum, θ.σeps)
+        #Q = (Q_gw, Q_spin, Q_timing)
 
 
         x_predict, P_predict = _predict(x, P, F, Q, dim_x)

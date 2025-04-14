@@ -1,0 +1,404 @@
+[tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
+[preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[tempo2Util.C:401] Warning: [DUP1] duplicated warnings have been suppressed.
+[preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0034-0534. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0034-0534 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0218+4232. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0218+4232 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J0437-4715 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J0613-0200 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0621+1002. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0621+1002 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J0711-6830 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0751+1807. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0751+1807 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0900-3144. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0900-3144 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1012+5307 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1022+1001 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1024-0719 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1045-4509 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1455-3330 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1600-3053 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1603-7202 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J1614-2230. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J1614-2230 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1640+2224 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1643-1224 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1713+0747 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1730-2304 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1744-1134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1857+0943 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1909-3744 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1918-0642 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1939+2134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J1944+0907. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J1944+0907 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J2010-1323. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J2010-1323 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2124-3358 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2129-5721 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2145-0750 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J2229+2643. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J2229+2643 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2317+1439 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+2025-04-14 17:21:55.517972: W external/xla/xla/hlo/transforms/simplifiers/hlo_rematerialization.cc:3021] Can't reduce memory use below 8.45GiB (9076616350 bytes) by rematerialization; only reduced to 9.03GiB (9692548408 bytes), down from 9.03GiB (9692762240 bytes) originally
+2025-04-14 17:22:08.355003: W external/xla/xla/tsl/framework/bfc_allocator.cc:501] Allocator (GPU_0_bfc) ran out of memory trying to allocate 9.02GiB (rounded to 9690267648)requested by op 
+2025-04-14 17:22:08.355199: W external/xla/xla/tsl/framework/bfc_allocator.cc:512] *___________________________________________________________________________________________________
+E0414 17:22:08.355232 1309998 pjrt_stream_executor_client.cc:3077] Execution of replica 0 failed: RESOURCE_EXHAUSTED: Out of memory while trying to allocate 9690267640 bytes. [tf-allocator-allocation-error='']
+=== JAX VERSION INFO ===
+JAX version: 0.5.3
+
+=== DEVICE INFO ===
+Default device: gpu
+
+=== JAX CONFIG SETTINGS ===
+eager_constant_folding: False
+jax2tf_associative_scan_reductions: False
+jax2tf_default_native_serialization: True
+jax_array_garbage_collection_guard: None
+jax_backend_target: 
+jax_bcoo_cusparse_lowering: False
+jax_check_proxy_envs: True
+jax_check_tracer_leaks: False
+jax_compilation_cache_dir: None
+jax_compilation_cache_expect_pgle: False
+jax_compilation_cache_include_metadata_in_key: False
+jax_compilation_cache_max_size: -1
+jax_compiler_detailed_logging_min_ops: 10
+jax_compiler_enable_remat_pass: True
+jax_cpu_collectives_implementation: None
+jax_cpu_enable_async_dispatch: True
+jax_cpu_enable_gloo_collectives: False
+jax_cuda_visible_devices: all
+jax_custom_vjp_disable_shape_check: False
+jax_data_dependent_tracing_fallback: False
+jax_debug_infs: False
+jax_debug_key_reuse: False
+jax_debug_log_modules: 
+jax_debug_nans: False
+jax_default_device: None
+jax_default_dtype_bits: 64
+jax_default_matmul_precision: None
+jax_default_prng_impl: threefry2x32
+jax_disable_jit: False
+jax_disable_most_optimizations: False
+jax_disable_vmap_shmap_error: False
+jax_disallow_mesh_context_manager: False
+jax_distributed_debug: False
+jax_dump_ir_to: 
+jax_dynamic_shapes: False
+jax_eager_pmap: True
+jax_enable_checks: False
+jax_enable_compilation_cache: True
+jax_enable_custom_prng: False
+jax_enable_custom_vjp_by_custom_transpose: False
+jax_enable_empty_arrays: False
+jax_enable_pgle: False
+jax_enable_x64: True
+jax_exec_time_optimization_effort: 0.0
+jax_experimental_unsafe_xla_runtime_errors: False
+jax_explain_cache_misses: False
+jax_export_calling_convention_version: 9
+jax_export_ignore_forward_compatibility: False
+jax_high_dynamic_range_gumbel: False
+jax_hlo_source_file_canonicalization_regex: None
+jax_include_debug_info_in_dumps: True
+jax_include_full_tracebacks_in_locations: True
+jax_legacy_prng_key: allow
+jax_log_checkpoint_residuals: False
+jax_log_compiles: False
+jax_logging_level: NOTSET
+jax_memory_fitting_effort: 0.0
+jax_memory_fitting_level: UNKNOWN
+jax_mock_gpu_topology: 
+jax_mutable_array_checks: False
+jax_no_tracing: False
+jax_num_cpu_devices: -1
+jax_numpy_dtype_promotion: standard
+jax_numpy_rank_promotion: allow
+jax_optimization_level: UNKNOWN
+jax_persistent_cache_enable_xla_caches: xla_gpu_per_fusion_autotune_cache_dir
+jax_persistent_cache_min_compile_time_secs: 1.0
+jax_persistent_cache_min_entry_size_bytes: 0
+jax_pgle_aggregation_percentile: 90
+jax_pgle_profiling_runs: 3
+jax_pjrt_client_create_options: None
+jax_platform_name: gpu
+jax_platforms: None
+jax_pmap_no_rank_reduction: True
+jax_pmap_shmap_merge: False
+jax_pprint_use_color: True
+jax_raise_persistent_cache_errors: False
+jax_random_seed_offset: 0
+jax_remat_opt_barrier: True
+jax_remove_custom_partitioning_ptr_from_cache_key: False
+jax_rocm_visible_devices: all
+jax_serialization_version: 0
+jax_share_binary_between_hosts: False
+jax_share_binary_between_hosts_timeout_ms: 1200000
+jax_softmax_custom_jvp: False
+jax_spmd_mode: allow_jit
+jax_threefry_gpu_kernel_lowering: False
+jax_threefry_partitionable: True
+jax_traceback_filtering: auto
+jax_traceback_in_locations_limit: 10
+jax_tracer_error_num_traceback_frames: 5
+jax_transfer_guard: None
+jax_transfer_guard_device_to_device: None
+jax_transfer_guard_device_to_host: None
+jax_transfer_guard_host_to_device: None
+jax_use_direct_linearize: False
+jax_use_magma: auto
+jax_use_shardy_partitioner: False
+jax_varying_axes_in_types: False
+jax_xla_backend: 
+jax_xla_profile_version: 0
+mock_num_gpu_processes: 0
+
+JAX GPU acceleration is AVAILABLE!
+GPU devices: [CudaDevice(id=0)]
+-----------------------------------------------
+[CudaDevice(id=0)]
+Getting the data. Loading 33 pulsars from ../data/IPTA_MockDataChallenge2/dataset_1b/
+J0030+0451 205.53069593846152 183
+J0034-0534 532.7134293952242 183
+J0218+4232 430.46105454575843 183
+J0437-4715 173.68794573751967 183
+J0613-0200 326.60056202349193 183
+J0621+1002 34.65740662142043 183
+J0711-6830 182.1172346472276 183
+J0751+1807 287.4578539950941 183
+J0900-3144 90.01184191936728 183
+J1012+5307 190.26783444155498 183
+J1022+1001 60.77944795669458 183
+J1024-0719 193.71568344854623 183
+J1045-4509 133.79314954119278 183
+J1455-3330 125.20024324499536 183
+J1600-3053 277.93770698961544 183
+J1603-7202 67.37658112877924 183
+J1614-2230 317.37893706872126 183
+J1640+2224 316.1239793318562 183
+J1643-1224 216.37333714263337 183
+J1713+0747 218.81184041715784 183
+J1730-2304 123.1102871473716 183
+J1744-1134 245.4261196898099 183
+J1857+0943 186.49407837798236 183
+J1909-3744 339.3156872184855 183
+J1918-0642 130.78951412337267 183
+J1939+2134 641.9282245822369 183
+J1944+0907 192.85651792018598 183
+J2010-1323 191.45090909263828 183
+J2124-3358 202.7938937460303 183
+J2129-5721 268.3592272938659 183
+J2145-0750 62.29588783738885 183
+J2229+2643 335.8162081968717 183
+J2317+1439 290.25460366486976 183
+Total length of the data is  6039
+Total number of pulsars is  33
+The number of pulsars is: 33
+The frequencies are: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
+  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
+  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
+  67.37658113 317.37893707 316.12397933 216.37333714 218.81184042
+ 123.11028715 245.42611969 186.49407838 339.31568722 130.78951412
+ 641.92822458 192.85651792 191.45090909 202.79389375 268.35922729
+  62.29588784 335.8162082  290.25460366]
+Precomputing the observation matrices
+This might take a few seconds, but only needs to be done once.
+Sampling one draw using seed 42 with handlers.seed:
+Sampled Parameters object:
+Parameters(γa=Array(5.13564569e-08, dtype=float64), ha=Array(1.9674278e-13, dtype=float64), γp=Array([2.73700821e-08, 1.98932894e-10, 2.13694640e-11, 1.51166623e-07,
+       1.64431709e-10, 1.10977838e-10, 5.48093926e-07, 1.35665232e-08,
+       2.24767085e-07, 6.73309733e-10, 9.44788383e-08, 7.03513202e-10,
+       2.43406058e-08, 6.09618369e-07, 2.45168790e-09, 3.40112992e-07,
+       4.00040647e-10, 1.31358921e-10, 2.41068116e-09, 4.26278654e-09,
+       7.08494490e-11, 8.64913750e-07, 1.15285953e-10, 7.17298226e-09,
+       1.12322610e-07, 1.72633116e-11, 6.39527948e-07, 7.68619828e-11,
+       1.73950115e-11, 8.08894870e-11, 5.40855034e-11, 3.68621995e-11,
+       2.30035913e-10], dtype=float64), σp=Array([5.04878104e-12, 9.64882755e-16, 6.04900305e-14, 4.96935025e-16,
+       2.39035606e-12, 1.08526155e-12, 1.03899109e-12, 1.60003322e-15,
+       1.87998047e-16, 2.76990224e-15, 2.54896967e-14, 5.42813136e-13,
+       1.21394336e-14, 9.98543843e-15, 1.30040364e-16, 5.92187056e-13,
+       1.10006184e-15, 1.55275197e-15, 1.48490802e-12, 8.22428429e-12,
+       1.39695620e-14, 2.64206666e-14, 9.18697961e-13, 1.61849234e-14,
+       3.08456253e-15, 5.99763616e-16, 1.33918328e-14, 8.38755407e-12,
+       3.09044956e-12, 1.17205169e-12, 5.16859073e-16, 6.86724812e-15,
+       1.38153856e-16], dtype=float64), σeps=Array([1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12, 1.e-12,
+       1.e-12, 1.e-12, 1.e-12], dtype=float64), EFAC=Array([1.23747005, 1.61721264, 1.35527914, 1.81256345, 0.56611709,
+       1.34779108, 1.65859843, 1.8483219 , 1.94544946, 1.98080485,
+       1.28569629, 1.1655401 , 1.04993736, 1.02699308, 0.91749027,
+       1.30095529, 0.76239743, 0.9440403 , 0.9847274 , 1.88232402,
+       1.59617064, 1.93843924, 1.62069418, 1.56310386, 1.67689146,
+       1.23192118, 0.96727451, 0.68779129, 1.89357265, 1.22786432,
+       0.93276844, 1.06027852, 1.75114269], dtype=float64), EQUAD=Array([7.56051479e-07, 3.99252515e-06, 3.35423858e-07, 5.17927203e-06,
+       1.51938248e-07, 2.09615510e-07, 5.83338585e-08, 3.58773981e-08,
+       1.35380357e-07, 1.79242738e-08, 3.17752420e-06, 1.03146216e-07,
+       4.43398516e-08, 8.61514122e-07, 3.01240126e-08, 5.09284179e-06,
+       9.44972148e-06, 7.16940522e-06, 3.20086294e-08, 2.75306163e-08,
+       3.05873655e-06, 4.31039144e-08, 5.11031813e-07, 4.35116614e-08,
+       4.25616756e-07, 6.48801008e-06, 6.67193160e-08, 2.80141163e-06,
+       2.33344635e-07, 1.58094019e-08, 3.27175016e-07, 5.33847432e-06,
+       4.33759622e-06], dtype=float64))
+Traceback (most recent call last):
+  File "/fred/oz022/tkimpson/Argus/examples/parameter_estimation_example.py", line 269, in <module>
+    jax_parameter_estimation() 
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/Argus/examples/parameter_estimation_example.py", line 202, in jax_parameter_estimation
+    ll = KF.get_likelihood(params)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/Argus/python/argus/jax_kalman_filter.py", line 228, in get_likelihood
+    return _run_kalman_filter_scan(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+jaxlib.xla_extension.XlaRuntimeError: RESOURCE_EXHAUSTED: Out of memory while trying to allocate 9690267640 bytes.
+--------------------
+For simplicity, JAX has removed its internal frames from the traceback of the following exception. Set JAX_TRACEBACK_FILTERING=off to include these.
+
+real	4m20.669s
+user	0m18.981s
+sys	0m7.394s
+
++------------------- Job Report: 66831881 (FAILED) --------------------+
+| Memory (RAM)  [                    ]  1.3% (267.7 MB peak / 20 GB)   |
+| CPU           [#                   ]  6.4% average                   |
+| GPU           [                    ]  0.0% average                   |
+| Time          [>                   ]  2.2% (0-00:05:13 / 0-04:00:00) |
+|                                                                      |
+| Lustre Filesystem:                                                   |
+|   Path    Total Read    Total Write    Total IOPS                    |
+|   ------  ------------  -------------  ------------                  |
+|   /apps   0 B           0 B            3                             |
+|   /fred   303.1 MB      65.3 KB        14.5 K                        |
+|   /home   60 KB         0 B            11                            |
+|   OS      4 KB          0 B            6                             |
+|                                                                      |
+| Warnings:                                                            |
+|   - Too much memory requested                                        |
+|   - CPU usage is low                                                 |
+|   - GPU usage is low                                                 |
+|   - Too much time requested                                          |
++----------------------------------------------------------------------+

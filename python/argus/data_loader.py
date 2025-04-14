@@ -292,7 +292,7 @@ class LoadWidebandPulsarData:
             psr = cls.read_par_tim(par_file, tim_file, **kwargs)
 
             f0 = get_par_value(par_file, 'F0')
-            print(psr.name,f0)
+            print(psr.name,f0,len(psr.toas))
 
             # DataFrame for TOAs and residuals for this pulsar.
             df = pd.DataFrame(

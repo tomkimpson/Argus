@@ -212,61 +212,6 @@ def precompute_Q_matrices(gamma_a, σa2, gamma_p,σp2, dt_array, Npsr, M_sum, ep
 
 
 
-
-
-@partial(jax.jit, static_argnums=(3, 4))
-def precompute_F_matrices_non_vectorised(gamma_a: float, 
-                         gamma_p: jax.Array, 
-                         dt_array: jax.Array, 
-                         Npsr: int, 
-                         M_sum: int) -> Tuple[jax.Array, jax.Array]:
-    """Precompute F matrices for a single timestep only.
-    
-    Instead of vectorizing over all timesteps, this function only handles one timestep.
-    
-    Args:
-        gamma_a: GWB parameter
-        gamma_p: Pulsar-specific parameters, shape (n_components,)
-        dt_array: Time difference for ONE observation, scalar
-        Npsr: Number of pulsars
-        M_sum: Sum of model components
-        
-    Returns
-    -------
-        tuple: (F_gw_matrix, F_spin_matrix) for the single timestep
-    """
-    # Get F matrices for a single dt (not vectorized)
-    F_gw, F_spin = get_F(gamma_a, gamma_p, dt_array, Npsr, M_sum)
-    return F_gw, F_spin
-
-
-
-@partial(jax.jit, static_argnums=(5, 6))
-def precompute_Q_matrices_non_vectorised(gamma_a, σa2, gamma_p, σp2, dt_array, Npsr, M_sum, eps):
-    """Precompute Q matrices for a single timestep only.
-    
-    Args:
-        gamma_a: float, GWB parameter
-        σa2: array, GW covariance matrix 
-        gamma_p: array, pulsar-specific parameters
-        σp2: array, pulsar-specific noise parameters
-        dt_array: scalar, time difference for ONE observation
-        Npsr: int, number of pulsars
-        M_sum: int, sum of model components
-        eps: float, timing parameter
-        
-    Returns
-    -------
-        tuple: (Q_gw_matrix, Q_spin_matrix, Q_timing_matrix) for the single timestep
-    """
-    # Get Q matrices for a single dt (not vectorized)
-    Q_gw, Q_spin, Q_timing = get_Q(gamma_a, σa2, gamma_p, σp2, dt_array, Npsr, M_sum, eps)
-    return Q_gw, Q_spin, Q_timing
-
-
-
-
-
 @jax.jit
 def precompute_R_matrices(σ: jax.Array, EFAC: jax.Array, EQUAD: jax.Array, psr_indices: int) -> jax.Array:
     """Build the measurement-noise covariance matrix R for the pulsars observed at a given epoch.
@@ -282,55 +227,60 @@ def precompute_R_matrices(σ: jax.Array, EFAC: jax.Array, EQUAD: jax.Array, psr_
 
 
 
-############## Scratch space 
-# def get_Q_block(gamma: float, dt: float, eps: float = 1e-3) -> jnp.ndarray:
-#     """
-#     Compute a numerically stable 2x2 process noise covariance block Q
-#     for an Ornstein–Uhlenbeck process with decay rate gamma and time step dt.
 
-#     Uses series expansion for small gamma*dt to avoid numerical instability.
+### SCRATCH SPACE
 
-#     Parameters
-#     ----------
-#     gamma : float
-#         Decay rate parameter.
-#     dt : float
-#         Time step.
-#     eps : float
-#         Threshold for switching between Taylor expansion and exponentials.
 
+
+
+# @partial(jax.jit, static_argnums=(3, 4))
+# def precompute_F_matrices_non_vectorised(gamma_a: float, 
+#                          gamma_p: jax.Array, 
+#                          dt_array: jax.Array, 
+#                          Npsr: int, 
+#                          M_sum: int) -> Tuple[jax.Array, jax.Array]:
+#     """Precompute F matrices for a single timestep only.
+    
+#     Instead of vectorizing over all timesteps, this function only handles one timestep.
+    
+#     Args:
+#         gamma_a: GWB parameter
+#         gamma_p: Pulsar-specific parameters, shape (n_components,)
+#         dt_array: Time difference for ONE observation, scalar
+#         Npsr: Number of pulsars
+#         M_sum: Sum of model components
+        
 #     Returns
 #     -------
-#     jnp.ndarray
-#         2x2 process noise covariance matrix.
+#         tuple: (F_gw_matrix, F_spin_matrix) for the single timestep
 #     """
-#     γdt = gamma * dt
-#     use_series = γdt < eps
-
-#     # Series expansions
-#     exp1_series = 1 - γdt + 0.5 * γdt**2 - (1/6) * γdt**3
-#     exp2_series = 1 - 2*γdt + 2 * γdt**2 - (4/3) * γdt**3
-
-#     exp1 = jnp.where(use_series, exp1_series, jnp.exp(-γdt))
-#     exp2 = jnp.where(use_series, exp2_series, jnp.exp(-2 * γdt))
-
-#     # Guard against zero division
-#     gamma_safe = jnp.maximum(gamma, 1e-12)
-
-#     q11 = (dt - 2 * (1 - exp1) / gamma_safe + (1 - exp2) / (2 * gamma_safe)) / gamma_safe**3
-#     q12 = ((1 - exp1) - (1 - exp2) / 2) / gamma_safe**2
-#     q22 = (1 - exp2) / (2 * gamma_safe)
-
-#     Q = jnp.array([[q11, q12], [q12, q22]])
-
-#     # Regularize and symmetrize to ensure positive-definiteness
-#     Q = 0.5 * (Q + Q.T)
-#     Q += 1e-12 * jnp.eye(2)
-
-#     return Q
+#     # Get F matrices for a single dt (not vectorized)
+#     F_gw, F_spin = get_F(gamma_a, gamma_p, dt_array, Npsr, M_sum)
+#     return F_gw, F_spin
 
 
 
+# @partial(jax.jit, static_argnums=(5, 6))
+# def precompute_Q_matrices_non_vectorised(gamma_a, σa2, gamma_p, σp2, dt_array, Npsr, M_sum, eps):
+#     """Precompute Q matrices for a single timestep only.
+    
+#     Args:
+#         gamma_a: float, GWB parameter
+#         σa2: array, GW covariance matrix 
+#         gamma_p: array, pulsar-specific parameters
+#         σp2: array, pulsar-specific noise parameters
+#         dt_array: scalar, time difference for ONE observation
+#         Npsr: int, number of pulsars
+#         M_sum: int, sum of model components
+#         eps: float, timing parameter
+        
+#     Returns
+#     -------
+#         tuple: (Q_gw_matrix, Q_spin_matrix, Q_timing_matrix) for the single timestep
+#     """
+#     # Get Q matrices for a single dt (not vectorized)
+#     Q_gw, Q_spin, Q_timing = get_Q(gamma_a, σa2, gamma_p, σp2, dt_array, Npsr, M_sum, eps)
+#     return Q_gw, Q_spin, Q_timing
 
 
 
