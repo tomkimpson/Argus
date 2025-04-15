@@ -4,7 +4,7 @@ import jax.numpy as jnp
 from jax import random
 import numpyro
 import numpyro.distributions as dist
-from numpyro.infer import MCMC
+from numpyro.infer import MCMC,NUTS
 import jax.profiler 
 from numpyro.infer import SA
 from argus import models, jax_kalman_filter,data_loader,gravitational_waves
@@ -36,8 +36,9 @@ class Parameters:
     γp: jnp.ndarray  # Pulsar-specific gamma values
     σp: jnp.ndarray  # Pulsar-specific sigma values 
 
-    #Timing model noise parameters
-    σeps: jnp.ndarray 
+    #Timing model parameters
+    x0_timing: jnp.ndarray # Sampled initial state for timing params
+
 
     #Measurement noise parameters
     EFAC: jnp.ndarray  # Error factors
@@ -92,7 +93,7 @@ def _get_processed_residuals(data_path):
 
     return processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,hd_correlation_matrix
 
-def _initialize_kalman_filter(nx,Npsr,M_sum):
+def _initialize_kalman_filter_covariance(nx,Npsr,M_sum):
 
     """
     Specify the initial state vector x0 and the covariance matrix P0 for the Kalman filter.
@@ -100,7 +101,6 @@ def _initialize_kalman_filter(nx,Npsr,M_sum):
 
     # Initialize the JAX Kalman Filter
     x0 = jnp.zeros(nx) # Initial state vector. δφ=0,δf=0, etc. As all the states are effecitvely perturbations, this is a reasonable guess.
-
 
     #Initialize the covariance matrices
     P_GW = jnp.eye(Npsr * 2)
@@ -113,11 +113,13 @@ def _initialize_kalman_filter(nx,Npsr,M_sum):
     P_spin = P_spin.at[0::2, 0::2].multiply(1e-18) # All the even diagonal elements, (0,0), (2,2) etc. are set to 1e-18
 
 
-    P_eps = jnp.eye(M_sum) * 1e-1
+    P_eps = jnp.eye(M_sum) * 0.0 
 
     P0 = block_diag(P_GW, P_spin, P_eps)
 
-    return x0, P0
+    return P0
+
+
 
 def _priors(Npsr,M_sum):
 
@@ -134,9 +136,10 @@ def _priors(Npsr,M_sum):
     σp = numpyro.sample("σp", dist.LogUniform(1e-16, 1e-11),sample_shape=(Npsr,))
 
     #Timing model noise parameters
-    #These are states which are tracked. We set σeps to a constant value by hand
-    known_σeps = jnp.ones(M_sum) * 1e-10
-    σeps = numpyro.deterministic("σeps", known_σeps)
+    #These are states which are tracked.
+    x0_timing_std = 1e-7
+    x0_timing = numpyro.sample("x0_timing", dist.Normal(0., x0_timing_std), sample_shape=(M_sum,))
+
     
     #Measurement noise parameters
     EFAC = numpyro.sample("EFAC", dist.Uniform(0.5, 2),sample_shape=(Npsr,))
@@ -149,7 +152,7 @@ def _priors(Npsr,M_sum):
         ha=ha,
         γp=γp,
         σp=σp,
-        σeps=σeps,
+        x0_timing=x0_timing,
         EFAC=EFAC,
     EQUAD=EQUAD
     )
@@ -174,13 +177,12 @@ def jax_parameter_estimation():
     model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
 
 
-    x0,P0 = _initialize_kalman_filter(model.nx,model.Npsr,model.M_sum) #this could go inside the model class....
+    P0 = _initialize_kalman_filter_covariance(model.nx,model.Npsr,model.M_sum) #this could go inside the model class....
 
 
     KF = jax_kalman_filter.JaxScalarKalmanFilter(
         model=model, 
         observations=processed_pulsar_residuals, 
-        x0=x0, 
         P0=P0
     )
 
@@ -222,8 +224,8 @@ def jax_parameter_estimation():
     # Run MCMC
 
     
-    sa_kernel = SA(numpyro_model)
-    mcmc = MCMC(sa_kernel, num_samples=1000, num_warmup=500, num_chains=4, progress_bar=True)
+    nuts_kernel = NUTS(numpyro_model)
+    mcmc = MCMC(nuts_kernel, num_samples=1000, num_warmup=500, num_chains=4, progress_bar=True)
     rng_key   = random.PRNGKey(0)
     print("Starting MCMC")
     mcmc.run(rng_key, kf=KF)

@@ -81,9 +81,14 @@ def _compute_sigma_matrix(h2, γa, Γ):
 
 @jax.named_call
 @partial(jax.jit, static_argnames=('Npsr', 'M_sum', 'dim_x'))
-def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr, M_sum,hellings_downs_matrix, dt_array, x0, P0, dim_x):
+def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr, M_sum,hellings_downs_matrix, dt_array, P0, dim_x):
     """Run the Kalman filter algorithm over all observations and return a log likelihood.
     """
+
+    #Set x0
+    x0= jnp.concatenate([jnp.zeros(Npsr * 4), θ.x0_timing]).reshape(-1, 1) 
+
+
     σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
     
     # Precompute the R matrix for this parameter set and these data errors.
@@ -95,6 +100,7 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
     x, P, y, S = _update(xp=x0, Pp=P0, H=H, R=R_matrices[0], z=data[0])
     ll0 = _log_likelihood(y, S)
         
+    @jax.checkpoint #Trade a bit of speed for memory efficiency
     def step(carry, inputs):
         x, P = carry
         dt_idx, z, R, H = inputs
@@ -139,7 +145,7 @@ class JaxScalarKalmanFilter:
         P0: The uncertainty in the guess of P0
     """
 
-    def __init__(self, model, observations: np.ndarray, x0: np.ndarray, P0: np.ndarray, **kwargs):
+    def __init__(self, model, observations: np.ndarray, P0: np.ndarray, **kwargs):
         """Initialize the class."""
         if observations.ndim != 2:
             raise ValueError("observations must be a 2D array")
@@ -152,7 +158,6 @@ class JaxScalarKalmanFilter:
         
         self.model = model
         self.observations = observations
-        self.x0 = x0
         self.P0 = P0
 
         # Extract the observations into separate arrays
@@ -184,7 +189,6 @@ class JaxScalarKalmanFilter:
         self.jax_t_diffs      = jnp.array(self.t_diffs)
         
         # Convert initial state and covariance
-        self.jax_x0          = jnp.array(self.x0.reshape(-1, 1))
         self.jax_P0          = jnp.array(self.P0)
         
         # Convert H matrices
@@ -209,7 +213,6 @@ class JaxScalarKalmanFilter:
             M_sum=self.model.M_sum,
             hellings_downs_matrix=self.hellings_downs_matrix,
             dt_array=self.jax_t_diffs,
-            x0=self.jax_x0,
             P0=self.jax_P0,
             dim_x=2*self.model.Npsr
         ) 
