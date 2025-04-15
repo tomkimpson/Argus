@@ -135,7 +135,7 @@ def _priors(Npsr,M_sum):
 
     #Timing model noise parameters
     #These are states which are tracked. We set σeps to a constant value by hand
-    known_σeps = jnp.ones(M_sum) * 1e-12
+    known_σeps = jnp.ones(M_sum) * 1e-10
     σeps = numpyro.deterministic("σeps", known_σeps)
     
     #Measurement noise parameters
