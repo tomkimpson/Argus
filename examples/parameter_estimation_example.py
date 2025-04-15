@@ -18,7 +18,11 @@ from numpyro.infer import Predictive # Import Predictive
 from numpyro import handlers
 import arviz as az
 
+
+
+
 # Configure JAX
+#jax.config.update('jax_platform_name', 'cpu') #Force JAX to use CPU only. useful when debuggin on NT.
 jax.config.update("jax_enable_x64", True)
 numpyro.set_platform(jax.default_backend())
 numpyro.set_host_device_count(len(jax.devices()))
@@ -179,7 +183,8 @@ def jax_parameter_estimation():
 
     P0 = _initialize_kalman_filter_covariance(model.nx,model.Npsr,model.M_sum) #this could go inside the model class....
 
-
+    print("Initializing the Kalman filter")
+    #def __init__(self, model, observations: np.ndarray, P0: np.ndarray, **kwargs):
     KF = jax_kalman_filter.JaxScalarKalmanFilter(
         model=model, 
         observations=processed_pulsar_residuals, 

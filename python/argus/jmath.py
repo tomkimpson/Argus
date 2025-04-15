@@ -86,7 +86,7 @@ def get_Q_spin(gamma, dt,sigma_p):
     return block_diag(*res)
 
 @partial(jax.jit, static_argnums=(5,6))
-def get_Q(gamma,σa2, gamma_spin,σp2, dt, Npsr, M_sum, eps):
+def get_Q(gamma,σa2, gamma_spin,σp2, dt, Npsr, M_sum):
     """Get process noise matrices using JAX."""
     Q_gw_block = get_Q_block(gamma, dt)
     Q_gw = jnp.kron(σa2, Q_gw_block)
@@ -215,7 +215,7 @@ def F_matrices_non_precomputed(gamma_a: float,
 
 
 @partial(jax.jit, static_argnums=(5, 6))
-def Q_matrices_non_precomputed(gamma_a, σa2, gamma_p, σp2, dt_array, Npsr, M_sum, eps):
+def Q_matrices_non_precomputed(gamma_a, σa2, gamma_p, σp2, dt_array, Npsr, M_sum):
     """Precompute Q matrices for a single timestep only.
     
     Args:
@@ -233,7 +233,7 @@ def Q_matrices_non_precomputed(gamma_a, σa2, gamma_p, σp2, dt_array, Npsr, M_s
         tuple: (Q_gw_matrix, Q_spin_matrix, Q_timing_matrix) for the single timestep
     """
     # Get Q matrices for a single dt (not vectorized)
-    Q_gw, Q_spin, Q_timing = get_Q(gamma_a, σa2, gamma_p, σp2, dt_array, Npsr, M_sum, eps)
+    Q_gw, Q_spin, Q_timing = get_Q(gamma_a, σa2, gamma_p, σp2, dt_array, Npsr, M_sum)
     return Q_gw, Q_spin, Q_timing
 
 

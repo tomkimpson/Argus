@@ -10,4 +10,5 @@
 
 source ~/.bashrc
 conda activate Argus
+export PYTHONPATH="/fred/oz022/tkimpson/tmp/Argus/python:${PYTHONPATH}"
 time python parameter_estimation_example.py

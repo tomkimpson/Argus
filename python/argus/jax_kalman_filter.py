@@ -113,7 +113,7 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
         F_gw, F_spin = F_matrices_non_precomputed(θ.γa, θ.γp, dt, Npsr, M_sum)
         F = (F_gw, F_spin)
         
-        Q_gw, Q_spin, Q_timing =Q_matrices_non_precomputed(θ.γa, σa2, θ.γp, θ.σp**2, dt, Npsr, M_sum, θ.σeps)
+        Q_gw, Q_spin, Q_timing =Q_matrices_non_precomputed(θ.γa, σa2, θ.γp, θ.σp**2, dt, Npsr, M_sum)
         Q = (Q_gw, Q_spin, Q_timing)
 
 
@@ -141,7 +141,6 @@ class JaxScalarKalmanFilter:
     Args:
         model: Class which defines all the Kalman machinery e.g. state transition models, covariance matrices etc.
         observations: 2D array which holds the noisy observations recorded at the detector
-        x0: A 1D array which holds the initial guess of the initial states
         P0: The uncertainty in the guess of P0
     """
 
@@ -153,9 +152,7 @@ class JaxScalarKalmanFilter:
         if observations.shape[1] != 4:
             raise ValueError("observations must have 4 columns: time, data, errors, psr_indices")
             
-        if x0.shape[0] != P0.shape[0] or P0.shape[0] != P0.shape[1]:
-            raise ValueError("Inconsistent dimensions between x0 and P0")
-        
+        print("Using the development version of the Kalman filter")
         self.model = model
         self.observations = observations
         self.P0 = P0
