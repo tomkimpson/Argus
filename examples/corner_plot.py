@@ -2,10 +2,13 @@ import arviz as az
 import matplotlib.pyplot as plt
 import numpy as np
 import corner
-
+import sys
 # Load the netCDF file
 # Replace 'your_file.nc' with the actual path to your netCDF file
-data = az.from_netcdf('outputs/parameter_estimation_results_example_20250414_184729.nc')
+
+data_file = sys.argv[1]
+
+data = az.from_netcdf(data_file)
 
 # Print information about the dataset
 print("\nDataset information:")

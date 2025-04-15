@@ -223,7 +223,7 @@ def jax_parameter_estimation():
 
     
     sa_kernel = SA(numpyro_model)
-    mcmc = MCMC(sa_kernel, num_samples=1000, num_warmup=500, num_chains=1, progress_bar=True)
+    mcmc = MCMC(sa_kernel, num_samples=1000, num_warmup=500, num_chains=4, progress_bar=True)
     rng_key   = random.PRNGKey(0)
     print("Starting MCMC")
     mcmc.run(rng_key, kf=KF)

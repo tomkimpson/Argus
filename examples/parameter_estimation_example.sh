@@ -4,7 +4,7 @@
 #SBATCH --output=parameter_estimation_example_output.txt
 #SBATCH --export=ALL 
 #SBATCH --gres=gpu:1
-#SBATCH --time=4:0:00 
+#SBATCH --time=6:0:00 
 #SBATCH --mem=10G
 
 
