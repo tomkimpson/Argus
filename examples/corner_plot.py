@@ -14,6 +14,23 @@ data = az.from_netcdf(data_file)
 print("\nDataset information:")
 print(data)
 
+
+# Get summary including R-hat
+summary_df = az.summary(data)
+print(summary_df)
+
+
+
+
+rhat_values = az.rhat(data)
+print(rhat_values)
+
+
+
+
+print("Sample stats:")
+print(data.sample_stats)
+
 # Print available variables
 print("\nAvailable variables:")
 print(data.posterior.data_vars)
