@@ -289,30 +289,11 @@ def benchmark_jax_parameter_estimation():
     mcmc.print_summary()  # Posterior estimates
 
 
+    print("Completed. Saving results to disk...")
 
 
-    # # Guess of the model parameters
-    # # See notebooks/PSD_for_OU_process.ipynb for discussion on the parameter values
-    # params = Parameters(
-    #     #GW parameters
-    #     γa=1e-9,
-    #     ha=1e-12,
-
-    #     #Spin parameters
-    #     γp=jnp.ones(model.Npsr) * 1e-8, #1/year timescale. Assumed the same for all pulsars
-    #     σp=jnp.ones(model.Npsr) * 1e-14, #For now, assume the same noise for all pulsars
-
-    #     #Timing model noise parameters
-    #     σeps=jnp.ones(model.M_sum) * 1e-12, #TBD a good value for the timing model noise. There are some rough estimates in data_loader.py, but not sure how accurate they are.
-
-    #     #Measurement noise parameters
-    #     EFAC=jnp.ones(model.Npsr),
-    #     EQUAD=jnp.ones(model.Npsr) * (-6.7)
-    # )
-
-
-
-
+    inf_data = az.from_numpyro(mcmc)
+    inf_data.to_netcdf("outputs/parameter_estimation_results_example.nc")
 
 
 

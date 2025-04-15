@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from argus.jmath import precompute_R_matrices,compute_predicted_covariance,compute_predicted_state,precompute_Q_matrices_non_vectorised,precompute_F_matrices_non_vectorised
+from argus.jmath import F_matrices_non_precomputed, Q_matrices_non_precomputed,precompute_R_matrices,compute_predicted_covariance,compute_predicted_state
 from functools import partial
 import jax
 import jax.numpy as jnp
@@ -40,9 +40,7 @@ def _predict(x: jax.Array, P: jax.Array, F_list: tuple, Q_list: tuple, dim_x: in
     xp = compute_predicted_state(F_list, x, dim_x, dim_x)
     Pp = compute_predicted_covariance(P,F_list,Q_list,dim_x,dim_x)
 
-    Pp = 0.5 * (Pp + Pp.T)  # Symmetrize
-   # Pp += 1e-12 * jnp.eye(Pp.shape[0])  # Regularize
-    
+    Pp = 0.5 * (Pp + Pp.T)  # Symmetrize    
     return xp, Pp
 
 
@@ -61,19 +59,10 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
         tuple: (updated state, updated covariance, innovation, innovation covariance)
     """
     y = z - H @ xp                                  
-    S = H @ Pp @ H.T + R                           
-
-    # Check if innovation covariance is negative and raise error if it is
-    # jax.lax.cond(
-    #     S[0,0] <= 0,
-    #     lambda _: jax.debug.breakpoint(),
-    #     lambda _: None,
-    #     operand=None
-    # )
-    
+    S = H @ Pp @ H.T + R                               
     K = Pp @ H.T / S                               
     x = xp + K * y                                 
-    #P = (jnp.eye(len(xp)) - K @ H) @ Pp    
+ 
 
     #Following FilterPy https://github.com/rlabbe/filterpy/blob/master/filterpy/kalman/EKF.py by using
     #Joseph form for numerically stable update of the covariance matrix
@@ -94,16 +83,11 @@ def _compute_sigma_matrix(h2, γa, Γ):
 @partial(jax.jit, static_argnames=('Npsr', 'M_sum', 'dim_x'))
 def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr, M_sum,hellings_downs_matrix, dt_array, x0, P0, dim_x):
     """Run the Kalman filter algorithm over all observations and return a log likelihood.
-    
-    TK: Regarding the commented out F and Q matrices, I am still undecided whether to precompute them or not.
-    Computing them on the fly is more memory efficient, but precomputing them might be faster.
-    We are hitting some memory issues when we try to run with NUTS and construct the AD Jacobian, so for now we precompute them.
     """
     σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
     
-    # Precompute all matrices for this parameter set
-    #F_matrices = precompute_F_matrices(θ.γa, θ.γp, dt_array, Npsr, M_sum)
-    #Q_matrices = precompute_Q_matrices(θ.γa,σa2, θ.γp,θ.σp**2, dt_array, Npsr, M_sum, θ.σeps)
+    # Precompute the R matrix for this parameter set and these data errors.
+    # Note: for the sake of memory efficiency, we do not precompute the F/Q matrices here.
     R_matrices = precompute_R_matrices(data_errors,θ.EFAC, θ.EQUAD, psr_indices)
 
     # First update
@@ -117,22 +101,13 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
 
         # Get dt for this step and precompute matrices just for this step
         dt = dt_array[dt_idx]
-        # # Get precomputed matrices for this timestep
-        # F_gw_at_timestep = F_matrices[0][dt_idx]
-        # F_spin_at_timestep = F_matrices[1][dt_idx]
-        # F = (F_gw_at_timestep, F_spin_at_timestep)
-
-        # Q_gw_at_timestep = Q_matrices[0][dt_idx]
-        # Q_spin_at_timestep = Q_matrices[1][dt_idx]
-        # Q_timing_at_timestep = Q_matrices[2][dt_idx]
-        # Q = (Q_gw_at_timestep, Q_spin_at_timestep, Q_timing_at_timestep)
 
 
         # Compute F and Q matrices for this specific timestep only
-        F_gw, F_spin = precompute_F_matrices_non_vectorised(θ.γa, θ.γp, dt, Npsr, M_sum)
+        F_gw, F_spin = F_matrices_non_precomputed(θ.γa, θ.γp, dt, Npsr, M_sum)
         F = (F_gw, F_spin)
         
-        Q_gw, Q_spin, Q_timing = precompute_Q_matrices_non_vectorised(θ.γa, σa2, θ.γp, θ.σp**2, dt, Npsr, M_sum, θ.σeps)
+        Q_gw, Q_spin, Q_timing =Q_matrices_non_precomputed(θ.γa, σa2, θ.γp, θ.σp**2, dt, Npsr, M_sum, θ.σeps)
         Q = (Q_gw, Q_spin, Q_timing)
 
 
