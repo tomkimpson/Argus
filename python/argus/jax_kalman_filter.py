@@ -76,7 +76,7 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
 
 
 def _compute_sigma_matrix(h2, γa, Γ):
-    return (h2 / 6) * γa * Γ
+    return (h2 / 12) * γa * Γ
 
 
 @jax.named_call
@@ -84,6 +84,9 @@ def _compute_sigma_matrix(h2, γa, Γ):
 def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr, M_sum,hellings_downs_matrix, dt_array, x0, P0, dim_x):
     """Run the Kalman filter algorithm over all observations and return a log likelihood.
     """
+
+
+
     σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
     
     # Precompute the R matrix for this parameter set and these data errors.
@@ -175,23 +178,38 @@ class JaxScalarKalmanFilter:
 
 
 
-    def _prepare_jax_arrays(self):
-        """Convert numpy arrays to JAX arrays."""
+    def _prepare_jax_arrays(self): 
+        """Convert numpy arrays to JAX arrays and verify they are 64-bit."""
         # Convert observations and related data
-        self.jax_data         = jnp.array(self.data)
-        self.jax_data_errors  = jnp.array(self.data_errors)
-        self.jax_psr_indices  = jnp.array(self.psr_indices)
-        self.jax_t_diffs      = jnp.array(self.t_diffs)
+        self.jax_data = jnp.array(self.data)
+        self.jax_data_errors = jnp.array(self.data_errors)
+        self.jax_psr_indices = jnp.array(self.psr_indices)
+        self.jax_t_diffs = jnp.array(self.t_diffs)
         
         # Convert initial state and covariance
-        self.jax_x0          = jnp.array(self.x0.reshape(-1, 1))
-        self.jax_P0          = jnp.array(self.P0)
+        self.jax_x0 = jnp.array(self.x0.reshape(-1, 1))
+        self.jax_P0 = jnp.array(self.P0)
         
         # Convert H matrices
-        self.jax_H_matrices  = jnp.array([h for h in self.model.H_matrix_list])
+        self.jax_H_matrices = jnp.array([h for h in self.model.H_matrix_list])
 
         # Convert hellings downs matrix
         self.hellings_downs_matrix = jnp.array(self.model.hd_correlation_matrix)
+
+        # Verify all floating-point arrays are 64-bit
+        float_arrays = [
+            ('jax_data', self.jax_data),
+            ('jax_data_errors', self.jax_data_errors),
+            ('jax_t_diffs', self.jax_t_diffs),
+            ('jax_x0', self.jax_x0),
+            ('jax_P0', self.jax_P0),
+            ('jax_H_matrices', self.jax_H_matrices),
+            ('hellings_downs_matrix', self.hellings_downs_matrix)
+        ]
+        
+        for name, arr in float_arrays:
+            if arr.dtype != jnp.float64:
+                raise ValueError(f"{name} is {arr.dtype}, expected {jnp.float64}. The Kalman filter requires floats at standard precision for numerical stability.")
 
 
 
