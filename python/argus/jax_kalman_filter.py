@@ -40,7 +40,10 @@ def _predict(x: jax.Array, P: jax.Array, F_list: tuple, Q_list: tuple, dim_x: in
     xp = compute_predicted_state(F_list, x, dim_x, dim_x)
     Pp = compute_predicted_covariance(P,F_list,Q_list,dim_x,dim_x)
 
-    Pp = 0.5 * (Pp + Pp.T)  # Symmetrize    
+    Pp = 0.5 * (Pp + Pp.T)  # Symmetrize   
+
+    dim_P = Pp.shape[0]
+    Pp = Pp + jnp.eye(dim_P)*1e-16
     return xp, Pp
 
 
@@ -97,14 +100,15 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
     H = H_matrices[0]
     x, P, y, S = _update(xp=x0, Pp=P0, H=H, R=R_matrices[0], z=data[0])
     ll0 = _log_likelihood(y, S)
-        
+    #jax.debug.print('ll0: {ll0},S: {S}', ll0=ll0,S=S,ordered=True)
+    
     def step(carry, inputs):
         x, P = carry
         dt_idx, z, R, H = inputs
 
         # Get dt for this step and precompute matrices just for this step
         dt = dt_array[dt_idx]
-
+        #jax.debug.print('The time spacing dt: {dt} hours', dt=dt/(60*60),ordered=True)
 
         # Compute F and Q matrices for this specific timestep only
         F_gw, F_spin = F_matrices_non_precomputed(θ.γa, θ.γp, dt, Npsr, M_sum)
@@ -117,6 +121,7 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
         x_predict, P_predict = _predict(x, P, F, Q, dim_x)
         x_new, P_new, y, S = _update(x_predict, P_predict, H, R, z)
         ll = _log_likelihood(y, S)
+        #jax.debug.print('Step {dt_idx}, likelihood: {ll},S: {S}', dt_idx=dt_idx,ll=ll,S=S,ordered=True)
         
         return (x_new, P_new), ll
 
