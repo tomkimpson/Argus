@@ -40,7 +40,10 @@ def _predict(x: jax.Array, P: jax.Array, F_list: tuple, Q_list: tuple, dim_x: in
     xp = compute_predicted_state(F_list, x, dim_x, dim_x)
     Pp = compute_predicted_covariance(P,F_list,Q_list,dim_x,dim_x)
 
-    Pp = 0.5 * (Pp + Pp.T)  # Symmetrize    
+    Pp = 0.5 * (Pp + Pp.T)  # Symmetrize   
+
+    dim_P = Pp.shape[0]
+    Pp = Pp + jnp.eye(dim_P)*1e-16
     return xp, Pp
 
 
@@ -76,7 +79,7 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
 
 
 def _compute_sigma_matrix(h2, γa, Γ):
-    return (h2 / 6) * γa * Γ
+    return (h2 / 12) * γa * Γ
 
 
 @jax.named_call
@@ -84,6 +87,9 @@ def _compute_sigma_matrix(h2, γa, Γ):
 def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr, M_sum,hellings_downs_matrix, dt_array, x0, P0, dim_x):
     """Run the Kalman filter algorithm over all observations and return a log likelihood.
     """
+
+
+
     σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
     
     # Precompute the R matrix for this parameter set and these data errors.
@@ -94,14 +100,15 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
     H = H_matrices[0]
     x, P, y, S = _update(xp=x0, Pp=P0, H=H, R=R_matrices[0], z=data[0])
     ll0 = _log_likelihood(y, S)
-        
+    #jax.debug.print('ll0: {ll0},S: {S}', ll0=ll0,S=S,ordered=True)
+    
     def step(carry, inputs):
         x, P = carry
         dt_idx, z, R, H = inputs
 
         # Get dt for this step and precompute matrices just for this step
         dt = dt_array[dt_idx]
-
+        #jax.debug.print('The time spacing dt: {dt} hours', dt=dt/(60*60),ordered=True)
 
         # Compute F and Q matrices for this specific timestep only
         F_gw, F_spin = F_matrices_non_precomputed(θ.γa, θ.γp, dt, Npsr, M_sum)
@@ -114,6 +121,7 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
         x_predict, P_predict = _predict(x, P, F, Q, dim_x)
         x_new, P_new, y, S = _update(x_predict, P_predict, H, R, z)
         ll = _log_likelihood(y, S)
+        #jax.debug.print('Step {dt_idx}, likelihood: {ll},S: {S}', dt_idx=dt_idx,ll=ll,S=S,ordered=True)
         
         return (x_new, P_new), ll
 
@@ -175,23 +183,38 @@ class JaxScalarKalmanFilter:
 
 
 
-    def _prepare_jax_arrays(self):
-        """Convert numpy arrays to JAX arrays."""
+    def _prepare_jax_arrays(self): 
+        """Convert numpy arrays to JAX arrays and verify they are 64-bit."""
         # Convert observations and related data
-        self.jax_data         = jnp.array(self.data)
-        self.jax_data_errors  = jnp.array(self.data_errors)
-        self.jax_psr_indices  = jnp.array(self.psr_indices)
-        self.jax_t_diffs      = jnp.array(self.t_diffs)
+        self.jax_data = jnp.array(self.data)
+        self.jax_data_errors = jnp.array(self.data_errors)
+        self.jax_psr_indices = jnp.array(self.psr_indices)
+        self.jax_t_diffs = jnp.array(self.t_diffs)
         
         # Convert initial state and covariance
-        self.jax_x0          = jnp.array(self.x0.reshape(-1, 1))
-        self.jax_P0          = jnp.array(self.P0)
+        self.jax_x0 = jnp.array(self.x0.reshape(-1, 1))
+        self.jax_P0 = jnp.array(self.P0)
         
         # Convert H matrices
-        self.jax_H_matrices  = jnp.array([h for h in self.model.H_matrix_list])
+        self.jax_H_matrices = jnp.array([h for h in self.model.H_matrix_list])
 
         # Convert hellings downs matrix
         self.hellings_downs_matrix = jnp.array(self.model.hd_correlation_matrix)
+
+        # Verify all floating-point arrays are 64-bit
+        float_arrays = [
+            ('jax_data', self.jax_data),
+            ('jax_data_errors', self.jax_data_errors),
+            ('jax_t_diffs', self.jax_t_diffs),
+            ('jax_x0', self.jax_x0),
+            ('jax_P0', self.jax_P0),
+            ('jax_H_matrices', self.jax_H_matrices),
+            ('hellings_downs_matrix', self.hellings_downs_matrix)
+        ]
+        
+        for name, arr in float_arrays:
+            if arr.dtype != jnp.float64:
+                raise ValueError(f"{name} is {arr.dtype}, expected {jnp.float64}. The Kalman filter requires floats at standard precision for numerical stability.")
 
 
 
