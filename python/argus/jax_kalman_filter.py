@@ -42,11 +42,17 @@ def _predict(x: jax.Array, P: jax.Array, F_list: tuple, Q_list: tuple, dim_x: in
     
 
     Pp = compute_predicted_covariance(P,F_list,Q_list,dim_x,dim_x)
+      
+
+    #evals, _ = jnp.linalg.eigh(Pp)
+    #min_eigenvalue = jnp.min(evals)
+    #jax.debug.print("Min eigenvalue of Pp = {min_eval}",min_eval=min_eigenvalue)
+
 
     Pp = 0.5 * (Pp + Pp.T)  # Symmetrize   
-
-    #dim_P = Pp.shape[0]
-    #Pp = Pp + jnp.eye(dim_P)*1e-16
+    dim_P = Pp.shape[0]
+    Pp = Pp + jnp.eye(dim_P)*1e-16
+    
     return xp, Pp
 
 
@@ -124,7 +130,7 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
      
         x_new, P_new, y, S = _update(x_predict, P_predict, H, R, z)
         ll = _log_likelihood(y, S)
-        #jax.debug.print('Step {dt_idx}, likelihood: {ll},S: {S}', dt_idx=dt_idx,ll=ll,S=S,ordered=True)
+        #jax.debug.print('Step {dt_idx}, dt in days {dt}, likelihood: {ll},S: {S}', dt_idx=dt_idx,dt=dt/(24*60*60) ,ll=ll,S=S,ordered=True)
         
         return (x_new, P_new), ll
 
