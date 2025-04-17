@@ -37,13 +37,16 @@ def _predict(x: jax.Array, P: jax.Array, F_list: tuple, Q_list: tuple, dim_x: in
     -------
         tuple: (predicted state, predicted covariance)
     """
+
     xp = compute_predicted_state(F_list, x, dim_x, dim_x)
+    
+
     Pp = compute_predicted_covariance(P,F_list,Q_list,dim_x,dim_x)
 
     Pp = 0.5 * (Pp + Pp.T)  # Symmetrize   
 
-    dim_P = Pp.shape[0]
-    Pp = Pp + jnp.eye(dim_P)*1e-16
+    #dim_P = Pp.shape[0]
+    #Pp = Pp + jnp.eye(dim_P)*1e-16
     return xp, Pp
 
 
@@ -105,20 +108,20 @@ def _run_kalman_filter_scan(θ, data, data_errors, psr_indices, H_matrices, Npsr
     def step(carry, inputs):
         x, P = carry
         dt_idx, z, R, H = inputs
-
         # Get dt for this step and precompute matrices just for this step
         dt = dt_array[dt_idx]
-        #jax.debug.print('The time spacing dt: {dt} hours', dt=dt/(60*60),ordered=True)
+
 
         # Compute F and Q matrices for this specific timestep only
         F_gw, F_spin = F_matrices_non_precomputed(θ.γa, θ.γp, dt, Npsr, M_sum)
         F = (F_gw, F_spin)
         
-        Q_gw, Q_spin, Q_timing =Q_matrices_non_precomputed(θ.γa, σa2, θ.γp, θ.σp**2, dt, Npsr, M_sum, θ.σeps)
-        Q = (Q_gw, Q_spin, Q_timing)
+        Q_gw, Q_spin =Q_matrices_non_precomputed(θ.γa, σa2, θ.γp, θ.σp**2, dt)
+        Q = (Q_gw, Q_spin)
 
-
+     
         x_predict, P_predict = _predict(x, P, F, Q, dim_x)
+     
         x_new, P_new, y, S = _update(x_predict, P_predict, H, R, z)
         ll = _log_likelihood(y, S)
         #jax.debug.print('Step {dt_idx}, likelihood: {ll},S: {S}', dt_idx=dt_idx,ll=ll,S=S,ordered=True)
@@ -172,6 +175,7 @@ class JaxScalarKalmanFilter:
         self.t_diffs = np.diff(self.toa)
 
         assert np.isscalar(self.data[0])
+        print("Total number of observations: ", len(self.data))
 
         # Precompute the observation matrices and assign them to model.H_matrix_list
         self.model.precompute_H_matrix(self.psr_indices)
