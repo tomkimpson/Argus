@@ -164,11 +164,11 @@ assert len(sigma_p_injected) == len(gamma_p_injected) == len(pulsar_metadata)
 
 
 
-#delta = 1e-3
-ha = 1e-15
+delta = 1e-3
+#ha = 1e-15
 
-for delta in [1e-3,1e-6]:
-    for γa in [1e-6,1e-9,1e-12]:
+for ha in [1e-12,1e-15]:
+    for γa in [1e-6,1e-9,1e-12,1e-15]:
 
         #Calculate P0 based on the maximum value of the design matrix, and a delta tolerance
         model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
@@ -212,5 +212,5 @@ for delta in [1e-3,1e-6]:
 
         print("Starting likelihood calculation")
         ll = KF.get_likelihood(params)
-        print("delta/gamma/likelihood:",delta,γa,ll)
+        print("delta/gamma/ha/likelihood:",delta,γa,ha,ll)
 

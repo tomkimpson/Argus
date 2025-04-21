@@ -238,9 +238,6 @@ class JaxKalmanFilter:
                 raise ValueError(f"{name} is {arr.dtype}, expected {jnp.float64}. The Kalman filter requires floats at standard precision for numerical stability.")
 
 
-
-
-
     def get_likelihood(self, θ):
         """Run the Kalman filter algorithm over all observations and return a log likelihood."""
         return _run_kalman_filter_scan(
