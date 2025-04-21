@@ -69,6 +69,11 @@ def _get_processed_residuals(directory):
     hd_correlation_matrix = gravitational_waves.hellings_downs(angular_separation_matrix)
 
     # Post-process the residuals
+
+
+
+
+    
     processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.post_process_residuals(pulsar_residuals)
 
     print("Total length of the data is ", len(processed_pulsar_residuals))
@@ -163,58 +168,51 @@ assert len(sigma_p_injected) == len(gamma_p_injected) == len(pulsar_metadata)
 
 
 
+for delta in [1e-3,1e-6,1e-9]:
+    for γa in [1e-6,1e-9,1e-12]:
+        for ha in [1e-12,1e-15]:
+            #Calculate P0 based on the maximum value of the design matrix, and a delta tolerance
+            model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
 
 
+            #delta = 1e-3 #milliseconds
+            P0 = [delta**2  / np.max(pulsar_design_matrices[i],axis=0)**2 for i in range(len(pulsar_design_matrices))]
+
+            for i in range(len(P0)):
+                assert len(P0[i]) == model.M[i]
+
+            P0 = np.concatenate(P0)
+            assert len(P0) == model.M_sum
 
 
+            #Initialize the model
+            x_init,P_init = _initialize_kalman_filter(model.nx,model.Npsr,P0) #this could go inside the model class....
+
+            print("Initial covariance matrix is ",P_init)
+            KF = jax_kalman_filter.JaxKalmanFilter(
+                model=model, 
+                observations=processed_pulsar_residuals, 
+                x0=x_init, 
+                P0=P_init
+            )
 
 
+            #Set the parameters
+            params = Parameters(
+                #GW parameters
+                γa=γa,
+                ha=ha,
 
+                #Spin parameters
+                γp=gamma_p_injected,
+                σp=sigma_p_injected,
 
-deltas = [1e-3,1e-6,1e-9]
-gammas = [1e-6,1e-9,1e-12]
-for d in deltas:
-    for g in gammas:
-        #Calculate P0 based on the maximum value of the design matrix, and a delta tolerance
-        model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
-        delta = d #milliseconds
-        P0 = [delta**2  / np.max(pulsar_design_matrices[i],axis=0)**2 for i in range(len(pulsar_design_matrices))]
+                #Measurement noise parameters
+                EFAC=efac_array,
+                EQUAD=equad_array
+            )
 
-        for i in range(len(P0)):
-            assert len(P0[i]) == model.M[i]
-
-        P0 = np.concatenate(P0)
-        assert len(P0) == model.M_sum
-
-
-        #Initialize the model
-        x_init,P_init = _initialize_kalman_filter(model.nx,model.Npsr,P0) #this could go inside the model class....
-
-        print("Initial covariance matrix is ",P_init)
-        KF = jax_kalman_filter.JaxScalarKalmanFilter(
-            model=model, 
-            observations=processed_pulsar_residuals, 
-            x0=x_init, 
-            P0=P_init
-        )
-
-
-        #Set the parameters
-        params = Parameters(
-            #GW parameters
-            γa=g,
-            ha=1e-12,
-
-            #Spin parameters
-            γp=gamma_p_injected,
-            σp=sigma_p_injected,
-
-            #Measurement noise parameters
-            EFAC=efac_array,
-            EQUAD=equad_array
-        )
-
-        print("Starting likelihood calculation")
-        ll = KF.get_likelihood(params)
-        print(d,g,ll)
+            print("Starting likelihood calculation")
+            ll = KF.get_likelihood(params)
+            print(delta,γa,ha,ll)
 

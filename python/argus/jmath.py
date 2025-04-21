@@ -173,14 +173,20 @@ def compute_predicted_covariance(P: jax.Array,
 
 
 @jax.jit
-def precompute_R_matrices(σ: jax.Array, EFAC: jax.Array, EQUAD: jax.Array, psr_indices: int) -> jax.Array:
+def precompute_R_matrices(σ: jax.Array, EFAC: jax.Array, EQUAD: jax.Array) -> jax.Array:
     """Build the measurement-noise covariance matrix R for the pulsars observed at a given epoch.
 
     For pulsar n, the measurement noise variance is (σt[n])².
     Currently, this method returns a scalar
     or a per-pulsar value.
     """
-    return jnp.square(σ* EFAC[psr_indices]) + jnp.square(EQUAD[psr_indices])
+
+
+   # Calculate all diagonal elements for all observations using broadcasting
+    diagonals = jnp.square(EFAC * σ ) + jnp.square(EQUAD) # Shape: (Nobs, ny)
+    R = jax.vmap(jnp.diag)(diagonals)
+    #jax.debug.print('R.shape: {shape}',shape=R.shape,ordered=True)
+    return R
 
 
 

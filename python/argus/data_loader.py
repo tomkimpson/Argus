@@ -154,60 +154,71 @@ class LoadWidebandPulsarData:
         return sep_rad
 
     @staticmethod
-    def post_process_residuals(residuals_data: pd.DataFrame) -> np.ndarray:
-        """Post-process residuals data to extract the non-NaN residuals and their indices.
-           
-        TK note: I am sure there is a better way to do this.
+    def post_process_residuals(list_of_dfs):
+        """Post-process the residuals from a list of DataFrames.
 
-        Parameters
-        ----------
-        residuals_data : pd.DataFrame
-            DataFrame containing residuals data for multiple pulsars.
+        This function takes a list of DataFrames, each expected to have the same shape
+        and contain 'toas', 'residuals', and 'error' columns. It calculates the
+        average 'toas' across all DataFrames and collects the 'residuals' and 'error'
+        values into matrices.
 
-        Returns
-        -------
-        np.ndarray
-            A 2D array containing the non-NaN residuals and their corresponding pulsar indices.
+        Args:
+            list_of_dfs: A list of pandas DataFrames. Each DataFrame must have
+                         the same shape and contain the columns 'toas', 'residuals',
+                         and 'error'.
 
+        Returns:
+            A tuple containing three NumPy arrays:
+            - average_toas_array: 1D array of average TOAs across all input
+                                  DataFrames for each row index (shape: nrows).
+            - residuals_array: 2D array where each column corresponds to the
+                               'residuals' from one input DataFrame
+                               (shape: nrows x num_dfs).
+            - errors_array: 2D array where each column corresponds to the
+                            'error' from one input DataFrame
+                            (shape: nrows x num_dfs).
+
+        Raises:
+            ValueError: If the input list `list_of_dfs` is empty.
+            ValueError: If not all DataFrames in the list have the same shape.
+            ValueError: If any DataFrame is missing one of the required columns
+                        ('toas', 'residuals', 'error').
         """
-        # 1. Select the residuals and errors columns
-        residual_columns = [
-            col for col in residuals_data.columns if col.startswith("residuals_")
-        ]
-        error_columns = [
-            col for col in residuals_data.columns if col.startswith("error_")
-        ]
-        row_indices = np.arange(len(residuals_data))  # 0,1,2,... up to len(df)-1
+        # --- Input Validation ---
+        if not list_of_dfs:
+            raise ValueError("Input list of DataFrames cannot be empty.")
 
-        # 2. Extract the numeric part of the column name.
-        ##  e.g. "residuals_3" -> 3
-        subscript_list = [int(col.split("_")[-1]) for col in residual_columns]
+        # Check shapes consistency
+        first_shape = list_of_dfs[0].shape
+        if not all(df.shape == first_shape for df in list_of_dfs):
+             raise ValueError("All DataFrames in the list must have the same shape.")
 
-        # 3. Create a mask to identify non-NaN values in the selected columns. Mask is a DataFrame of booleans.
-        mask = ~residuals_data[residual_columns].isna()
-        mask_for_errors = ~residuals_data[error_columns].isna()
+        # Check required columns
+        required_cols = ["toas", "residuals", "error"]
+        for i, df in enumerate(list_of_dfs):
+             missing_cols = [col for col in required_cols if col not in df.columns]
+             if missing_cols:
+                 raise ValueError(f"DataFrame at index {i} is missing required columns: {missing_cols}")
+        # --- End Input Validation ---
 
-        # 4. For each row, find the *position* of the True (non-NaN) column
-        ##  np.argmax returns the index of the first True in each row.
-        ## idx is a NumPy array of shape (Nrows,)
-        idx = np.argmax(mask.values, axis=1)
-        idx_for_errors = np.argmax(mask_for_errors.values, axis=1)
-        subscripts = np.array(subscript_list)[idx]
+        # 1. Average TOAs array
+        toas_series_list = [df['toas'] for df in list_of_dfs]
+        toas_df = pd.concat(toas_series_list, axis=1)
+        average_toas_series = toas_df.mean(axis=1)
+        average_toas_array = average_toas_series.to_numpy()
 
-        # 6. Index to get the non-NaN values
-        residuals_values = residuals_data[residual_columns].values[row_indices, idx]
-        error_values = residuals_data[error_columns].values[
-            row_indices, idx_for_errors
-        ]  # the error is the next column after the residual
+        # 2. Combined Residuals array (nrows x Num dfs)
+        residuals_series_list = [df['residuals'] for df in list_of_dfs]
+        residuals_df = pd.concat(residuals_series_list, axis=1)
+        residuals_array = residuals_df.to_numpy()
 
-        # 7. Finally, stack them into a 2D array:
-        #   - Column 0: the non-NaN residual value
-        #   - Column 1: the subscript i
-        #   - Column 2: the subscript i, denoting the pulsar
-        result = np.column_stack(
-            [residuals_data["toas"].values, residuals_values, error_values, subscripts]
-        )
-        return result
+        # 3. Combined Errors array (nrows x Num dfs)
+        errors_series_list = [df['error'] for df in list_of_dfs]
+        errors_df = pd.concat(errors_series_list, axis=1)
+        errors_array = errors_df.to_numpy()
+
+        return [average_toas_array, residuals_array, errors_array]
+
 
     @classmethod
     def read_par_tim(
@@ -298,8 +309,8 @@ class LoadWidebandPulsarData:
             df = pd.DataFrame(
                 {
                     "toas": psr.toas,
-                    f"residuals_{i}": psr.residuals,
-                    f"error_{i}": psr.toaerrs
+                    f"residuals": psr.residuals,
+                    f"error": psr.toaerrs
                 }
             )
 
@@ -319,10 +330,11 @@ class LoadWidebandPulsarData:
             dfs_meta.append(df_meta)
             #np_arrays_design.append(psr.M_matrix)
             np_arrays_design.append(psr.M_scaled)
-        # Merge all individual pulsar DataFrames on 'toas' using an outer merge.
-        merged_df = reduce(
-            lambda left, right: pd.merge(left, right, on="toas", how="outer"), dfs
-        )
+        # # Merge all individual pulsar DataFrames on 'toas' using an outer merge.
+        # merged_df = reduce(
+        #     lambda left, right: pd.merge(left, right, on="toas", how="outer"), dfs
+        # )
+
         meta_df = pd.concat(dfs_meta, ignore_index=True)
     
-        return merged_df, meta_df, np_arrays_design
+        return dfs, meta_df, np_arrays_design

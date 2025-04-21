@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 import numpy as np
 from typing import Any, List
 from argus.jmath import get_F, get_Q
+import sys 
+
 
 class ModelHyperClass(ABC):
     """Abstract base class for models used with the Kalman filter.
@@ -120,32 +122,6 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         F_gw, F_spin = get_F(self.γa, self.γp, dt, self.Npsr, self.M_sum)
         return F_gw, F_spin
 
-    @staticmethod
-    def _compute_Q_block(γ: float, dt: float) -> np.ndarray:
-        """Compute the 2x2 state–transition matrix for the (r, a) block and the spin block.
-
-        Parameters
-        ----------
-        γ : float
-            Damping rate.
-        dt : float
-            Time step.
-
-        Returns
-        -------
-        np.ndarray
-            2x2 state–transition matrix.
-
-        """
-        exp_term = np.exp(-γ * dt)
-        exp_2term = np.exp(-2 * γ * dt)
-
-        q11 = (dt - 2 * (1 - exp_term) / γ + (1 - exp_2term) / (2 * γ)) / γ**3
-        q12 = ((1 - exp_term) - (1 - exp_2term) / 2) / (γ**2)
-        q22 = (1 - exp_2term) / (2 * γ)
-
-        return np.array([[q11, q12], [q12, q22]])
-
     def Q_matrix(self, dt: float) -> np.ndarray:
         """Return the process–noise covariance matrix for time step dt."""
         Q_gw, Q_spin, Q_timing = get_Q(self.γa, self.γp, dt, self.Npsr, self.M_sum, self.σeps)
@@ -157,58 +133,120 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         """At timestep t_idx, get the correct H-matrix."""
         return self.H_matrix_list[t_idx]
     
-
-    def _H_matrix_row(self, psr_idx: int) -> np.ndarray: 
+    def compute_H_matrix_for_step(self, time_step_index: int) -> np.ndarray:
         """
-        Return the observation matrix H for a given pulsar.
+        Compute the observation matrix H for the current time step using NumPy.
 
-        For pulsar n the measurement equation is:
-            δt = (1/f₀)·δφ − r + (design row)·[δε],
-        so that H^(n) is the row vector:
-            [1/f₀, 0, -1, 0, zeros(M[n])].
+        This matrix maps the full state vector to the vector of observations
+        from all pulsars at the given time step.
 
         Parameters
         ----------
-        psr_idx : int
-            Index of the pulsar.
+        time_step_index : int
+            The index corresponding to the current observation time step.
 
         Returns
         -------
         np.ndarray
-            Observation matrix (a row vector of length nx) for the specified pulsar.
+            Observation matrix H of shape (Npsr, nx) for the current step.
         """
-        # initialization
-        H = np.zeros((1, self.nx))
+        # Initialize the H matrix with zeros using NumPy
+        H = np.zeros((self.Npsr, self.nx))
 
-        # update GW term
-        H[0, 2 * psr_idx] = -1.0
+        # Loop over each pulsar to build the corresponding row of H
+        for psr_idx in range(self.Npsr):
+            # Indices in the state vector 'x' relevant to this pulsar (psr_idx)
+            redshift_idx = 2 * psr_idx
+            spin_idx = self.Npsr * 2 + 2 * psr_idx
+            tm_start_idx = self.M_start_indices[psr_idx]
+            tm_end_idx = self.M_start_indices[psr_idx + 1]
 
-        # update spin term
-        H[0, self.Npsr * 2 + 2 * psr_idx] = 1.0 / self.f0[psr_idx]
+            # Get the relevant row from this pulsar's precomputed design matrix
+            design_row = self.pulsar_design_matrices[psr_idx][time_step_index, :]
 
-        # update timing term
-        # Use a precomputed start index
-        start_idx = self.M_start_indices[psr_idx]
-        end_idx = self.M_start_indices[psr_idx + 1]
-        row_idx = int(self.design_matrix_counter[psr_idx])
-        H[0, start_idx:end_idx] = self.pulsar_design_matrices[psr_idx][row_idx, :]  
+            # --- Fill the H matrix row using standard NumPy indexing ---
 
-        #print("H matrix row: {}".format(H))
+            # Update Redshift term coefficient (-1.0)
+            H[psr_idx, redshift_idx] = -1.0
 
-        # increment the counter for this pulsar
-        self.design_matrix_counter[psr_idx] += 1
+            # Update Spin noise term coefficient (1 / f0_n)
+            # Ensure self.f0 is a NumPy array for vectorized operations if needed,
+            # or just access the element directly.
+            H[psr_idx, spin_idx] = 1.0 / self.f0[psr_idx]
+
+            # Update Timing model term coefficients (design matrix row)
+            H[psr_idx, tm_start_idx:tm_end_idx] = design_row
 
         return H
 
+    def compute_all_H_matrices(self) -> List[np.ndarray]:
+        """
+        Compute the observation matrix H for all time steps using NumPy.
 
-    def precompute_H_matrix(self, pulsar_observation_ordering):
-        """Precompute the observation matrices for the pulsars in the order specified by pulsar_observation_ordering."""
-        self.H_matrix_list = []
-        print("Precomputing the observation matrices")
-        print("This might take a few seconds, but only needs to be done once.")
-        for i in pulsar_observation_ordering:
-            Hrow = self._H_matrix_row(i)
-            self.H_matrix_list.append(Hrow)
+        This iterates through all time steps, calling compute_H_matrix_for_step
+        for each one, using the appropriate row from the time-varying design matrices.
+
+        Assumptions are the same as the JAX version but using NumPy arrays.
+
+        Returns
+        -------
+        List[np.ndarray]
+            A list where each element is the NumPy H matrix (Npsr, nx)
+            for a specific time step, ordered from time step 0 onwards.
+        """
+        if not self.pulsar_design_matrices or self.Npsr == 0:
+            print("Warning: No pulsars or design matrices found. Returning empty list.")
+            return []
+
+        try:
+            num_time_steps = self.pulsar_design_matrices[0].shape[0]
+        except (IndexError, AttributeError):
+             raise ValueError("Cannot determine number of time steps. "
+                              "Ensure self.pulsar_design_matrices is a list of NumPy arrays "
+                              "with at least one element.")
+
+        # Optional consistency check (same as before)
+        for i in range(1, self.Npsr):
+             if self.pulsar_design_matrices[i].shape[0] != num_time_steps:
+                 raise ValueError(f"Inconsistent number of time steps found (Pulsar 0: {num_time_steps}, Pulsar {i}: {self.pulsar_design_matrices[i].shape[0]})")
+
+        print(f"Computing H matrices for all {num_time_steps} time steps (using NumPy)...")
+
+        all_H = []
+        for t_idx in range(num_time_steps):
+            H_step = self.compute_H_matrix_for_step(t_idx)
+            all_H.append(H_step)
+
+        print("Finished computing all H matrices.")
+        return all_H
+
+    def precompute_H_matrix(self) -> np.ndarray:
+        """
+        Computes H for all steps using NumPy and stacks them into a single 3D array.
+
+        See compute_all_H_matrices for assumptions.
+
+        Returns
+        -------
+        np.ndarray
+            A single NumPy array of shape (num_time_steps, Npsr, nx).
+            Returns an empty array with correct dimensions if no steps exist.
+        """
+        list_of_H = self.compute_all_H_matrices() # Calls the list-based version
+
+        if not list_of_H:
+            try:
+                num_time_steps = self.pulsar_design_matrices[0].shape[0] if self.pulsar_design_matrices else 0
+            except (IndexError, AttributeError):
+                num_time_steps = 0
+            # Return empty NumPy array with correct shape
+            return np.zeros((num_time_steps, self.Npsr, self.nx))
+
+        # Stack the list of 2D arrays along a new axis (axis 0) using NumPy
+        return np.stack(list_of_H, axis=0)
+
+
+
 
     def R_matrix(self, σ, psr_idx: int) -> np.ndarray:
         """Build the measurement–noise covariance matrix R for the pulsars observed at a given epoch.
@@ -223,4 +261,5 @@ class StochasticGWBackgroundModel(ModelHyperClass):
             The measurement noise covariance (for now, simply σt²).
 
         """
+        sys.exit()
         return (σ * self.EFAC[psr_idx]) ** 2 + self.EQUAD[psr_idx] ** 2
