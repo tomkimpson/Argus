@@ -57,7 +57,6 @@ def get_Q_block(γ: float, dt: float) -> jax.Array:
 
     return jnp.array([[q11, q12], [q12, q22]])
 
-
 def get_F_spin(gamma: jax.Array, dt: float) -> jax.Array:
     """Compute block diagonal state transition matrix for spin noise.
     
@@ -72,6 +71,11 @@ def get_F_spin(gamma: jax.Array, dt: float) -> jax.Array:
     res = vmap(lambda x: get_F_block(x, dt))(gamma)
     return block_diag(*res)
 
+def get_Q_spin(gamma, dt,sigma_p):
+    """Compute Q spin matrix using JAX."""
+    res = vmap(lambda g, s: get_Q_block(g, dt) * s)(gamma, sigma_p)
+    return block_diag(*res)
+
 @partial(jax.jit, static_argnums=(3,4))
 def get_F(gamma, gamma_spin, dt, Npsr, M_sum):
     """Get transition matrices using JAX."""
@@ -79,11 +83,6 @@ def get_F(gamma, gamma_spin, dt, Npsr, M_sum):
     F_gw = jnp.kron(jnp.eye(Npsr), F_gw_block)
     F_spin = get_F_spin(gamma_spin, dt)
     return F_gw, F_spin
-
-def get_Q_spin(gamma, dt,sigma_p):
-    """Compute Q spin matrix using JAX."""
-    res = vmap(lambda g, s: get_Q_block(g, dt) * s)(gamma, sigma_p)
-    return block_diag(*res)
 
 @jax.jit
 def get_Q(gamma,σa2, gamma_spin,σp2, dt):
@@ -168,10 +167,6 @@ def compute_predicted_covariance(P: jax.Array,
                      [PF4.T,  PF2,   PF5],
                      [PF6.T,  PF5.T, P3]])
 
-
-
-
-
 @jax.jit
 def precompute_R_matrices(σ: jax.Array, EFAC: jax.Array, EQUAD: jax.Array) -> jax.Array:
     """Build the measurement-noise covariance matrix R for the pulsars observed at a given epoch.
@@ -187,8 +182,6 @@ def precompute_R_matrices(σ: jax.Array, EFAC: jax.Array, EQUAD: jax.Array) -> j
     R = jax.vmap(jnp.diag)(diagonals)
     #jax.debug.print('R.shape: {shape}',shape=R.shape,ordered=True)
     return R
-
-
 
 @partial(jax.jit, static_argnums=(3, 4))
 def F_matrices_non_precomputed(gamma_a: float, 
@@ -214,8 +207,6 @@ def F_matrices_non_precomputed(gamma_a: float,
     # Get F matrices for a single dt (not vectorized)
     F_gw, F_spin = get_F(gamma_a, gamma_p, dt_array, Npsr, M_sum)
     return F_gw, F_spin
-
-
 
 @jax.jit
 def Q_matrices_non_precomputed(gamma_a, σa2, gamma_p, σp2, dt_array):
