@@ -2,6 +2,8 @@ import jax
 jax.config.update("jax_enable_x64", True)
 import jax.numpy as jnp
 from jax.scipy.linalg import block_diag
+from jax import random
+
 
 
 import os 
@@ -11,8 +13,18 @@ import json
 import pandas as pd
 import numpy as np 
 from flax import struct
-import numpyro.distributions as dist
+from datetime import datetime
 
+#NumPyro
+import numpyro
+import numpyro.distributions as dist
+from numpyro.infer import MCMC,SA,NUTS
+
+#Arviz
+import arviz as az
+
+
+#Argus
 sys.path.append('../python/argus')
 from argus import data_loader
 from argus import models
@@ -38,9 +50,6 @@ class Parameters:
     EFAC: jnp.ndarray  # Error factors
     EQUAD: jnp.ndarray # Extra quadrature noise
 
-
-
-
 def _get_processed_residuals(directory):
     """Get the processed residuals from the data."""
 
@@ -57,7 +66,7 @@ def _get_processed_residuals(directory):
 
 
     # Get the data
-    print(f"Getting the data. Loading {len(par_files)} pulsars from {data_path}")
+    print(f"Getting the data. Loading {len(par_files)} pulsars from {directory}")
     pulsar_residuals, pulsar_metadata, pulsar_design_matrices = (
         data_loader.LoadWidebandPulsarData.read_multiple_par_tim(par_files, tim_files)
     )
@@ -69,59 +78,10 @@ def _get_processed_residuals(directory):
     hd_correlation_matrix = gravitational_waves.hellings_downs(angular_separation_matrix)
 
     # Post-process the residuals
-
-
-
-
-    
     processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.post_process_residuals(pulsar_residuals)
-
     print("Total length of the data is ", len(processed_pulsar_residuals[1]))
     print("Total number of pulsars is ", len(pulsar_metadata))
-
     return processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,hd_correlation_matrix
-
-
-def get_efac_equad_injections():
-
-    # Load the noise parameters from the json file
-    with open("../data/IPTA_MockDataChallenge2/group1_psr_noise.json", "r") as f:
-        noise_params = json.load(f)
-
-    # Extract EFAC and EQUAD values for each pulsar
-    efac_values = []
-    equad_values = []
-
-    for psr in noise_params:
-
-        if  "J1640" not in psr:
-            efac_values.append(noise_params[psr]["efac"])
-            equad_values.append(10**noise_params[psr]["equad"]) # Convert from log10 to linear
-
-    # Convert to JAX arrays
-    efac_array = jnp.array(efac_values)
-    equad_array = jnp.array(equad_values)
-
-
-    return efac_array, equad_array
-
-
-def get_psr_noise_injections():
-
-    df = pd.read_pickle('../notebooks/approximate_spin_injections.pkl')
-    condition = df['psr'] != 'J1640+2224'
-
-
-
-    # 2. Use the condition to select rows and create a new DataFrame
-    df_filtered = df[condition]
-
-
-    sigma_p_injected = df_filtered['optimal_sigma'].values
-    gamma_p_injected = df_filtered['optimal_gamma'].values
-
-    return jnp.array(sigma_p_injected), jnp.array(gamma_p_injected)
-
 
 def _initialize_kalman_filter(nx,Npsr,P_eps):
 
@@ -148,67 +108,153 @@ def _initialize_kalman_filter(nx,Npsr,P_eps):
 
     return x0, P0
 
-#Get the data
-data_path = "../data/IPTA_MockDataChallenge2/dataset_1b/" # https://github.com/ipta/mdc2/tree/master
-processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)
-
-
-#Get efac and equad
-efac_array, equad_array = get_efac_equad_injections()
-assert len(efac_array) == len(equad_array) == len(pulsar_metadata)
-
-
-#Get psr noise 
-sigma_p_injected, gamma_p_injected = get_psr_noise_injections()
-assert len(sigma_p_injected) == len(gamma_p_injected) == len(pulsar_metadata)
 
 
 
-delta = 1e-3
-γa = 1e-9 
-#ha = 1e-15
-for ha in np.logspace(-17, -10, 6):
-    #Calculate P0 based on the maximum value of the design matrix, and a delta tolerance
+
+def parameter_estimation():
+
+
+    #Get the data
+    data_path = "../data/IPTA_MockDataChallenge2/dataset_1b/" # https://github.com/ipta/mdc2/tree/master
+    processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)
+
+    
+    #Initialize the model
     model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
 
-    #delta = 1e-3 #milliseconds
-    P0 = [delta**2  / np.max(pulsar_design_matrices[i],axis=0)**2 for i in range(len(pulsar_design_matrices))]
 
+    #Initialize the covariance matrix for \delta \epsilon
+    delta = 1e-3 #milliseconds
+    P0 = [delta**2  / np.max(pulsar_design_matrices[i],axis=0)**2 for i in range(len(pulsar_design_matrices))]
     for i in range(len(P0)):
         assert len(P0[i]) == model.M[i]
 
     P0 = np.concatenate(P0)
     assert len(P0) == model.M_sum
 
-
     #Initialize the model
     x_init,P_init = _initialize_kalman_filter(model.nx,model.Npsr,P0) #this could go inside the model class....
 
-    print("Initial covariance matrix is ",P_init)
     KF = jax_kalman_filter.JaxKalmanFilter(
         model=model, 
         observations=processed_pulsar_residuals, 
         x0=x_init, 
         P0=P_init
     )
-
-
-    #Set the parameters
+    
+    #pre-compile
     params = Parameters(
         #GW parameters
-        γa=γa,
-        ha=ha,
+        γa=1e-9,
+        ha=1e-12,
 
         #Spin parameters
-        γp=gamma_p_injected,
-        σp=sigma_p_injected,
+        γp=jnp.ones(model.Npsr) * 1e-8,
+        σp=jnp.ones(model.Npsr) * 1e-14,
 
         #Measurement noise parameters
-        EFAC=efac_array,
-        EQUAD=equad_array
+        EFAC=jnp.ones(model.Npsr),
+        EQUAD=jnp.ones(model.Npsr) * 1e-6
     )
+  
 
-    print("Starting likelihood calculation")
-    ll = KF.get_likelihood(params)
-    print("delta/gamma/ha/likelihood:",delta,γa,ha,ll)
 
+    ll, grad_vals = jax.value_and_grad(KF.get_likelihood)(params)
+    jax.block_until_ready(ll)  # Ensure computation is complete
+    print("Likelihood on compilation run is ",ll)
+    print("Gradient on compilation run is ",grad_vals)
+
+
+
+    #Now do parameter estimation
+    print("Starting NumPyro")
+    
+    # Check NumPyro device usage
+    print("\n=== NUMPYRO DEVICE INFO ===")
+    print(f"NumPyro version: {numpyro.__version__}")
+    print("--------------------------------")
+
+
+
+    # NumPyro model
+    def numpyro_model(kf):
+    
+
+        # Parameters of the GW background
+        γa = 1e-9
+        ha = numpyro.sample("ha", dist.LogUniform(1e-14, 1e-10))
+
+        #Parameters of the pulsar process
+        γp = numpyro.deterministic("γp", jnp.ones(model.Npsr) * 1e-8)
+        σp = numpyro.deterministic("σp", jnp.ones(model.Npsr) * 1e-14)
+
+        
+        #Measurement noise parameters
+        EFAC = numpyro.deterministic("EFAC", jnp.ones(model.Npsr))
+        EQUAD = numpyro.deterministic("EQUAD", jnp.ones(model.Npsr) * 1e-6)
+
+
+        # Construct the Parameters object
+        params = Parameters(
+            γa=γa,
+            ha=ha,
+            γp=γp,
+            σp=σp,
+            EFAC=EFAC,
+            EQUAD=EQUAD
+        )
+        
+        # Call the likelihood
+        #jax.profiler.save_device_memory_profile("memory_during_likelihood_call.prof")
+        log_likelihood = kf.get_likelihood(params)
+        numpyro.factor("likelihood", log_likelihood)
+    
+
+
+    # Parameter estimation with numpyro
+    print("Starting inference ")
+    rng_key = random.PRNGKey(0)
+    kernel = NUTS(numpyro_model)
+    sampler = MCMC(kernel, num_samples=1000, num_warmup=500,progress_bar=True)
+    sampler.run(rng_key, kf=KF)
+    sampler.print_summary()  # Posterior estimates
+
+
+    print("Completed. Saving results to disk...")
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    inf_data = az.from_numpyro(sampler)
+    fname = f"outputs/test_parameter_estimation_results_{timestamp}.nc" 
+    inf_data.to_netcdf(fname)
+    print(f"Saved results to {fname}")
+
+
+
+
+if __name__ == "__main__":
+
+    # Check available devices
+    print("=== JAX VERSION INFO ===")
+    print(f"JAX version: {jax.__version__}")
+
+    print("\n=== DEVICE INFO ===")
+    print("Default device:", jax.default_backend())
+
+    print("\n=== JAX CONFIG SETTINGS ===")
+    for name, value in sorted(jax.config.values.items()):
+        print(f"{name}: {value}")
+
+    # Check if GPU is available
+    if any(d.platform == 'gpu' for d in jax.devices()):
+        print("\nJAX GPU acceleration is AVAILABLE!")
+        print("GPU devices:", [d for d in jax.devices() if d.platform == 'gpu'])
+    else:
+        print("\nJAX GPU acceleration is NOT available. Using CPU only.")
+    print('-----------------------------------------------')
+    print(jax.devices())
+
+
+
+    #go
+    parameter_estimation() 

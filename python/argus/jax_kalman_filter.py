@@ -41,20 +41,7 @@ def _predict(x: jax.Array, P: jax.Array, F_list: tuple, Q_list: tuple, dim_x: in
     """
 
     xp = compute_predicted_state(F_list, x, dim_x, dim_x)
-    
-
     Pp = compute_predicted_covariance(P,F_list,Q_list,dim_x,dim_x)
-      
-
-    #evals, _ = jnp.linalg.eigh(Pp)
-    #min_eigenvalue = jnp.min(evals)
-    #jax.debug.print("Min eigenvalue of Pp = {min_eval}",min_eval=min_eigenvalue)
-
-
-    #Pp = 0.5 * (Pp + Pp.T)  # Symmetrize   
-    ##dim_P = Pp.shape[0]
-    #Pp = Pp + jnp.eye(dim_P)*1e-16
-    
     return xp, Pp
 
 
@@ -73,20 +60,13 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
         tuple: (updated state, updated covariance, innovation, innovation covariance)
     """
 
-    #jax.debug.print("This is the update function")
-    ##jax.debug.print("Shape of predicted state xp: {shape}", shape=xp.shape,ordered=True)
-    #jax.debug.print("Shape of predicted covariance Pp: {shape}", shape=Pp.shape,ordered=True)
-    #jax.debug.print("Shape of observation matrix H: {shape}", shape=H.shape,ordered=True)
-    #jax.debug.print("Shape of observation noise R: {shape}", shape=R.shape,ordered=True)
-    #jax.debug.print("Shape of observation z: {shape}", shape=z.shape,ordered=True)
+
     y = z - H @ xp                                  
     S = H @ Pp @ H.T + R
-    #jax.debug.print("Shape of S: {shape}", shape=S.shape,ordered=True)
     Sinv = jnp.linalg.inv(S)                               
     K = Pp @ H.T @ Sinv                               
     x = xp + K @ y                                 
  
-
     #Following FilterPy https://github.com/rlabbe/filterpy/blob/master/filterpy/kalman/EKF.py by using
     #Joseph form for numerically stable update of the covariance matrix
     # P = (I-KH)P(I-KH)' + KRK' which is more numerically stable
@@ -112,14 +92,7 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
 
     σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
     
-    # Precompute the R matrix for this parameter set and these data errors.
-    # Note: for the sake of memory efficiency, we do not precompute the F/Q matrices here.
-    #jax.debug.print("Shape of data_errors: {shape}", shape=data_errors.shape,ordered=True)
-    #jax.debug.print("Shape of EFAC: {shape}", shape=θ.EFAC.shape,ordered=True)
-    #jax.debug.print("Shape of EQUAD: {shape}", shape=θ.EQUAD.shape,ordered=True)
-    
-    
-    
+    # Precompute the R matrix for this parameter set and these data errors    
     R_matrices = precompute_R_matrices(data_errors,θ.EFAC, θ.EQUAD)
 
     # First update
@@ -146,7 +119,6 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
      
         x_new, P_new, y, S = _update(x_predict, P_predict, H, R, z)
         ll = _log_likelihood(y, S)
-        #jax.debug.print('Step {dt_idx}, dt in days {dt}, likelihood: {ll},S: {S}', dt_idx=dt_idx,dt=dt/(24*60*60) ,ll=ll,S=S,ordered=True)
         
         return (x_new, P_new), ll
 

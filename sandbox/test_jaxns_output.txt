@@ -1,13 +1,17 @@
+INFO:2025-04-22 15:33:59,686:jax._src.xla_bridge:925: Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
+INFO:jax._src.xla_bridge:Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
+INFO:2025-04-22 15:33:59,924:jax._src.xla_bridge:925: Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+INFO:jax._src.xla_bridge:Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
 [tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
 [preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-WARNING: Could not find pulsar distance for PSR J0034-0534. Setting value to 1 with 20% uncertainty.
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0034-0534. Setting value to 1 with 20% uncertainty.
 [tempo2Util.C:401] Warning: [DUP1] duplicated warnings have been suppressed.
 [preProcess.C:158] Warning: PSR J0034-0534 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-WARNING: Could not find pulsar distance for PSR J0218+4232. Setting value to 1 with 20% uncertainty.
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0218+4232. Setting value to 1 with 20% uncertainty.
 [preProcess.C:158] Warning: PSR J0218+4232 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
@@ -17,18 +21,18 @@ See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a
 [preProcess.C:158] Warning: PSR J0613-0200 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-WARNING: Could not find pulsar distance for PSR J0621+1002. Setting value to 1 with 20% uncertainty.
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0621+1002. Setting value to 1 with 20% uncertainty.
 [preProcess.C:158] Warning: PSR J0621+1002 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
 [preProcess.C:158] Warning: PSR J0711-6830 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-WARNING: Could not find pulsar distance for PSR J0751+1807. Setting value to 1 with 20% uncertainty.
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0751+1807. Setting value to 1 with 20% uncertainty.
 [preProcess.C:158] Warning: PSR J0751+1807 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-WARNING: Could not find pulsar distance for PSR J0900-3144. Setting value to 1 with 20% uncertainty.
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0900-3144. Setting value to 1 with 20% uncertainty.
 [preProcess.C:158] Warning: PSR J0900-3144 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
@@ -53,7 +57,7 @@ See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a
 [preProcess.C:158] Warning: PSR J1603-7202 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-WARNING: Could not find pulsar distance for PSR J1614-2230. Setting value to 1 with 20% uncertainty.
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J1614-2230. Setting value to 1 with 20% uncertainty.
 [preProcess.C:158] Warning: PSR J1614-2230 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
@@ -81,11 +85,11 @@ See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a
 [preProcess.C:158] Warning: PSR J1939+2134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-WARNING: Could not find pulsar distance for PSR J1944+0907. Setting value to 1 with 20% uncertainty.
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J1944+0907. Setting value to 1 with 20% uncertainty.
 [preProcess.C:158] Warning: PSR J1944+0907 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-WARNING: Could not find pulsar distance for PSR J2010-1323. Setting value to 1 with 20% uncertainty.
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J2010-1323. Setting value to 1 with 20% uncertainty.
 [preProcess.C:158] Warning: PSR J2010-1323 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
@@ -98,13 +102,127 @@ See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a
 [preProcess.C:158] Warning: PSR J2145-0750 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-WARNING: Could not find pulsar distance for PSR J2229+2643. Setting value to 1 with 20% uncertainty.
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J2229+2643. Setting value to 1 with 20% uncertainty.
 [preProcess.C:158] Warning: PSR J2229+2643 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
 [preProcess.C:158] Warning: PSR J2317+1439 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
+=== JAX VERSION INFO ===
+JAX version: 0.5.3
+
+=== DEVICE INFO ===
+Default device: gpu
+
+=== JAX CONFIG SETTINGS ===
+eager_constant_folding: False
+jax2tf_associative_scan_reductions: False
+jax2tf_default_native_serialization: True
+jax_array_garbage_collection_guard: None
+jax_backend_target: 
+jax_bcoo_cusparse_lowering: False
+jax_check_proxy_envs: True
+jax_check_tracer_leaks: False
+jax_compilation_cache_dir: None
+jax_compilation_cache_expect_pgle: False
+jax_compilation_cache_include_metadata_in_key: False
+jax_compilation_cache_max_size: -1
+jax_compiler_detailed_logging_min_ops: 10
+jax_compiler_enable_remat_pass: True
+jax_cpu_collectives_implementation: None
+jax_cpu_enable_async_dispatch: True
+jax_cpu_enable_gloo_collectives: False
+jax_cuda_visible_devices: all
+jax_custom_vjp_disable_shape_check: False
+jax_data_dependent_tracing_fallback: False
+jax_debug_infs: False
+jax_debug_key_reuse: False
+jax_debug_log_modules: 
+jax_debug_nans: False
+jax_default_device: None
+jax_default_dtype_bits: 64
+jax_default_matmul_precision: None
+jax_default_prng_impl: threefry2x32
+jax_disable_jit: False
+jax_disable_most_optimizations: False
+jax_disable_vmap_shmap_error: False
+jax_disallow_mesh_context_manager: False
+jax_distributed_debug: False
+jax_dump_ir_to: 
+jax_dynamic_shapes: False
+jax_eager_pmap: True
+jax_enable_checks: False
+jax_enable_compilation_cache: True
+jax_enable_custom_prng: False
+jax_enable_custom_vjp_by_custom_transpose: False
+jax_enable_empty_arrays: False
+jax_enable_pgle: False
+jax_enable_x64: True
+jax_exec_time_optimization_effort: 0.0
+jax_experimental_unsafe_xla_runtime_errors: False
+jax_explain_cache_misses: False
+jax_export_calling_convention_version: 9
+jax_export_ignore_forward_compatibility: False
+jax_high_dynamic_range_gumbel: False
+jax_hlo_source_file_canonicalization_regex: None
+jax_include_debug_info_in_dumps: True
+jax_include_full_tracebacks_in_locations: True
+jax_legacy_prng_key: allow
+jax_log_checkpoint_residuals: False
+jax_log_compiles: False
+jax_logging_level: NOTSET
+jax_memory_fitting_effort: 0.0
+jax_memory_fitting_level: UNKNOWN
+jax_mock_gpu_topology: 
+jax_mutable_array_checks: False
+jax_no_tracing: False
+jax_num_cpu_devices: -1
+jax_numpy_dtype_promotion: standard
+jax_numpy_rank_promotion: allow
+jax_optimization_level: UNKNOWN
+jax_persistent_cache_enable_xla_caches: xla_gpu_per_fusion_autotune_cache_dir
+jax_persistent_cache_min_compile_time_secs: 1.0
+jax_persistent_cache_min_entry_size_bytes: 0
+jax_pgle_aggregation_percentile: 90
+jax_pgle_profiling_runs: 3
+jax_pjrt_client_create_options: None
+jax_platform_name: 
+jax_platforms: None
+jax_pmap_no_rank_reduction: True
+jax_pmap_shmap_merge: False
+jax_pprint_use_color: True
+jax_raise_persistent_cache_errors: False
+jax_random_seed_offset: 0
+jax_remat_opt_barrier: True
+jax_remove_custom_partitioning_ptr_from_cache_key: False
+jax_rocm_visible_devices: all
+jax_serialization_version: 0
+jax_share_binary_between_hosts: False
+jax_share_binary_between_hosts_timeout_ms: 1200000
+jax_softmax_custom_jvp: False
+jax_spmd_mode: allow_jit
+jax_threefry_gpu_kernel_lowering: False
+jax_threefry_partitionable: True
+jax_traceback_filtering: auto
+jax_traceback_in_locations_limit: 10
+jax_tracer_error_num_traceback_frames: 5
+jax_transfer_guard: None
+jax_transfer_guard_device_to_device: None
+jax_transfer_guard_device_to_host: None
+jax_transfer_guard_host_to_device: None
+jax_use_direct_linearize: False
+jax_use_magma: auto
+jax_use_shardy_partitioner: False
+jax_varying_axes_in_types: False
+jax_xla_backend: 
+jax_xla_profile_version: 0
+mock_num_gpu_processes: 0
+
+JAX GPU acceleration is AVAILABLE!
+GPU devices: [CudaDevice(id=0)]
+-----------------------------------------------
+[CudaDevice(id=0)]
 Getting the data. Loading 32 pulsars from ../data/IPTA_MockDataChallenge2/dataset_1b/
 J0030+0451 205.53069593846152 183
 J0034-0534 532.7134293952242 183
@@ -148,167 +266,31 @@ The frequencies are: [205.53069594 532.7134294  430.46105455 173.68794574 326.60
  245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
  192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
  335.8162082  290.25460366]
-Initial covariance matrix is  [[1.00000000e-25 0.00000000e+00 0.00000000e+00 ... 0.00000000e+00
-  0.00000000e+00 0.00000000e+00]
- [0.00000000e+00 1.00000000e-20 0.00000000e+00 ... 0.00000000e+00
-  0.00000000e+00 0.00000000e+00]
- [0.00000000e+00 0.00000000e+00 1.00000000e-25 ... 0.00000000e+00
-  0.00000000e+00 0.00000000e+00]
- ...
- [0.00000000e+00 0.00000000e+00 0.00000000e+00 ... 8.61172226e-05
-  0.00000000e+00 0.00000000e+00]
- [0.00000000e+00 0.00000000e+00 0.00000000e+00 ... 0.00000000e+00
-  8.04169871e-05 0.00000000e+00]
- [0.00000000e+00 0.00000000e+00 0.00000000e+00 ... 0.00000000e+00
-  0.00000000e+00 1.02634255e-04]]
 Total number of observations:  183
 Computing H matrices for all 183 time steps (using NumPy)...
 Finished computing all H matrices.
-Starting likelihood calculation
-delta/gamma/ha/likelihood: 0.001 1e-09 1e-17 41667973.13588594
-The number of pulsars is: 32
-The frequencies are: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
-  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
-  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
-  67.37658113 317.37893707 216.37333714 218.81184042 123.11028715
- 245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
- 192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
- 335.8162082  290.25460366]
-Initial covariance matrix is  [[1.00000000e-25 0.00000000e+00 0.00000000e+00 ... 0.00000000e+00
-  0.00000000e+00 0.00000000e+00]
- [0.00000000e+00 1.00000000e-20 0.00000000e+00 ... 0.00000000e+00
-  0.00000000e+00 0.00000000e+00]
- [0.00000000e+00 0.00000000e+00 1.00000000e-25 ... 0.00000000e+00
-  0.00000000e+00 0.00000000e+00]
- ...
- [0.00000000e+00 0.00000000e+00 0.00000000e+00 ... 8.61172226e-05
-  0.00000000e+00 0.00000000e+00]
- [0.00000000e+00 0.00000000e+00 0.00000000e+00 ... 0.00000000e+00
-  8.04169871e-05 0.00000000e+00]
- [0.00000000e+00 0.00000000e+00 0.00000000e+00 ... 0.00000000e+00
-  0.00000000e+00 1.02634255e-04]]
-Total number of observations:  183
-Computing H matrices for all 183 time steps (using NumPy)...
-Finished computing all H matrices.
-Starting likelihood calculation
-delta/gamma/ha/likelihood: 0.001 1e-09 2.511886431509582e-16 33834668.985971786
-The number of pulsars is: 32
-The frequencies are: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
-  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
-  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
-  67.37658113 317.37893707 216.37333714 218.81184042 123.11028715
- 245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
- 192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
- 335.8162082  290.25460366]
-Initial covariance matrix is  [[1.00000000e-25 0.00000000e+00 0.00000000e+00 ... 0.00000000e+00
-  0.00000000e+00 0.00000000e+00]
- [0.00000000e+00 1.00000000e-20 0.00000000e+00 ... 0.00000000e+00
-  0.00000000e+00 0.00000000e+00]
- [0.00000000e+00 0.00000000e+00 1.00000000e-25 ... 0.00000000e+00
-  0.00000000e+00 0.00000000e+00]
- ...
- [0.00000000e+00 0.00000000e+00 0.00000000e+00 ... 8.61172226e-05
-  0.00000000e+00 0.00000000e+00]
- [0.00000000e+00 0.00000000e+00 0.00000000e+00 ... 0.00000000e+00
-  8.04169871e-05 0.00000000e+00]
- [0.00000000e+00 0.00000000e+00 0.00000000e+00 ... 0.00000000e+00
-  0.00000000e+00 1.02634255e-04]]
-Total number of observations:  183
-Computing H matrices for all 183 time steps (using NumPy)...
-Finished computing all H matrices.
-Starting likelihood calculation
-delta/gamma/ha/likelihood: 0.001 1e-09 6.309573444801943e-15 28084794.2130229
-The number of pulsars is: 32
-The frequencies are: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
-  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
-  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
-  67.37658113 317.37893707 216.37333714 218.81184042 123.11028715
- 245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
- 192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
- 335.8162082  290.25460366]
-Initial covariance matrix is  [[1.00000000e-25 0.00000000e+00 0.00000000e+00 ... 0.00000000e+00
-  0.00000000e+00 0.00000000e+00]
- [0.00000000e+00 1.00000000e-20 0.00000000e+00 ... 0.00000000e+00
-  0.00000000e+00 0.00000000e+00]
- [0.00000000e+00 0.00000000e+00 1.00000000e-25 ... 0.00000000e+00
-  0.00000000e+00 0.00000000e+00]
- ...
- [0.00000000e+00 0.00000000e+00 0.00000000e+00 ... 8.61172226e-05
-  0.00000000e+00 0.00000000e+00]
- [0.00000000e+00 0.00000000e+00 0.00000000e+00 ... 0.00000000e+00
-  8.04169871e-05 0.00000000e+00]
- [0.00000000e+00 0.00000000e+00 0.00000000e+00 ... 0.00000000e+00
-  0.00000000e+00 1.02634255e-04]]
-Total number of observations:  183
-Computing H matrices for all 183 time steps (using NumPy)...
-Finished computing all H matrices.
-Starting likelihood calculation
-delta/gamma/ha/likelihood: 0.001 1e-09 1.584893192461111e-13 28077689.82424054
-The number of pulsars is: 32
-The frequencies are: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
-  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
-  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
-  67.37658113 317.37893707 216.37333714 218.81184042 123.11028715
- 245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
- 192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
- 335.8162082  290.25460366]
-Initial covariance matrix is  [[1.00000000e-25 0.00000000e+00 0.00000000e+00 ... 0.00000000e+00
-  0.00000000e+00 0.00000000e+00]
- [0.00000000e+00 1.00000000e-20 0.00000000e+00 ... 0.00000000e+00
-  0.00000000e+00 0.00000000e+00]
- [0.00000000e+00 0.00000000e+00 1.00000000e-25 ... 0.00000000e+00
-  0.00000000e+00 0.00000000e+00]
- ...
- [0.00000000e+00 0.00000000e+00 0.00000000e+00 ... 8.61172226e-05
-  0.00000000e+00 0.00000000e+00]
- [0.00000000e+00 0.00000000e+00 0.00000000e+00 ... 0.00000000e+00
-  8.04169871e-05 0.00000000e+00]
- [0.00000000e+00 0.00000000e+00 0.00000000e+00 ... 0.00000000e+00
-  0.00000000e+00 1.02634255e-04]]
-Total number of observations:  183
-Computing H matrices for all 183 time steps (using NumPy)...
-Finished computing all H matrices.
-Starting likelihood calculation
-delta/gamma/ha/likelihood: 0.001 1e-09 3.9810717055349695e-12 29672121.51719656
-The number of pulsars is: 32
-The frequencies are: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
-  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
-  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
-  67.37658113 317.37893707 216.37333714 218.81184042 123.11028715
- 245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
- 192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
- 335.8162082  290.25460366]
-Initial covariance matrix is  [[1.00000000e-25 0.00000000e+00 0.00000000e+00 ... 0.00000000e+00
-  0.00000000e+00 0.00000000e+00]
- [0.00000000e+00 1.00000000e-20 0.00000000e+00 ... 0.00000000e+00
-  0.00000000e+00 0.00000000e+00]
- [0.00000000e+00 0.00000000e+00 1.00000000e-25 ... 0.00000000e+00
-  0.00000000e+00 0.00000000e+00]
- ...
- [0.00000000e+00 0.00000000e+00 0.00000000e+00 ... 8.61172226e-05
-  0.00000000e+00 0.00000000e+00]
- [0.00000000e+00 0.00000000e+00 0.00000000e+00 ... 0.00000000e+00
-  8.04169871e-05 0.00000000e+00]
- [0.00000000e+00 0.00000000e+00 0.00000000e+00 ... 0.00000000e+00
-  0.00000000e+00 1.02634255e-04]]
-Total number of observations:  183
-Computing H matrices for all 183 time steps (using NumPy)...
-Finished computing all H matrices.
-Starting likelihood calculation
-delta/gamma/ha/likelihood: 0.001 1e-09 1e-10 11507818.073284294
+Traceback (most recent call last):
+  File "/fred/oz022/tkimpson/Argus/sandbox/test_jaxns.py", line 358, in <module>
+    parameter_estimation()
+  File "/fred/oz022/tkimpson/Argus/sandbox/test_jaxns.py", line 212, in parameter_estimation
+    'ha': jaxns.PriorParam(shape=(), low=0., high=1.), # Scalar
+          ^^^^^^^^^^^^^^^^
+AttributeError: module 'jaxns' has no attribute 'PriorParam'
 
-real	0m13.046s
-user	0m8.868s
-sys	0m2.784s
+real	0m17.846s
+user	0m8.165s
+sys	0m2.779s
 
-+------------------ Job Report: 67026888 (COMPLETED) ------------------+
++------------------- Job Report: 67032907 (FAILED) --------------------+
 | Memory (RAM)  No data available                                      |
-| CPU           [#######             ] 36.0% average                   |
-| Time          [>                   ]  4.2% (0-00:00:25 / 0-00:10:00) |
+| CPU           [######              ] 33.3% average                   |
+| Time          [>                   ]  0.2% (0-00:00:27 / 0-04:00:00) |
 |                                                                      |
 | Lustre Filesystem:                                                   |
-|   Path    Total Read    Total Write      Total IOPS                  |
+|   Path    Total Read    Total Write    Total IOPS                    |
 |   ------  ------------  -------------  ------------                  |
-|   /apps   0 B           0 B                      5                   |
-|   OS      0 B           0 B                      2                   |
+|   /apps   0 B           0 B            2                             |
+|   /fred   120 KB        159 B          1.7 K                         |
+|   /home   0 B           0 B            1                             |
+|   OS      0 B           0 B            6                             |
 +----------------------------------------------------------------------+
