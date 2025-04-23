@@ -8,6 +8,8 @@ import jax
 import jax.numpy as jnp
 from jax import lax 
 
+from utils import check_cholesky,check_min_eigenvalue,check_symmetry,check_condition_number
+
 def _log_likelihood(y: jax.Array, cov: jax.Array) -> jax.Array:
     """Calculate the log likelihood given innovation and innovation covariance.
     
@@ -65,7 +67,12 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     S = H @ Pp @ H.T + R
     Sinv = jnp.linalg.inv(S)                               
     K = Pp @ H.T @ Sinv                               
-    x = xp + K @ y                                 
+    x = xp + K @ y    
+
+    check_cholesky(S,"The innovation covariance matrix")
+    check_min_eigenvalue(S, "The innovation covariance matrix")
+    check_symmetry(S, "The innovation covariance matrix")
+    check_condition_number(S, "The innovation covariance matrix")                             
  
     #Following FilterPy https://github.com/rlabbe/filterpy/blob/master/filterpy/kalman/EKF.py by using
     #Joseph form for numerically stable update of the covariance matrix
@@ -74,7 +81,16 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     # P = (I-KH)P usually seen in the literature.   
     I_KH = jnp.eye(len(xp)) - K @ H
     P = I_KH @ Pp @ I_KH.T + K@R@K.T
-    
+    #P = 0.5 * (P + P.T)
+    check_cholesky(P,"The updated P-matrix")
+    check_min_eigenvalue(P, "The updated P-matrix")
+    check_symmetry(P, "The updated P-matrix")
+    check_condition_number(P, "The updated P-matrix")
+
+
+    # Optional: enforce symmetry for numerical stability
+
+
     return x, P, y, S
 
 
@@ -95,6 +111,18 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
     # Precompute the R matrix for this parameter set and these data errors    
     R_matrices = precompute_R_matrices(data_errors,θ.EFAC, θ.EQUAD)
 
+
+
+    check_cholesky(P0,"The initial P-matrix")
+    check_min_eigenvalue(P0, "The initial P-matrix")
+    check_symmetry(P0, "The initial P-matrix")
+    check_condition_number(P0, "The initial P-matrix")
+
+
+
+
+
+
     # First update
     x, P, y, S = _update(xp=x0, Pp=P0, H=H_matrices[0,:,:], R=R_matrices[0,:,:], z=data[0])
     ll0 = _log_likelihood(y, S)
@@ -106,6 +134,7 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
         # Get dt for this step and precompute matrices just for this step
         dt = dt_array[dt_idx]
 
+        jax.debug.print("Current dt index: {idx}, dt: {val}", idx=dt_idx, val=dt)
 
         # Compute F and Q matrices for this specific timestep only
         F_gw, F_spin = F_matrices_non_precomputed(θ.γa, θ.γp, dt, Npsr, M_sum)
@@ -122,11 +151,11 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
         
         return (x_new, P_new), ll
 
-    # Pack inputs for scan
-    inputs = (jnp.arange(len(data) - 1), 
-             data[1:], 
-             R_matrices[1:,:,:], 
-             H_matrices[1:,:,:])
+    # Pack inputs for scan - iterate over first 10 timesteps
+    inputs = (jnp.arange(10), 
+             data[1:11], 
+             R_matrices[1:11,:,:], 
+             H_matrices[1:11,:,:])
 
 
 
@@ -165,6 +194,8 @@ class JaxKalmanFilter:
         self.t_diffs = np.diff(self.toa)
 
         print("Total number of observations: ", len(self.data))
+        print("Starting dt (days): ", self.t_diffs[0]/86400)
+        print("Ending dt (days): ", self.t_diffs[-1]/86400)
 
         # Precompute the observation matrices and assign them to model.H_matrix_list
         self.Hmat = self.model.precompute_H_matrix()

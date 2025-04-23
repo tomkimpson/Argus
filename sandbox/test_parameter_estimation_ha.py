@@ -110,6 +110,45 @@ def _initialize_kalman_filter(nx,Npsr,P_eps):
 
 
 
+def get_efac_equad_injections():
+
+    # Load the noise parameters from the json file
+    with open("../data/IPTA_MockDataChallenge2/group1_psr_noise.json", "r") as f:
+        noise_params = json.load(f)
+
+    # Extract EFAC and EQUAD values for each pulsar
+    efac_values = []
+    equad_values = []
+
+    for psr in noise_params:
+
+        if  "J1640" not in psr:
+            efac_values.append(noise_params[psr]["efac"])
+            equad_values.append(10**noise_params[psr]["equad"]) # Convert from log10 to linear
+
+    # Convert to JAX arrays
+    efac_array = jnp.array(efac_values)
+    equad_array = jnp.array(equad_values)
+
+
+    return efac_array, equad_array
+
+
+def get_psr_noise_injections():
+
+    df = pd.read_pickle('../notebooks/approximate_spin_injections.pkl')
+    condition = df['psr'] != 'J1640+2224'
+
+
+
+    # 2. Use the condition to select rows and create a new DataFrame
+    df_filtered = df[condition]
+
+
+    sigma_p_injected = df_filtered['optimal_sigma'].values
+    gamma_p_injected = df_filtered['optimal_gamma'].values
+
+    return jnp.array(sigma_p_injected), jnp.array(gamma_p_injected)
 
 
 def parameter_estimation():
@@ -143,6 +182,21 @@ def parameter_estimation():
         P0=P_init
     )
     
+
+    #Get efac and equad
+    efac_array, equad_array = get_efac_equad_injections()
+    assert len(efac_array) == len(equad_array) == len(pulsar_metadata)
+
+
+    #Get psr noise 
+    sigma_p_injected, gamma_p_injected = get_psr_noise_injections()
+    assert len(sigma_p_injected) == len(gamma_p_injected) == len(pulsar_metadata)
+
+
+
+
+
+
     #pre-compile
     params = Parameters(
         #GW parameters
@@ -150,17 +204,18 @@ def parameter_estimation():
         ha=1e-12,
 
         #Spin parameters
-        γp=jnp.ones(model.Npsr) * 1e-8,
-        σp=jnp.ones(model.Npsr) * 1e-14,
+        γp=gamma_p_injected,
+        σp=sigma_p_injected,
 
         #Measurement noise parameters
-        EFAC=jnp.ones(model.Npsr),
-        EQUAD=jnp.ones(model.Npsr) * 1e-6
+        EFAC=efac_array,
+        EQUAD=equad_array
     )
   
-    ll = KF.get_likelihood(params)
+    ll, grad_vals = jax.value_and_grad(KF.get_likelihood)(params)
     jax.block_until_ready(ll)  # Ensure computation is complete
     print("Likelihood on compilation run is ",ll)
+    print("Gradient on compilation run is ",grad_vals)
 
 
 
@@ -180,17 +235,17 @@ def parameter_estimation():
     
 
         # Parameters of the GW background
-        γa = 1e-9
-        ha = numpyro.sample("ha", dist.LogUniform(1e-14, 1e-10))
+        γa = numpyro.deterministic("γa", 1e-9)
+        ha = numpyro.sample("ha", dist.LogUniform(1e-14, 1e-9))
 
         #Parameters of the pulsar process
-        γp = numpyro.deterministic("γp", jnp.ones(model.Npsr) * 1e-8)
-        σp = numpyro.deterministic("σp", jnp.ones(model.Npsr) * 1e-14)
+        γp = numpyro.deterministic("γp", gamma_p_injected)
+        σp = numpyro.deterministic("σp", sigma_p_injected)
 
         
         #Measurement noise parameters
-        EFAC = numpyro.deterministic("EFAC", jnp.ones(model.Npsr))
-        EQUAD = numpyro.deterministic("EQUAD", jnp.ones(model.Npsr) * 1e-6)
+        EFAC = numpyro.deterministic("EFAC", efac_array)
+        EQUAD = numpyro.deterministic("EQUAD", equad_array)
 
 
         # Construct the Parameters object
@@ -214,7 +269,7 @@ def parameter_estimation():
     print("Starting inference ")
     rng_key = random.PRNGKey(0)
     kernel = NUTS(numpyro_model)
-    sampler = MCMC(kernel, num_samples=1000, num_warmup=500,progress_bar=True)
+    sampler = MCMC(kernel, num_samples=1000, num_warmup=500,progress_bar=True,num_chains=4)
     sampler.run(rng_key, kf=KF)
     sampler.print_summary()  # Posterior estimates
 

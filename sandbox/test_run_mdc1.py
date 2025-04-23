@@ -82,46 +82,6 @@ def _get_processed_residuals(directory):
     return processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,hd_correlation_matrix
 
 
-def get_efac_equad_injections():
-
-    # Load the noise parameters from the json file
-    with open("../data/IPTA_MockDataChallenge2/group1_psr_noise.json", "r") as f:
-        noise_params = json.load(f)
-
-    # Extract EFAC and EQUAD values for each pulsar
-    efac_values = []
-    equad_values = []
-
-    for psr in noise_params:
-
-        if  "J1640" not in psr:
-            efac_values.append(noise_params[psr]["efac"])
-            equad_values.append(10**noise_params[psr]["equad"]) # Convert from log10 to linear
-
-    # Convert to JAX arrays
-    efac_array = jnp.array(efac_values)
-    equad_array = jnp.array(equad_values)
-
-
-    return efac_array, equad_array
-
-
-def get_psr_noise_injections():
-
-    df = pd.read_pickle('../notebooks/approximate_spin_injections.pkl')
-    condition = df['psr'] != 'J1640+2224'
-
-
-
-    # 2. Use the condition to select rows and create a new DataFrame
-    df_filtered = df[condition]
-
-
-    sigma_p_injected = df_filtered['optimal_sigma'].values
-    gamma_p_injected = df_filtered['optimal_gamma'].values
-
-    return jnp.array(sigma_p_injected), jnp.array(gamma_p_injected)
-
 
 def _initialize_kalman_filter(nx,Npsr,P_eps):
 
@@ -148,19 +108,14 @@ def _initialize_kalman_filter(nx,Npsr,P_eps):
 
     return x0, P0
 
+
+
 #Get the data
-data_path = "../data/IPTA_MockDataChallenge2/dataset_1b/" # https://github.com/ipta/mdc2/tree/master
+data_path = "../data/IPTA_MockDataChallenge/IPTA_Challenge1_open/Challenge_Data/Dataset1/" 
 processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)
 
 
-#Get efac and equad
-efac_array, equad_array = get_efac_equad_injections()
-assert len(efac_array) == len(equad_array) == len(pulsar_metadata)
 
-
-#Get psr noise 
-sigma_p_injected, gamma_p_injected = get_psr_noise_injections()
-assert len(sigma_p_injected) == len(gamma_p_injected) == len(pulsar_metadata)
 
 #Calculate P0 based on the maximum value of the design matrix, and a delta tolerance
 model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
@@ -187,29 +142,28 @@ KF = jax_kalman_filter.JaxKalmanFilter(
 )
 
 
-γa = 1e-9 
-#ha = 1e-15
-for γa in [1e-11,1e-9,1e-6]:
-    for ha in np.logspace(-14, -10, 4):
+γa = 1e-6 
+ha = 1e-12
 
 
 
-        #Set the parameters
-        params = Parameters(
-            #GW parameters
-            γa=γa,
-            ha=ha,
 
-            #Spin parameters
-            γp=gamma_p_injected,
-            σp=sigma_p_injected,
+#Set the parameters
+params = Parameters(
+    #GW parameters
+    γa=γa,
+    ha=ha,
 
-            #Measurement noise parameters
-            EFAC=efac_array,
-            EQUAD=equad_array
-        )
+    #Spin parameters
+    γp=jnp.ones(model.Npsr)*1e-9,
+    σp=jnp.ones(model.Npsr)*1e-15,
 
-        print("Starting likelihood calculation")
-        ll = KF.get_likelihood(params)
-        print("delta/gamma/ha/likelihood:",delta,γa,ha,ll)
+    #Measurement noise parameters
+    EFAC=jnp.ones(model.Npsr),
+    EQUAD=jnp.zeros(model.Npsr)
+)
 
+print("First call to get_likelihood")
+ll = KF.get_likelihood(params)
+ll.block_until_ready()
+print("Likelihood: ",ll)
