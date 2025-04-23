@@ -1,0 +1,1416 @@
+[tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
+WARNING: Could not find pulsar distance for PSR J0218+4232. Setting value to 1 with 20% uncertainty.
+[tempo2Util.C:401] Warning: [DUP1] duplicated warnings have been suppressed.
+WARNING: Could not find pulsar distance for PSR J0621+1002. Setting value to 1 with 20% uncertainty.
+WARNING: Could not find pulsar distance for PSR J0751+1807. Setting value to 1 with 20% uncertainty.
+WARNING: Could not find pulsar distance for PSR J0900-3144. Setting value to 1 with 20% uncertainty.
+WARNING: Could not find pulsar distance for PSR J1738+0333. Setting value to 1 with 20% uncertainty.
+WARNING: Could not find pulsar distance for PSR J1741+1351. Setting value to 1 with 20% uncertainty.
+WARNING: Could not find pulsar distance for PSR J1751-2857. Setting value to 1 with 20% uncertainty.
+WARNING: Could not find pulsar distance for PSR J1853+1303. Setting value to 1 with 20% uncertainty.
+WARNING: Could not find pulsar distance for PSR J1955+2908. Setting value to 1 with 20% uncertainty.
+WARNING: Could not find pulsar distance for PSR J2019+2425. Setting value to 1 with 20% uncertainty.
+Getting the data. Loading 35 pulsars from ../data/IPTA_MockDataChallenge/IPTA_Challenge1_open/Challenge_Data/Dataset1/
+Computing the covariance matrix of the residuals
+J0030+0451 205.53069608827312 130
+Computing the covariance matrix of the residuals
+J0218+4232 430.4610596717083 130
+Computing the covariance matrix of the residuals
+J0437-4715 173.68794349163844 130
+Computing the covariance matrix of the residuals
+J0613-0200 326.60055712590673 130
+Computing the covariance matrix of the residuals
+J0621+1002 34.65740664134258 130
+Computing the covariance matrix of the residuals
+J0711-6830 182.11723204538725 130
+Computing the covariance matrix of the residuals
+J0751+1807 287.4578541729563 130
+Computing the covariance matrix of the residuals
+J0900-3144 90.01184198779488 130
+Computing the covariance matrix of the residuals
+J1012+5307 190.26783467169975 130
+Computing the covariance matrix of the residuals
+J1022+1001 60.77944703384264 130
+Computing the covariance matrix of the residuals
+J1024-0719 193.71568356901784 130
+Computing the covariance matrix of the residuals
+J1045-4509 133.7931475200334 130
+Computing the covariance matrix of the residuals
+J1455-3330 125.20024338951636 130
+Computing the covariance matrix of the residuals
+J1600-3053 277.93770278900274 130
+Computing the covariance matrix of the residuals
+J1603-7202 67.37658009620336 130
+Computing the covariance matrix of the residuals
+J1643-1224 216.3733341965239 130
+Computing the covariance matrix of the residuals
+J1713+0747 218.81184052297365 130
+Computing the covariance matrix of the residuals
+J1730-2304 123.11028528345125 130
+Computing the covariance matrix of the residuals
+J1732-5049 188.23350934700923 130
+Computing the covariance matrix of the residuals
+J1738+0333 170.93737003914225 130
+Computing the covariance matrix of the residuals
+J1741+1351 266.8691699745713 130
+Computing the covariance matrix of the residuals
+J1744-1134 245.42611594274592 130
+Computing the covariance matrix of the residuals
+J1751-2857 255.43611103984549 130
+Computing the covariance matrix of the residuals
+J1853+1303 244.3913741220565 130
+Computing the covariance matrix of the residuals
+J1857+0943 186.49407847511142 130
+Computing the covariance matrix of the residuals
+J1909-3744 339.31568214826075 130
+Computing the covariance matrix of the residuals
+J1910+1256 200.65880229830836 130
+Computing the covariance matrix of the residuals
+J1918-0642 130.78951215621439 130
+Computing the covariance matrix of the residuals
+J1939+2134 641.9282511535072 130
+Computing the covariance matrix of the residuals
+J1955+2908 163.0479108675946 130
+Computing the covariance matrix of the residuals
+J2019+2425 254.16034165215373 130
+Computing the covariance matrix of the residuals
+J2124-3358 202.79389073515713 130
+Computing the covariance matrix of the residuals
+J2129-5721 268.35922326261453 130
+Computing the covariance matrix of the residuals
+J2145-0750 62.29588689105456 130
+Computing the covariance matrix of the residuals
+J2317+1439 290.2546037665675 130
+Total length of the data is  130
+Total number of pulsars is  35
+The number of pulsars is: 35
+The frequencies are: [205.53069609 430.46105967 173.68794349 326.60055713  34.65740664
+ 182.11723205 287.45785417  90.01184199 190.26783467  60.77944703
+ 193.71568357 133.79314752 125.20024339 277.93770279  67.3765801
+ 216.3733342  218.81184052 123.11028528 188.23350935 170.93737004
+ 266.86916997 245.42611594 255.43611104 244.39137412 186.49407848
+ 339.31568215 200.6588023  130.78951216 641.92825115 163.04791087
+ 254.16034165 202.79389074 268.35922326  62.29588689 290.25460377]
+📊 The initial PGW-matrix Cholesky: Successful ✅
+📊 The initial PGW-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial PGW-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial PGW-matrix Condition Number: 1000000000000000.2
+📊 The initial Pspin-matrix Cholesky: Successful ✅
+📊 The initial Pspin-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial Pspin-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial Pspin-matrix Condition Number: 1e+20
+📊 The initial Peps-matrix Cholesky: Successful ✅
+📊 The initial Peps-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0887072614061423e-15
+📊 The initial Peps-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial Peps-matrix Condition Number: 107511246993337.44
+Total number of observations:  130
+Starting dt (days):  14.000064865096851
+Ending dt (days):  13.999784130034623
+The errors are:  [[1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ ...
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]]
+Computing H matrices for all 130 time steps (using NumPy)...
+Finished computing all H matrices.
+First call to get_likelihood
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+Likelihood:  55361699.71257605
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 1.0000000000000082e-25, likelihood: 71413806.06933732
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 6.951927961775648e-25, likelihood: 69008250.63364711
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 4.832930238571811e-24, likelihood: 68156156.42643116
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 3.3598182862838426e-23, likelihood: -69924316584.4425
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 2.3357214690901406e-22, likelihood: 68836257.49198611
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 1.6237767391887308e-21, likelihood: 68566528.11068587
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 1.128837891684693e-20, likelihood: 68647133.85734196
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 7.847599703514687e-20, likelihood: 68487177.21680294
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 5.455594781168558e-19, likelihood: 68734321.90331684
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 3.79269019073227e-18, likelihood: 68844093.84357922
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 2.6366508987303662e-17, likelihood: 68883393.65368907
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 1.8329807108324525e-16, likelihood: 69516227.04524446
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 1.2742749857031427e-15, likelihood: 70318689.07530403
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 8.858667904100832e-15, likelihood: 68529344.75384295
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 6.15848211066028e-14, likelihood: 58588849.62813612
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 4.281332398719431e-13, likelihood: 47881523.87834131
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 2.9763514416313253e-12, likelihood: 37157909.994249895
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 2.06913808111479e-11, likelihood: 26433457.21821813
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 1.4384498882876658e-10, likelihood: 15708985.759968093
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791877e-08
+📊 The initial P-matrix Condition Number: 2.2222219355664806e+39
+γa: 1.000000000000004e-09, likelihood: 4984513.914496382
+📊 The initial PGW-matrix Cholesky: Successful ✅
+📊 The initial PGW-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial PGW-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial PGW-matrix Condition Number: 1000000000000000.2
+📊 The initial Pspin-matrix Cholesky: Successful ✅
+📊 The initial Pspin-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial Pspin-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial Pspin-matrix Condition Number: 1e+20
+📊 The initial Peps-matrix Cholesky: Successful ✅
+📊 The initial Peps-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.6286459822898385e-15
+📊 The initial Peps-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial Peps-matrix Condition Number: 107510214577954.33
+Total number of observations:  130
+Starting dt (days):  14.000064865096851
+Ending dt (days):  13.999784130034623
+The errors are:  [[1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ ...
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]]
+Computing H matrices for all 130 time steps (using NumPy)...
+Finished computing all H matrices.
+First call to get_likelihood
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+Likelihood:  55362068.94146702
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 1.0000000000000082e-25, likelihood: 71483060.6635831
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 6.951927961775648e-25, likelihood: 69529895.49524568
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 4.832930238571811e-24, likelihood: 68509943.81232113
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 3.3598182862838426e-23, likelihood: 67929877.18026479
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 2.3357214690901406e-22, likelihood: 68560575.86259764
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 1.6237767391887308e-21, likelihood: 69036396.11182642
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 1.128837891684693e-20, likelihood: 68808413.38178022
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 7.847599703514687e-20, likelihood: 1961657436154.778
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 5.455594781168558e-19, likelihood: 68850849.55881998
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 3.79269019073227e-18, likelihood: 68895365.38022909
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 2.6366508987303662e-17, likelihood: 69059861.96370164
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 1.8329807108324525e-16, likelihood: 69263883.21282634
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 1.2742749857031427e-15, likelihood: 70320344.48566031
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 8.858667904100832e-15, likelihood: 68540603.2817079
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 6.15848211066028e-14, likelihood: 58589212.31895692
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 4.281332398719431e-13, likelihood: 47881895.87311542
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 2.9763514416313253e-12, likelihood: 37158282.183233865
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 2.06913808111479e-11, likelihood: 26433829.41122173
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 1.4384498882876658e-10, likelihood: 15709357.95305485
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 6.659187600991476e-08
+📊 The initial P-matrix Condition Number: 2.797611665331064e+39
+γa: 1.000000000000004e-09, likelihood: 4984886.107584862
+📊 The initial PGW-matrix Cholesky: Successful ✅
+📊 The initial PGW-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial PGW-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial PGW-matrix Condition Number: 1000000000000000.2
+📊 The initial Pspin-matrix Cholesky: Successful ✅
+📊 The initial Pspin-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial Pspin-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial Pspin-matrix Condition Number: 1e+20
+📊 The initial Peps-matrix Cholesky: Successful ✅
+📊 The initial Peps-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 6.603864283358326e-15
+📊 The initial Peps-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial Peps-matrix Condition Number: 107501976771432.67
+Total number of observations:  130
+Starting dt (days):  14.000064865096851
+Ending dt (days):  13.999784130034623
+The errors are:  [[1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ ...
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]]
+Computing H matrices for all 130 time steps (using NumPy)...
+Finished computing all H matrices.
+First call to get_likelihood
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+Likelihood:  55364094.23096988
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 1.0000000000000082e-25, likelihood: 157401592712.1445
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 6.951927961775648e-25, likelihood: 68440564.85743721
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 4.832930238571811e-24, likelihood: -6006064872.316989
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 3.3598182862838426e-23, likelihood: 68816188.34467098
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 2.3357214690901406e-22, likelihood: 68886180.08912408
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 1.6237767391887308e-21, likelihood: 68813076.52638909
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 1.128837891684693e-20, likelihood: 67759727.10135423
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 7.847599703514687e-20, likelihood: 69121833.8284275
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 5.455594781168558e-19, likelihood: 69115628.03605977
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 3.79269019073227e-18, likelihood: 69020244.2090316
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 2.6366508987303662e-17, likelihood: 68910441.43449646
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 1.8329807108324525e-16, likelihood: 176809933117.55115
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 1.2742749857031427e-15, likelihood: 70189813.07642737
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 8.858667904100832e-15, likelihood: 68518146.24029554
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 6.15848211066028e-14, likelihood: 58591177.55271062
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 4.281332398719431e-13, likelihood: 47883946.60694081
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 2.9763514416313253e-12, likelihood: 37160334.703858405
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 2.06913808111479e-11, likelihood: 26435881.968824413
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 1.4384498882876658e-10, likelihood: 15711410.511422675
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 1.672712297985562e-07
+📊 The initial P-matrix Condition Number: 7.02728278277802e+39
+γa: 1.000000000000004e-09, likelihood: 4986938.665968521
+📊 The initial PGW-matrix Cholesky: Successful ✅
+📊 The initial PGW-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial PGW-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial PGW-matrix Condition Number: 1000000000000000.2
+📊 The initial Pspin-matrix Cholesky: Successful ✅
+📊 The initial Pspin-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial Pspin-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial Pspin-matrix Condition Number: 1e+20
+📊 The initial Peps-matrix Cholesky: Successful ✅
+📊 The initial Peps-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.6591013206482943e-14
+📊 The initial Peps-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial Peps-matrix Condition Number: 107501719609920.23
+Total number of observations:  130
+Starting dt (days):  14.000064865096851
+Ending dt (days):  13.999784130034623
+The errors are:  [[1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ ...
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]]
+Computing H matrices for all 130 time steps (using NumPy)...
+Finished computing all H matrices.
+First call to get_likelihood
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+Likelihood:  55366658.07066343
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 1.0000000000000082e-25, likelihood: 69796762.48942322
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 6.951927961775648e-25, likelihood: 68362127.02837649
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 4.832930238571811e-24, likelihood: 68570278.04033251
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 3.3598182862838426e-23, likelihood: 69129797.73747246
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 2.3357214690901406e-22, likelihood: 69371986.0471512
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 1.6237767391887308e-21, likelihood: 69373664.07706611
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 1.128837891684693e-20, likelihood: 69375823.64997238
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 7.847599703514687e-20, likelihood: 69309872.97240272
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 5.455594781168558e-19, likelihood: -10432672006.035719
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 3.79269019073227e-18, likelihood: 69391669.540088
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 2.6366508987303662e-17, likelihood: 65757884.872916766
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 1.8329807108324525e-16, likelihood: 69625570.4149319
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 1.2742749857031427e-15, likelihood: 70091161.35353225
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 8.858667904100832e-15, likelihood: 68486625.61242744
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 6.15848211066028e-14, likelihood: 58593598.12343497
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 4.281332398719431e-13, likelihood: 47886571.926734686
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 2.9763514416313253e-12, likelihood: 37162964.35786607
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 2.06913808111479e-11, likelihood: 26438511.712557487
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 1.4384498882876658e-10, likelihood: 15714040.25701217
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2016633251160813e-07
+📊 The initial P-matrix Condition Number: 1.7651736272440993e+40
+γa: 1.000000000000004e-09, likelihood: 4989568.411596423
+📊 The initial PGW-matrix Cholesky: Successful ✅
+📊 The initial PGW-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial PGW-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial PGW-matrix Condition Number: 1000000000000000.2
+📊 The initial Pspin-matrix Cholesky: Successful ✅
+📊 The initial Pspin-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial Pspin-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial Pspin-matrix Condition Number: 1e+20
+📊 The initial Peps-matrix Cholesky: Successful ✅
+📊 The initial Peps-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0881202994151937e-14
+📊 The initial Peps-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial Peps-matrix Condition Number: 107516157596691.53
+Total number of observations:  130
+Starting dt (days):  14.000064865096851
+Ending dt (days):  13.999784130034623
+The errors are:  [[1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ ...
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]]
+Computing H matrices for all 130 time steps (using NumPy)...
+Finished computing all H matrices.
+First call to get_likelihood
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+Likelihood:  55367351.087832354
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 1.0000000000000082e-25, likelihood: 37899224.8367545
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 6.951927961775648e-25, likelihood: 68280892.13615827
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 4.832930238571811e-24, likelihood: 905124087.7389631
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 3.3598182862838426e-23, likelihood: 69028658.51822026
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 2.3357214690901406e-22, likelihood: 42916256.66805682
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 1.6237767391887308e-21, likelihood: 67716660.30826773
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 1.128837891684693e-20, likelihood: 84896798.5938046
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 7.847599703514687e-20, likelihood: 69502106.252073
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 5.455594781168558e-19, likelihood: 69449153.01466472
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 3.79269019073227e-18, likelihood: 68554150.22954212
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 2.6366508987303662e-17, likelihood: -904135881.4581468
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 1.8329807108324525e-16, likelihood: 206261607268114.25
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 1.2742749857031427e-15, likelihood: 70150349.57367273
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 8.858667904100832e-15, likelihood: 68479749.61988251
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 6.15848211066028e-14, likelihood: 58594452.55277379
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 4.281332398719431e-13, likelihood: 47887219.54171381
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 2.9763514416313253e-12, likelihood: 37163609.15675169
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 2.06913808111479e-11, likelihood: 26439156.453607425
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 1.4384498882876658e-10, likelihood: 15714684.99686576
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731791818e-07
+📊 The initial P-matrix Condition Number: 2.222221935566481e+40
+γa: 1.000000000000004e-09, likelihood: 4990213.151425265
+📊 The initial PGW-matrix Cholesky: Successful ✅
+📊 The initial PGW-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial PGW-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial PGW-matrix Condition Number: 1000000000000000.2
+📊 The initial Pspin-matrix Cholesky: Successful ✅
+📊 The initial Pspin-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial Pspin-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial Pspin-matrix Condition Number: 1e+20
+📊 The initial Peps-matrix Cholesky: Successful ✅
+📊 The initial Peps-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.08848068964834e-13
+📊 The initial Peps-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial Peps-matrix Condition Number: 107500654902637.81
+Total number of observations:  130
+Starting dt (days):  14.000064865096851
+Ending dt (days):  13.999784130034623
+The errors are:  [[1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ ...
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]]
+Computing H matrices for all 130 time steps (using NumPy)...
+Finished computing all H matrices.
+First call to get_likelihood
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+Likelihood:  55369754.93035494
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 1.0000000000000082e-25, likelihood: 117143723298.41313
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 6.951927961775648e-25, likelihood: -11855752421.045128
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 4.832930238571811e-24, likelihood: 68289299.46450527
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 3.3598182862838426e-23, likelihood: 56864254.6917224
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 2.3357214690901406e-22, likelihood: 69361268.06784059
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 1.6237767391887308e-21, likelihood: 52068200316.27527
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 1.128837891684693e-20, likelihood: 68741289.17959665
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 7.847599703514687e-20, likelihood: -20441501110.21246
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 5.455594781168558e-19, likelihood: 68573255.4504701
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 3.79269019073227e-18, likelihood: 636177738.0567129
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 2.6366508987303662e-17, likelihood: -1006447432957.5331
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 1.8329807108324525e-16, likelihood: -577199718.8017337
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 1.2742749857031427e-15, likelihood: 12192774.649095792
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 8.858667904100832e-15, likelihood: 68360562.89605601
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 6.15848211066028e-14, likelihood: 58594098.496944614
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 4.281332398719431e-13, likelihood: 47890859.779851995
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 2.9763514416313253e-12, likelihood: 37167339.36165113
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 2.06913808111479e-11, likelihood: 26442888.525005024
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 1.4384498882876658e-10, likelihood: 15718417.106887395
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.289580731774651e-06
+📊 The initial P-matrix Condition Number: 2.222221935566481e+41
+γa: 1.000000000000004e-09, likelihood: 4993945.262246045
+📊 The initial PGW-matrix Cholesky: Successful ✅
+📊 The initial PGW-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial PGW-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial PGW-matrix Condition Number: 1000000000000000.2
+📊 The initial Pspin-matrix Cholesky: Successful ✅
+📊 The initial Pspin-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial Pspin-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial Pspin-matrix Condition Number: 1e+20
+📊 The initial Peps-matrix Cholesky: Successful ✅
+📊 The initial Peps-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0884705065195708e-12
+📊 The initial Peps-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial Peps-matrix Condition Number: 107513095671389.31
+Total number of observations:  130
+Starting dt (days):  14.000064865096851
+Ending dt (days):  13.999784130034623
+The errors are:  [[1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ ...
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]]
+Computing H matrices for all 130 time steps (using NumPy)...
+Finished computing all H matrices.
+First call to get_likelihood
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+Likelihood:  55359613.166034974
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 1.0000000000000082e-25, likelihood: -1032626175.6417245
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 6.951927961775648e-25, likelihood: 172466839645302.34
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 4.832930238571811e-24, likelihood: 27732067356.079994
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 3.3598182862838426e-23, likelihood: 5382082736.277501
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 2.3357214690901406e-22, likelihood: 2766731890391.1147
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 1.6237767391887308e-21, likelihood: 38009643779.71954
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 1.128837891684693e-20, likelihood: 14950823886.23086
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 7.847599703514687e-20, likelihood: 6546818116.80044
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 5.455594781168558e-19, likelihood: 3757018857.711364
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 3.79269019073227e-18, likelihood: -2858087495.7009315
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 2.6366508987303662e-17, likelihood: 413615602.4134224
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 1.8329807108324525e-16, likelihood: 65436086.19967958
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 1.2742749857031427e-15, likelihood: -101169941.87768787
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 8.858667904100832e-15, likelihood: 64785241.77168669
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 6.15848211066028e-14, likelihood: 58539505.34531232
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 4.281332398719431e-13, likelihood: 47890473.751388416
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 2.9763514416313253e-12, likelihood: 37167891.39304371
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 2.06913808111479e-11, likelihood: 26443460.509427268
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 1.4384498882876658e-10, likelihood: 15718989.504436325
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 5.2895807317824484e-05
+📊 The initial P-matrix Condition Number: 2.222221935566481e+42
+γa: 1.000000000000004e-09, likelihood: 4994517.668343007
+📊 The initial PGW-matrix Cholesky: Successful ✅
+📊 The initial PGW-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial PGW-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial PGW-matrix Condition Number: 1000000000000000.2
+📊 The initial Pspin-matrix Cholesky: Successful ✅
+📊 The initial Pspin-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial Pspin-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial Pspin-matrix Condition Number: 1e+20
+📊 The initial Peps-matrix Cholesky: Successful ✅
+📊 The initial Peps-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0878322821853392e-11
+📊 The initial Peps-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial Peps-matrix Condition Number: 107515682978562.14
+Total number of observations:  130
+Starting dt (days):  14.000064865096851
+Ending dt (days):  13.999784130034623
+The errors are:  [[1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ ...
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]]
+Computing H matrices for all 130 time steps (using NumPy)...
+Finished computing all H matrices.
+First call to get_likelihood
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+Likelihood:  54990441.44070083
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 1.0000000000000082e-25, likelihood: 1271229363.3557827
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 6.951927961775648e-25, likelihood: 362979040.89474916
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 4.832930238571811e-24, likelihood: 91087940.67125988
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 3.3598182862838426e-23, likelihood: -1421398571.5547328
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 2.3357214690901406e-22, likelihood: 3061017400.193327
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 1.6237767391887308e-21, likelihood: 300451574.3955631
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 1.128837891684693e-20, likelihood: 1743543272.8048968
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 7.847599703514687e-20, likelihood: -924125376.665513
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 5.455594781168558e-19, likelihood: 2716398653.354377
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 3.79269019073227e-18, likelihood: 937758035.5284116
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 2.6366508987303662e-17, likelihood: 119699345.97119834
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 1.8329807108324525e-16, likelihood: 149646926.30699843
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 1.2742749857031427e-15, likelihood: 1365734287.248554
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 8.858667904100832e-15, likelihood: -1631881969.9027033
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 6.15848211066028e-14, likelihood: 58461247.61414105
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 4.281332398719431e-13, likelihood: 47886037.58305158
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 2.9763514416313253e-12, likelihood: 37167758.84312773
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 2.06913808111479e-11, likelihood: 26443482.137149647
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 1.4384498882876658e-10, likelihood: 15719014.353852388
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.0005289580731782489
+📊 The initial P-matrix Condition Number: 2.2222219355664811e+43
+γa: 1.000000000000004e-09, likelihood: 4994542.5844372595
+📊 The initial PGW-matrix Cholesky: Successful ✅
+📊 The initial PGW-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial PGW-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial PGW-matrix Condition Number: 1000000000000000.2
+📊 The initial Pspin-matrix Cholesky: Successful ✅
+📊 The initial Pspin-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial Pspin-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial Pspin-matrix Condition Number: 1e+20
+📊 The initial Peps-matrix Cholesky: Successful ✅
+📊 The initial Peps-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0881418960117252e-10
+📊 The initial Peps-matrix Symmetry Error (Frobenius Norm): 0.005289580731807457
+📊 The initial Peps-matrix Condition Number: 107517045674517.11
+Total number of observations:  130
+Starting dt (days):  14.000064865096851
+Ending dt (days):  13.999784130034623
+The errors are:  [[1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ ...
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]]
+Computing H matrices for all 130 time steps (using NumPy)...
+Finished computing all H matrices.
+First call to get_likelihood
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+Likelihood:  51683746.823989324
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 1.0000000000000082e-25, likelihood: -222114246.15400666
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 6.951927961775648e-25, likelihood: 76439957.95636196
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 4.832930238571811e-24, likelihood: 63162872.83199254
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 3.3598182862838426e-23, likelihood: 70319799.29442838
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 2.3357214690901406e-22, likelihood: 105377584.52599713
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 1.6237767391887308e-21, likelihood: 61301823.01804565
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 1.128837891684693e-20, likelihood: -425124167.79043514
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 7.847599703514687e-20, likelihood: 64955557.3024133
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 5.455594781168558e-19, likelihood: 1670460124.4671912
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 3.79269019073227e-18, likelihood: 34143946.62887947
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 2.6366508987303662e-17, likelihood: -404656397.98212063
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 1.8329807108324525e-16, likelihood: 60131984.71161667
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 1.2742749857031427e-15, likelihood: 47918358.023323506
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 8.858667904100832e-15, likelihood: 55625169.922392905
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 6.15848211066028e-14, likelihood: 54971942.064946696
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 4.281332398719431e-13, likelihood: 47840266.742068335
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 2.9763514416313253e-12, likelihood: 37165929.83289846
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 2.06913808111479e-11, likelihood: 26443408.88933145
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 1.4384498882876658e-10, likelihood: 15718979.80343695
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.005289580731807456
+📊 The initial P-matrix Condition Number: 2.2222219355664817e+44
+γa: 1.000000000000004e-09, likelihood: 4994508.835678487
+📊 The initial PGW-matrix Cholesky: Successful ✅
+📊 The initial PGW-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial PGW-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial PGW-matrix Condition Number: 1000000000000000.2
+📊 The initial Pspin-matrix Cholesky: Successful ✅
+📊 The initial Pspin-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial Pspin-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial Pspin-matrix Condition Number: 1e+20
+📊 The initial Peps-matrix Cholesky: Successful ✅
+📊 The initial Peps-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0885374636824697e-09
+📊 The initial Peps-matrix Symmetry Error (Frobenius Norm): 0.05289580731803722
+📊 The initial Peps-matrix Condition Number: 107507301359372.14
+Total number of observations:  130
+Starting dt (days):  14.000064865096851
+Ending dt (days):  13.999784130034623
+The errors are:  [[1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ ...
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]]
+Computing H matrices for all 130 time steps (using NumPy)...
+Finished computing all H matrices.
+First call to get_likelihood
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+Likelihood:  47267191.74894771
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 1.0000000000000082e-25, likelihood: 49290576.2739902
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 6.951927961775648e-25, likelihood: 50238197.01092673
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 4.832930238571811e-24, likelihood: -208236.01748867444
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 3.3598182862838426e-23, likelihood: 54466660.33459747
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 2.3357214690901406e-22, likelihood: 115793157.7759788
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 1.6237767391887308e-21, likelihood: 29925764.33084121
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 1.128837891684693e-20, likelihood: 105906207.34608322
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 7.847599703514687e-20, likelihood: -56429108.439221695
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 5.455594781168558e-19, likelihood: 52153582.79466568
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 3.79269019073227e-18, likelihood: -119765693.73515144
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 2.6366508987303662e-17, likelihood: 51142849.50444192
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 1.8329807108324525e-16, likelihood: 51479950.62204509
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 1.2742749857031427e-15, likelihood: 22589057.092836317
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 8.858667904100832e-15, likelihood: 47943170.459378146
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 6.15848211066028e-14, likelihood: 48070270.04529621
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 4.281332398719431e-13, likelihood: 43524197.63452156
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 2.9763514416313253e-12, likelihood: 37152720.15334347
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 2.06913808111479e-11, likelihood: 26443010.57224527
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 1.4384498882876658e-10, likelihood: 15718932.655522622
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 0.052895807318037225
+📊 The initial P-matrix Condition Number: 2.222221935566481e+45
+γa: 1.000000000000004e-09, likelihood: 4994469.04179308
+
+real	0m59.925s
+user	0m40.203s
+sys	0m12.081s
+
++------------------- Job Report: 10278 (COMPLETED) --------------------+
+| Memory (RAM)  [#####               ] 25.5% (1 GB peak / 4 GB)        |
+| CPU           [###########         ] 56.2% average                   |
+| Time          [-->                 ] 12.2% (0-00:01:13 / 0-00:10:00) |
+|                                                                      |
+| Lustre Filesystem:                                                   |
+|   Path    Total Read    Total Write    Total IOPS                    |
+|   ------  ------------  -------------  ------------                  |
+|   /apps   0 B           0 B            7                             |
+|   /fred   8 KB          4.4 KB         3.3 K                         |
+|   /home   0 B           0 B            2                             |
+|   OS      0 B           0 B            5                             |
+|                                                                      |
+| Warnings:                                                            |
+|   - Too much memory requested                                        |
+|   - CPU usage is low                                                 |
+|   - Too much time requested                                          |
++----------------------------------------------------------------------+

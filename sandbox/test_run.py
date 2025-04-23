@@ -19,7 +19,7 @@ from argus import models
 from argus import jax_kalman_filter
 from argus import gravitational_waves
 
-
+from argus import utils
 
 @struct.dataclass
 class Parameters:

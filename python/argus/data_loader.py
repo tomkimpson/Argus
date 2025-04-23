@@ -73,8 +73,8 @@ class LoadWidebandPulsarData:
             with attributes: toas, toaerrs, residuals, fitpars, Mmat, name, _raj, and _decj.
 
         """
-        self.toas      = ds_psr.toas   #units of seconds, https://github.com/nanograv/enterprise/blob/master/enterprise/pulsar.py#L201
-        self.toaerrs   = ds_psr.toaerrs #units of seconds, https://github.com/nanograv/enterprise/blob/master/enterprise/pulsar.py#L216
+        self.toas      = ds_psr.toas      #units of seconds, https://github.com/nanograv/enterprise/blob/master/enterprise/pulsar.py#L201
+        self.toaerrs   = ds_psr.toaerrs   #units of seconds, https://github.com/nanograv/enterprise/blob/master/enterprise/pulsar.py#L216
         self.residuals = ds_psr.residuals #units of seconds, https://github.com/nanograv/enterprise/blob/master/enterprise/pulsar.py#L211
         self.fitpars   = ds_psr.fitpars
         self.M_matrix  = ds_psr.Mmat
@@ -82,24 +82,28 @@ class LoadWidebandPulsarData:
         self.RA        = ds_psr._raj
         self.DEC       = ds_psr._decj
 
+      
 
+
+
+        #print(np.max(self.M_matrix,axis=0))
+        #print(np.min(self.M_matrix,axis=0))
         # Scale the M matrix columns to have unit norm
         col_scales = np.sqrt(np.sum(self.M_matrix**2, axis=0))
         self.M_scaled = self.M_matrix / col_scales
 
+
+        # Compute the covariance matrix of the residuals
+        print("Computing the covariance matrix of the residuals")
+        Ninv = np.diag(1.0 / self.toaerrs**2)
+        MtNinvM = self.M_scaled.T @ Ninv @ self.M_scaled
+        self.P_eps = np.linalg.inv(MtNinvM)
+ 
         # Compute differences between consecutive TOAs and propagate errors.
         self.toa_diffs = np.diff(self.toas)
         self.toa_diff_errors = np.sqrt(self.toaerrs[1:] ** 2 + self.toaerrs[:-1] ** 2)
 
-        #print("Approximate exp term size: ", np.exp(-1e-9 * np.mean(self.toa_diffs)))
-               
-        # print("Mvals")
-        # mu = np.mean(self.M_scaled,axis=0)
-        # mu_dt = np.mean(self.toa_diffs)
-        # mu_rms = np.mean(self.toaerrs)
-        # S = 0.01
-        # sigs = (mu_rms**2 *S**2) / (mu**2 * mu_dt)
-        # print(np.sqrt(sigs))
+
         
 
     @staticmethod
@@ -296,9 +300,11 @@ class LoadWidebandPulsarData:
         if max_files is not None:
             file_pairs = file_pairs[:max_files]
 
-        dfs = []  # List to hold individual pulsar TOA/residual DataFrames.
-        dfs_meta = []  # List to hold individual pulsar metadata DataFrames.
+        dfs              = []  # List to hold individual pulsar TOA/residual DataFrames.
+        dfs_meta         = []  # List to hold individual pulsar metadata DataFrames.
         np_arrays_design = []  # List to hold individual pulsar design matrix DataFrames.
+        np_arrays_P_eps  = []  # List to hold individual pulsar design matrix DataFrames.
+        
         for i, (par_file, tim_file) in enumerate(file_pairs):
             psr = cls.read_par_tim(par_file, tim_file, **kwargs)
 
@@ -327,14 +333,10 @@ class LoadWidebandPulsarData:
 
 
             dfs.append(df)
-            dfs_meta.append(df_meta)
-            #np_arrays_design.append(psr.M_matrix)
+            dfs_meta.append(df_meta)    
             np_arrays_design.append(psr.M_scaled)
-        # # Merge all individual pulsar DataFrames on 'toas' using an outer merge.
-        # merged_df = reduce(
-        #     lambda left, right: pd.merge(left, right, on="toas", how="outer"), dfs
-        # )
+            np_arrays_P_eps.append(psr.P_eps)
 
         meta_df = pd.concat(dfs_meta, ignore_index=True)
     
-        return dfs, meta_df, np_arrays_design
+        return dfs, meta_df, np_arrays_design, np_arrays_P_eps

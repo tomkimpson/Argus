@@ -22,7 +22,7 @@ def check_cholesky(matrix,matrix_name="Matrix"):
         jax.debug.print("📊 {name} Cholesky: Successful ✅", name=matrix_name,ordered=True)
 
     def print_failure():
-        jax.debug.print("📊 {name} Cholesky: Failed (NaN, inf, or all-zero result) ❌", name=matrix_name,ordered=True)
+        jax.debug.print("📊 {name} Cholesky: Failed (NaN, inf, or all-zero result) ❌. Has nan: {has_nan}, has inf: {has_inf}, all zero: {all_zero}", name=matrix_name,has_nan=has_nan,has_inf=has_inf,all_zero=all_zero,ordered=True)
 
 
     jax.lax.cond(success, print_success, print_failure)
