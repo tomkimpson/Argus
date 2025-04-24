@@ -1,0 +1,1668 @@
+[tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
+[preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0034-0534. Setting value to 1 with 20% uncertainty.
+[tempo2Util.C:401] Warning: [DUP1] duplicated warnings have been suppressed.
+[preProcess.C:158] Warning: PSR J0034-0534 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0218+4232. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0218+4232 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J0437-4715 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J0613-0200 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0621+1002. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0621+1002 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J0711-6830 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0751+1807. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0751+1807 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0900-3144. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0900-3144 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1012+5307 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1022+1001 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1024-0719 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1045-4509 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1455-3330 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1600-3053 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1603-7202 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J1614-2230. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J1614-2230 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1643-1224 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1713+0747 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1730-2304 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1744-1134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1857+0943 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1909-3744 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1918-0642 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1939+2134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J1944+0907. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J1944+0907 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J2010-1323. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J2010-1323 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2124-3358 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2129-5721 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2145-0750 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J2229+2643. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J2229+2643 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2317+1439 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+Getting the data. Loading 32 pulsars from ../data/IPTA_MockDataChallenge2/dataset_2b/
+PSR: J0030+0451, F0: 205.53069593846152, # TOAs: 183
+PSR: J0034-0534, F0: 532.7134293952242, # TOAs: 183
+PSR: J0218+4232, F0: 430.46105454575843, # TOAs: 183
+PSR: J0437-4715, F0: 173.6879457375193, # TOAs: 183
+PSR: J0613-0200, F0: 326.60056202349193, # TOAs: 183
+PSR: J0621+1002, F0: 34.65740662142043, # TOAs: 183
+PSR: J0711-6830, F0: 182.1172346472276, # TOAs: 183
+PSR: J0751+1807, F0: 287.4578539950941, # TOAs: 183
+PSR: J0900-3144, F0: 90.0118419193632, # TOAs: 183
+PSR: J1012+5307, F0: 190.26783444155498, # TOAs: 183
+PSR: J1022+1001, F0: 60.779447956696714, # TOAs: 183
+PSR: J1024-0719, F0: 193.71568344854623, # TOAs: 183
+PSR: J1045-4509, F0: 133.79314954119278, # TOAs: 183
+PSR: J1455-3330, F0: 125.20024324499536, # TOAs: 183
+PSR: J1600-3053, F0: 277.9377069896204, # TOAs: 183
+PSR: J1603-7202, F0: 67.37658112877924, # TOAs: 183
+PSR: J1614-2230, F0: 317.37893706872126, # TOAs: 183
+PSR: J1643-1224, F0: 216.37333714263485, # TOAs: 183
+PSR: J1713+0747, F0: 218.81184041715784, # TOAs: 183
+PSR: J1730-2304, F0: 123.1102871473812, # TOAs: 183
+PSR: J1744-1134, F0: 245.42611968980754, # TOAs: 183
+PSR: J1857+0943, F0: 186.4940783779791, # TOAs: 183
+PSR: J1909-3744, F0: 339.31568721848686, # TOAs: 183
+PSR: J1918-0642, F0: 130.78951412337267, # TOAs: 183
+PSR: J1939+2134, F0: 641.9282245822469, # TOAs: 183
+PSR: J1944+0907, F0: 192.85651792018598, # TOAs: 183
+PSR: J2010-1323, F0: 191.45090909263828, # TOAs: 183
+PSR: J2124-3358, F0: 202.7938937460303, # TOAs: 183
+PSR: J2129-5721, F0: 268.3592272938787, # TOAs: 183
+PSR: J2145-0750, F0: 62.29588783738885, # TOAs: 183
+PSR: J2229+2643, F0: 335.81620819685526, # TOAs: 183
+PSR: J2317+1439, F0: 290.2546036648635, # TOAs: 183
+Total length of the data is  183
+Total number of pulsars is  32
+The number of pulsars is: 32
+The frequencies are: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
+  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
+  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
+  67.37658113 317.37893707 216.37333714 218.81184042 123.11028715
+ 245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
+ 192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
+ 335.8162082  290.25460366]
+📊 The initial PGW-matrix Cholesky: Successful ✅
+📊 The initial PGW-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial PGW-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial PGW-matrix Condition Number: 41666.666666666686
+📊 The initial Pspin-matrix Cholesky: Successful ✅
+📊 The initial Pspin-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial Pspin-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial Pspin-matrix Condition Number: 1e+20
+📊 The initial Peps-matrix Cholesky: Successful ✅
+📊 The initial Peps-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 7.484753263138249e-14
+📊 The initial Peps-matrix Symmetry Error (Frobenius Norm): 4.2270424894276694e-07
+📊 The initial Peps-matrix Condition Number: 225037310089106.53
+Total number of observations:  183
+Starting dt (days):  29.875630165338517
+Ending dt (days):  30.060462559770656
+The errors are:  [[2.697680e-06 9.700560e-06 1.613116e-05 ... 4.303360e-06 1.993229e-05
+  2.291670e-06]
+ [3.564190e-06 1.028185e-05 1.375148e-05 ... 4.315200e-06 2.081397e-05
+  2.460960e-06]
+ [3.371030e-06 1.152162e-05 1.416413e-05 ... 6.463740e-06 1.950077e-05
+  2.410460e-06]
+ ...
+ [3.277710e-06 1.018558e-05 1.457250e-05 ... 4.446140e-06 2.521705e-05
+  2.305590e-06]
+ [3.646380e-06 1.269312e-05 1.485810e-05 ... 5.631600e-06 1.820880e-05
+  2.652070e-06]
+ [3.433920e-06 1.161783e-05 1.559288e-05 ... 5.352100e-06 1.732358e-05
+  2.735790e-06]]
+Computing H matrices for all 183 time steps (using NumPy)...
+Finished computing all H matrices.
+First call to get_likelihood
+📊 The initial P-matrix Cholesky: Successful ✅
+📊 The initial P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial P-matrix Symmetry Error (Frobenius Norm): 4.2270424894276694e-07
+📊 The initial P-matrix Condition Number: 1.770437728233981e+41
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.2972040160838346e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The innovation covariance matrix Condition Number: 12078.109522843684
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.2059798419188108e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.879303440123191e-07
+📊 The updated P-matrix Condition Number: 1.731268402856544e+41
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 7.299233364974993e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The innovation covariance matrix Condition Number: 19423244.558992453
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.11470355750643e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.917966550158214e-07
+📊 The updated P-matrix Condition Number: 4.033630445212444e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.363730352185953e-12
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 7.825213259068822e-21
+📊 The innovation covariance matrix Condition Number: 10500114.12436858
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -5.5400413797454296e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.0041280528678564e-07
+📊 The updated P-matrix Condition Number: 3.8856753071767927e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 7.425571152700011e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.3214131999404558e-20
+📊 The innovation covariance matrix Condition Number: 19495283.526603695
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -3.8867174843758326e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 5.055322152001824e-07
+📊 The updated P-matrix Condition Number: 3.665364289056065e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 5.532337288040708e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.7436719601061844e-20
+📊 The innovation covariance matrix Condition Number: 25244822.454031844
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.5724411016385583e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 8.227820583772921e-07
+📊 The updated P-matrix Condition Number: 3.6744232178415646e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 5.75770899307415e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.040849848103143e-20
+📊 The innovation covariance matrix Condition Number: 24818377.444089305
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -5.3466930947695455e-17
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 7.107998332198519e-07
+📊 The updated P-matrix Condition Number: 3.680078322323066e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 5.030683038798824e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 7.53682451889497e-21
+📊 The innovation covariance matrix Condition Number: 29192211.028684314
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.3734732201944375e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.834994398826191e-07
+📊 The updated P-matrix Condition Number: 3.071610344129022e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 4.471669055483637e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.647400281483835e-20
+📊 The innovation covariance matrix Condition Number: 31357067.72696687
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.6169337151962275e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 6.278575918882039e-07
+📊 The updated P-matrix Condition Number: 2.976979937615621e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 4.0826401300290134e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 3.2881587903639504e-20
+📊 The innovation covariance matrix Condition Number: 35494274.359971486
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.8026711550513296e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 6.998542770997647e-07
+📊 The updated P-matrix Condition Number: 2.919216445582715e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 3.1383472529384717e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 3.5712030830237785e-20
+📊 The innovation covariance matrix Condition Number: 44259540.41335162
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.318097857644653e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 6.245507340571114e-07
+📊 The updated P-matrix Condition Number: 2.9233165894536917e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 3.682842165786373e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.0449835040198662e-20
+📊 The innovation covariance matrix Condition Number: 38659121.63308512
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.432251282840121e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 5.435634727079022e-07
+📊 The updated P-matrix Condition Number: 2.8076108641682826e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.298663308419486e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.8676651814156237e-20
+📊 The innovation covariance matrix Condition Number: 62666609.269357264
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -9.79900831944419e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 5.882595561357655e-07
+📊 The updated P-matrix Condition Number: 2.780234375002724e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.4057681425613473e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 3.7741056698320313e-20
+📊 The innovation covariance matrix Condition Number: 59269280.91375143
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.793022882779234e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 6.51618960947564e-07
+📊 The updated P-matrix Condition Number: 2.7861213983920786e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.395734349296626e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.3294447124193867e-20
+📊 The innovation covariance matrix Condition Number: 59768428.11333387
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.420635963194068e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 5.19620152626952e-07
+📊 The updated P-matrix Condition Number: 2.7833246245960183e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 3.4555214183453253e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.2019682272084727e-20
+📊 The innovation covariance matrix Condition Number: 41722194.501631096
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.268072029439592e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 5.290942164017775e-07
+📊 The updated P-matrix Condition Number: 2.679985672476679e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 3.042457791109396e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 3.066645404842433e-20
+📊 The innovation covariance matrix Condition Number: 46784237.61114776
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -3.77247560374969e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.580519289619198e-07
+📊 The updated P-matrix Condition Number: 2.656681439027659e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 3.566935030586382e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.4072922930776365e-20
+📊 The innovation covariance matrix Condition Number: 38980656.28444871
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.972049880538599e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.4621107527864616e-07
+📊 The updated P-matrix Condition Number: 2.3945204919488172e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.2569702299185848e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.946154769600399e-20
+📊 The innovation covariance matrix Condition Number: 64849126.395640135
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.972152403816487e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.478571232810318e-07
+📊 The updated P-matrix Condition Number: 2.3536011654139944e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.3819968096578475e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 8.706273638306745e-20
+📊 The innovation covariance matrix Condition Number: 59829564.506092034
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -5.580027407840612e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.540963937597655e-07
+📊 The updated P-matrix Condition Number: 2.2690893749905192e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.31109674578693e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.5842134177111294e-19
+📊 The innovation covariance matrix Condition Number: 62631182.68136015
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.385688382442162e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.345048160486779e-07
+📊 The updated P-matrix Condition Number: 2.134523511672394e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.481444998634623e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 5.403203428182597e-20
+📊 The innovation covariance matrix Condition Number: 56765272.40457192
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.5772403569649393e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.093325614548189e-07
+📊 The updated P-matrix Condition Number: 2.0202153731683793e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.1190910648161687e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 3.3060524508993145e-20
+📊 The innovation covariance matrix Condition Number: 68651534.67951284
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -9.600042394688138e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.080973576614797e-07
+📊 The updated P-matrix Condition Number: 1.9589138981085107e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.5481552537767056e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 3.01353115199687e-19
+📊 The innovation covariance matrix Condition Number: 55066426.948897384
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.453521450293008e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.0548451996666823e-07
+📊 The updated P-matrix Condition Number: 1.9636400333994268e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.5017275394690956e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.6692347675733616e-19
+📊 The innovation covariance matrix Condition Number: 56681847.674716964
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.1316976517319057e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.953422661381939e-07
+📊 The updated P-matrix Condition Number: 1.9680593072967055e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.8252247516404874e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.2844794818098137e-19
+📊 The innovation covariance matrix Condition Number: 51331363.97383236
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.880263743317145e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.915242798282977e-07
+📊 The updated P-matrix Condition Number: 1.956992001729231e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 3.0396259323704425e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.8123002021023998e-19
+📊 The innovation covariance matrix Condition Number: 46581505.41985481
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.4229905939559266e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.076916744783751e-07
+📊 The updated P-matrix Condition Number: 1.959169752897224e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.858265644985456e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 4.033586119539645e-20
+📊 The innovation covariance matrix Condition Number: 49473199.11888099
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.244461450176441e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.8885454046127085e-07
+📊 The updated P-matrix Condition Number: 1.920464292457008e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.6770010068716158e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.377778195262425e-19
+📊 The innovation covariance matrix Condition Number: 84734969.793602
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.1841545841119663e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.802468610360182e-07
+📊 The updated P-matrix Condition Number: 1.8287285904322134e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 3.3186987114473013e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.164432477731823e-20
+📊 The innovation covariance matrix Condition Number: 44294796.03366743
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -3.559421644132222e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.754057290076872e-07
+📊 The updated P-matrix Condition Number: 1.8249880001390468e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.299668786259799e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.6040300617679244e-20
+📊 The innovation covariance matrix Condition Number: 60405242.316296466
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.035189932923141e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.7869867723390877e-07
+📊 The updated P-matrix Condition Number: 1.811847187900085e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.3047724486212496e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.682822533781987e-19
+📊 The innovation covariance matrix Condition Number: 61715779.03801543
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.0599209494547061e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.735055630966395e-07
+📊 The updated P-matrix Condition Number: 1.7418080236401072e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.279134918647612e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.443495696699826e-20
+📊 The innovation covariance matrix Condition Number: 62724434.73100255
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -3.0263756194380738e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.732453742951526e-07
+📊 The updated P-matrix Condition Number: 1.7315263517558943e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 3.1414385947377717e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.3742263735126596e-19
+📊 The innovation covariance matrix Condition Number: 46977104.50326465
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.6431194953673978e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.791585466224967e-07
+📊 The updated P-matrix Condition Number: 1.679455688163917e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.2731977839584226e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.7204935786523622e-19
+📊 The innovation covariance matrix Condition Number: 62489687.85063127
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.5042941939876287e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.8107898423524746e-07
+📊 The updated P-matrix Condition Number: 1.6493135606191157e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.7162554851462907e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 5.361777462193554e-19
+📊 The innovation covariance matrix Condition Number: 52898023.77021261
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.8529373141965654e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.83058092990517e-07
+📊 The updated P-matrix Condition Number: 1.613399860972362e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.643094955987029e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.7249888084183788e-19
+📊 The innovation covariance matrix Condition Number: 52301729.17243347
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.4526870842078623e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.775623405999152e-07
+📊 The updated P-matrix Condition Number: 1.6148469801633532e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.3501967341013226e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.2713994638124968e-19
+📊 The innovation covariance matrix Condition Number: 62407106.72127896
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.918319556802741e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.7806310476593195e-07
+📊 The updated P-matrix Condition Number: 1.5871756386854518e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.3249136059930317e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 7.200088355370514e-20
+📊 The innovation covariance matrix Condition Number: 60962181.00033975
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -3.533589320095825e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.800739274851123e-07
+📊 The updated P-matrix Condition Number: 1.5645337970404592e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.835104413319547e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.7896912519358068e-19
+📊 The innovation covariance matrix Condition Number: 76632920.94107465
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.1644718000945399e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.7638566818207445e-07
+📊 The updated P-matrix Condition Number: 1.5672104712812008e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.9074463515970377e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.8926696525893915e-19
+📊 The innovation covariance matrix Condition Number: 75661287.3332955
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.4116157584719704e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.7801831834765354e-07
+📊 The updated P-matrix Condition Number: 1.5685187720868488e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.3579556851354224e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.8058659305290326e-20
+📊 The innovation covariance matrix Condition Number: 60868336.8080019
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -5.166442469307857e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.7555629835819724e-07
+📊 The updated P-matrix Condition Number: 1.5548916642200165e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.193691810737476e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 9.916796930313873e-20
+📊 The innovation covariance matrix Condition Number: 65648182.34790496
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.592380189563689e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.758468067131253e-07
+📊 The updated P-matrix Condition Number: 1.5363260024560049e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.2642852396364852e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.312909427479321e-20
+📊 The innovation covariance matrix Condition Number: 63409731.67390848
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.013152422838485e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.7521207270003904e-07
+📊 The updated P-matrix Condition Number: 1.516890221402843e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0397020238248797e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 8.171183241070015e-20
+📊 The innovation covariance matrix Condition Number: 68901356.16434082
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.411697283412584e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.7579376539434583e-07
+📊 The updated P-matrix Condition Number: 1.5202112957532037e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.078241379247038e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 5.386200875123264e-19
+📊 The innovation covariance matrix Condition Number: 68858103.04292153
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -8.899750129538885e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.751383236654445e-07
+📊 The updated P-matrix Condition Number: 1.5148432060052206e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.2698926457919956e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.1389137303700813e-19
+📊 The innovation covariance matrix Condition Number: 63192577.1062114
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.4513452889424082e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.7388511495229646e-07
+📊 The updated P-matrix Condition Number: 1.5136664813039428e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 3.1635195891958904e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.1352086247611296e-19
+📊 The innovation covariance matrix Condition Number: 44362507.80364696
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.9125296331484604e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.777863834018508e-07
+📊 The updated P-matrix Condition Number: 1.4923209069758865e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0654171833524526e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.532881602315377e-19
+📊 The innovation covariance matrix Condition Number: 70685467.82167166
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.5215879944488663e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.7701285534436404e-07
+📊 The updated P-matrix Condition Number: 1.4875305963686855e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0015626365405435e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 4.506850147351906e-19
+📊 The innovation covariance matrix Condition Number: 72020232.5852004
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.4097879358537313e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.800327723828919e-07
+📊 The updated P-matrix Condition Number: 1.48461426330527e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.35759635952522e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 3.987855527654264e-19
+📊 The innovation covariance matrix Condition Number: 59525117.339812644
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.6968807916455072e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.8406110884325895e-07
+📊 The updated P-matrix Condition Number: 1.4393823610921177e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.6334487036244267e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.6131449324171996e-20
+📊 The innovation covariance matrix Condition Number: 87227072.59946562
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.064454955853139e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.751795512634852e-07
+📊 The updated P-matrix Condition Number: 1.4209805884518084e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.2660088334152582e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.455453379064119e-19
+📊 The innovation covariance matrix Condition Number: 62906265.75446104
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.5264236562157819e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.7593827016923886e-07
+📊 The updated P-matrix Condition Number: 1.424131624499886e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.8893945562402907e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.3047509225302686e-20
+📊 The innovation covariance matrix Condition Number: 49563556.18832752
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.3179677820137079e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.78104525049456e-07
+📊 The updated P-matrix Condition Number: 1.426361428178795e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.4863158372442394e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.7386811504013089e-19
+📊 The innovation covariance matrix Condition Number: 96482069.05608043
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.2209478129256955e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.843315156936935e-07
+📊 The updated P-matrix Condition Number: 1.4285381287861802e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.4338313302078165e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.7759652239084814e-19
+📊 The innovation covariance matrix Condition Number: 58487079.262496494
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.517900715964914e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9067549879006334e-07
+📊 The updated P-matrix Condition Number: 1.4316620321622685e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.7628956466464972e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 9.232372288667289e-20
+📊 The innovation covariance matrix Condition Number: 81510663.44041549
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -9.87640326108265e-17
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.854832439946705e-07
+📊 The updated P-matrix Condition Number: 1.4243854032690027e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.080915647770556e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 4.4938194442524315e-20
+📊 The innovation covariance matrix Condition Number: 68007424.55081259
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.570427420094191e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.845691539582111e-07
+📊 The updated P-matrix Condition Number: 1.419540167115647e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.032989918160767e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 3.4604377941128526e-20
+📊 The innovation covariance matrix Condition Number: 70683630.64723238
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.4930371548402065e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.873867759006155e-07
+📊 The updated P-matrix Condition Number: 1.414962579546019e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.7722821865328914e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.2916566579039618e-20
+📊 The innovation covariance matrix Condition Number: 81228689.15635362
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.8628858832226874e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9558266849006043e-07
+📊 The updated P-matrix Condition Number: 1.398775090793029e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.002059395858996e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 7.278794635420988e-20
+📊 The innovation covariance matrix Condition Number: 70217192.076808
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.9362673023892595e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.009876669172741e-07
+📊 The updated P-matrix Condition Number: 1.4017782393755966e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.6378345432904104e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 4.432710061236774e-20
+📊 The innovation covariance matrix Condition Number: 54262689.96093137
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.665510785074989e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.98847750147625e-07
+📊 The updated P-matrix Condition Number: 1.3922813585810295e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.9518646421111074e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 4.099545879824522e-20
+📊 The innovation covariance matrix Condition Number: 73156640.75232513
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.5736552913044567e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.0140968582238727e-07
+📊 The updated P-matrix Condition Number: 1.3881872871194794e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.878645926173468e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.1749189653332793e-19
+📊 The innovation covariance matrix Condition Number: 76715538.48879483
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -3.269102413591023e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.963852826625391e-07
+📊 The updated P-matrix Condition Number: 1.3853371503782996e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 3.2216659104824877e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 5.0859267605286614e-20
+📊 The innovation covariance matrix Condition Number: 44624924.402226664
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -3.110772280020295e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.082130724493118e-07
+📊 The updated P-matrix Condition Number: 1.3816402153452892e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.369166306951302e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 7.376741860306815e-20
+📊 The innovation covariance matrix Condition Number: 59330368.50220395
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -5.311565930147281e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.077119641638314e-07
+📊 The updated P-matrix Condition Number: 1.383555551913438e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0892647345236687e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 3.0583643735245155e-20
+📊 The innovation covariance matrix Condition Number: 68600474.13431448
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -3.9985662216089573e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.071094111798499e-07
+📊 The updated P-matrix Condition Number: 1.3838776165799286e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0399961082366231e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 8.514048590483068e-20
+📊 The innovation covariance matrix Condition Number: 70052972.66861215
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -3.820163497432345e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.127299309541835e-07
+📊 The updated P-matrix Condition Number: 1.3866925781954998e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.909951622168144e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 7.902156179948856e-20
+📊 The innovation covariance matrix Condition Number: 49876045.701036036
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.790038851968905e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.081219677597976e-07
+📊 The updated P-matrix Condition Number: 1.384827104423893e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.7183242465558017e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 9.005066856298067e-20
+📊 The innovation covariance matrix Condition Number: 81643494.14423326
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.1732792380420325e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.091246100335539e-07
+📊 The updated P-matrix Condition Number: 1.387032902818234e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.5626136170073876e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.1410960548263028e-19
+📊 The innovation covariance matrix Condition Number: 90928331.85514337
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.167973486285925e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.0674322248083084e-07
+📊 The updated P-matrix Condition Number: 1.3874763457841517e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.2826967790800944e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.1490574858614964e-19
+📊 The innovation covariance matrix Condition Number: 62805814.464601144
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.193853994870924e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.0601836386018813e-07
+📊 The updated P-matrix Condition Number: 1.390137315969969e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0701252641261998e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.38775764103947e-19
+📊 The innovation covariance matrix Condition Number: 69963205.75850461
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.62252040754964e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.0250089545412896e-07
+📊 The updated P-matrix Condition Number: 1.3923284866474351e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.7532868042165717e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.0654528654547247e-19
+📊 The innovation covariance matrix Condition Number: 50938288.90664159
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -3.5273325840576765e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.982498443148825e-07
+📊 The updated P-matrix Condition Number: 1.3936563484375136e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.2445383160893253e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.0394293220966146e-19
+📊 The innovation covariance matrix Condition Number: 64254447.51960382
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.527036793504228e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.944814921460616e-07
+📊 The updated P-matrix Condition Number: 1.3903919260417914e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.8759579242989264e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 8.733566592529778e-20
+📊 The innovation covariance matrix Condition Number: 75687009.13110717
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -3.8928305666435933e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9449343130134953e-07
+📊 The updated P-matrix Condition Number: 1.3889458043891466e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.2231393074305522e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 9.671585194540132e-20
+📊 The innovation covariance matrix Condition Number: 64301272.01937822
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -3.9779091201935783e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.97989038919355e-07
+📊 The updated P-matrix Condition Number: 1.3895632163157924e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.465566254619849e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 4.720683409119423e-19
+📊 The innovation covariance matrix Condition Number: 57560843.150593616
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.832678481109011e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.955148662455064e-07
+📊 The updated P-matrix Condition Number: 1.390279736917242e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.409033316793427e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.401817669289899e-19
+📊 The innovation covariance matrix Condition Number: 60431428.60496962
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.2913033285324765e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9713949322329465e-07
+📊 The updated P-matrix Condition Number: 1.3930856191105596e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.6178499125289922e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.935833710616137e-19
+📊 The innovation covariance matrix Condition Number: 87973023.88112435
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.61126682959117e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9521396612081076e-07
+📊 The updated P-matrix Condition Number: 1.3785861265661462e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.573521851458652e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.608662371680381e-19
+📊 The innovation covariance matrix Condition Number: 54938384.05441475
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.3300192338361063e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9319286435363573e-07
+📊 The updated P-matrix Condition Number: 1.379480224696583e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.4504913242270805e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 5.293531741123659e-19
+📊 The innovation covariance matrix Condition Number: 59053324.68788577
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.9526461494449165e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9167104753076297e-07
+📊 The updated P-matrix Condition Number: 1.38053129895591e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.2452791256909234e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 5.66799544210504e-20
+📊 The innovation covariance matrix Condition Number: 63469878.92811096
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.875557226485615e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9484806745021865e-07
+📊 The updated P-matrix Condition Number: 1.3805781211123967e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.5481344718360453e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.399691325000287e-20
+📊 The innovation covariance matrix Condition Number: 55828185.26530015
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.269660478989643e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9666095760536194e-07
+📊 The updated P-matrix Condition Number: 1.383205504849642e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0893462555814862e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.4923145434690492e-19
+📊 The innovation covariance matrix Condition Number: 69387280.89727451
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.6974911828888497e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.895962753140283e-07
+📊 The updated P-matrix Condition Number: 1.3840815783903502e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.926661920050557e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.476899503154385e-20
+📊 The innovation covariance matrix Condition Number: 73791506.28517467
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.042443287505282e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.8506471651978853e-07
+📊 The updated P-matrix Condition Number: 1.3862511149781006e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0068152558204708e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 3.2725315921821827e-19
+📊 The innovation covariance matrix Condition Number: 69737804.7688433
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.8096772524208477e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.7927508067705724e-07
+📊 The updated P-matrix Condition Number: 1.381005215252144e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.1591292075744447e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.573222573837488e-19
+📊 The innovation covariance matrix Condition Number: 66536993.55825073
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -5.378730827993687e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.912724346463192e-07
+📊 The updated P-matrix Condition Number: 1.380996267665129e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.811797474111926e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.233546902942762e-19
+📊 The innovation covariance matrix Condition Number: 80763699.34595977
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.49424267578302e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.8699693167326715e-07
+📊 The updated P-matrix Condition Number: 1.3838264712848058e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.067942171102316e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 5.765934320599459e-19
+📊 The innovation covariance matrix Condition Number: 68099480.99915855
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -3.9043995539409775e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9529909268416406e-07
+📊 The updated P-matrix Condition Number: 1.3840543338882342e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.1928206141113772e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 8.703698514355917e-20
+📊 The innovation covariance matrix Condition Number: 63859077.30889174
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -5.228365123401864e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.00009084897491e-07
+📊 The updated P-matrix Condition Number: 1.386805142598414e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.1120850851940183e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 3.9395014317502695e-19
+📊 The innovation covariance matrix Condition Number: 69328814.37303084
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.478950025221009e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.970309046952501e-07
+📊 The updated P-matrix Condition Number: 1.3896107328007027e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.9010394651760688e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.183708673874185e-19
+📊 The innovation covariance matrix Condition Number: 75586210.99990804
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -3.943219187327318e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9528699824384914e-07
+📊 The updated P-matrix Condition Number: 1.3923861061137315e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.8057438753817303e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.917917335866592e-19
+📊 The innovation covariance matrix Condition Number: 78069501.93035868
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.176968904993955e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.938305993282524e-07
+📊 The updated P-matrix Condition Number: 1.385928757282974e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.7079647380552613e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 8.89074106743867e-20
+📊 The innovation covariance matrix Condition Number: 83039154.03520232
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -5.504698049504268e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.0103490828451096e-07
+📊 The updated P-matrix Condition Number: 1.3854149587508781e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.3088335813249565e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.4208304304893832e-19
+📊 The innovation covariance matrix Condition Number: 62628892.91274126
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.3593226136799195e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.994010165679464e-07
+📊 The updated P-matrix Condition Number: 1.3846727639932107e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.989431415188894e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 3.112432085227203e-20
+📊 The innovation covariance matrix Condition Number: 71281263.74201338
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -5.371261780456428e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9713044961889606e-07
+📊 The updated P-matrix Condition Number: 1.3862992193075022e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.4645119927915573e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 9.290197530093745e-20
+📊 The innovation covariance matrix Condition Number: 97029369.084611
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -5.430213250738002e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.065861723232669e-07
+📊 The updated P-matrix Condition Number: 1.388322717678844e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.3749392512052833e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.105442053279544e-19
+📊 The innovation covariance matrix Condition Number: 60424102.11357247
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -5.132721679747515e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.0540239650111314e-07
+📊 The updated P-matrix Condition Number: 1.3880378785643075e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.9721528119190247e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.1726853235881538e-19
+📊 The innovation covariance matrix Condition Number: 71987107.72624084
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.130738161838428e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.1967586146845605e-07
+📊 The updated P-matrix Condition Number: 1.3815818772029962e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.2887448605742784e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.6351497260927005e-19
+📊 The innovation covariance matrix Condition Number: 64196808.55032106
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -5.586673699269147e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.1358964283445214e-07
+📊 The updated P-matrix Condition Number: 1.3736421308810262e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.3582270859919657e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.742056900072287e-20
+📊 The innovation covariance matrix Condition Number: 59780407.436931685
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.4159698526039595e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.126052459426026e-07
+📊 The updated P-matrix Condition Number: 1.369195706993513e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.6953454433490016e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 7.243497936672982e-20
+📊 The innovation covariance matrix Condition Number: 52008672.15337326
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.987764676054623e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.086863609806431e-07
+📊 The updated P-matrix Condition Number: 1.3686578057725172e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.485344511981477e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 4.0124582851393016e-20
+📊 The innovation covariance matrix Condition Number: 58170602.38732946
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.539736416343262e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.0882247029874586e-07
+📊 The updated P-matrix Condition Number: 1.370371004176706e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.1756557759631749e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.1027908488842742e-19
+📊 The innovation covariance matrix Condition Number: 66949968.26401921
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.1536203345189149e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.164189385606851e-07
+📊 The updated P-matrix Condition Number: 1.3723972229453734e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.8935552958621097e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 3.7863792204183124e-20
+📊 The innovation covariance matrix Condition Number: 73552189.10795008
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.298529115577679e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.2234392632111904e-07
+📊 The updated P-matrix Condition Number: 1.3633235968350637e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.8103708468122867e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.1324973479194637e-20
+📊 The innovation covariance matrix Condition Number: 80279949.85317732
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.814519149974507e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.18934276691549e-07
+📊 The updated P-matrix Condition Number: 1.361531820739413e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0724273198472805e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 4.6768627673188344e-20
+📊 The innovation covariance matrix Condition Number: 68961216.98728414
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.442155968456571e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.169756892577873e-07
+📊 The updated P-matrix Condition Number: 1.363986066838943e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.8635690075093394e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.1935425479994196e-19
+📊 The innovation covariance matrix Condition Number: 76131270.7897764
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.303669522357559e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.1424924227407117e-07
+📊 The updated P-matrix Condition Number: 1.3600597619834788e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.137289629762258e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.186455888049575e-20
+📊 The innovation covariance matrix Condition Number: 64949540.320588864
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.568178975677258e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.145257827575555e-07
+📊 The updated P-matrix Condition Number: 1.362553137271103e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.7955693737082325e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.330119527659124e-20
+📊 The innovation covariance matrix Condition Number: 80495756.12367645
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -3.504841622787297e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.142563799105398e-07
+📊 The updated P-matrix Condition Number: 1.3651215719631374e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.841978261770987e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 5.755170208345844e-20
+📊 The innovation covariance matrix Condition Number: 77921315.44952117
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.217323791825784e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.1088807442869894e-07
+📊 The updated P-matrix Condition Number: 1.359772179407039e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.6938496703699064e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.0727932682585967e-19
+📊 The innovation covariance matrix Condition Number: 53242709.87716049
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.170008604744219e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.0748428169131077e-07
+📊 The updated P-matrix Condition Number: 1.3605274990488952e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.105359885032879e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.605290831398652e-20
+📊 The innovation covariance matrix Condition Number: 67737467.40185362
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.1758092898902574e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.026651910761142e-07
+📊 The updated P-matrix Condition Number: 1.3626055416018374e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0114261788712598e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 4.586306013971451e-20
+📊 The innovation covariance matrix Condition Number: 71813914.04368296
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.053895337490752e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.0005927508765517e-07
+📊 The updated P-matrix Condition Number: 1.364582012783628e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.6774386260651112e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.4827535277750302e-19
+📊 The innovation covariance matrix Condition Number: 82849366.091528
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.309698575914711e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9544547781260287e-07
+📊 The updated P-matrix Condition Number: 1.3619096482752086e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.7164437049095037e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.514319005649893e-20
+📊 The innovation covariance matrix Condition Number: 86096161.74347864
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.418606358562339e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9358745289061257e-07
+📊 The updated P-matrix Condition Number: 1.3638725894364647e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.2041593829555462e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.0470990946505665e-19
+📊 The innovation covariance matrix Condition Number: 62230914.423830315
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.712080443444297e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9246857498720153e-07
+📊 The updated P-matrix Condition Number: 1.3662681027926554e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.725878845775915e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.25645313960066e-19
+📊 The innovation covariance matrix Condition Number: 84665579.80045944
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.499904370064957e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9336912529321346e-07
+📊 The updated P-matrix Condition Number: 1.3686985415339024e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.9719444294048682e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 4.6766754355507645e-20
+📊 The innovation covariance matrix Condition Number: 72282941.85986565
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.1868146251231219e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.918889401043017e-07
+📊 The updated P-matrix Condition Number: 1.3700389461381844e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.099216604886662e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.14964165138019e-19
+📊 The innovation covariance matrix Condition Number: 67223779.33282214
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -3.2028507673600786e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.932337554602005e-07
+📊 The updated P-matrix Condition Number: 1.363475280686139e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.4238986516194613e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 8.756243716638386e-20
+📊 The innovation covariance matrix Condition Number: 59338820.58846136
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.577040312774586e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.968288718317275e-07
+📊 The updated P-matrix Condition Number: 1.365431922049062e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.6423349142649744e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.1667689861512238e-19
+📊 The innovation covariance matrix Condition Number: 53720745.46423509
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -8.708734173289908e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.971481023955323e-07
+📊 The updated P-matrix Condition Number: 1.3643110471108953e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.445355792750653e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 9.504613008598538e-20
+📊 The innovation covariance matrix Condition Number: 59884946.7839151
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.415941188721076e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.986391980440974e-07
+📊 The updated P-matrix Condition Number: 1.366603380033612e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.9841761244972786e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 7.764459922109042e-20
+📊 The innovation covariance matrix Condition Number: 71093134.48780088
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -8.194543496833083e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.971715438762624e-07
+📊 The updated P-matrix Condition Number: 1.362322679169236e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.4038249846588103e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.116907421054742e-20
+📊 The innovation covariance matrix Condition Number: 58739368.473426126
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.557754418017826e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.967896929558796e-07
+📊 The updated P-matrix Condition Number: 1.3641119222071144e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.642251470021362e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.0098574554459847e-19
+📊 The innovation covariance matrix Condition Number: 54830697.47431898
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.2583659071481e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.975744677896738e-07
+📊 The updated P-matrix Condition Number: 1.3612237409046948e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.985540815576598e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.540283217674765e-20
+📊 The innovation covariance matrix Condition Number: 70673048.27029786
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.9315507125787105e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.968293609655289e-07
+📊 The updated P-matrix Condition Number: 1.3618708441871684e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.8345386561859705e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.196647275754983e-19
+📊 The innovation covariance matrix Condition Number: 50467412.24947512
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.253804740440349e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9890199003219834e-07
+📊 The updated P-matrix Condition Number: 1.3642767103785427e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.7786213212213264e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.7109632465354874e-19
+📊 The innovation covariance matrix Condition Number: 80386373.49165162
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -5.704884892022788e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9344711290241347e-07
+📊 The updated P-matrix Condition Number: 1.366030021941043e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.2698938694231401e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 8.373980145165991e-20
+📊 The innovation covariance matrix Condition Number: 65614937.1440911
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.749700500173632e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.943105317773997e-07
+📊 The updated P-matrix Condition Number: 1.3677426559182524e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.55948158745125e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.64455765115861e-19
+📊 The innovation covariance matrix Condition Number: 53479536.2597268
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.503578220228302e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.945176077522245e-07
+📊 The updated P-matrix Condition Number: 1.367167779107781e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.8236446762914323e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 5.855554170614428e-20
+📊 The innovation covariance matrix Condition Number: 79336600.4900242
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -9.38878716193895e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.947454375232811e-07
+📊 The updated P-matrix Condition Number: 1.3689393151483797e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.1401561701693075e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.5475421035546427e-19
+📊 The innovation covariance matrix Condition Number: 65984474.57963825
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -5.097712044572495e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.8861915053873634e-07
+📊 The updated P-matrix Condition Number: 1.3712294916541976e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.7278709259250414e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.053823037963108e-19
+📊 The innovation covariance matrix Condition Number: 83864959.83715399
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -3.312466851329764e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.880188036532493e-07
+📊 The updated P-matrix Condition Number: 1.3653601925374515e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.771970117269847e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.0196773859815393e-19
+📊 The innovation covariance matrix Condition Number: 80711358.69164748
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.2514704317789347e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.8770777498623857e-07
+📊 The updated P-matrix Condition Number: 1.36768819820565e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.842030791092331e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.1361278411728578e-19
+📊 The innovation covariance matrix Condition Number: 78609459.9955447
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.289244645649659e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.0112081107066495e-07
+📊 The updated P-matrix Condition Number: 1.3657454060171e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.3541440124404326e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.3186074322272421e-19
+📊 The innovation covariance matrix Condition Number: 60518191.06441275
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -8.735030244185276e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.0127803612271625e-07
+📊 The updated P-matrix Condition Number: 1.3680479815242198e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.014234492846456e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.805065931425189e-20
+📊 The innovation covariance matrix Condition Number: 70321361.66298121
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.02729330198999e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.9867377585910967e-07
+📊 The updated P-matrix Condition Number: 1.3703780825633225e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.5638703932493536e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 5.153414062697953e-20
+📊 The innovation covariance matrix Condition Number: 55310907.16265343
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.2201553867327219e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 4.049079252632334e-07
+📊 The updated P-matrix Condition Number: 1.3628565650695343e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.6887506797308095e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.3012387459962036e-19
+📊 The innovation covariance matrix Condition Number: 53508865.009432316
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.673879068820236e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.949788168463646e-07
+📊 The updated P-matrix Condition Number: 1.3501009396907918e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.1677860752497872e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 7.36875537987838e-20
+📊 The innovation covariance matrix Condition Number: 65028858.00793309
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -5.576637330474294e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.877304794025493e-07
+📊 The updated P-matrix Condition Number: 1.3509402902526015e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0841101701638733e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 7.868659796567603e-20
+📊 The innovation covariance matrix Condition Number: 69019386.310215
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -5.609006829845914e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.8846647445427844e-07
+📊 The updated P-matrix Condition Number: 1.3467282754992564e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0813045647958087e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.8198453010121533e-19
+📊 The innovation covariance matrix Condition Number: 68681109.76962234
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.313338807425178e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.8793450218030455e-07
+📊 The updated P-matrix Condition Number: 1.341643800723439e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.071155007406386e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.730819925205836e-20
+📊 The innovation covariance matrix Condition Number: 68508945.66892967
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.623129943989703e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.897848457258899e-07
+📊 The updated P-matrix Condition Number: 1.3427630143141358e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.1332514585267404e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 9.585441152627993e-20
+📊 The innovation covariance matrix Condition Number: 67915712.68495291
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -8.143232567620054e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.8458986821407744e-07
+📊 The updated P-matrix Condition Number: 1.3450233021770623e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.9810048774823553e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.065260972488679e-20
+📊 The innovation covariance matrix Condition Number: 71495633.58477283
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.004479735020011e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.8037721230547054e-07
+📊 The updated P-matrix Condition Number: 1.3453981938413905e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.9097694670761673e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 5.476913044937976e-20
+📊 The innovation covariance matrix Condition Number: 49213673.93128179
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -8.519907893821191e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.8360252855297146e-07
+📊 The updated P-matrix Condition Number: 1.3475623743297333e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.214486951328545e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.4810770868535665e-19
+📊 The innovation covariance matrix Condition Number: 65290772.78358724
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -8.079549587862268e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.8312175138548893e-07
+📊 The updated P-matrix Condition Number: 1.349145115192039e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.4496052879635703e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.1713051427123904e-19
+📊 The innovation covariance matrix Condition Number: 58099407.896655925
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.191161680417788e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.760862388804372e-07
+📊 The updated P-matrix Condition Number: 1.3513549507019692e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.70505411267807e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.3180775120867888e-19
+📊 The innovation covariance matrix Condition Number: 82817164.1957639
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.9189815586038175e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.8370638575963953e-07
+📊 The updated P-matrix Condition Number: 1.3503366430309734e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.2924214236007446e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.4192148414240344e-19
+📊 The innovation covariance matrix Condition Number: 61643645.665020116
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.30967531691876e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.827359523949106e-07
+📊 The updated P-matrix Condition Number: 1.351505818522276e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.8526657234179557e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.0478875704365173e-19
+📊 The innovation covariance matrix Condition Number: 50134887.525467254
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.632616281384527e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.8054430466514637e-07
+📊 The updated P-matrix Condition Number: 1.353659643255084e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.2490978437376892e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.035759404132214e-20
+📊 The innovation covariance matrix Condition Number: 62901910.67144441
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.1527140244099806e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.7803048926063117e-07
+📊 The updated P-matrix Condition Number: 1.3554285189443818e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.849330737544693e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.5522693068566504e-19
+📊 The innovation covariance matrix Condition Number: 51020987.33548715
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -8.500857264913228e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.7445614457921296e-07
+📊 The updated P-matrix Condition Number: 1.3528495965962442e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.7274885395493516e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.539589499062142e-20
+📊 The innovation covariance matrix Condition Number: 52510526.657853946
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.557158481785458e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.7392725712743374e-07
+📊 The updated P-matrix Condition Number: 1.3550266318357053e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.9236123479515172e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.1733920998595512e-19
+📊 The innovation covariance matrix Condition Number: 73444355.65616444
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -8.227802678950821e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.762033909790416e-07
+📊 The updated P-matrix Condition Number: 1.3488712622190986e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.977197825626704e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 3.5990361313204856e-20
+📊 The innovation covariance matrix Condition Number: 72191172.41409203
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.122176648420148e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.8043653035827603e-07
+📊 The updated P-matrix Condition Number: 1.3508341498092334e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.647258560380164e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.656050757060774e-19
+📊 The innovation covariance matrix Condition Number: 88687331.11874834
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.51827542099694e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.700820018814625e-07
+📊 The updated P-matrix Condition Number: 1.3525329187226275e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.6832025501273123e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.129904837000562e-20
+📊 The innovation covariance matrix Condition Number: 52032491.20010167
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -8.160514322139188e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.7087222161702835e-07
+📊 The updated P-matrix Condition Number: 1.3497138846444722e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.9216248028642413e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.3345717071625687e-19
+📊 The innovation covariance matrix Condition Number: 75147573.58301987
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -8.961851716303317e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.610699341056161e-07
+📊 The updated P-matrix Condition Number: 1.3493993447678167e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.1618665333293606e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.2808231188730466e-19
+📊 The innovation covariance matrix Condition Number: 66568571.46714335
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -8.866321076887149e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.5960005263235466e-07
+📊 The updated P-matrix Condition Number: 1.3509391541969225e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.951382119351983e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.7695654063006376e-19
+📊 The innovation covariance matrix Condition Number: 72227363.48991059
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.951318469067865e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.5971500097897026e-07
+📊 The updated P-matrix Condition Number: 1.3514016883937964e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0362216989726117e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.8292074355467258e-19
+📊 The innovation covariance matrix Condition Number: 71775886.86798498
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -9.207984360807138e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.6627569423937666e-07
+📊 The updated P-matrix Condition Number: 1.351856840168142e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.370465101241805e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 5.3001948044992587e-20
+📊 The innovation covariance matrix Condition Number: 59769411.62486537
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -2.359094160796882e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.6817912870520873e-07
+📊 The updated P-matrix Condition Number: 1.353379591058222e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.2042317503142786e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.387120366673099e-20
+📊 The innovation covariance matrix Condition Number: 64136031.1671914
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -5.360696954954754e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.6072378009678396e-07
+📊 The updated P-matrix Condition Number: 1.353508768651746e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.7751740842538407e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 7.426146700427513e-20
+📊 The innovation covariance matrix Condition Number: 50801630.823292844
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -8.972715872202796e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.710428282602119e-07
+📊 The updated P-matrix Condition Number: 1.353943649013794e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.5020118005555734e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.181091326470801e-19
+📊 The innovation covariance matrix Condition Number: 95238497.21467614
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -8.842749806770804e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.676050941499798e-07
+📊 The updated P-matrix Condition Number: 1.355738015397139e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.806673423406046e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 7.800953166016869e-20
+📊 The innovation covariance matrix Condition Number: 50937246.21252231
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.029185695171006e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.661971214823383e-07
+📊 The updated P-matrix Condition Number: 1.3577674197635765e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.9477464786828924e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.5884291171615294e-19
+📊 The innovation covariance matrix Condition Number: 73916773.59254995
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -9.135867632536948e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.6553032684102837e-07
+📊 The updated P-matrix Condition Number: 1.3597212570346903e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.3190556480648326e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.1811225803244972e-19
+📊 The innovation covariance matrix Condition Number: 61829034.94963082
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.3574404195722622e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.6169256238951496e-07
+📊 The updated P-matrix Condition Number: 1.3597470219340528e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.441572326262651e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.137057015381948e-19
+📊 The innovation covariance matrix Condition Number: 58247975.96916136
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.398856829900585e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.715273774073792e-07
+📊 The updated P-matrix Condition Number: 1.350967896344014e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.1762877846036883e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 7.557849873873961e-20
+📊 The innovation covariance matrix Condition Number: 66271029.083804905
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -4.413002094442899e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.6592092642874813e-07
+📊 The updated P-matrix Condition Number: 1.3530270239047272e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.2066900802114252e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.348098031624564e-19
+📊 The innovation covariance matrix Condition Number: 62393346.39984279
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.983052766654369e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.808121463833886e-07
+📊 The updated P-matrix Condition Number: 1.350447818615512e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.1518894658779398e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 5.541682120180951e-20
+📊 The innovation covariance matrix Condition Number: 67241590.74471489
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -9.081605420358785e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.755167741716754e-07
+📊 The updated P-matrix Condition Number: 1.3524954016662668e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.3212488657289665e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 3.4471141084661093e-20
+📊 The innovation covariance matrix Condition Number: 63600121.473796226
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -9.093386560221552e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.7681397065560493e-07
+📊 The updated P-matrix Condition Number: 1.3532487114067682e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.539606348478998e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 7.746154878351374e-20
+📊 The innovation covariance matrix Condition Number: 55843853.03354944
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -8.021993301973374e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.782078869103309e-07
+📊 The updated P-matrix Condition Number: 1.3491211187944007e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.9273266685195687e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.597558234688206e-19
+📊 The innovation covariance matrix Condition Number: 73371741.89835383
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -9.46477537821735e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.859370654515898e-07
+📊 The updated P-matrix Condition Number: 1.347085075488132e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.090944672034707e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 6.754668858157891e-20
+📊 The innovation covariance matrix Condition Number: 69005692.60314883
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.787826938226246e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.74549854375951e-07
+📊 The updated P-matrix Condition Number: 1.3458351815588935e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.87544350830279e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 7.682046823188105e-20
+📊 The innovation covariance matrix Condition Number: 73661377.52076863
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -7.598523158133109e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.6597048655097736e-07
+📊 The updated P-matrix Condition Number: 1.343970337357423e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.645727801216792e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.8748821893887651e-19
+📊 The innovation covariance matrix Condition Number: 88844973.59423584
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -1.0673820504640768e-15
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.76731431454447e-07
+📊 The updated P-matrix Condition Number: 1.3422332444153166e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.3657179303879845e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.6400081417362868e-19
+📊 The innovation covariance matrix Condition Number: 60616801.04090236
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -8.362142811409705e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.8020377339314283e-07
+📊 The updated P-matrix Condition Number: 1.343816241098477e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1.7262834350649678e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 2.146523260885708e-20
+📊 The innovation covariance matrix Condition Number: 82596009.36828277
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -6.852036304134798e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.815135125887323e-07
+📊 The updated P-matrix Condition Number: 1.3441049995541486e+36
+📊 The innovation covariance matrix Cholesky: Successful ✅
+📊 The innovation covariance matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.5245899677333024e-13
+📊 The innovation covariance matrix Symmetry Error (Frobenius Norm): 1.5937295745522748e-19
+📊 The innovation covariance matrix Condition Number: 56787135.999655865
+📊 The updated P-matrix Cholesky: Successful ✅
+📊 The updated P-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: -8.922634617169946e-16
+📊 The updated P-matrix Symmetry Error (Frobenius Norm): 3.7576373191040123e-07
+📊 The updated P-matrix Condition Number: 1.3457706069945607e+36
+Likelihood:  57111490.802840464
+
+real	0m21.787s
+user	0m17.261s
+sys	0m2.844s
+
++------------------- Job Report: 42466 (COMPLETED) --------------------+
+| Memory (RAM)  No data available                                      |
+| CPU           [###########         ] 56.2% average                   |
+| Time          [->                  ]  5.3% (0-00:00:32 / 0-00:10:00) |
+|                                                                      |
+| Lustre Filesystem:                                                   |
+|   Path    Total Read    Total Write    Total IOPS                    |
+|   ------  ------------  -------------  ------------                  |
+|   /apps   0 B           0 B            1                             |
+|   /fred   8 KB          4.9 KB         3.8 K                         |
+|   /home   0 B           0 B            2                             |
+|   OS      0 B           0 B            5                             |
++----------------------------------------------------------------------+

@@ -1,0 +1,501 @@
+[tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
+[preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0034-0534. Setting value to 1 with 20% uncertainty.
+[tempo2Util.C:401] Warning: [DUP1] duplicated warnings have been suppressed.
+[preProcess.C:158] Warning: PSR J0034-0534 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0218+4232. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0218+4232 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J0437-4715 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J0613-0200 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0621+1002. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0621+1002 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J0711-6830 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0751+1807. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0751+1807 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0900-3144. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0900-3144 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1012+5307 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1022+1001 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1024-0719 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1045-4509 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1455-3330 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1600-3053 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1603-7202 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J1614-2230. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J1614-2230 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1643-1224 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1713+0747 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1730-2304 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1744-1134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1857+0943 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1909-3744 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1918-0642 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1939+2134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J1944+0907. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J1944+0907 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J2010-1323. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J2010-1323 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2124-3358 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2129-5721 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2145-0750 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J2229+2643. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J2229+2643 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2317+1439 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+Getting the data. Loading 32 pulsars from ../data/IPTA_MockDataChallenge2/dataset_2b/
+PSR: J0030+0451, F0: 205.53069593846152, # TOAs: 183
+PSR: J0034-0534, F0: 532.7134293952242, # TOAs: 183
+PSR: J0218+4232, F0: 430.46105454575843, # TOAs: 183
+PSR: J0437-4715, F0: 173.6879457375193, # TOAs: 183
+PSR: J0613-0200, F0: 326.60056202349193, # TOAs: 183
+PSR: J0621+1002, F0: 34.65740662142043, # TOAs: 183
+PSR: J0711-6830, F0: 182.1172346472276, # TOAs: 183
+PSR: J0751+1807, F0: 287.4578539950941, # TOAs: 183
+PSR: J0900-3144, F0: 90.0118419193632, # TOAs: 183
+PSR: J1012+5307, F0: 190.26783444155498, # TOAs: 183
+PSR: J1022+1001, F0: 60.779447956696714, # TOAs: 183
+PSR: J1024-0719, F0: 193.71568344854623, # TOAs: 183
+PSR: J1045-4509, F0: 133.79314954119278, # TOAs: 183
+PSR: J1455-3330, F0: 125.20024324499536, # TOAs: 183
+PSR: J1600-3053, F0: 277.9377069896204, # TOAs: 183
+PSR: J1603-7202, F0: 67.37658112877924, # TOAs: 183
+PSR: J1614-2230, F0: 317.37893706872126, # TOAs: 183
+PSR: J1643-1224, F0: 216.37333714263485, # TOAs: 183
+PSR: J1713+0747, F0: 218.81184041715784, # TOAs: 183
+PSR: J1730-2304, F0: 123.1102871473812, # TOAs: 183
+PSR: J1744-1134, F0: 245.42611968980754, # TOAs: 183
+PSR: J1857+0943, F0: 186.4940783779791, # TOAs: 183
+PSR: J1909-3744, F0: 339.31568721848686, # TOAs: 183
+PSR: J1918-0642, F0: 130.78951412337267, # TOAs: 183
+PSR: J1939+2134, F0: 641.9282245822469, # TOAs: 183
+PSR: J1944+0907, F0: 192.85651792018598, # TOAs: 183
+PSR: J2010-1323, F0: 191.45090909263828, # TOAs: 183
+PSR: J2124-3358, F0: 202.7938937460303, # TOAs: 183
+PSR: J2129-5721, F0: 268.3592272938787, # TOAs: 183
+PSR: J2145-0750, F0: 62.29588783738885, # TOAs: 183
+PSR: J2229+2643, F0: 335.81620819685526, # TOAs: 183
+PSR: J2317+1439, F0: 290.2546036648635, # TOAs: 183
+Total length of the data is  183
+Total number of pulsars is  32
+The number of pulsars is: 32
+The frequencies are: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
+  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
+  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
+  67.37658113 317.37893707 216.37333714 218.81184042 123.11028715
+ 245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
+ 192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
+ 335.8162082  290.25460366]
+📊 The initial PGW-matrix Cholesky: Successful ✅
+📊 The initial PGW-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial PGW-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial PGW-matrix Condition Number: 1000000000000000.1
+📊 The initial Pspin-matrix Cholesky: Successful ✅
+📊 The initial Pspin-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial Pspin-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial Pspin-matrix Condition Number: 1e+20
+📊 The initial Peps-matrix Cholesky: Successful ✅
+📊 The initial Peps-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 7.484753263138356e-15
+📊 The initial Peps-matrix Symmetry Error (Frobenius Norm): 4.2270424894315e-08
+📊 The initial Peps-matrix Condition Number: 225037310089106.53
+Total number of observations:  183
+Starting dt (days):  29.875630165338517
+Ending dt (days):  30.060462559770656
+The errors are:  [[2.697680e-06 9.700560e-06 1.613116e-05 ... 4.303360e-06 1.993229e-05
+  2.291670e-06]
+ [3.564190e-06 1.028185e-05 1.375148e-05 ... 4.315200e-06 2.081397e-05
+  2.460960e-06]
+ [3.371030e-06 1.152162e-05 1.416413e-05 ... 6.463740e-06 1.950077e-05
+  2.410460e-06]
+ ...
+ [3.277710e-06 1.018558e-05 1.457250e-05 ... 4.446140e-06 2.521705e-05
+  2.305590e-06]
+ [3.646380e-06 1.269312e-05 1.485810e-05 ... 5.631600e-06 1.820880e-05
+  2.652070e-06]
+ [3.433920e-06 1.161783e-05 1.559288e-05 ... 5.352100e-06 1.732358e-05
+  2.735790e-06]]
+Computing H matrices for all 183 time steps (using NumPy)...
+Finished computing all H matrices.
+First call to get_likelihood for precompilation
+Likelihood:  48926709.018373005
+Now starting the loop
+γa: 1.0000000000000082e-17, likelihood: 57085475.85456601
+γa: 1.0553861030365316e-17, likelihood: 57086066.775838576
+γa: 1.1138398264826274e-17, likelihood: 57086740.32265601
+γa: 1.175531073878377e-17, likelihood: 57087423.83241216
+γa: 1.2406391590588394e-17, likelihood: 57088194.07767512
+γa: 1.3093533273536177e-17, likelihood: 57089171.055276856
+γa: 1.3818733056536505e-17, likelihood: 57090193.613390304
+γa: 1.4584098829439923e-17, likelihood: 57091250.70017743
+γa: 1.5391855229902116e-17, likelihood: 57092387.940873735
+γa: 1.6244350109588852e-17, likelihood: 57093778.7963301
+γa: 1.7144061358519757e-17, likelihood: 57095296.639260076
+γa: 1.809360410738735e-17, likelihood: 57096824.600223005
+γa: 1.9095738328781007e-17, likelihood: 57098439.57592487
+γa: 2.0153376859417514e-17, likelihood: 57100491.00732445
+γa: 2.1269593866687095e-17, likelihood: 57102479.46258278
+γa: 2.2447633784132422e-17, likelihood: 57104782.01038613
+γa: 2.3690920741826513e-17, likelihood: 57107132.3781825
+γa: 2.5003068519063415e-17, likelihood: 57109692.80335282
+γa: 2.6387891048289508e-17, likelihood: 57112835.49426103
+γa: 2.784941350080661e-17, likelihood: 57115723.56832037
+γa: 2.9391883986469026e-17, likelihood: 57119111.34730837
+γa: 3.1019785901381127e-17, likelihood: 57122628.03874369
+γa: 3.2737850959485906e-17, likelihood: 57126472.025545135
+γa: 3.4551072945922325e-17, likelihood: 57130531.555486426
+γa: 3.64647222321276e-17, likelihood: 57134813.69031094
+γa: 3.848436109487472e-17, likelihood: 57139671.89153937
+γa: 4.0615859883770215e-17, likelihood: 57144312.75408161
+γa: 4.286541408420934e-17, likelihood: 57149721.4310507
+γa: 4.523956232538058e-17, likelihood: 57155590.857328735
+γa: 4.77452053856617e-17, likelihood: 57161251.7250445
+γa: 5.038962625065191e-17, likelihood: 57166557.62028618
+γa: 5.3180511282142405e-17, likelihood: 57172789.33006596
+γa: 5.612597255955012e-17, likelihood: 57180236.00772948
+γa: 5.92345714587589e-17, likelihood: 57186046.01849474
+γa: 6.251534353689802e-17, likelihood: 57193297.56872833
+γa: 6.597782479539575e-17, likelihood: 57199481.72232196
+γa: 6.963207939763919e-17, likelihood: 57206808.520598225
+γa: 7.348872892180478e-17, likelihood: 57215836.24601224
+γa: 7.755898323389097e-17, likelihood: 57222810.79306236
+γa: 8.18546730706912e-17, likelihood: 57232688.4413283
+γa: 8.638828442740542e-17, likelihood: 57238452.834386066
+γa: 9.117299484985014e-17, likelihood: 57248939.65079425
+γa: 9.622271173675233e-17, likelihood: 57258928.67134359
+γa: 1.0155211276345733e-16, likelihood: 57264924.275820196
+γa: 1.0717668854455121e-16, likelihood: 57256710.50382528
+γa: 1.1311278765939306e-16, likelihood: 57280113.71758047
+γa: 1.1937766417144456e-16, likelihood: 57292373.28875855
+γa: 1.2598952777950361e-16, likelihood: 57300849.21156934
+γa: 1.3296759674662263e-16, likelihood: 57293552.50392152
+γa: 1.403321537605499e-16, likelihood: 57318668.29863561
+γa: 1.481046048880683e-16, likelihood: 57335825.83362836
+γa: 1.5630754179458238e-16, likelihood: 57350102.9370701
+γa: 1.6496480740980344e-16, likelihood: 57342169.12471423
+γa: 1.7410156523040297e-16, likelihood: 57363186.37515889
+γa: 1.8374437246107398e-16, likelihood: 57382665.98735247
+γa: 1.939212572065843e-16, likelihood: 57386011.69588255
+γa: 2.046617999392011e-16, likelihood: 57396678.04645699
+γa: 2.1599721947827391e-16, likelihood: 57389670.18241921
+γa: 2.279604637318991e-16, likelihood: 57392723.73602428
+γa: 2.405863054644077e-16, likelihood: 57412369.68554002
+γa: 2.539114433680368e-16, likelihood: 57407248.83760832
+γa: 2.6797460873257116e-16, likelihood: 57462325.39274248
+γa: 2.8281667802300525e-16, likelihood: 57485699.16777584
+γa: 2.984807916924346e-16, likelihood: 57500690.882557705
+γa: 3.150124795755347e-16, likelihood: 57450909.6522474
+γa: 3.324597932270972e-16, likelihood: 57537422.68934156
+γa: 3.5087344559027295e-16, likelihood: 57533861.24261803
+γa: 3.7030695840051564e-16, likelihood: 57584775.85197529
+γa: 3.9081681775362804e-16, likelihood: 57590782.332039
+γa: 4.124626382901382e-16, likelihood: 57632467.15810433
+γa: 4.353073364731919e-16, likelihood: 57639418.98609719
+γa: 4.594173134636523e-16, likelihood: 57666847.601311654
+γa: 4.848626481239127e-16, likelihood: 57699069.87130498
+γa: 5.117173007114673e-16, likelihood: 57784308.38916817
+γa: 5.400593278542418e-16, likelihood: 57864857.39352817
+γa: 5.699711094326122e-16, likelihood: 57778937.156323835
+γa: 6.015395880274882e-16, likelihood: 57801697.20123429
+γa: 6.348565216305288e-16, likelihood: 57856534.514079206
+γa: 6.700187503509658e-16, likelihood: 57873490.43666732
+γa: 7.071284778943068e-16, likelihood: 57901017.51243813
+γa: 7.462935686310237e-16, likelihood: 57945478.601235434
+γa: 7.876278611187095e-16, likelihood: 57918150.7148193
+γa: 8.3125149898907e-16, likelihood: 57934954.038618825
+γa: 8.772912801613427e-16, likelihood: 57996879.31146864
+γa: 9.25881025397402e-16, likelihood: 58016028.7191484
+γa: 9.77161967269628e-16, likelihood: 58068281.54545048
+γa: 1.0312831606721952e-15, likelihood: 58045715.28196576
+γa: 1.0884019160690165e-15, likelihood: 58093516.064741716
+γa: 1.1486842567375641e-15, likelihood: 58081140.49195615
+γa: 1.2123054013376628e-15, likelihood: 58097720.9760534
+γa: 1.2794502732078838e-15, likelihood: 58108114.27568382
+γa: 1.3503140378698832e-15, likelihood: 58117674.4181321
+γa: 1.4251026703030081e-15, likelihood: 58127569.76118462
+γa: 1.5040335536380343e-15, likelihood: 58147368.379402116
+γa: 1.587336111010225e-15, likelihood: 58125178.56698857
+γa: 1.675252472408231e-15, likelihood: 58130701.162043825
+γa: 1.7680381784572158e-15, likelihood: 58125709.900390685
+γa: 1.8659629231817536e-15, likelihood: 58124303.43458039
+γa: 1.9693113379074378e-15, likelihood: 58109061.359725446
+γa: 2.0783838185797725e-15, likelihood: 58112971.14684722
+γa: 2.1934973989050736e-15, likelihood: 58092996.888346374
+γa: 2.3149866718511848e-15, likelihood: 58080747.292796016
+γa: 2.4432047621865117e-15, likelihood: 58068164.5389103
+γa: 2.5785243528842975e-15, likelihood: 58032929.49223124
+γa: 2.7213387683753197e-15, likelihood: 58025584.32360582
+γa: 2.8720631177978516e-15, likelihood: 57980690.52639891
+γa: 3.031135501567601e-15, likelihood: 57963517.25994167
+γa: 3.199018284775087e-15, likelihood: 57922796.59261497
+γa: 3.3761994411113607e-15, likelihood: 57891640.974229
+γa: 3.563193971228606e-15, likelihood: 57849691.39260872
+γa: 3.760545399658207e-15, likelihood: 57812324.735048264
+γa: 3.968827354637198e-15, likelihood: 57762488.8185897
+γa: 4.188645235435288e-15, likelihood: 57723090.82159991
+γa: 4.420637972028548e-15, likelihood: 57668374.31164223
+γa: 4.6654798822344874e-15, likelihood: 57611766.087532595
+γa: 4.9238826317067725e-15, likelihood: 57558026.673397526
+γa: 5.196597302486229e-15, likelihood: 57494593.49389131
+γa: 5.4844165761210486e-15, likelihood: 57427892.97681902
+γa: 5.788177037701327e-15, likelihood: 57357754.20859802
+γa: 6.108761607505065e-15, likelihood: 57284173.6530084
+γa: 6.447102107323896e-15, likelihood: 57207167.34820793
+γa: 6.80418196892715e-15, likelihood: 57126683.963528335
+γa: 7.181039092537401e-15, likelihood: 57042708.53822887
+γa: 7.578768863625977e-15, likelihood: 56955177.80356086
+γa: 7.998527336796757e-15, likelihood: 56864106.36736104
+γa: 8.441534596013027e-15, likelihood: 56769448.2954971
+γa: 8.909078300934179e-15, likelihood: 56671174.592606485
+γa: 9.402517429670172e-15, likelihood: 56569284.565557376
+γa: 9.923286228832586e-15, likelihood: 56463724.117414385
+γa: 1.0472898382363617e-14, likelihood: 56354507.92109711
+γa: 1.1052951411260243e-14, likelihood: 56241615.98367293
+γa: 1.1665131316981985e-14, likelihood: 56125040.10908777
+γa: 1.2311217482038972e-14, likelihood: 56004785.29257648
+γa: 1.2993087842004225e-14, likelihood: 55880840.3145269
+γa: 1.3712724343984009e-14, likelihood: 55753222.533730924
+γa: 1.4472218707411344e-14, likelihood: 55621933.19477241
+γa: 1.5273778503907186e-14, likelihood: 55487005.03385513
+γa: 1.6119733573881622e-14, likelihood: 55348461.3547775
+γa: 1.7012542798525996e-14, likelihood: 55206326.01063053
+γa: 1.7954801246878415e-14, likelihood: 55060641.67060989
+γa: 1.8949247718738312e-14, likelihood: 54911445.33276126
+γa: 1.9998772705353033e-14, likelihood: 54758786.97335762
+γa: 2.1106426791015632e-14, likelihood: 54602726.89392521
+γa: 2.2275429519995655e-14, likelihood: 54443315.72961971
+γa: 2.3509178754573036e-14, likelihood: 54280613.47202841
+γa: 2.4811260551377855e-14, likelihood: 54114689.50194937
+γa: 2.6185459584742594e-14, likelihood: 53945605.49504233
+γa: 2.7635770147361856e-14, likelihood: 53773439.46411314
+γa: 2.916640776023731e-14, likelihood: 53598258.4013132
+γa: 3.078182142565106e-14, likelihood: 53420137.05795495
+γa: 3.2486706558784014e-14, likelihood: 53239148.54283352
+γa: 3.428601863556611e-14, likelihood: 53055367.083981745
+γa: 3.6184987596427724e-14, likelihood: 52868864.70004441
+γa: 3.8189133047818777e-14, likelihood: 52679714.307624266
+γa: 4.0304280305680756e-14, likelihood: 52487987.32298456
+γa: 4.253657732750409e-14, likelihood: 52293752.864436746
+γa: 4.489251258218644e-14, likelihood: 52097079.24808097
+γa: 4.737893390963183e-14, likelihood: 51898033.61080519
+γa: 5.000306842491111e-14, likelihood: 51696679.80004595
+γa: 5.277254352483554e-14, likelihood: 51493079.816998325
+γa: 5.56954090580017e-14, likelihood: 51287293.38365724
+γa: 5.878016072274948e-14, likelihood: 51079378.64680819
+γa: 6.203576476104307e-14, likelihood: 50869390.90566987
+γa: 6.547168402004769e-14, likelihood: 50657383.80347356
+γa: 6.909790545715674e-14, likelihood: 50443407.86647748
+γa: 7.292496916841504e-14, likelihood: 50227511.75307956
+γa: 7.696399902471213e-14, likelihood: 50009741.7174311
+γa: 8.12267350047977e-14, likelihood: 49790141.97000095
+γa: 8.572556731909377e-14, likelihood: 49568754.31754422
+γa: 9.04735724234935e-14, likelihood: 49345618.02329999
+γa: 9.548455102782342e-14, likelihood: 49120770.63015278
+γa: 1.0077306820944658e-13, likelihood: 48894247.179143146
+γa: 1.0635449574860155e-13, likelihood: 48666080.79659243
+γa: 1.1224505680853104e-13, likelihood: 48436302.390063554
+γa: 1.1846187309026873e-13, likelihood: 48204940.91478589
+γa: 1.2502301459914585e-13, likelihood: 47972023.39881228
+γa: 1.3194755216767088e-13, likelihood: 47737574.85367885
+γa: 1.3925561288744707e-13, likelihood: 47501618.48363097
+γa: 1.4696843861124474e-13, likelihood: 47264175.65650396
+γa: 1.551084476952847e-13, likelihood: 47025265.87398913
+γa: 1.6369930016117153e-13, likelihood: 46784906.882565714
+γa: 1.7276596646690487e-13, likelihood: 46543114.62045142
+γa: 1.8233480008684534e-13, likelihood: 46299903.27762434
+γa: 1.9243361411159917e-13, likelihood: 46055285.26404685
+γa: 2.0309176209047474e-13, likelihood: 45809271.22149292
+γa: 2.1434022335148763e-13, likelihood: 45561870.06091142
+γa: 2.262116930469045e-13, likelihood: 45313088.96352979
+γa: 2.387406771860667e-13, likelihood: 45062933.453548074
+γa: 2.519635929317034e-13, likelihood: 44811407.450794555
+γa: 2.6591887445127234e-13, likelihood: 44558513.384371504
+γa: 2.806470846309856e-13, likelihood: 44304252.323597066
+γa: 2.9619103297725835e-13, likelihood: 44048624.144317046
+γa: 3.12595900048231e-13, likelihood: 43791627.73300515
+γa: 3.299093687770969e-13, likelihood: 43533261.22160518
+γa: 3.481817630688995e-13, likelihood: 43273522.2523479
+γa: 3.674661940736718e-13, likelihood: 43012408.25708261
+γa: 3.878187145610751e-13, likelihood: 42749916.76574055
+γa: 4.0929848184524674e-13, likelihood: 42486045.71007868
+γa: 4.3196792973342003e-13, likelihood: 42220793.73251508
+γa: 4.558929499981087e-13, likelihood: 41954160.478912085
+γa: 4.811430839003285e-13, likelihood: 41686146.873187095
+γa: 5.077917243205424e-13, likelihood: 41416755.359439276
+γa: 5.359163290848536e-13, likelihood: 41145990.103903204
+γa: 5.655986461065025e-13, likelihood: 40873857.1538849
+γa: 5.969249509970776e-13, likelihood: 40600364.542509645
+γa: 6.299862978380732e-13, likelihood: 40325522.34163974
+γa: 6.648787838417304e-13, likelihood: 40049342.65973894
+γa: 7.017038286703866e-13, likelihood: 39771839.58813785
+γa: 7.405684692262503e-13, likelihood: 39493029.09870577
+γa: 7.815856707684123e-13, likelihood: 39212928.90096891
+γa: 8.248746552614649e-13, likelihood: 38931558.265063114
+γa: 8.705612479099928e-13, likelihood: 38648937.82062063
+γa: 9.187782428863397e-13, likelihood: 38365089.33937809
+γa: 9.69665789314558e-13, likelihood: 38080035.51234361
+γa: 1.0233717986325254e-12, likelihood: 37793799.72931036
+γa: 1.0800523745162585e-12, likelihood: 37506405.867353365
+γa: 1.1398722666160572e-12, likelihood: 37217878.0950595
+γa: 1.203005349423329e-12, likelihood: 36928240.69635609
+γa: 1.269635127659978e-12, likelihood: 36637517.916825846
+γa: 1.3399552696593425e-12, likelihood: 36345733.83367751
+γa: 1.4141701702890327e-12, likelihood: 36052912.24916935
+γa: 1.492495545051832e-12, likelihood: 35759076.60696945
+γa: 1.5751590570916308e-12, likelihood: 35464249.929600835
+γa: 1.6624009789266203e-12, likelihood: 35168454.775421664
+γa: 1.7544748908334667e-12, likelihood: 34871713.21225097
+γa: 1.8516484179121615e-12, likelihood: 34574046.80662172
+γa: 1.9542040079740597e-12, likelihood: 34275476.62518664
+γa: 2.0624397525141053e-12, likelihood: 33976023.2468667
+γa: 2.1766702531534637e-12, likelihood: 33675706.78313789
+γa: 2.2972275360711655e-12, likelihood: 33374546.903917823
+γa: 2.4244620170823406e-12, likelihood: 33072562.867247
+γa: 2.5587435201686098e-12, likelihood: 32769773.550158035
+γa: 2.7004623524207042e-12, likelihood: 32466197.479134135
+γa: 2.8500304385181284e-12, likelihood: 32161852.858994097
+γa: 3.0078825180431208e-12, likelihood: 31856757.599383287
+γa: 3.174477409109213e-12, likelihood: 31550929.339326788
+γa: 3.3502993419772504e-12, likelihood: 31244385.470581286
+γa: 3.535859366535212e-12, likelihood: 30937143.161786593
+γa: 3.731696837732786e-12, likelihood: 30629219.385256328
+γa: 3.9383809832885216e-12, likelihood: 30320630.94886682
+γa: 4.156512558226022e-12, likelihood: 30011394.53488793
+γa: 4.386725591048531e-12, likelihood: 29701526.747201398
+γa: 4.629689226627296e-12, likelihood: 29391044.167169675
+γa: 4.886109671160356e-12, likelihood: 29079963.41733018
+γa: 5.1567322448549944e-12, likelihood: 28768301.230804734
+γa: 5.442343548300294e-12, likelihood: 28456074.523070037
+γa: 5.743773748826634e-12, likelihood: 28143300.461839274
+γa: 6.061898993497622e-12, likelihood: 27829996.530223034
+γa: 6.397643955748476e-12, likelihood: 27516180.57821539
+γa: 6.7519845230725224e-12, likelihood: 27201870.85794613
+γa: 7.1259506335684836e-12, likelihood: 26887086.03900989
+γa: 7.520629269592453e-12, likelihood: 26571845.201332934
+γa: 7.937167617217592e-12, likelihood: 26256167.804566126
+γa: 8.376776400682958e-12, likelihood: 25940073.634467978
+γa: 8.840733401525136e-12, likelihood: 25623582.728252105
+γa: 9.330387172620437e-12, likelihood: 25306715.28211011
+γa: 9.847160957933844e-12, likelihood: 24989491.545085736
+γa: 1.0392556829367195e-11, likelihood: 24671931.70404025
+γa: 1.0968160052731402e-11, likelihood: 24354055.764651246
+γa: 1.1575643695533106e-11, likelihood: 24035883.43321819
+γa: 1.221677348996798e-11, likelihood: 23717434.00358841
+γa: 1.289341296525721e-11, likelihood: 23398726.252838388
+γa: 1.3607528864243387e-11, likelihood: 23079778.348531496
+γa: 1.4361196859990891e-11, likelihood: 22760607.769513205
+γa: 1.5156607589006074e-11, likelihood: 22441231.241371162
+γa: 1.599607301861491e-11, likelihood: 22121664.686918937
+γa: 1.6882033167003664e-11, likelihood: 21801923.191422716
+γa: 1.78170631954574e-11, likelihood: 21482020.981764063
+γa: 1.880388089340924e-11, likelihood: 21161971.41836244
+γa: 1.9845354578058115e-11, likelihood: 20841786.998422265
+γa: 2.094451143151477e-11, likelihood: 20521479.36893806
+γa: 2.2104546299710378e-11, likelihood: 20201059.34785133
+γa: 2.3328830978641724e-11, likelihood: 19880536.951786235
+γa: 2.4620924014946305e-11, likelihood: 19559921.42888496
+γa: 2.5984581049292525e-11, likelihood: 19239221.29538984
+γa: 2.7423765732649633e-11, likelihood: 18918444.37477175
+γa: 2.894266124716764e-11, likelihood: 18597597.838363174
+γa: 3.054568246515444e-11, likelihood: 18276688.246614464
+γa: 3.22374887814904e-11, likelihood: 17955721.590246037
+γa: 3.402299765678092e-11, likelihood: 17634703.33071037
+γa: 3.5907398910610623e-11, likelihood: 17313638.439505428
+γa: 3.789616980644724e-11, likelihood: 16992531.435993616
+γa: 3.999509097203686e-11, likelihood: 16671386.423477165
+γa: 4.2210263201569374e-11, likelihood: 16350207.123362664
+γa: 4.454812518845025e-11, likelihood: 16028996.907313999
+γa: 4.701547224022168e-11, likelihood: 15707758.827349601
+γa: 4.9619476030029384e-11, likelihood: 15386495.643882394
+γa: 5.236770544204709e-11, likelihood: 15065209.851735346
+γa: 5.526814857144637e-11, likelihood: 14743903.704191621
+γa: 5.832923594286236e-11, likelihood: 14422579.235155892
+γa: 6.155986501483539e-11, likelihood: 14101238.279518787
+γa: 6.496942604146151e-11, likelihood: 13779882.491822265
+γa: 6.856782936641794e-11, likelihood: 13458513.363330366
+γa: 7.23655342286971e-11, likelihood: 13137132.237610716
+γa: 7.637357916378074e-11, likelihood: 12815740.324731587
+γa: 8.060361408861394e-11, likelihood: 12494338.714177713
+γa: 8.506793416364205e-11, likelihood: 12172928.386583868
+γa: 8.977951553033369e-11, likelihood: 11851510.224381367
+γa: 9.475205302806586e-11, likelihood: 11530085.021447457
+γa: 1.000000000000004e-10, likelihood: 11208653.491842326
+
+real	0m38.237s
+user	0m21.890s
+sys	0m11.127s
+
++------------------- Job Report: 42446 (COMPLETED) --------------------+
+| Memory (RAM)  [############        ] 64.3% (2.6 GB peak / 4 GB)      |
+| CPU           [########            ] 44.9% average                   |
+| Time          [->                  ]  8.2% (0-00:00:49 / 0-00:10:00) |
+|                                                                      |
+| Lustre Filesystem:                                                   |
+|   Path    Total Read    Total Write    Total IOPS                    |
+|   ------  ------------  -------------  ------------                  |
+|   /apps   0 B           0 B            1                             |
+|   /fred   8 KB          12.1 KB        3.8 K                         |
+|   /home   0 B           0 B            2                             |
+|   OS      0 B           0 B            5                             |
++----------------------------------------------------------------------+

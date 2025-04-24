@@ -91,11 +91,11 @@ def _initialize_kalman_filter(nx,Npsr,P_eps):
     
     
     
-    h2 = (1e-17)**2
-    γa = 1e-9
-    sigma2 =  (h2 / 12) * γa 
-    P_GW = P_GW.at[1::2, 1::2].multiply(sigma2 / (2 * γa)) 
-    #P_GW = P_GW.at[1::2, 1::2].multiply(1e-25) #Set 'a' components (odd indices) to stationary OU variance
+    # h2 = (1e-12)**2
+    # γa = 1e-9
+    # sigma2 =  (h2 / 12) * γa 
+    #P_GW = P_GW.at[1::2, 1::2].multiply(sigma2 / (2 * γa)) 
+    P_GW = P_GW.at[1::2, 1::2].multiply(1e-25) #Set 'a' components (odd indices) to stationary OU variance
 
 
     utils.check_cholesky(P_GW,"The initial PGW-matrix")
@@ -170,11 +170,6 @@ def get_psr_noise_injections():
 
 
 
-
-
-
-
-
 #Get the data
 data_path = "../data/IPTA_MockDataChallenge2/dataset_2b/" 
 processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)
@@ -191,7 +186,7 @@ assert len(sigma_p_injected) == len(gamma_p_injected) == len(pulsar_metadata)
 #Calculate P0 based on the maximum value of the design matrix, and a delta tolerance
 model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
 
-alpha = 10 #scale slightly 
+alpha = 1.0 #scale slightly 
 P0 = alpha*block_diag(*P_eps_matrices)
 
 #Initialize the model
@@ -207,7 +202,7 @@ KF = jax_kalman_filter.JaxKalmanFilter(
 
 
 γa = 1e-9 
-ha = 1e-17
+ha = 1e-13
 
 #Set the parameters
 params = Parameters(
@@ -224,7 +219,37 @@ params = Parameters(
     EQUAD=equad_array
 )
 
-print("First call to get_likelihood")
+print("First call to get_likelihood for precompilation")
 ll = KF.get_likelihood(params)
 ll.block_until_ready()
 print("Likelihood: ",ll)
+
+
+print("Now starting the loop")
+
+n_points = 500
+ha_range = jnp.logspace(jnp.log10(1e-17), jnp.log10(1e-10), n_points)
+data_array = np.zeros((n_points,2))
+for i,ha in enumerate(ha_range):
+    params = Parameters(
+        #GW parameters
+        γa=1e-9,
+        ha=ha,
+
+        #Spin parameters
+        γp=gamma_p_injected,
+        σp=sigma_p_injected,
+
+        #Measurement noise parameters
+        EFAC=efac_array,
+        EQUAD=equad_array
+    )
+
+    ll = KF.get_likelihood(params)
+    ll.block_until_ready()
+    data_array[i,0] = ha
+    data_array[i,1] = ll
+    print(f"γa: {ha}, likelihood: {ll}")
+
+
+np.save(f"likelihood_data_array_mdc2_.npy",data_array)

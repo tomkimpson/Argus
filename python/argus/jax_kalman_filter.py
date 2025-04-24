@@ -81,6 +81,8 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     # P = (I-KH)P usually seen in the literature.   
     I_KH = jnp.eye(len(xp)) - K @ H
     P = I_KH @ Pp @ I_KH.T + K@R@K.T
+
+
     #P = 0.5 * (P + P.T)
     check_cholesky(P,"The updated P-matrix")
     check_min_eigenvalue(P, "The updated P-matrix")
@@ -113,10 +115,10 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
 
 
 
-    #check_cholesky(P0,"The initial P-matrix")
-    #check_min_eigenvalue(P0, "The initial P-matrix")
-    #check_symmetry(P0, "The initial P-matrix")
-    #check_condition_number(P0, "The initial P-matrix")
+    check_cholesky(P0,"The initial P-matrix")
+    check_min_eigenvalue(P0, "The initial P-matrix")
+    check_symmetry(P0, "The initial P-matrix")
+    check_condition_number(P0, "The initial P-matrix")
 
 
 
