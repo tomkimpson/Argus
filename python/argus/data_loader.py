@@ -94,7 +94,7 @@ class LoadWidebandPulsarData:
 
 
         # Compute the covariance matrix of the residuals
-        print("Computing the covariance matrix of the residuals")
+        #print("Computing the covariance matrix of the residuals")
         Ninv = np.diag(1.0 / self.toaerrs**2)
         MtNinvM = self.M_scaled.T @ Ninv @ self.M_scaled
         self.P_eps = np.linalg.inv(MtNinvM)
@@ -309,7 +309,7 @@ class LoadWidebandPulsarData:
             psr = cls.read_par_tim(par_file, tim_file, **kwargs)
 
             f0 = get_par_value(par_file, 'F0')
-            print(psr.name,f0,len(psr.toas))
+            print(f"PSR: {psr.name}, F0: {f0}, # TOAs: {len(psr.toas)}")
 
             # DataFrame for TOAs and residuals for this pulsar.
             df = pd.DataFrame(

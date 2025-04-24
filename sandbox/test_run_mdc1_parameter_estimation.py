@@ -225,7 +225,7 @@ def parameter_estimation():
 
         # Parameters of the GW background
         γa = numpyro.deterministic("γa", 1e-9)
-        ha = numpyro.sample("ha", dist.LogUniform(1e-18, 1e-4))
+        ha = numpyro.sample("ha", dist.LogUniform(1e-18, 1e-14))
 
         #Parameters of the pulsar process
         γp = numpyro.deterministic("γp", jnp.ones(model.Npsr)*1e-15,)

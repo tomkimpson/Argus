@@ -1,0 +1,255 @@
+[tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
+WARNING: Could not find pulsar distance for PSR J0218+4232. Setting value to 1 with 20% uncertainty.
+[tempo2Util.C:401] Warning: [DUP1] duplicated warnings have been suppressed.
+WARNING: Could not find pulsar distance for PSR J0621+1002. Setting value to 1 with 20% uncertainty.
+WARNING: Could not find pulsar distance for PSR J0751+1807. Setting value to 1 with 20% uncertainty.
+WARNING: Could not find pulsar distance for PSR J0900-3144. Setting value to 1 with 20% uncertainty.
+WARNING: Could not find pulsar distance for PSR J1738+0333. Setting value to 1 with 20% uncertainty.
+WARNING: Could not find pulsar distance for PSR J1741+1351. Setting value to 1 with 20% uncertainty.
+WARNING: Could not find pulsar distance for PSR J1751-2857. Setting value to 1 with 20% uncertainty.
+WARNING: Could not find pulsar distance for PSR J1853+1303. Setting value to 1 with 20% uncertainty.
+WARNING: Could not find pulsar distance for PSR J1955+2908. Setting value to 1 with 20% uncertainty.
+WARNING: Could not find pulsar distance for PSR J2019+2425. Setting value to 1 with 20% uncertainty.
+=== JAX VERSION INFO ===
+JAX version: 0.5.3
+
+=== DEVICE INFO ===
+Default device: gpu
+
+=== JAX CONFIG SETTINGS ===
+eager_constant_folding: False
+jax2tf_associative_scan_reductions: False
+jax2tf_default_native_serialization: True
+jax_array_garbage_collection_guard: None
+jax_backend_target: 
+jax_bcoo_cusparse_lowering: False
+jax_check_proxy_envs: True
+jax_check_tracer_leaks: False
+jax_compilation_cache_dir: None
+jax_compilation_cache_expect_pgle: False
+jax_compilation_cache_include_metadata_in_key: False
+jax_compilation_cache_max_size: -1
+jax_compiler_detailed_logging_min_ops: 10
+jax_compiler_enable_remat_pass: True
+jax_cpu_collectives_implementation: None
+jax_cpu_enable_async_dispatch: True
+jax_cpu_enable_gloo_collectives: False
+jax_cuda_visible_devices: all
+jax_custom_vjp_disable_shape_check: False
+jax_data_dependent_tracing_fallback: False
+jax_debug_infs: False
+jax_debug_key_reuse: False
+jax_debug_log_modules: 
+jax_debug_nans: False
+jax_default_device: None
+jax_default_dtype_bits: 64
+jax_default_matmul_precision: None
+jax_default_prng_impl: threefry2x32
+jax_disable_jit: False
+jax_disable_most_optimizations: False
+jax_disable_vmap_shmap_error: False
+jax_disallow_mesh_context_manager: False
+jax_distributed_debug: False
+jax_dump_ir_to: 
+jax_dynamic_shapes: False
+jax_eager_pmap: True
+jax_enable_checks: False
+jax_enable_compilation_cache: True
+jax_enable_custom_prng: False
+jax_enable_custom_vjp_by_custom_transpose: False
+jax_enable_empty_arrays: False
+jax_enable_pgle: False
+jax_enable_x64: True
+jax_exec_time_optimization_effort: 0.0
+jax_experimental_unsafe_xla_runtime_errors: False
+jax_explain_cache_misses: False
+jax_export_calling_convention_version: 9
+jax_export_ignore_forward_compatibility: False
+jax_high_dynamic_range_gumbel: False
+jax_hlo_source_file_canonicalization_regex: None
+jax_include_debug_info_in_dumps: True
+jax_include_full_tracebacks_in_locations: True
+jax_legacy_prng_key: allow
+jax_log_checkpoint_residuals: False
+jax_log_compiles: False
+jax_logging_level: NOTSET
+jax_memory_fitting_effort: 0.0
+jax_memory_fitting_level: UNKNOWN
+jax_mock_gpu_topology: 
+jax_mutable_array_checks: False
+jax_no_tracing: False
+jax_num_cpu_devices: -1
+jax_numpy_dtype_promotion: standard
+jax_numpy_rank_promotion: allow
+jax_optimization_level: UNKNOWN
+jax_persistent_cache_enable_xla_caches: xla_gpu_per_fusion_autotune_cache_dir
+jax_persistent_cache_min_compile_time_secs: 1.0
+jax_persistent_cache_min_entry_size_bytes: 0
+jax_pgle_aggregation_percentile: 90
+jax_pgle_profiling_runs: 3
+jax_pjrt_client_create_options: None
+jax_platform_name: 
+jax_platforms: None
+jax_pmap_no_rank_reduction: True
+jax_pmap_shmap_merge: False
+jax_pprint_use_color: True
+jax_raise_persistent_cache_errors: False
+jax_random_seed_offset: 0
+jax_remat_opt_barrier: True
+jax_remove_custom_partitioning_ptr_from_cache_key: False
+jax_rocm_visible_devices: all
+jax_serialization_version: 0
+jax_share_binary_between_hosts: False
+jax_share_binary_between_hosts_timeout_ms: 1200000
+jax_softmax_custom_jvp: False
+jax_spmd_mode: allow_jit
+jax_threefry_gpu_kernel_lowering: False
+jax_threefry_partitionable: True
+jax_traceback_filtering: auto
+jax_traceback_in_locations_limit: 10
+jax_tracer_error_num_traceback_frames: 5
+jax_transfer_guard: None
+jax_transfer_guard_device_to_device: None
+jax_transfer_guard_device_to_host: None
+jax_transfer_guard_host_to_device: None
+jax_use_direct_linearize: False
+jax_use_magma: auto
+jax_use_shardy_partitioner: False
+jax_varying_axes_in_types: False
+jax_xla_backend: 
+jax_xla_profile_version: 0
+mock_num_gpu_processes: 0
+
+JAX GPU acceleration is AVAILABLE!
+GPU devices: [CudaDevice(id=0), CudaDevice(id=1), CudaDevice(id=2), CudaDevice(id=3)]
+-----------------------------------------------
+[CudaDevice(id=0), CudaDevice(id=1), CudaDevice(id=2), CudaDevice(id=3)]
+Getting the data. Loading 35 pulsars from ../data/IPTA_MockDataChallenge/IPTA_Challenge1_open/Challenge_Data/Dataset1/
+PSR: J0030+0451, F0: 205.53069608827312, # TOAs: 130
+PSR: J0218+4232, F0: 430.4610596717083, # TOAs: 130
+PSR: J0437-4715, F0: 173.68794349163844, # TOAs: 130
+PSR: J0613-0200, F0: 326.60055712590673, # TOAs: 130
+PSR: J0621+1002, F0: 34.65740664134258, # TOAs: 130
+PSR: J0711-6830, F0: 182.11723204538725, # TOAs: 130
+PSR: J0751+1807, F0: 287.4578541729563, # TOAs: 130
+PSR: J0900-3144, F0: 90.01184198779488, # TOAs: 130
+PSR: J1012+5307, F0: 190.26783467169975, # TOAs: 130
+PSR: J1022+1001, F0: 60.77944703384264, # TOAs: 130
+PSR: J1024-0719, F0: 193.71568356901784, # TOAs: 130
+PSR: J1045-4509, F0: 133.7931475200334, # TOAs: 130
+PSR: J1455-3330, F0: 125.20024338951636, # TOAs: 130
+PSR: J1600-3053, F0: 277.93770278900274, # TOAs: 130
+PSR: J1603-7202, F0: 67.37658009620336, # TOAs: 130
+PSR: J1643-1224, F0: 216.3733341965239, # TOAs: 130
+PSR: J1713+0747, F0: 218.81184052297365, # TOAs: 130
+PSR: J1730-2304, F0: 123.11028528345125, # TOAs: 130
+PSR: J1732-5049, F0: 188.23350934700923, # TOAs: 130
+PSR: J1738+0333, F0: 170.93737003914225, # TOAs: 130
+PSR: J1741+1351, F0: 266.8691699745713, # TOAs: 130
+PSR: J1744-1134, F0: 245.42611594274592, # TOAs: 130
+PSR: J1751-2857, F0: 255.43611103984549, # TOAs: 130
+PSR: J1853+1303, F0: 244.3913741220565, # TOAs: 130
+PSR: J1857+0943, F0: 186.49407847511142, # TOAs: 130
+PSR: J1909-3744, F0: 339.31568214826075, # TOAs: 130
+PSR: J1910+1256, F0: 200.65880229830836, # TOAs: 130
+PSR: J1918-0642, F0: 130.78951215621439, # TOAs: 130
+PSR: J1939+2134, F0: 641.9282511535072, # TOAs: 130
+PSR: J1955+2908, F0: 163.0479108675946, # TOAs: 130
+PSR: J2019+2425, F0: 254.16034165215373, # TOAs: 130
+PSR: J2124-3358, F0: 202.79389073515713, # TOAs: 130
+PSR: J2129-5721, F0: 268.35922326261453, # TOAs: 130
+PSR: J2145-0750, F0: 62.29588689105456, # TOAs: 130
+PSR: J2317+1439, F0: 290.2546037665675, # TOAs: 130
+Total length of the data is  130
+Total number of pulsars is  35
+The number of pulsars is: 35
+The frequencies are: [205.53069609 430.46105967 173.68794349 326.60055713  34.65740664
+ 182.11723205 287.45785417  90.01184199 190.26783467  60.77944703
+ 193.71568357 133.79314752 125.20024339 277.93770279  67.3765801
+ 216.3733342  218.81184052 123.11028528 188.23350935 170.93737004
+ 266.86916997 245.42611594 255.43611104 244.39137412 186.49407848
+ 339.31568215 200.6588023  130.78951216 641.92825115 163.04791087
+ 254.16034165 202.79389074 268.35922326  62.29588689 290.25460377]
+📊 The initial PGW-matrix Cholesky: Successful ✅
+📊 The initial PGW-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial PGW-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial PGW-matrix Condition Number: 1000000000000000.2
+📊 The initial Pspin-matrix Cholesky: Successful ✅
+📊 The initial Pspin-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 1e-40
+📊 The initial Pspin-matrix Symmetry Error (Frobenius Norm): 0.0
+📊 The initial Pspin-matrix Condition Number: 1e+20
+📊 The initial Peps-matrix Cholesky: Successful ✅
+📊 The initial Peps-matrix minimum eigenvalue is positive ✅ or only slightly negative, with: 2.0884168221918632e-14
+📊 The initial Peps-matrix Symmetry Error (Frobenius Norm): 2.1923507742878543e-06
+📊 The initial Peps-matrix Condition Number: 106024165616922.88
+Total number of observations:  130
+Starting dt (days):  14.000064865096851
+Ending dt (days):  13.999784130034623
+The errors are:  [[1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ ...
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]
+ [1.e-07 1.e-07 1.e-07 ... 1.e-07 1.e-07 1.e-07]]
+Computing H matrices for all 130 time steps (using NumPy)...
+Finished computing all H matrices.
+First call to get_likelihood
+Likelihood:  55367273.50396346
+Starting NumPyro
+
+=== NUMPYRO DEVICE INFO ===
+NumPyro version: 0.18.0
+--------------------------------
+Starting inference 
+  0%|          | 0/1500 [00:00<?, ?it/s]Compiling.. :   0%|          | 0/1500 [00:00<?, ?it/s]
+  0%|          | 0/1500 [00:00<?, ?it/s][A
+Compiling.. :   0%|          | 0/1500 [00:00<?, ?it/s][A
+
+  0%|          | 0/1500 [00:00<?, ?it/s][A[A
+
+Compiling.. :   0%|          | 0/1500 [00:00<?, ?it/s][A[A
+
+
+  0%|          | 0/1500 [00:00<?, ?it/s][A[A[A
+
+
+Compiling.. :   0%|          | 0/1500 [00:00<?, ?it/s][A[A[ARunning chain 0:   0%|          | 0/1500 [00:10<?, ?it/s]
+Running chain 1:   0%|          | 0/1500 [00:10<?, ?it/s][A
+
+Running chain 2:   0%|          | 0/1500 [00:10<?, ?it/s][A[A
+
+
+Running chain 3:   0%|          | 0/1500 [00:10<?, ?it/s][A[A[A
+Running chain 1:   5%|▌         | 75/1500 [00:26<05:07,  4.63it/s][A
+Running chain 1:  10%|█         | 150/1500 [03:55<38:48,  1.73s/it][A
+
+Running chain 2:   5%|▌         | 75/1500 [1:03:23<20:01:00, 50.57s/it][A[A
+Running chain 1:  15%|█▌        | 225/1500 [1:16:27<9:42:58, 27.43s/it][ARunning chain 0:   5%|▌         | 75/1500 [1:22:41<26:07:38, 66.01s/it]
+
+
+Running chain 3:   5%|▌         | 75/1500 [1:25:05<26:53:27, 67.93s/it][A[A[A
+Running chain 1:  20%|██        | 300/1500 [2:23:54<12:38:09, 37.91s/it][A
+
+Running chain 2:  10%|█         | 150/1500 [2:50:18<26:40:35, 71.14s/it][A[ARunning chain 0:  10%|█         | 150/1500 [3:33:41<33:18:36, 88.83s/it]
+
+
+Running chain 3:  10%|█         | 150/1500 [3:36:05<33:36:27, 89.62s/it][A[A[Aslurmstepd: error: *** JOB 28291 ON gina3 CANCELLED AT 2025-04-24T15:32:57 DUE TO TIME LIMIT ***
+
++--------------------- Job Report: 28291 (TIMEOUT) ---------------------+
+| Memory (RAM)  [#######             ] 36.9% (8.9 GB peak / 24 GB)      |
+| CPU           [#################   ] 85.9% average                    |
+| GPU           [##################  ] 93.1% average                    |
+| Time          [------------------->] 100.0% (0-04:00:04 / 0-04:00:00) |
+|                                                                       |
+| Lustre Filesystem:                                                    |
+|   Path    Total Read    Total Write    Total IOPS                     |
+|   ------  ------------  -------------  ------------                   |
+|   /apps   29.9 MB       0 B            12                             |
+|   /fred   571.4 MB      31.8 KB        14.7 K                         |
+|   /home   84 KB         0 B            40                             |
+|   OS      16.6 MB       0 B            13                             |
+|                                                                       |
+| Warnings:                                                             |
+|   - Too much memory requested                                         |
++-----------------------------------------------------------------------+

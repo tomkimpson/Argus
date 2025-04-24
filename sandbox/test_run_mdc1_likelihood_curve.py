@@ -132,12 +132,6 @@ def _initialize_kalman_filter(nx,Npsr,P_eps):
     utils.check_condition_number(P1, "The initial Peps-matrix")
 
 
-
-
-
-
-
-
     P0 = block_diag(P_GW, P_spin, P_eps)
 
     return x0, P0
@@ -170,11 +164,8 @@ model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matri
 
 
 
-
-
-
-for al_exponent in [0,0.1,0.5,0.9,1,2,3,4,5,6]:
-
+#for al_exponent in [0,1,2,3]:
+for al_exponent in [1]:
 
     alpha = 10**al_exponent
 
@@ -196,8 +187,10 @@ for al_exponent in [0,0.1,0.5,0.9,1,2,3,4,5,6]:
     )
 
 
-    γa = 1e-6 
-    ha = 10**(-12.78) #1e-12
+    γa = 1e-9
+    ha = 1e-12
+
+    print(f"Running with h = {ha} and γa = {γa}")
 
     #Set the parameters
     params = Parameters(
@@ -221,33 +214,57 @@ for al_exponent in [0,0.1,0.5,0.9,1,2,3,4,5,6]:
 
 
 
+    # print("########################################################")
+    # ha = 1e-20
+    # print(f"Running with h = {ha} and γa = {γa}")
 
+    # #Set the parameters
+    # params = Parameters(
+    #     #GW parameters
+    #     γa=γa,
+    #     ha=ha,
 
-    #now iterate over a range of γa and compute the likelihood
-    n_points = 20
-    γa = 1e-9
-    ha_range = jnp.logspace(jnp.log10(1e-25), jnp.log10(1e-9), n_points)
-    data_array = np.zeros((n_points,2))
-    for i,ha in enumerate(ha_range):
-        params = Parameters(
-            #GW parameters
-            γa=γa,
-            ha=ha,
+    #     #Spin parameters
+    #     γp=jnp.ones(model.Npsr)*1e-15,
+    #     σp=jnp.ones(model.Npsr)*0.0,
 
-            #Spin parameters
-            γp=jnp.ones(model.Npsr)*1e-15,
-            σp=jnp.ones(model.Npsr)*0.0,
+    #     #Measurement noise parameters
+    #     EFAC=jnp.ones(model.Npsr),
+    #     EQUAD=jnp.zeros(model.Npsr)
+    # )
 
-            #Measurement noise parameters
-            EFAC=jnp.ones(model.Npsr),
-            EQUAD=jnp.zeros(model.Npsr)
-        )
-        ll = KF.get_likelihood(params)
-        ll.block_until_ready()
-        data_array[i,0] = ha
-        data_array[i,1] = ll
-        print(f"γa: {ha}, likelihood: {ll}")
+    # print("First call to get_likelihood")
+    # ll = KF.get_likelihood(params)
+    # ll.block_until_ready()
+    # print("Likelihood: ",ll)
 
 
 
-    np.save(f"likelihood_data_array_alpha_{al_exponent}.npy",data_array)
+    # #now iterate over a range of γa and compute the likelihood
+    # n_points = 400
+    # γa = 1e-9
+    # ha_range = jnp.logspace(jnp.log10(1e-16), jnp.log10(1e-12), n_points)
+    # data_array = np.zeros((n_points,2))
+    # for i,ha in enumerate(ha_range):
+    #     params = Parameters(
+    #         #GW parameters
+    #         γa=γa,
+    #         ha=ha,
+
+    #         #Spin parameters
+    #         γp=jnp.ones(model.Npsr)*1e-15,
+    #         σp=jnp.ones(model.Npsr)*0.0,
+
+    #         #Measurement noise parameters
+    #         EFAC=jnp.ones(model.Npsr),
+    #         EQUAD=jnp.zeros(model.Npsr)
+    #     )
+    #     ll = KF.get_likelihood(params)
+    #     ll.block_until_ready()
+    #     data_array[i,0] = ha
+    #     data_array[i,1] = ll
+    #     print(f"γa: {ha}, likelihood: {ll}")
+
+
+
+    # np.save(f"likelihood_data_array_alpha_{al_exponent}_high_resolution.npy",data_array)

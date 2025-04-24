@@ -69,10 +69,10 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     K = Pp @ H.T @ Sinv                               
     x = xp + K @ y    
 
-    # check_cholesky(S,"The innovation covariance matrix")
-    # check_min_eigenvalue(S, "The innovation covariance matrix")
-    # check_symmetry(S, "The innovation covariance matrix")
-    # check_condition_number(S, "The innovation covariance matrix")                             
+    check_cholesky(S,"The innovation covariance matrix")
+    check_min_eigenvalue(S, "The innovation covariance matrix")
+    check_symmetry(S, "The innovation covariance matrix")
+    check_condition_number(S, "The innovation covariance matrix")                             
  
     #Following FilterPy https://github.com/rlabbe/filterpy/blob/master/filterpy/kalman/EKF.py by using
     #Joseph form for numerically stable update of the covariance matrix
@@ -82,10 +82,10 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     I_KH = jnp.eye(len(xp)) - K @ H
     P = I_KH @ Pp @ I_KH.T + K@R@K.T
     #P = 0.5 * (P + P.T)
-    # check_cholesky(P,"The updated P-matrix")
-    # check_min_eigenvalue(P, "The updated P-matrix")
-    # check_symmetry(P, "The updated P-matrix")
-    # check_condition_number(P, "The updated P-matrix")
+    check_cholesky(P,"The updated P-matrix")
+    check_min_eigenvalue(P, "The updated P-matrix")
+    check_symmetry(P, "The updated P-matrix")
+    check_condition_number(P, "The updated P-matrix")
 
 
     # Optional: enforce symmetry for numerical stability

@@ -13,6 +13,8 @@ from jax import vmap
 from functools import partial
 from typing import Tuple
 
+from utils import check_cholesky
+
 def get_F_block(γ: float, dt: float) -> jax.Array:
     """Compute 2x2 state transition block matrix for a single component.
     Uses expm1 for improved numerical stability when γ*dt is small.
@@ -158,9 +160,32 @@ def compute_predicted_covariance(P: jax.Array,
     # Compute individual blocks
     PF1 = F1 @ P1 @ F1.T + Q1
     PF2 = F2 @ P2 @ F2.T + Q2
+    PF3 = P3 # no update or process noise for timing component
     PF4 = F1 @ P4 @ F2.T
     PF5 = F2 @ P5
     PF6 = F1 @ P6
+
+    check_cholesky(PF1,"PF1")
+    check_cholesky(PF2,"PF2")
+    check_cholesky(PF3,"PF3")
+
+    
+    block1 =  F1 @ P1 @ F1.T 
+    block2 = Q1 
+
+    jax.debug.print("block1: {block1}",block1=block1)
+    jax.debug.print("block2: {block2}",block2=block2)
+
+
+    # #diagnositc. Can be removed
+    # PF1_no_q = F1 @ P1 @ F1.T
+    # P_aa = PF1_no_q[1,1]
+
+    # jax.debug.print("P_aa: {P_aa}",P_aa=P_aa)
+
+
+
+
 
     # Assemble full matrix
     return jnp.block([[PF1,   PF4,   PF6],

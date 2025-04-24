@@ -3,9 +3,9 @@
 #SBATCH --job-name=test_run_mdc1_parameter_estimation     
 #SBATCH --output=test_run_mdc1_parameter_estimation_output.txt
 #SBATCH --export=ALL 
-#SBATCH --gres=gpu:1
-#SBATCH --time=6:00:00 
-#SBATCH --mem=6G
+#SBATCH --gres=gpu:4
+#SBATCH --time=4:00:00 
+#SBATCH --mem=24G
 
 
 source ~/.bashrc
