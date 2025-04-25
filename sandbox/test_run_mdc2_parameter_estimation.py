@@ -2,7 +2,7 @@ import jax
 jax.config.update("jax_enable_x64", True)
 import jax.numpy as jnp
 from jax.scipy.linalg import block_diag
-
+from jax import random
 
 import os 
 import glob
@@ -11,7 +11,8 @@ import json
 import pandas as pd
 import numpy as np 
 from flax import struct
-import numpyro.distributions as dist
+from datetime import datetime
+
 
 sys.path.append('../python/argus')
 from argus import data_loader
@@ -19,6 +20,17 @@ from argus import models
 from argus import jax_kalman_filter
 from argus import gravitational_waves
 from argus import utils
+
+
+
+#NumPyro
+import numpyro
+import numpyro.distributions as dist
+from numpyro.infer import MCMC,SA,NUTS
+
+
+#Arviz
+import arviz as az
 
 
 @struct.dataclass
@@ -73,8 +85,6 @@ def _get_processed_residuals(directory):
 
     return processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix
 
-
-
 def get_efac_equad_injections():
 
     # Load the noise parameters from the json file
@@ -117,34 +127,30 @@ def get_psr_noise_injections():
 
 
 
-
-
-#Get the data
-data_path = "../data/IPTA_MockDataChallenge2/dataset_2b/" 
-processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)
-
-#Get efac and equad
-efac_array, equad_array = get_efac_equad_injections()
-assert len(efac_array) == len(equad_array) == len(pulsar_metadata)
-
-#Get psr noise 
-sigma_p_injected, gamma_p_injected = get_psr_noise_injections()
-assert len(sigma_p_injected) == len(gamma_p_injected) == len(pulsar_metadata)
-
-
-#Calculate P0 based on the maximum value of the design matrix, and a delta tolerance
-model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
+def parameter_estimation():
 
 
 
-for alpha in [1.0,10.0,100.0]:
+    #Get the data
+    data_path = "../data/IPTA_MockDataChallenge2/dataset_2b/" 
+    processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)
+
+    #Get efac and equad
+    efac_array, equad_array = get_efac_equad_injections()
+    assert len(efac_array) == len(equad_array) == len(pulsar_metadata)
+
+    #Get psr noise 
+    sigma_p_injected, gamma_p_injected = get_psr_noise_injections()
+    assert len(sigma_p_injected) == len(gamma_p_injected) == len(pulsar_metadata)
+
+
+    #Calculate P0 based on the maximum value of the design matrix, and a delta tolerance
+    model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
+
+    alpha = 10 #scale slightly 
     P0 = alpha*block_diag(*P_eps_matrices)
 
-# #Initialize the model
-# x_init,P_init = _initialize_kalman_filter(model.nx,model.Npsr,P0) #this could go inside the model class....
 
-
-    print(f"Running with alpha = {alpha}")
     #placeholders, not actually used
     x_init = np.zeros(model.nx)
     P_init = P0
@@ -158,11 +164,8 @@ for alpha in [1.0,10.0,100.0]:
     )
 
 
-    print("THe P eps value passed to the filter is ", P0)
-
-
     γa = 1e-9 
-    ha = 1e-13
+    ha = 1e-15
 
     #Set the parameters
     params = Parameters(
@@ -179,37 +182,69 @@ for alpha in [1.0,10.0,100.0]:
         EQUAD=equad_array
     )
 
-    print("First call to get_likelihood for precompilation")
+    print("First call to get_likelihood. Just for precompilation")
     ll = KF.get_likelihood(params)
     ll.block_until_ready()
     print("Likelihood: ",ll)
 
 
-    print("Now starting the loop")
+    #Now do parameter estimation
+    print("Starting NumPyro")
 
-    n_points = 500
-    ha_range = jnp.logspace(jnp.log10(1e-17), jnp.log10(1e-10), n_points)
-    data_array = np.zeros((n_points,2))
-    for i,ha in enumerate(ha_range):
+    # Check NumPyro device usage
+    print("\n=== NUMPYRO DEVICE INFO ===")
+    print(f"NumPyro version: {numpyro.__version__}")
+    print("--------------------------------")
+
+
+
+    # NumPyro model
+    def numpyro_model(kf):
+
+
+        # Parameters of the GW background
+        γa = numpyro.deterministic("γa", 1e-9)
+        ha = numpyro.sample("ha", dist.LogUniform(1e-16, 1e-14))
+
+        #Parameters of the pulsar process
+        γp = numpyro.deterministic("γp", gamma_p_injected)
+        σp = numpyro.deterministic("σp", sigma_p_injected)
+
+        
+        #Measurement noise parameters
+        EFAC = numpyro.deterministic("EFAC", efac_array)
+        EQUAD = numpyro.deterministic("EQUAD", equad_array)
+
+
+        # Construct the Parameters object
         params = Parameters(
-            #GW parameters
-            γa=1e-9,
+            γa=γa,
             ha=ha,
-
-            #Spin parameters
-            γp=gamma_p_injected,
-            σp=sigma_p_injected,
-
-            #Measurement noise parameters
-            EFAC=efac_array,
-            EQUAD=equad_array
+            γp=γp,
+            σp=σp,
+            EFAC=EFAC,
+            EQUAD=EQUAD
         )
-
-        ll = KF.get_likelihood(params)
-        ll.block_until_ready()
-        data_array[i,0] = ha
-        data_array[i,1] = ll
-        print(f"γa: {ha}, likelihood: {ll}")
+        log_likelihood = kf.get_likelihood(params)
+        numpyro.factor("likelihood", log_likelihood)
 
 
-    np.save(f"v2likelihood_data_array_mdc2_alpha_{alpha}.npy",data_array)
+
+    # Parameter estimation with numpyro
+    print("Starting inference ")
+    rng_key = random.PRNGKey(0)
+    kernel = NUTS(numpyro_model)
+    sampler = MCMC(kernel, num_samples=1000, num_warmup=500,progress_bar=True,num_chains=4)
+    sampler.run(rng_key, kf=KF)
+    sampler.print_summary()  # Posterior estimates
+
+
+    print("Completed. Saving results to disk...")
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    inf_data = az.from_numpyro(sampler)
+    fname = f"outputs/mdc3_parameter_estimation_results_{timestamp}.nc" 
+    inf_data.to_netcdf(fname)
+    print(f"Saved results to {fname}")
+
+

@@ -73,58 +73,58 @@ def _get_processed_residuals(directory):
 
     return processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix
 
-def _initialize_kalman_filter(nx,Npsr,P_eps):
+# def _initialize_kalman_filter(nx,Npsr,P_eps):
 
-    """
-    Specify the initial state vector x0 and the covariance matrix P0 for the Kalman filter.
-    """
+#     """
+#     Specify the initial state vector x0 and the covariance matrix P0 for the Kalman filter.
+#     """
 
-    # Initialize the JAX Kalman Filter
-    x0 = jnp.zeros(nx) # Initial state vector. δφ=0,δf=0, etc. As all the states are effecitvely perturbations, this is a reasonable guess.
+#     # Initialize the JAX Kalman Filter
+#     x0 = jnp.zeros(nx) # Initial state vector. δφ=0,δf=0, etc. As all the states are effecitvely perturbations, this is a reasonable guess.
 
 
-    #Initialize the covariance matrices
+#     #Initialize the covariance matrices
 
-    ## GW block "r/a"
-    P_GW = jnp.eye(Npsr * 2)
-    P_GW = P_GW.at[0::2, 0::2].multiply(1e-40) #r(0), integrated: set tiny variance. All the even diagonal elements, (0,0), (2,2) etc. are set to 1e-40
+#     ## GW block "r/a"
+#     P_GW = jnp.eye(Npsr * 2)
+#     P_GW = P_GW.at[0::2, 0::2].multiply(1e-40) #r(0), integrated: set tiny variance. All the even diagonal elements, (0,0), (2,2) etc. are set to 1e-40
     
     
     
-    h2 = (1e-17)**2
-    γa = 1e-9
-    sigma2 =  (h2 / 12) * γa 
-    P_GW = P_GW.at[1::2, 1::2].multiply(sigma2 / (2 * γa)) 
-    #P_GW = P_GW.at[1::2, 1::2].multiply(1e-25) #Set 'a' components (odd indices) to stationary OU variance
+#     h2 = (1e-17)**2
+#     γa = 1e-9
+#     sigma2 =  (h2 / 12) * γa 
+#     P_GW = P_GW.at[1::2, 1::2].multiply(sigma2 / (2 * γa)) 
+#     #P_GW = P_GW.at[1::2, 1::2].multiply(1e-25) #Set 'a' components (odd indices) to stationary OU variance
 
 
-    utils.check_cholesky(P_GW,"The initial PGW-matrix")
-    utils.check_min_eigenvalue(P_GW, "The initial PGW-matrix")
-    utils.check_symmetry(P_GW, "The initial PGW-matrix")
-    utils.check_condition_number(P_GW, "The initial PGW-matrix")
+#     utils.check_cholesky(P_GW,"The initial PGW-matrix")
+#     utils.check_min_eigenvalue(P_GW, "The initial PGW-matrix")
+#     utils.check_symmetry(P_GW, "The initial PGW-matrix")
+#     utils.check_condition_number(P_GW, "The initial PGW-matrix")
 
 
-    P_spin = jnp.eye(Npsr * 2)
-    P_spin = P_spin.at[0::2, 0::2].multiply(1e-40) # All the even diagonal elements, (0,0), (2,2) etc. are set to X
-    P_spin = P_spin.at[1::2, 1::2].multiply(1e-20) # All the odd diagonal elements, (1,1), (3,3) etc. are set to Y
+#     P_spin = jnp.eye(Npsr * 2)
+#     P_spin = P_spin.at[0::2, 0::2].multiply(1e-40) # All the even diagonal elements, (0,0), (2,2) etc. are set to X
+#     P_spin = P_spin.at[1::2, 1::2].multiply(1e-20) # All the odd diagonal elements, (1,1), (3,3) etc. are set to Y
 
 
-    utils.check_cholesky(P_spin,"The initial Pspin-matrix")
-    utils.check_min_eigenvalue(P_spin, "The initial Pspin-matrix")
-    utils.check_symmetry(P_spin, "The initial Pspin-matrix")
-    utils.check_condition_number(P_spin, "The initial Pspin-matrix")
+#     utils.check_cholesky(P_spin,"The initial Pspin-matrix")
+#     utils.check_min_eigenvalue(P_spin, "The initial Pspin-matrix")
+#     utils.check_symmetry(P_spin, "The initial Pspin-matrix")
+#     utils.check_condition_number(P_spin, "The initial Pspin-matrix")
 
 
-    P1 = P_eps
-    utils.check_cholesky(P1,"The initial Peps-matrix")
-    utils.check_min_eigenvalue(P1, "The initial Peps-matrix")
-    utils.check_symmetry(P1, "The initial Peps-matrix")
-    utils.check_condition_number(P1, "The initial Peps-matrix")
+#     P1 = P_eps
+#     utils.check_cholesky(P1,"The initial Peps-matrix")
+#     utils.check_min_eigenvalue(P1, "The initial Peps-matrix")
+#     utils.check_symmetry(P1, "The initial Peps-matrix")
+#     utils.check_condition_number(P1, "The initial Peps-matrix")
 
 
-    P0 = block_diag(P_GW, P_spin, P_eps)
+#     P0 = block_diag(P_GW, P_spin, P_eps)
 
-    return x0, P0
+#     return x0, P0
 
 def get_efac_equad_injections():
 
@@ -195,14 +195,18 @@ alpha = 10 #scale slightly
 P0 = alpha*block_diag(*P_eps_matrices)
 
 #Initialize the model
-x_init,P_init = _initialize_kalman_filter(model.nx,model.Npsr,P0) #this could go inside the model class....
+#x_init,P_init = _initialize_kalman_filter(model.nx,model.Npsr,P0) #this could go inside the model class....
 
+#placeholders, not actually used
+x_init = np.zeros(model.nx)
+P_init = P0
 
 KF = jax_kalman_filter.JaxKalmanFilter(
     model=model, 
     observations=processed_pulsar_residuals, 
     x0=x_init, 
-    P0=P_init
+    P0=P_init,
+    Peps=P0
 )
 
 

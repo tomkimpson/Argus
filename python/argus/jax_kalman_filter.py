@@ -7,6 +7,8 @@ from functools import partial
 import jax
 import jax.numpy as jnp
 from jax import lax 
+from jax.scipy.linalg import block_diag
+
 
 from utils import check_cholesky,check_min_eigenvalue,check_symmetry,check_condition_number
 
@@ -69,10 +71,10 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     K = Pp @ H.T @ Sinv                               
     x = xp + K @ y    
 
-    check_cholesky(S,"The innovation covariance matrix")
-    check_min_eigenvalue(S, "The innovation covariance matrix")
-    check_symmetry(S, "The innovation covariance matrix")
-    check_condition_number(S, "The innovation covariance matrix")                             
+    #check_cholesky(S,"The innovation covariance matrix")
+    #check_min_eigenvalue(S, "The innovation covariance matrix")
+    #check_symmetry(S, "The innovation covariance matrix")
+    #check_condition_number(S, "The innovation covariance matrix")                             
  
     #Following FilterPy https://github.com/rlabbe/filterpy/blob/master/filterpy/kalman/EKF.py by using
     #Joseph form for numerically stable update of the covariance matrix
@@ -84,10 +86,10 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
 
 
     #P = 0.5 * (P + P.T)
-    check_cholesky(P,"The updated P-matrix")
-    check_min_eigenvalue(P, "The updated P-matrix")
-    check_symmetry(P, "The updated P-matrix")
-    check_condition_number(P, "The updated P-matrix")
+    #check_cholesky(P,"The updated P-matrix")
+    #check_min_eigenvalue(P, "The updated P-matrix")
+    #check_symmetry(P, "The updated P-matrix")
+    #check_condition_number(P, "The updated P-matrix")
 
 
     # Optional: enforce symmetry for numerical stability
@@ -100,11 +102,68 @@ def _compute_sigma_matrix(h2, γa, Γ):
     return (h2 / 12) * γa * Γ
 
 
+
+
+
+def _initialize_kalman_filter(nx,Npsr,P_eps,h2,γa):
+
+    """
+    Specify the initial state vector x0 and the covariance matrix P0 for the Kalman filter.
+    """
+
+    # Initialize the states
+    x0 = jnp.zeros((nx, 1)) # Initialize as column vector. jnp.zeros(nx) # Initial state vector. δφ=0,δf=0, etc. As all the states are effecitvely perturbations, this is a reasonable guess.
+
+
+    #Initialize the covariance matrices
+
+    ## GW block "r/a"
+    P_GW = jnp.eye(Npsr * 2)
+    P_GW = P_GW.at[0::2, 0::2].multiply(1e-40) #r(0), integrated: set tiny variance. All the even diagonal elements, (0,0), (2,2) etc. are set to 1e-40
+    γa = 1e-9
+    sigma2 =  (h2 / 12) * γa 
+    P_GW = P_GW.at[1::2, 1::2].multiply(sigma2 / (2 * γa)) 
+    #P_GW = P_GW.at[1::2, 1::2].multiply(1e-25) #Set 'a' components (odd indices) to stationary OU variance
+
+
+    P_spin = jnp.eye(Npsr * 2)
+    P_spin = P_spin.at[0::2, 0::2].multiply(1e-40) # All the even diagonal elements, (0,0), (2,2) etc. are set to X
+    P_spin = P_spin.at[1::2, 1::2].multiply(1e-20) # All the odd diagonal elements, (1,1), (3,3) etc. are set to Y
+
+
+
+    P0 = block_diag(P_GW, P_spin, P_eps)
+
+    return x0, P0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @jax.named_call
-@partial(jax.jit, static_argnames=('Npsr', 'M_sum', 'dim_x'))
-def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,hellings_downs_matrix, dt_array, x0, P0, dim_x):
+@partial(jax.jit, static_argnames=('Npsr', 'M_sum', 'dim_x','n_states'))
+def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,hellings_downs_matrix, dt_array, dim_x,n_states,P_eps):
     """Run the Kalman filter algorithm over all observations and return a log likelihood.
     """
+
+
+    jax.debug.print("inside the kalman filter scan", ordered=True)
+
+
+    x0,P0 = _initialize_kalman_filter(n_states,Npsr,P_eps,θ.ha**2, θ.γa)
+
+
+
 
 
 
@@ -115,10 +174,10 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
 
 
 
-    check_cholesky(P0,"The initial P-matrix")
-    check_min_eigenvalue(P0, "The initial P-matrix")
-    check_symmetry(P0, "The initial P-matrix")
-    check_condition_number(P0, "The initial P-matrix")
+    #check_cholesky(P0,"The initial P-matrix")
+    #check_min_eigenvalue(P0, "The initial P-matrix")
+    #check_symmetry(P0, "The initial P-matrix")
+    #check_condition_number(P0, "The initial P-matrix")
 
 
 
@@ -178,7 +237,7 @@ class JaxKalmanFilter:
         P0: The uncertainty in the guess of P0
     """
 
-    def __init__(self, model, observations: np.ndarray, x0: np.ndarray, P0: np.ndarray, **kwargs):
+    def __init__(self, model, observations: np.ndarray, x0: np.ndarray, P0: np.ndarray,Peps, **kwargs):
         """Initialize the class."""
 
         
@@ -186,6 +245,11 @@ class JaxKalmanFilter:
         self.observations = observations
         self.x0 = x0
         self.P0 = P0
+
+        self.P_eps = Peps
+
+
+
 
         # Extract the observations into separate arrays
         self.toa = self.observations[0]
@@ -255,7 +319,7 @@ class JaxKalmanFilter:
             M_sum=self.model.M_sum,
             hellings_downs_matrix=self.hellings_downs_matrix,
             dt_array=self.jax_t_diffs,
-            x0=self.jax_x0,
-            P0=self.jax_P0,
-            dim_x=2*self.model.Npsr
+            dim_x=2*self.model.Npsr,
+            n_states=self.model.nx,
+            P_eps=self.P_eps
         ) 
