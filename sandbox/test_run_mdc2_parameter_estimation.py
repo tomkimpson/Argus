@@ -248,3 +248,34 @@ def parameter_estimation():
     print(f"Saved results to {fname}")
 
 
+
+
+
+
+if __name__ == "__main__":
+
+    # Check available devices
+    print("=== JAX VERSION INFO ===")
+    print(f"JAX version: {jax.__version__}")
+
+    print("\n=== DEVICE INFO ===")
+    print("Default device:", jax.default_backend())
+
+    print("\n=== JAX CONFIG SETTINGS ===")
+    for name, value in sorted(jax.config.values.items()):
+        print(f"{name}: {value}")
+
+    # Check if GPU is available
+    if any(d.platform == 'gpu' for d in jax.devices()):
+        print("\nJAX GPU acceleration is AVAILABLE!")
+        print("GPU devices:", [d for d in jax.devices() if d.platform == 'gpu'])
+    else:
+        print("\nJAX GPU acceleration is NOT available. Using CPU only.")
+    print('-----------------------------------------------')
+    print(jax.devices())
+
+
+
+    #go
+    parameter_estimation() 
+
