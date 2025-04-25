@@ -66,7 +66,7 @@ def _get_processed_residuals(directory):
 
 
     # Get the data
-    print(f"Getting the data. Loading {len(par_files)} pulsars from {data_path}")
+    print(f"Getting the data. Loading {len(par_files)} pulsars from {directory}")
     pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices = (
         data_loader.LoadWidebandPulsarData.read_multiple_par_tim(par_files, tim_files)
     )
@@ -128,9 +128,6 @@ def get_psr_noise_injections():
 
 
 def parameter_estimation():
-
-
-
     #Get the data
     data_path = "../data/IPTA_MockDataChallenge2/dataset_2b/" 
     processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)

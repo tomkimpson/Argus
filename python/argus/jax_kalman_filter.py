@@ -156,15 +156,7 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
     """Run the Kalman filter algorithm over all observations and return a log likelihood.
     """
 
-
-    jax.debug.print("inside the kalman filter scan", ordered=True)
-
-
     x0,P0 = _initialize_kalman_filter(n_states,Npsr,P_eps,θ.ha**2, θ.γa)
-
-
-
-
 
 
     σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)

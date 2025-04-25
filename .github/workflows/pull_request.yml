@@ -80,28 +80,30 @@ jobs:
         shell: bash -l {0}
         run: poetry build
 
-      - name: Code tests
+      # Run tests and generate coverage report
+      - name: Code tests with Coverage
         shell: bash -l {0}
-        run: poetry run pytest
+        run: |
+          # Generate coverage report in XML format for the 'python' directory
+          # Uses pytest-cov, requires it in dev dependencies (pyproject.toml)
+          # Assumes source code is in './python' based on pyproject.toml [tool.pytest.ini_options]
+          poetry run pytest --cov=python --cov-report=xml
 
       - name: Documentation build test
         shell: bash -l {0}
         run: poetry run make docs
 
 
-  #   steps:
-
-  #     # Report on which services are configured
-  #     - name: Read the Docs URL
-  #       if: "!(env.RTD_WEBHOOK_URL)"
-  #       run: echo "::warning title=RTD_WEBHOOK_URL not set::Read the Docs functionality not enabled.  Add RTD_WEBHOOK_URL to your repo secrets if you want it enabled."
-  #     - name: Read the Docs Token
-  #       if: "!(env.RTD_WEBHOOK_TOKEN)"
-  #       run: echo "::warning title=RTD_WEBHOOK_TOKEN not set::Read the Docs functionality not enabled.  Add RTD_WEBHOOK_TOKEN to your repo secrets if you want it enabled."
-  #     - name: test.PyPI Token
-  #       if: "!(env.TEST_PYPI_TOKEN)"
-  #       run: echo "::warning title=TEST_PYPI_TOKEN not Set::PyPI functionality not enabled.  Add PYPI_TOKEN to your repo secrets if you want it enabled."
-  #     - name: test.PyPI Token
-  #       if: "!(env.TEST_PYPI_TOKEN)"
-  #       run: echo "::warning title=TEST_PYPI_TOKEN not Set::test.PyPI functionality not enabled.  Add TEST_PYPI_TOKEN to your repo secrets if you want it enabled."
-
+      # Upload coverage report to Codecov
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4
+        env:
+          # Ensure CODECOV_TOKEN is set as a repository secret in GitHub Settings
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          # fail_ci_if_error: true ensures the workflow fails if the upload step has an issue
+          fail_ci_if_error: true
+          # Optional: If coverage.xml is not in the root, specify path:
+          # files: ./path/to/coverage.xml
+          # Optional: Specify flags if needed
+          # flags: unittests
