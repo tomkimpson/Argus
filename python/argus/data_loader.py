@@ -6,25 +6,6 @@ from functools import reduce
 from enterprise.pulsar import Pulsar as EnterprisePulsar
 
 
-def get_par_value(filename, parameter):
-    """Get the value of a parameter from a parameter file.
-    
-    TK note: It feels like there should be a better way to do this, just using the enterprise.pulsar.Pulsar object.
-    However, I have not been able to figure out how to do this yet.
-    We require F0 as part of the measurement model. 
-    I take it as a known parameter.
-    """
-    with open(filename, 'r') as f:
-        for line in f:
-            parts = line.strip().split()
-            if not parts or parts[0].startswith('#'):  # skip empty or commented lines
-                continue
-            if parts[0] == parameter:
-                return float(parts[1])  # assumes the value is the second item
-    return None  # if the parameter isn't found
-
-
-
 class LoadWidebandPulsarData:
     """A class to load and process pulsar data at a single frequency channel.
 
@@ -82,12 +63,7 @@ class LoadWidebandPulsarData:
         self.RA        = ds_psr._raj
         self.DEC       = ds_psr._decj
 
-      
-
-
-
-        #print(np.max(self.M_matrix,axis=0))
-        #print(np.min(self.M_matrix,axis=0))
+    
         # Scale the M matrix columns to have unit norm
         col_scales = np.sqrt(np.sum(self.M_matrix**2, axis=0))
         self.M_scaled = self.M_matrix / col_scales
@@ -104,80 +80,33 @@ class LoadWidebandPulsarData:
         self.toa_diff_errors = np.sqrt(self.toaerrs[1:] ** 2 + self.toaerrs[:-1] ** 2)
 
 
-        
 
     @staticmethod
-    def pairwise_angular_separation(ra_rad, dec_rad):
-        """Compute the pairwise angular separations for a set of celestial coordinates in radians.
-
-        This function takes arrays of right ascension (RA) and declination (Dec), both in radians,
-        and returns an NxN matrix of angular separations, where N is the length of the input arrays.
-        Each entry (i, j) in the output is the angular separation between the coordinate pair
-        (ra_rad[i], dec_rad[i]) and (ra_rad[j], dec_rad[j]).
-
-        Parameters
-        ----------
-        ra_rad : numpy.ndarray
-            1D array of right ascensions in radians, of length N.
-        dec_rad : numpy.ndarray
-            1D array of declinations in radians, of length N.
-
-        Returns
-        -------
-        sep_rad : numpy.ndarray
-            NxN matrix (2D array) of pairwise angular separations in radians.
-
-        Notes
-        -----
-        The spherical distance formula used is:
-
-            cos(theta) = sin(dec1) * sin(dec2)
-                        + cos(dec1) * cos(dec2) * cos(ra1 - ra2)
-
-        where (ra1, dec1) and (ra2, dec2) are coordinate pairs in radians.
-
-        """
-        # Reshape for broadcasting
-        ra1 = ra_rad[:, None]
-        ra2 = ra_rad[None, :]
-        dec1 = dec_rad[:, None]
-        dec2 = dec_rad[None, :]
-
-        # Spherical distance formula:
-        #   cos(theta) = sin(dec1)*sin(dec2) + cos(dec1)*cos(dec2)*cos(ra1 - ra2)
-        cos_sep = np.sin(dec1) * np.sin(dec2) + np.cos(dec1) * np.cos(dec2) * np.cos(
-            ra1 - ra2
-        )
-
-        # Clip values to avoid floating-point errors outside [-1, 1] when taking arccos
-        cos_sep = np.clip(cos_sep, -1.0, 1.0)
-
-        # Compute separation in radians
-        sep_rad = np.arccos(cos_sep)
-
-        return sep_rad
-
-    @staticmethod
-    def post_process_residuals(list_of_dfs):
-        """Post-process the residuals from a list of DataFrames.
+    def process_pulsar_residuals_by_epoch(list_of_dfs):
+        """Post-process the residuals from a list of pulsar DataFrames that share the same (or very similar)time sampling.
 
         This function takes a list of DataFrames, each expected to have the same shape
-        and contain 'toas', 'residuals', and 'error' columns. It calculates the
-        average 'toas' across all DataFrames and collects the 'residuals' and 'error'
-        values into matrices.
+        and contain 'toas', 'residuals', and 'error' columns. It assumes a perfect 1:1 
+        correspondence between rows across all DataFrames, meaning each row index represents 
+        the same observation epoch across all DataFrames. It calculates the average 'toas' 
+        across all DataFrames and collects the 'residuals' and 'error' values into matrices.
+
+        IMPORTANT: This function is NOT suitable for processing collections of pulsars with 
+        uneven sampling or different observation epochs. It requires that all DataFrames have 
+        identical row indices representing the same epochs.
 
         Args:
             list_of_dfs: A list of pandas DataFrames. Each DataFrame must have
-                         the same shape and contain the columns 'toas', 'residuals',
-                         and 'error'.
+                        the same shape and contain the columns 'toas', 'residuals',
+                        and 'error'.
 
         Returns:
             A tuple containing three NumPy arrays:
             - average_toas_array: 1D array of average TOAs across all input
-                                  DataFrames for each row index (shape: nrows).
+                                DataFrames for each row index (shape: nrows).
             - residuals_array: 2D array where each column corresponds to the
-                               'residuals' from one input DataFrame
-                               (shape: nrows x num_dfs).
+                            'residuals' from one input DataFrame
+                            (shape: nrows x num_dfs).
             - errors_array: 2D array where each column corresponds to the
                             'error' from one input DataFrame
                             (shape: nrows x num_dfs).
@@ -192,37 +121,63 @@ class LoadWidebandPulsarData:
         if not list_of_dfs:
             raise ValueError("Input list of DataFrames cannot be empty.")
 
-        # Check shapes consistency
-        first_shape = list_of_dfs[0].shape
-        if not all(df.shape == first_shape for df in list_of_dfs):
-             raise ValueError("All DataFrames in the list must have the same shape.")
-
-        # Check required columns
+        # Check shapes consistency and required columns in one pass
         required_cols = ["toas", "residuals", "error"]
+        first_shape = list_of_dfs[0].shape
+        
         for i, df in enumerate(list_of_dfs):
-             missing_cols = [col for col in required_cols if col not in df.columns]
-             if missing_cols:
-                 raise ValueError(f"DataFrame at index {i} is missing required columns: {missing_cols}")
-        # --- End Input Validation ---
+            if df.shape != first_shape:
+                raise ValueError(f"DataFrame at index {i} has shape {df.shape}, expected {first_shape}")
+            
+            missing_cols = [col for col in required_cols if col not in df.columns]
+            if missing_cols:
+                raise ValueError(f"DataFrame at index {i} is missing required columns: {missing_cols}")
+        
+        # Process all columns at once instead of separate operations
+        result_arrays = []
+        
+        for col in required_cols:
+            # Extract the column from each DataFrame
+            series_list = [df[col] for df in list_of_dfs]
+            combined_df = pd.concat(series_list, axis=1)
+            
+            # For 'toas', compute the mean; for others, just convert to numpy
+            if col == 'toas':
+                result_arrays.append(combined_df.mean(axis=1).to_numpy())
+            else:
+                result_arrays.append(combined_df.to_numpy())
+        
+        return tuple(result_arrays)  # (average_toas_array, residuals_array, errors_array)
 
-        # 1. Average TOAs array
-        toas_series_list = [df['toas'] for df in list_of_dfs]
-        toas_df = pd.concat(toas_series_list, axis=1)
-        average_toas_series = toas_df.mean(axis=1)
-        average_toas_array = average_toas_series.to_numpy()
-
-        # 2. Combined Residuals array (nrows x Num dfs)
-        residuals_series_list = [df['residuals'] for df in list_of_dfs]
-        residuals_df = pd.concat(residuals_series_list, axis=1)
-        residuals_array = residuals_df.to_numpy()
-
-        # 3. Combined Errors array (nrows x Num dfs)
-        errors_series_list = [df['error'] for df in list_of_dfs]
-        errors_df = pd.concat(errors_series_list, axis=1)
-        errors_array = errors_df.to_numpy()
-
-        return [average_toas_array, residuals_array, errors_array]
-
+    @staticmethod
+    def get_par_value(filename: str, parameter: str) -> float | None:
+        """Get the value of a parameter from a parameter file.
+        
+        Args:
+            filename: Path to the parameter file
+            parameter: Name of the parameter to retrieve
+            
+        Returns:
+            The parameter value as a float, or None if not found
+            
+        Raises:
+            FileNotFoundError: If the parameter file doesn't exist
+            ValueError: If the parameter value cannot be converted to float
+        """
+        try:
+            with open(filename, 'r') as f:
+                for line in f:
+                    parts = line.strip().split()
+                    if not parts or parts[0].startswith('#'):
+                        continue
+                    if parts[0] == parameter:
+                        try:
+                            return float(parts[1])
+                        except (IndexError, ValueError) as e:
+                            raise ValueError(f"Invalid parameter value for {parameter}: {parts[1]}") from e
+            return None
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Parameter file not found: {filename}")
 
     @classmethod
     def read_par_tim(
@@ -259,11 +214,8 @@ class LoadWidebandPulsarData:
         tim_files: list[str],
         max_files: int | None = None,
         **kwargs,
-    ) -> tuple[pd.DataFrame, pd.DataFrame, np.ndarray]:
+    ) -> tuple[list[pd.DataFrame], pd.DataFrame, list[np.ndarray], list[np.ndarray]]:
         """Load multiple par/tim file pairs.
-
-        Merge their TOAs/residuals into a DataFrame,and collect metadata (pulsar name, RA, DEC, etc.) in a second DataFrame.
-        Also, compute the angular separation matrix between all loaded pulsars.
 
         Parameters
         ----------
@@ -278,65 +230,74 @@ class LoadWidebandPulsarData:
 
         Returns
         -------
-        merged_df : pd.DataFrame
-            A DataFrame with a "toas" column and additional columns for each pulsar's
-            residuals (e.g., 'residuals_0', 'residuals_1', ...).
-        meta_df : pd.DataFrame
-            A DataFrame containing per-pulsar metadata such as name, RA, DEC, and
-            the dimension of the design matrix.
-        angle_matrix : np.ndarray
-            A 2D array (N × N) containing pairwise angular separations (in radians)
-            between the loaded pulsars.
+        pulsar_data_frames : list of pd.DataFrame
+            List of DataFrames, each containing TOAs, residuals, and errors for a single pulsar.
+            Each DataFrame has columns: 'toas', 'residuals', 'error'.
+        metadata_combined : pd.DataFrame
+            A DataFrame containing per-pulsar metadata such as name, RA, DEC,
+            the dimension of the design matrix, and F0 (pulsar frequency).
+        design_matrices : list of np.ndarray
+            List of scaled design matrices (M_scaled) for each pulsar.
+        parameter_covariances : list of np.ndarray
+            List of parameter covariance matrices (P_eps) for each pulsar.
 
         Notes
         -----
         For standard RA/DEC in radians:
             - RA is treated as the azimuth (φ).
             - DEC is converted to co-latitude: θ = π/2 − DEC.
-
         """
+        # Input validation
+        if len(par_files) != len(tim_files):
+            raise ValueError(f"Number of par files ({len(par_files)}) must match number of tim files ({len(tim_files)})")
+        
         # Combine the par and tim files into pairs; optionally limit to max_files.
         file_pairs = list(zip(par_files, tim_files))
         if max_files is not None:
             file_pairs = file_pairs[:max_files]
 
-        dfs              = []  # List to hold individual pulsar TOA/residual DataFrames.
-        dfs_meta         = []  # List to hold individual pulsar metadata DataFrames.
-        np_arrays_design = []  # List to hold individual pulsar design matrix DataFrames.
-        np_arrays_P_eps  = []  # List to hold individual pulsar design matrix DataFrames.
+        pulsar_data_frames = []      # List to hold individual pulsar TOA/residual DataFrames
+        pulsar_metadata_frames = []  # List to hold individual pulsar metadata DataFrames
+        design_matrices = []         # List to hold individual pulsar design matrices
+        parameter_covariances = []   # List to hold individual pulsar parameter covariance matrices
         
         for i, (par_file, tim_file) in enumerate(file_pairs):
-            psr = cls.read_par_tim(par_file, tim_file, **kwargs)
+            try:
+                psr = cls.read_par_tim(par_file, tim_file, **kwargs)
+                
+                f0 = cls.get_par_value(par_file, 'F0')
+                print(f"PSR: {psr.name}, F0: {f0}, # TOAs: {len(psr.toas)}")
 
-            f0 = get_par_value(par_file, 'F0')
-            print(f"PSR: {psr.name}, F0: {f0}, # TOAs: {len(psr.toas)}")
-
-            # DataFrame for TOAs and residuals for this pulsar.
-            df = pd.DataFrame(
-                {
+                # DataFrame for TOAs and residuals for this pulsar
+                pulsar_df = pd.DataFrame({
                     "toas": psr.toas,
-                    f"residuals": psr.residuals,
-                    f"error": psr.toaerrs
-                }
-            )
+                    "residuals": psr.residuals,  
+                    "error": psr.toaerrs
+                })
 
-            # DataFrame for metadata for this pulsar.
-            df_meta = pd.DataFrame(
-                {
+                # DataFrame for metadata for this pulsar
+                metadata_df = pd.DataFrame({
                     "name": [psr.name],
                     "dim_M": [psr.M_matrix.shape[-1]],
                     "RA": [psr.RA],
                     "DEC": [psr.DEC],
-                    "F0": [f0]
-                }
-            )
+                    "F0": [f0],
+                    "par_file": [par_file],  
+                    "tim_file": [tim_file]  
+                })
 
+                pulsar_data_frames.append(pulsar_df)
+                pulsar_metadata_frames.append(metadata_df)    
+                design_matrices.append(psr.M_scaled)
+                parameter_covariances.append(psr.P_eps)
+                
+            except Exception as e:
+                print(f"Error processing pulsar pair {i+1}/{len(file_pairs)} ({par_file}, {tim_file}): {str(e)}")
+                # Optionally: raise or continue based on preference
 
-            dfs.append(df)
-            dfs_meta.append(df_meta)    
-            np_arrays_design.append(psr.M_scaled)
-            np_arrays_P_eps.append(psr.P_eps)
+        if not pulsar_data_frames:
+            raise ValueError("No pulsar data was successfully loaded")
+            
+        metadata_combined = pd.concat(pulsar_metadata_frames, ignore_index=True)
 
-        meta_df = pd.concat(dfs_meta, ignore_index=True)
-    
-        return dfs, meta_df, np_arrays_design, np_arrays_P_eps
+        return pulsar_data_frames, metadata_combined, design_matrices, parameter_covariances

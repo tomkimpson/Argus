@@ -128,10 +128,14 @@ def get_psr_noise_injections():
 
 
 
+
+
+
 def parameter_estimation():
     #Get the data
     data_path = "../data/IPTA_MockDataChallenge2/dataset_2b/" 
     processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)
+
 
     #Get efac and equad
     efac_array, equad_array = get_efac_equad_injections()
@@ -162,6 +166,9 @@ def parameter_estimation():
     )
 
 
+
+
+
     γa = 1e-9 
     ha = 1e-15
 
@@ -181,7 +188,7 @@ def parameter_estimation():
     )
 
     print("First call to get_likelihood. Just for precompilation")
-    ll = KF.get_likelihood(params)
+    ll = KF.get_likelihood(params) 
     ll.block_until_ready()
     print("Likelihood: ",ll)
 
@@ -209,7 +216,7 @@ def parameter_estimation():
             EQUAD=jnp.array(equad_array)
         )
         # Ensure the output is a scalar
-        loglik = KF.get_likelihood(params)
+        loglik = KF.get_likelihood(params) 
         # If loglik is an array with one element, extract the scalar
         return jnp.squeeze(loglik)
 
@@ -223,32 +230,18 @@ def parameter_estimation():
     # Corresponding log10(ha) values
     log10_ha_test_points = jnp.log10(ha_test_points)
 
-    # Original gradients (from your previous message) for comparison
-    original_grads = {
-        1.1e-16: 1.5000e+21,
-        1.0e-15: 3.1568e+20,
-        2.0e-15: -9.7813e+19,
-        5.0e-15: -2.2982e+20,
-        9.0e-15: -2.0488e+20,
-    }
-
-
     print("Checking gradients w.r.t. log10(ha):")
     for ha_val, log10_ha_val in zip(ha_test_points, log10_ha_test_points):
         try:
             # Calculate likelihood using the new function
-            loglik = log_likelihood_for_log10_ha(log10_ha_val)
+            loglik = log_likelihood_for_log10_ha(log10_ha_val) 
             # Calculate gradient w.r.t. log10_ha
             grad_val_log10 = grad_wrt_log10_ha_fn(log10_ha_val)
 
-            # Theoretical expectation: New Grad ≈ Old Grad * ha * ln(10)
-            expected_grad = original_grads[ha_val.item()] * ha_val * jnp.log(10.0)
 
             print(f"ha = {ha_val:.3e} (log10_ha = {log10_ha_val:.3f}):")
             print(f"  loglik = {loglik:.4e}")
             print(f"  Grad w.r.t. log10(ha) = {grad_val_log10:.4e} (Finite: {jnp.isfinite(grad_val_log10).all()})")
-            print(f"  Original Grad w.r.t. ha = {original_grads[ha_val.item()]:.4e}")
-            print(f"  Expected New Grad (approx) = {expected_grad:.4e}")
 
         except Exception as e:
             print(f"ha = {ha_val:.3e} (log10_ha = {log10_ha_val:.3f}): Error during calculation: {e}")
@@ -300,12 +293,11 @@ def parameter_estimation():
         numpyro.factor("likelihood", log_likelihood)
 
 
-
     # Parameter estimation with numpyro
     print("Starting inference ")
     rng_key = random.PRNGKey(0)
-    kernel = SA(numpyro_model)
-    sampler = MCMC(kernel, num_samples=10000, num_warmup=5000,progress_bar=True,num_chains=4)
+    kernel = NUTS(numpyro_model)
+    sampler = MCMC(kernel, num_samples=2000, num_warmup=2000,progress_bar=True,num_chains=2)
     sampler.run(rng_key, kf=KF)
     sampler.print_summary()  # Posterior estimates
 
@@ -314,7 +306,7 @@ def parameter_estimation():
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
     inf_data = az.from_numpyro(sampler)
-    fname = f"outputs/mdc2_parameter_estimation_SA_results_{timestamp}.nc" 
+    fname = f"outputs/mdc2_parameter_estimation_NUTS_results_{timestamp}.nc" 
     inf_data.to_netcdf(fname)
     print(f"Saved results to {fname}")
 

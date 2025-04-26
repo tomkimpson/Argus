@@ -1,16 +1,17 @@
+INFO:2025-04-26 16:16:10,591:jax._src.xla_bridge:925: Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
+INFO:jax._src.xla_bridge:Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
+INFO:2025-04-26 16:16:10,592:jax._src.xla_bridge:925: Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+INFO:jax._src.xla_bridge:Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
 [tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
 [preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0034-0534. Setting value to 1 with 20% uncertainty.
 [tempo2Util.C:401] Warning: [DUP1] duplicated warnings have been suppressed.
-[preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J0034-0534. Setting value to 1 with 20% uncertainty.
 [preProcess.C:158] Warning: PSR J0034-0534 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-WARNING: Could not find pulsar distance for PSR J0218+4232. Setting value to 1 with 20% uncertainty.
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0218+4232. Setting value to 1 with 20% uncertainty.
 [preProcess.C:158] Warning: PSR J0218+4232 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
@@ -20,18 +21,18 @@ See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a
 [preProcess.C:158] Warning: PSR J0613-0200 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-WARNING: Could not find pulsar distance for PSR J0621+1002. Setting value to 1 with 20% uncertainty.
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0621+1002. Setting value to 1 with 20% uncertainty.
 [preProcess.C:158] Warning: PSR J0621+1002 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
 [preProcess.C:158] Warning: PSR J0711-6830 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-WARNING: Could not find pulsar distance for PSR J0751+1807. Setting value to 1 with 20% uncertainty.
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0751+1807. Setting value to 1 with 20% uncertainty.
 [preProcess.C:158] Warning: PSR J0751+1807 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-WARNING: Could not find pulsar distance for PSR J0900-3144. Setting value to 1 with 20% uncertainty.
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0900-3144. Setting value to 1 with 20% uncertainty.
 [preProcess.C:158] Warning: PSR J0900-3144 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
@@ -56,11 +57,8 @@ See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a
 [preProcess.C:158] Warning: PSR J1603-7202 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-WARNING: Could not find pulsar distance for PSR J1614-2230. Setting value to 1 with 20% uncertainty.
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J1614-2230. Setting value to 1 with 20% uncertainty.
 [preProcess.C:158] Warning: PSR J1614-2230 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J1640+2224 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
 [preProcess.C:158] Warning: PSR J1643-1224 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
@@ -87,11 +85,11 @@ See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a
 [preProcess.C:158] Warning: PSR J1939+2134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-WARNING: Could not find pulsar distance for PSR J1944+0907. Setting value to 1 with 20% uncertainty.
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J1944+0907. Setting value to 1 with 20% uncertainty.
 [preProcess.C:158] Warning: PSR J1944+0907 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-WARNING: Could not find pulsar distance for PSR J2010-1323. Setting value to 1 with 20% uncertainty.
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J2010-1323. Setting value to 1 with 20% uncertainty.
 [preProcess.C:158] Warning: PSR J2010-1323 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
@@ -104,14 +102,13 @@ See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a
 [preProcess.C:158] Warning: PSR J2145-0750 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-WARNING: Could not find pulsar distance for PSR J2229+2643. Setting value to 1 with 20% uncertainty.
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J2229+2643. Setting value to 1 with 20% uncertainty.
 [preProcess.C:158] Warning: PSR J2229+2643 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
 [preProcess.C:158] Warning: PSR J2317+1439 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-2025-04-07 09:40:33.008885: W external/xla/xla/hlo/transforms/simplifiers/hlo_rematerialization.cc:3021] Can't reduce memory use below 20.89GiB (22426963773 bytes) by rematerialization; only reduced to 56.34GiB (60490254544 bytes), down from 56.34GiB (60490960088 bytes) originally
 === JAX VERSION INFO ===
 JAX version: 0.5.3
 
@@ -190,7 +187,7 @@ jax_persistent_cache_min_entry_size_bytes: 0
 jax_pgle_aggregation_percentile: 90
 jax_pgle_profiling_runs: 3
 jax_pjrt_client_create_options: None
-jax_platform_name: gpu
+jax_platform_name: 
 jax_platforms: None
 jax_pmap_no_rank_reduction: True
 jax_pmap_shmap_merge: False
@@ -225,115 +222,64 @@ mock_num_gpu_processes: 0
 JAX GPU acceleration is AVAILABLE!
 GPU devices: [CudaDevice(id=0)]
 -----------------------------------------------
-Getting the data. Loading 33 pulsars from ../data/IPTA_MockDataChallenge2/dataset_1b/
-J0030+0451 205.53069593846152
-J0034-0534 532.7134293952242
-J0218+4232 430.46105454575843
-J0437-4715 173.68794573751967
-J0613-0200 326.60056202349193
-J0621+1002 34.65740662142043
-J0711-6830 182.1172346472276
-J0751+1807 287.4578539950941
-J0900-3144 90.01184191936728
-J1012+5307 190.26783444155498
-J1022+1001 60.77944795669458
-J1024-0719 193.71568344854623
-J1045-4509 133.79314954119278
-J1455-3330 125.20024324499536
-J1600-3053 277.93770698961544
-J1603-7202 67.37658112877924
-J1614-2230 317.37893706872126
-J1640+2224 316.1239793318562
-J1643-1224 216.37333714263337
-J1713+0747 218.81184041715784
-J1730-2304 123.1102871473716
-J1744-1134 245.4261196898099
-J1857+0943 186.49407837798236
-J1909-3744 339.3156872184855
-J1918-0642 130.78951412337267
-J1939+2134 641.9282245822369
-J1944+0907 192.85651792018598
-J2010-1323 191.45090909263828
-J2124-3358 202.7938937460303
-J2129-5721 268.3592272938659
-J2145-0750 62.29588783738885
-J2229+2643 335.8162081968717
-J2317+1439 290.25460366486976
-Total length of the data is  3019
-Total number of pulsars is  33
-The number of pulsars is: 33
-The frequencies are: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
-  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
-  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
-  67.37658113 317.37893707 316.12397933 216.37333714 218.81184042
- 123.11028715 245.42611969 186.49407838 339.31568722 130.78951412
- 641.92822458 192.85651792 191.45090909 202.79389375 268.35922729
-  62.29588784 335.8162082  290.25460366]
-Precomputing the observation matrices
-This might take a few seconds, but only needs to be done once.
-
-Starting compilation phase...
-Compilation time: 5.0629 seconds
---------------------------------
---------------------------------
---------------------------------
---------------------------------
---------------------------------
---------------------------------
---------------------------------
---------------------------------
-
- Running compiled execution
-Log-likelihood: [[-8756.9914511]]
-Execution time: 0.5156 seconds
-Starting NumPyro
-
-=== NUMPYRO DEVICE INFO ===
-NumPyro version: 0.18.0
---------------------------------
-  0%|          | 0/1500 [00:00<?, ?it/s]2025-04-07 09:41:04.078157: W external/xla/xla/tsl/framework/bfc_allocator.cc:501] Allocator (GPU_0_bfc) ran out of memory trying to allocate 60.70GiB (rounded to 65172014336)requested by op 
-2025-04-07 09:41:04.079910: W external/xla/xla/tsl/framework/bfc_allocator.cc:512] *______________________________________________________________*____________________________________
-E0407 09:41:04.079954  196730 pjrt_stream_executor_client.cc:3077] Execution of replica 0 failed: RESOURCE_EXHAUSTED: Out of memory while trying to allocate 65172014304 bytes. [tf-allocator-allocation-error='']
-  0%|          | 0/1500 [00:19<?, ?it/s]
+[CudaDevice(id=0)]
+Getting the data. Loading 32 pulsars from ../data/IPTA_MockDataChallenge2/dataset_2b/
+PSR: J0030+0451, F0: 205.53069593846152, # TOAs: 183
+PSR: J0034-0534, F0: 532.7134293952242, # TOAs: 183
+PSR: J0218+4232, F0: 430.46105454575843, # TOAs: 183
+PSR: J0437-4715, F0: 173.6879457375193, # TOAs: 183
+PSR: J0613-0200, F0: 326.60056202349193, # TOAs: 183
+PSR: J0621+1002, F0: 34.65740662142043, # TOAs: 183
+PSR: J0711-6830, F0: 182.1172346472276, # TOAs: 183
+PSR: J0751+1807, F0: 287.4578539950941, # TOAs: 183
+PSR: J0900-3144, F0: 90.0118419193632, # TOAs: 183
+PSR: J1012+5307, F0: 190.26783444155498, # TOAs: 183
+PSR: J1022+1001, F0: 60.779447956696714, # TOAs: 183
+PSR: J1024-0719, F0: 193.71568344854623, # TOAs: 183
+PSR: J1045-4509, F0: 133.79314954119278, # TOAs: 183
+PSR: J1455-3330, F0: 125.20024324499536, # TOAs: 183
+PSR: J1600-3053, F0: 277.9377069896204, # TOAs: 183
+PSR: J1603-7202, F0: 67.37658112877924, # TOAs: 183
+PSR: J1614-2230, F0: 317.37893706872126, # TOAs: 183
+PSR: J1643-1224, F0: 216.37333714263485, # TOAs: 183
+PSR: J1713+0747, F0: 218.81184041715784, # TOAs: 183
+PSR: J1730-2304, F0: 123.1102871473812, # TOAs: 183
+PSR: J1744-1134, F0: 245.42611968980754, # TOAs: 183
+PSR: J1857+0943, F0: 186.4940783779791, # TOAs: 183
+PSR: J1909-3744, F0: 339.31568721848686, # TOAs: 183
+PSR: J1918-0642, F0: 130.78951412337267, # TOAs: 183
+PSR: J1939+2134, F0: 641.9282245822469, # TOAs: 183
+PSR: J1944+0907, F0: 192.85651792018598, # TOAs: 183
+PSR: J2010-1323, F0: 191.45090909263828, # TOAs: 183
+PSR: J2124-3358, F0: 202.7938937460303, # TOAs: 183
+PSR: J2129-5721, F0: 268.3592272938787, # TOAs: 183
+PSR: J2145-0750, F0: 62.29588783738885, # TOAs: 183
+PSR: J2229+2643, F0: 335.81620819685526, # TOAs: 183
+PSR: J2317+1439, F0: 290.2546036648635, # TOAs: 183
 Traceback (most recent call last):
-  File "/fred/oz022/tkimpson/Argus/test/benchmark_parameter_estimation.py", line 195, in <module>
-    benchmark_jax_parameter_estimation() 
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/Argus/test/benchmark_parameter_estimation.py", line 134, in benchmark_jax_parameter_estimation
-    mcmc.run(rng_key, kf=KF)
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/mcmc.py", line 702, in run
-    states_flat, last_state = partial_map_fn(map_args)
-                              ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/mcmc.py", line 489, in _single_chain_mcmc
-    collect_vals = fori_collect(
-                   ^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/util.py", line 399, in fori_collect
-    vals = _body_fn(i, *vals)
-           ^^^^^^^^^^^^^^^^^^
-jaxlib.xla_extension.XlaRuntimeError: RESOURCE_EXHAUSTED: Out of memory while trying to allocate 65172014304 bytes.
---------------------
-For simplicity, JAX has removed its internal frames from the traceback of the following exception. Set JAX_TRACEBACK_FILTERING=off to include these.
+  File "/fred/oz022/tkimpson/Argus/sandbox/test_run_mdc2_parameter_estimation_nested_sampling.py", line 306, in <module>
+    parameter_estimation() 
+    ^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/Argus/sandbox/test_run_mdc2_parameter_estimation_nested_sampling.py", line 141, in parameter_estimation
+    processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)
+                                                                                                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/Argus/sandbox/test_run_mdc2_parameter_estimation_nested_sampling.py", line 89, in _get_processed_residuals
+    processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.post_process_residuals(pulsar_residuals)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: type object 'LoadWidebandPulsarData' has no attribute 'post_process_residuals'
 
-real	2m45.599s
-user	0m35.367s
-sys	0m10.971s
+real	0m11.363s
+user	0m7.211s
+sys	0m2.491s
 
-+------------------- Job Report: 66708170 (FAILED) --------------------+
-| Memory (RAM)  [#                   ]  6.0% (3 GB peak / 50 GB)       |
-| CPU           [##                  ] 12.7% average                   |
-| GPU           [                    ]  0.0% average                   |
-| Time          [------------------> ] 94.3% (0-00:04:43 / 0-00:05:00) |
++--------------------- Job Report: 56144 (FAILED) ---------------------+
+| Memory (RAM)  No data available                                      |
+| CPU           [######              ] 30.4% average                   |
+| Time          [>                   ]  0.6% (0-00:00:23 / 0-01:00:00) |
 |                                                                      |
 | Lustre Filesystem:                                                   |
-|   Path    Total Read    Total Write    Total IOPS                    |
+|   Path    Total Read    Total Write      Total IOPS                  |
 |   ------  ------------  -------------  ------------                  |
-|   /apps   29.9 MB       0 B            10                            |
-|   /fred   471.7 MB      60.9 KB        13.8 K                        |
-|   /home   60 KB         0 B            11                            |
-|   OS      16.9 MB       0 B            11                            |
-|                                                                      |
-| Warnings:                                                            |
-|   - Too much memory requested                                        |
-|   - CPU usage is low                                                 |
-|   - GPU usage is low                                                 |
+|   /apps   0 B           0 B                      6                   |
+|   OS      0 B           0 B                      2                   |
 +----------------------------------------------------------------------+

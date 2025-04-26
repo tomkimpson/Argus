@@ -136,8 +136,8 @@ assert len(sigma_p_injected) == len(gamma_p_injected) == len(pulsar_metadata)
 model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
 
 
-
-for alpha in [1.0,10.0,100.0]:
+for alpha in [0.1,0.5]: #0.9,1.0,10.0]:
+#for alpha in [0.5,0.9,1.0,10.0]:
     P0 = alpha*block_diag(*P_eps_matrices)
 
 # #Initialize the model
@@ -188,7 +188,7 @@ for alpha in [1.0,10.0,100.0]:
     print("Now starting the loop")
 
     n_points = 500
-    ha_range = jnp.logspace(jnp.log10(1e-17), jnp.log10(1e-10), n_points)
+    ha_range = jnp.logspace(jnp.log10(1e-17), jnp.log10(1e-14), n_points)
     data_array = np.zeros((n_points,2))
     for i,ha in enumerate(ha_range):
         params = Parameters(
@@ -212,4 +212,6 @@ for alpha in [1.0,10.0,100.0]:
         print(f"γa: {ha}, likelihood: {ll}")
 
 
-    np.save(f"v2likelihood_data_array_mdc2_alpha_{alpha}.npy",data_array)
+    fname = f"v3likelihood_data_array_mdc2_alpha_{alpha}.npy"
+    print("saving the data array at:", fname)
+    np.save(fname,data_array)

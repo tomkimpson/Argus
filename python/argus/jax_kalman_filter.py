@@ -23,10 +23,17 @@ def _log_likelihood(y: jax.Array, cov: jax.Array) -> jax.Array:
     -------
         float: Log likelihood value
     """
-    n = y.shape[0]
+
+    #jax.debug.print('Likelihood function',ordered=True)
+
+    #jax.debug.print('Shapes of y is {yshape}, cov is {covshape}', yshape=y.shape, covshape=cov.shape,ordered=True)
+    
+    #n = y.shape[0]
     sign, logdet = jnp.linalg.slogdet(2.0 * jnp.pi * cov)
     quadratic_term = y.T @ jnp.linalg.solve(cov, y)
     log_likelihood = -0.5 * (logdet + quadratic_term)
+
+    #jax.debug.print('log_likelihood: {log_likelihood}', log_likelihood=log_likelihood,ordered=True)
     return log_likelihood
 
 def _predict(x: jax.Array, P: jax.Array, F_list: tuple, Q_list: tuple, dim_x: int) -> tuple[jax.Array, jax.Array]:
@@ -65,16 +72,28 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     """
 
 
-    y = z - H @ xp                                  
+
+    # jax.debug.print("This is the update function",ordered=True)
+    # jax.debug.print("Shape of z is {zshape}",zshape=z.shape,ordered=True)
+    # jax.debug.print("Shape of H is {Hshape}",Hshape=H.shape,ordered=True)
+    # jax.debug.print("Shape of xp is {xpshape}",xpshape=xp.shape,ordered=True)
+
+    # Ensure z is a column vector
+    z = z.reshape(32, 1) #todo, remove this. Currentyl needed for proper broadcasting
+
+    y = z - H @ xp              
+    #jax.debug.print("Shape of y is {yshape}",yshape=y.shape,ordered=True)                    
     S = H @ Pp @ H.T + R
     Sinv = jnp.linalg.inv(S)                               
     K = Pp @ H.T @ Sinv                               
     x = xp + K @ y    
+    #jax.debug.print("Shape of K is {Kshape}",Kshape=K.shape,ordered=True)
 
-    #check_cholesky(S,"The innovation covariance matrix")
-    #check_min_eigenvalue(S, "The innovation covariance matrix")
-    #check_symmetry(S, "The innovation covariance matrix")
-    #check_condition_number(S, "The innovation covariance matrix")                             
+
+    # check_cholesky(S,"The innovation covariance matrix")
+    # check_min_eigenvalue(S, "The innovation covariance matrix")
+    # check_symmetry(S, "The innovation covariance matrix")
+    # check_condition_number(S, "The innovation covariance matrix")                             
  
     #Following FilterPy https://github.com/rlabbe/filterpy/blob/master/filterpy/kalman/EKF.py by using
     #Joseph form for numerically stable update of the covariance matrix
@@ -86,10 +105,10 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
 
 
     #P = 0.5 * (P + P.T)
-    #check_cholesky(P,"The updated P-matrix")
-    #check_min_eigenvalue(P, "The updated P-matrix")
-    #check_symmetry(P, "The updated P-matrix")
-    #check_condition_number(P, "The updated P-matrix")
+    # check_cholesky(P,"The updated P-matrix")
+    # check_min_eigenvalue(P, "The updated P-matrix")
+    # check_symmetry(P, "The updated P-matrix")
+    # check_condition_number(P, "The updated P-matrix")
 
 
     # Optional: enforce symmetry for numerical stability
@@ -166,10 +185,10 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
 
 
 
-    #check_cholesky(P0,"The initial P-matrix")
-    #check_min_eigenvalue(P0, "The initial P-matrix")
-    #check_symmetry(P0, "The initial P-matrix")
-    #check_condition_number(P0, "The initial P-matrix")
+    # check_cholesky(P0,"The initial P-matrix")
+    # check_min_eigenvalue(P0, "The initial P-matrix")
+    # check_symmetry(P0, "The initial P-matrix")
+    # check_condition_number(P0, "The initial P-matrix")
 
 
 
@@ -179,7 +198,7 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
     # First update
     x, P, y, S = _update(xp=x0, Pp=P0, H=H_matrices[0,:,:], R=R_matrices[0,:,:], z=data[0])
     ll0 = _log_likelihood(y, S)
-    #jax.debug.print('ll0: {ll0},S: {S}', ll0=ll0,S=S,ordered=True)
+    #jax.debug.print('ll0: {ll0}', ll0=ll0,ordered=True)
     
     def step(carry, inputs):
         x, P = carry
@@ -201,7 +220,7 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
      
         x_new, P_new, y, S = _update(x_predict, P_predict, H, R, z)
         ll = _log_likelihood(y, S)
-        
+        #jax.debug.print('ll: {ll}', ll=ll,ordered=True)
         return (x_new, P_new), ll
 
     # Pack inputs for scan - iterate over first 10 timesteps

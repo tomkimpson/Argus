@@ -30,8 +30,15 @@ import numpyro.distributions as dist
 from numpyro.infer import MCMC,SA,NUTS
 
 
+from numpyro.contrib.nested_sampling import NestedSampler
+from jaxns import plot_cornerplot,plot_diagnostics
+
+
 #Arviz
 import arviz as az
+
+
+import numpyro.distributions as dist
 
 
 @struct.dataclass
@@ -145,7 +152,7 @@ def parameter_estimation():
     #Calculate P0 based on the maximum value of the design matrix, and a delta tolerance
     model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
 
-    alpha = 1.0 #scale slightly 
+    alpha = 1 #scale slightly 
     P0 = alpha*block_diag(*P_eps_matrices)
 
 
@@ -188,80 +195,8 @@ def parameter_estimation():
 
 
 
-    print("doing some gradient checks")
-
-
-
-        # Define a helper function that takes only 'ha' and returns the log likelihood scalar
-    def log_likelihood_for_log10_ha(log10_ha_value):
-        # Ensure input is a JAX array
-        log10_ha_value = jnp.asarray(log10_ha_value, dtype=jnp.float64)
-        # Convert back to ha
-        ha_value = 10**log10_ha_value
-
-        # Construct the Parameters object with the test ha_value and fixed deterministics
-        params = Parameters(
-            γa=jnp.array(1e-9), # Ensure these are JAX arrays too if needed inside kf
-            ha=ha_value,
-            γp=jnp.array(gamma_p_injected),
-            σp=jnp.array(sigma_p_injected),
-            EFAC=jnp.array(efac_array),
-            EQUAD=jnp.array(equad_array)
-        )
-        # Ensure the output is a scalar
-        loglik = KF.get_likelihood(params)
-        # If loglik is an array with one element, extract the scalar
-        return jnp.squeeze(loglik)
-
-
-    # Get the gradient function with respect to log10_ha
-    grad_wrt_log10_ha_fn = jax.grad(log_likelihood_for_log10_ha)
-
-    # --- Testing ---
-    # Original ha values used previously
-    ha_test_points = jnp.array([1.1e-16, 1.0e-15, 2.0e-15, 5.0e-15, 9.0e-15], dtype=jnp.float64)
-    # Corresponding log10(ha) values
-    log10_ha_test_points = jnp.log10(ha_test_points)
-
-    # Original gradients (from your previous message) for comparison
-    original_grads = {
-        1.1e-16: 1.5000e+21,
-        1.0e-15: 3.1568e+20,
-        2.0e-15: -9.7813e+19,
-        5.0e-15: -2.2982e+20,
-        9.0e-15: -2.0488e+20,
-    }
-
-
-    print("Checking gradients w.r.t. log10(ha):")
-    for ha_val, log10_ha_val in zip(ha_test_points, log10_ha_test_points):
-        try:
-            # Calculate likelihood using the new function
-            loglik = log_likelihood_for_log10_ha(log10_ha_val)
-            # Calculate gradient w.r.t. log10_ha
-            grad_val_log10 = grad_wrt_log10_ha_fn(log10_ha_val)
-
-            # Theoretical expectation: New Grad ≈ Old Grad * ha * ln(10)
-            expected_grad = original_grads[ha_val.item()] * ha_val * jnp.log(10.0)
-
-            print(f"ha = {ha_val:.3e} (log10_ha = {log10_ha_val:.3f}):")
-            print(f"  loglik = {loglik:.4e}")
-            print(f"  Grad w.r.t. log10(ha) = {grad_val_log10:.4e} (Finite: {jnp.isfinite(grad_val_log10).all()})")
-            print(f"  Original Grad w.r.t. ha = {original_grads[ha_val.item()]:.4e}")
-            print(f"  Expected New Grad (approx) = {expected_grad:.4e}")
-
-        except Exception as e:
-            print(f"ha = {ha_val:.3e} (log10_ha = {log10_ha_val:.3f}): Error during calculation: {e}")
-
-
     #Now do parameter estimation
-    print("Starting NumPyro")
-
-    # Check NumPyro device usage
-    print("\n=== NUMPYRO DEVICE INFO ===")
-    print(f"NumPyro version: {numpyro.__version__}")
-    print("--------------------------------")
-
+    print("Starting Nested sampling with jaxns")
 
 
     # NumPyro model
@@ -296,29 +231,49 @@ def parameter_estimation():
             EQUAD=EQUAD
         )
         log_likelihood = kf.get_likelihood(params)
-        #jax.debug.print("log_likelihood: {log_likelihood}",log_likelihood=log_likelihood)
         numpyro.factor("likelihood", log_likelihood)
 
 
+    
+    constructor_args = {
+        'num_live_points': 10,
+        'verbose': True #does this work?         
+    }
 
-    # Parameter estimation with numpyro
-    print("Starting inference ")
-    rng_key = random.PRNGKey(0)
-    kernel = SA(numpyro_model)
-    sampler = MCMC(kernel, num_samples=10000, num_warmup=5000,progress_bar=True,num_chains=4)
-    sampler.run(rng_key, kf=KF)
-    sampler.print_summary()  # Posterior estimates
+    #This seems to have a different notation than the docs? See TerminationCondition = numpyro.contrib.nested_sampling.TerminationCondition; help(TerminationCondition)
+    termination_args = {
+        'dlogZ': 0.1  
+    }
+
+    # Pass the dictionaries to the correct keyword arguments
+    ns = NestedSampler(
+        numpyro_model,
+        constructor_kwargs=constructor_args,
+        termination_kwargs=termination_args
+    )
+
+    ns.run(random.PRNGKey(2), kf=KF)
 
 
-    print("Completed. Saving results to disk...")
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
-    inf_data = az.from_numpyro(sampler)
-    fname = f"outputs/mdc2_parameter_estimation_SA_results_{timestamp}.nc" 
-    inf_data.to_netcdf(fname)
-    print(f"Saved results to {fname}")
+    print("Getting samples")
+    ns.get_samples(random.PRNGKey(3), num_samples=1000)
+    
+    print("Summary")
+    ns.print_summary()  # Posterior estimates
 
 
+    #Plots
+    plot_diagnostics(ns._results,save_name='NS_diagnostics')
+    plot_cornerplot(ns._results,variables =['log10_ha','γa'],save_name='NS_cornerplot')
+
+
+    # print("Completed. Saving results to disk...")
+    # timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+    # inf_data = az.from_numpyro(ns)
+    # fname = f"outputs/mdc2_parameter_estimation_nested_sampling_results_{timestamp}.nc" 
+    # inf_data.to_netcdf(fname)
+    # print(f"Saved results to {fname}")
 
 
 
