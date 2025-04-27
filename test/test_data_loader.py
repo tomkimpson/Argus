@@ -9,6 +9,7 @@ import numpy as np
 
 @pytest.fixture(scope="module")
 def data_files():
+    """Load the data files for the IPTA second mock data challenge."""
     # Get the directory of the current script
     script_dir = os.path.dirname(os.path.abspath(__file__))
     # Construct the invariant directory path
@@ -26,9 +27,7 @@ def data_files():
 
 
 def test_load_individual_pulsars(data_files):
-
-    """Test that we can load each pulsar individually in the IPTA second mock data challenge"""
-
+    """Test that we can load each pulsar individually in the IPTA second mock data challenge."""
     par_files, tim_files = data_files
 
     assert len(par_files) == len(tim_files), "Mismatch between number of .par and .tim files."
@@ -40,7 +39,7 @@ def test_load_individual_pulsars(data_files):
     # Check we can load the files individually with no errors
     for par_file, tim_file in random_pairs:
         try:
-            psr = data_loader.LoadWidebandPulsarData.read_par_tim(par_file, tim_file)
+            _ = data_loader.LoadWidebandPulsarData.read_par_tim(par_file, tim_file)
         except Exception as e:
             pytest.fail(
                 f"Failed to load pulsar data from {par_file} and {tim_file} with error: {e}"
@@ -48,9 +47,7 @@ def test_load_individual_pulsars(data_files):
 
 
 def test_load_multiple_pulsars(data_files):
-
-    """Test that we can load the multiple pulsars from the IPTA second mock data challenge"""
-
+    """Test that we can load the multiple pulsars from the IPTA second mock data challenge."""
     par_files, tim_files = data_files
 
     #Check we can load the multiple files with no errors
