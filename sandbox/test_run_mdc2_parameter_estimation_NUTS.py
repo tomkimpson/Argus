@@ -20,7 +20,7 @@ from argus import data_loader
 from argus import models
 from argus import jax_kalman_filter
 from argus import gravitational_waves
-from argus import utils
+#from argus import utils
 
 
 
@@ -75,11 +75,11 @@ def _get_processed_residuals(directory):
     # Get the separation angles and compute HD correlation
     ra = pulsar_metadata["RA"].to_numpy(dtype=float)
     dec = pulsar_metadata["DEC"].to_numpy(dtype=float)
-    angular_separation_matrix = data_loader.LoadWidebandPulsarData.pairwise_angular_separation(ra, dec)
+    angular_separation_matrix = gravitational_waves.pairwise_angular_separation(ra, dec)
     hd_correlation_matrix = gravitational_waves.hellings_downs(angular_separation_matrix)
 
     # Post-process the residuals    
-    processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.post_process_residuals(pulsar_residuals)
+    processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.process_pulsar_residuals_by_epoch(pulsar_residuals)
 
     print("Total length of the data is ", len(processed_pulsar_residuals[1]))
     print("Total number of pulsars is ", len(pulsar_metadata))
@@ -135,6 +135,7 @@ def parameter_estimation():
     #Get the data
     data_path = "../data/IPTA_MockDataChallenge2/dataset_2b/" 
     processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)
+
 
 
     #Get efac and equad
