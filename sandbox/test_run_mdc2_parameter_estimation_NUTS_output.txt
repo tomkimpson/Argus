@@ -105,7 +105,7 @@ See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a
 [preProcess.C:158] Warning: PSR J2317+1439 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-/fred/oz022/tkimpson/Argus/sandbox/test_run_mdc2_parameter_estimation_NUTS.py:302: UserWarning: There are not enough devices to run parallel chains: expected 2 but got 1. Chains will be drawn sequentially. If you are running MCMC in CPU, consider using `numpyro.set_host_device_count(2)` at the beginning of your program. You can double-check how many devices are available in your system using `jax.local_device_count()`.
+/fred/oz022/tkimpson/Argus/sandbox/test_run_mdc2_parameter_estimation_NUTS.py:301: UserWarning: There are not enough devices to run parallel chains: expected 2 but got 1. Chains will be drawn sequentially. If you are running MCMC in CPU, consider using `numpyro.set_host_device_count(2)` at the beginning of your program. You can double-check how many devices are available in your system using `jax.local_device_count()`.
   sampler = MCMC(kernel, num_samples=2000, num_warmup=2000,progress_bar=True,num_chains=2)
 === JAX VERSION INFO ===
 JAX version: 0.5.3
@@ -307,105 +307,4 @@ Starting NumPyro
 NumPyro version: 0.18.0
 --------------------------------
 Starting inference 
-Traceback (most recent call last):
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/jax/_src/api.py", line 1063, in _get_axis_size
-    return shape[axis]
-           ~~~~~^^^^^^
-IndexError: tuple index out of range
-
-The above exception was the direct cause of the following exception:
-
-Traceback (most recent call last):
-  File "/fred/oz022/tkimpson/Argus/sandbox/test_run_mdc2_parameter_estimation_NUTS.py", line 345, in <module>
-    parameter_estimation() 
-    ^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/Argus/sandbox/test_run_mdc2_parameter_estimation_NUTS.py", line 303, in parameter_estimation
-    sampler.run(rng_key, kf=KF)
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/mcmc.py", line 706, in run
-    states, last_state = _laxmap(partial_map_fn, map_args)
-                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/mcmc.py", line 177, in _laxmap
-    ys.append(f(x))
-              ^^^^
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/mcmc.py", line 465, in _single_chain_mcmc
-    new_init_state = self.sampler.init(
-                     ^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/hmc.py", line 751, in init
-    init_params = self._init_state(
-                  ^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/hmc.py", line 695, in _init_state
-    ) = initialize_model(
-        ^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/util.py", line 688, in initialize_model
-    ) = _get_model_transforms(substituted_model, model_args, model_kwargs)
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/util.py", line 482, in _get_model_transforms
-    model_trace = trace(model).get_trace(*model_args, **model_kwargs)
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/handlers.py", line 191, in get_trace
-    self(*args, **kwargs)
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/primitives.py", line 121, in __call__
-    return self.fn(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/primitives.py", line 121, in __call__
-    return self.fn(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/handlers.py", line 846, in __call__
-    return cloned_seeded_fn.__call__(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/handlers.py", line 847, in __call__
-    return super().__call__(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/primitives.py", line 121, in __call__
-    return self.fn(*args, **kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/Argus/sandbox/test_run_mdc2_parameter_estimation_NUTS.py", line 293, in numpyro_model
-    log_likelihood = kf.get_likelihood(params)
-                     ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/Argus/python/argus/jax_kalman_filter.py", line 324, in get_likelihood
-    return _run_kalman_filter_scan(
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/contextlib.py", line 81, in inner
-    return func(*args, **kwds)
-           ^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/Argus/python/argus/jax_kalman_filter.py", line 236, in _run_kalman_filter_scan
-    (xf, Pf), ll_arr = lax.scan(step, (x, P), inputs)
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/Argus/python/argus/jax_kalman_filter.py", line 212, in step
-    F_gw, F_spin = F_matrices_non_precomputed(θ.γa, θ.γp, dt, Npsr, M_sum)
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/Argus/python/argus/jmath.py", line 212, in F_matrices_non_precomputed
-    F_gw, F_spin = get_F(gamma_a, gamma_p, dt_array, Npsr, M_sum)
-                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/Argus/python/argus/jmath.py", line 86, in get_F
-    F_spin = get_F_spin(gamma_spin, dt)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/Argus/python/argus/jmath.py", line 73, in get_F_spin
-    res = vmap(lambda x: get_F_block(x, dt))(gamma)
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-ValueError: vmap was requested to map its argument along axis 0, which implies that its rank should be at least 1, but is only 0 (its shape is ())
---------------------
-For simplicity, JAX has removed its internal frames from the traceback of the following exception. Set JAX_TRACEBACK_FILTERING=off to include these.
-
-real	1m36.101s
-user	0m17.921s
-sys	0m7.660s
-
-+--------------------- Job Report: 62380 (FAILED) ---------------------+
-| Memory (RAM)  [########            ] 41.7% (2.5 GB peak / 6 GB)      |
-| CPU           [###                 ] 16.2% average                   |
-| Time          [>                   ]  1.5% (0-00:01:51 / 0-02:00:00) |
-|                                                                      |
-| Lustre Filesystem:                                                   |
-|   Path    Total Read    Total Write    Total IOPS                    |
-|   ------  ------------  -------------  ------------                  |
-|   /apps   30.7 MB       0 B            17                            |
-|   /fred   405.1 MB      12.3 KB        14.7 K                        |
-|   /home   60 KB         0 B            10                            |
-|   OS      16.9 MB       0 B            11                            |
-|                                                                      |
-| Warnings:                                                            |
-|   - Too much memory requested                                        |
-|   - CPU usage is low                                                 |
-|   - Too much time requested                                          |
-+----------------------------------------------------------------------+
+  0%|          | 0/4000 [00:00<?, ?it/s]warmup:   0%|          | 1/4000 [00:09<10:53:27,  9.80s/it, 1 steps of size 2.34e+00. acc. prob=0.00]warmup:   0%|          | 2/4000 [00:10<4:36:48,  4.15s/it, 1 steps of size 2.30e-01. acc. prob=0.00] warmup:   0%|          | 3/4000 [00:10<2:35:54,  2.34s/it, 1 steps of size 1.67e-02. acc. prob=0.00]warmup:   0%|          | 4/4000 [00:10<1:48:36,  1.63s/it, 3 steps of size 1.86e-02. acc. prob=0.25]warmup:   0%|          | 5/4000 [00:11<1:39:39,  1.50s/it, 7 steps of size 2.57e-02. acc. prob=0.40]warmup:   0%|          | 6/4000 [00:13<1:34:19,  1.42s/it, 7 steps of size 4.04e-02. acc. prob=0.50]warmup:   0%|          | 7/4000 [00:14<1:30:53,  1.37s/it, 7 steps of size 6.87e-02. acc. prob=0.57]warmup:   0%|          | 8/4000 [00:15<1:24:52,  1.28s/it, 6 steps of size 5.30e-03. acc. prob=0.50]warmup:   0%|          | 9/4000 [00:38<8:52:45,  8.01s/it, 127 steps of size 9.46e-03. acc. prob=0.55]warmup:   0%|          | 10/4000 [02:10<37:36:04, 33.93s/it, 511 steps of size 1.08e-02. acc. prob=0.58]warmup:   0%|          | 11/4000 [03:42<57:11:57, 51.62s/it, 511 steps of size 1.63e-02. acc. prob=0.62]

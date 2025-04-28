@@ -45,6 +45,9 @@ style = "semver"
 [tool.pytest.ini_options]
 addopts = "--cov"
 pythonpath = "./python" # relative to root directory
+testpaths = [
+    "test", #only test the test directory
+]
 
 # Uncomment and edit the following line to add custom markers to your tests
 # These can be run with the following (for example):

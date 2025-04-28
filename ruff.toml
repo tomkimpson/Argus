@@ -31,7 +31,8 @@ exclude = [
     "src/legacy_code",
     "notebooks",
     "data",
-    "sandbox"
+    "sandbox",
+    "examples"
 ]
 
 # Same as Black.

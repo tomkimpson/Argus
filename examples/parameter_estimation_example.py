@@ -1,4 +1,3 @@
-import time
 import jax
 import jax.numpy as jnp
 from jax import random
@@ -14,7 +13,6 @@ import os
 import glob
 import matplotlib.pyplot as plt
 from jax.scipy.linalg import block_diag
-from numpyro.infer import Predictive # Import Predictive
 from numpyro import handlers
 import arviz as az
 
@@ -25,7 +23,6 @@ numpyro.set_host_device_count(len(jax.devices()))
 
 @struct.dataclass
 class Parameters:
-
     """Define a struct to store the parameters of the Kalman filter model"""
     
     #GW parameters
@@ -93,11 +90,9 @@ def _get_processed_residuals(data_path):
     return processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,hd_correlation_matrix
 
 def _initialize_kalman_filter(nx,Npsr,M_sum):
-
     """
     Specify the initial state vector x0 and the covariance matrix P0 for the Kalman filter.
     """
-
     # Initialize the JAX Kalman Filter
     x0 = jnp.zeros(nx) # Initial state vector. δφ=0,δf=0, etc. As all the states are effecitvely perturbations, this is a reasonable guess.
 
@@ -120,11 +115,9 @@ def _initialize_kalman_filter(nx,Npsr,M_sum):
     return x0, P0
 
 def _priors(Npsr,M_sum):
-
     """
     Define the priors for the parameters.
     """
-
     # Parameters of the GW background
     γa = numpyro.sample("γa", dist.LogUniform(1e-11, 1e-6))
     ha = numpyro.sample("ha", dist.LogUniform(1e-16, 1e-11))

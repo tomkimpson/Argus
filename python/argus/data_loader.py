@@ -2,7 +2,6 @@
 
 import numpy as np
 import pandas as pd
-from functools import reduce
 from enterprise.pulsar import Pulsar as EnterprisePulsar
 
 
@@ -100,7 +99,8 @@ class LoadWidebandPulsarData:
                         the same shape and contain the columns 'toas', 'residuals',
                         and 'error'.
 
-        Returns:
+        Returns
+        -------
             A tuple containing three NumPy arrays:
             - average_toas_array: 1D array of average TOAs across all input
                                 DataFrames for each row index (shape: nrows).
@@ -111,7 +111,8 @@ class LoadWidebandPulsarData:
                             'error' from one input DataFrame
                             (shape: nrows x num_dfs).
 
-        Raises:
+        Raises
+        ------
             ValueError: If the input list `list_of_dfs` is empty.
             ValueError: If not all DataFrames in the list have the same shape.
             ValueError: If any DataFrame is missing one of the required columns
@@ -157,10 +158,12 @@ class LoadWidebandPulsarData:
             filename: Path to the parameter file
             parameter: Name of the parameter to retrieve
             
-        Returns:
+        Returns
+        -------
             The parameter value as a float, or None if not found
             
-        Raises:
+        Raises
+        ------
             FileNotFoundError: If the parameter file doesn't exist
             ValueError: If the parameter value cannot be converted to float
         """

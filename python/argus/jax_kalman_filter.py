@@ -23,7 +23,6 @@ def _log_likelihood(y: jax.Array, cov: jax.Array) -> jax.Array:
     -------
         float: Log likelihood value
     """
-
     #jax.debug.print('Likelihood function',ordered=True)
 
     #jax.debug.print('Shapes of y is {yshape}, cov is {covshape}', yshape=y.shape, covshape=cov.shape,ordered=True)
@@ -50,7 +49,6 @@ def _predict(x: jax.Array, P: jax.Array, F_list: tuple, Q_list: tuple, dim_x: in
     -------
         tuple: (predicted state, predicted covariance)
     """
-
     xp = compute_predicted_state(F_list, x, dim_x, dim_x)
     Pp = compute_predicted_covariance(P,F_list,Q_list,dim_x,dim_x)
     return xp, Pp
@@ -70,9 +68,6 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     -------
         tuple: (updated state, updated covariance, innovation, innovation covariance)
     """
-
-
-
     # jax.debug.print("This is the update function",ordered=True)
     # jax.debug.print("Shape of z is {zshape}",zshape=z.shape,ordered=True)
     # jax.debug.print("Shape of H is {Hshape}",Hshape=H.shape,ordered=True)
@@ -125,11 +120,7 @@ def _compute_sigma_matrix(h2, γa, Γ):
 
 
 def _initialize_kalman_filter(nx,Npsr,P_eps,h2,γa):
-
-    """
-    Specify the initial state vector x0 and the covariance matrix P0 for the Kalman filter.
-    """
-
+    """Specify the initial state vector x0 and the covariance matrix P0 for the Kalman filter."""
     # Initialize the states
     x0 = jnp.zeros((nx, 1)) # Initialize as column vector. jnp.zeros(nx) # Initial state vector. δφ=0,δf=0, etc. As all the states are effecitvely perturbations, this is a reasonable guess.
 
@@ -172,9 +163,7 @@ def _initialize_kalman_filter(nx,Npsr,P_eps,h2,γa):
 @jax.named_call
 @partial(jax.jit, static_argnames=('Npsr', 'M_sum', 'dim_x','n_states'))
 def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,hellings_downs_matrix, dt_array, dim_x,n_states,P_eps):
-    """Run the Kalman filter algorithm over all observations and return a log likelihood.
-    """
-
+    """Run the Kalman filter algorithm over all observations and return a log likelihood."""
     x0,P0 = _initialize_kalman_filter(n_states,Npsr,P_eps,θ.ha**2, θ.γa)
 
 
@@ -250,8 +239,6 @@ class JaxKalmanFilter:
 
     def __init__(self, model, observations: np.ndarray, x0: np.ndarray, P0: np.ndarray,Peps, **kwargs):
         """Initialize the class."""
-
-        
         self.model = model
         self.observations = observations
         self.x0 = x0

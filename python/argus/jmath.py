@@ -13,10 +13,10 @@ from jax import vmap
 from functools import partial
 from typing import Tuple
 
-#rom utils import check_cholesky
 
 def get_F_block(γ: float, dt: float) -> jax.Array:
     """Compute 2x2 state transition block matrix for a single component.
+    
     Uses expm1 for improved numerical stability when γ*dt is small.
     Assumes γ != 0 based on prior constraints.
 
@@ -39,6 +39,7 @@ def get_F_block(γ: float, dt: float) -> jax.Array:
 
 def get_Q_block(γ: float, dt: float) -> jax.Array:
     """Compute Q block matrix using JAX.
+
     Uses expm1 for improved numerical stability when gamma*dt is small.
     Assumes gamma != 0 based on prior constraints.
 
@@ -179,8 +180,6 @@ def precompute_R_matrices(σ: jax.Array, EFAC: jax.Array, EQUAD: jax.Array) -> j
     Currently, this method returns a scalar
     or a per-pulsar value.
     """
-
-
    # Calculate all diagonal elements for all observations using broadcasting
     diagonals = jnp.square(EFAC * σ ) + jnp.square(EQUAD) # Shape: (Nobs, ny)
     R = jax.vmap(jnp.diag)(diagonals)

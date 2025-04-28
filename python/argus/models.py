@@ -222,7 +222,7 @@ class StochasticGWBackgroundModel(ModelHyperClass):
 
     def precompute_H_matrix(self) -> np.ndarray:
         """
-        Computes H for all steps using NumPy and stacks them into a single 3D array.
+        Compute H for all steps using NumPy and stacks them into a single 3D array.
 
         See compute_all_H_matrices for assumptions.
 
