@@ -64,11 +64,7 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     -------
         tuple: (updated state, updated covariance, innovation, innovation covariance)
     """
-    # jax.debug.print("This is the update function",ordered=True)
-    # jax.debug.print("Shape of z is {zshape}",zshape=z.shape,ordered=True)
-    # jax.debug.print("Shape of H is {Hshape}",Hshape=H.shape,ordered=True)
-    # jax.debug.print("Shape of xp is {xpshape}",xpshape=xp.shape,ordered=True)
-
+ 
     # Ensure z is a column vector
     z = z.reshape(32, 1) #todo, remove this. Currentyl needed for proper broadcasting
 
@@ -78,13 +74,7 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     Sinv = jnp.linalg.inv(S)                               
     K = Pp @ H.T @ Sinv                               
     x = xp + K @ y    
-    #jax.debug.print("Shape of K is {Kshape}",Kshape=K.shape,ordered=True)
-
-
-    # check_cholesky(S,"The innovation covariance matrix")
-    # check_min_eigenvalue(S, "The innovation covariance matrix")
-    # check_symmetry(S, "The innovation covariance matrix")
-    # check_condition_number(S, "The innovation covariance matrix")                             
+                            
  
     #Following FilterPy https://github.com/rlabbe/filterpy/blob/master/filterpy/kalman/EKF.py by using
     #Joseph form for numerically stable update of the covariance matrix
@@ -116,7 +106,34 @@ def _compute_sigma_matrix(h2, γa, Γ):
 
 
 def _initialize_kalman_filter(nx,Npsr,P_eps,h2,γa):
-    """Specify the initial state vector x0 and the covariance matrix P0 for the Kalman filter."""
+    """Initialize the state vector (x0) and covariance matrix (P0).
+
+    This function sets up the initial conditions for the Kalman filter based on
+    the assumed structure of the state vector and prior knowledge about the
+    system noise properties (GW, spin noise, measurement noise).
+
+    The state vector `x` is assumed to be structured block-wise:
+    `x = [GW states (2*Npsr), Spin states (2*Npsr), Epsilon states (approx. 10*Npsr)]`
+
+    Args:
+        nx: Total dimension of the state vector.
+        Npsr: Number of pulsars in the array.
+        P_eps: Initial covariance matrix for the epsilon (measurement white noise)
+               states block. Shape depends on epsilon state definition, e.g., (Npsr, Npsr).
+               Represents initial uncertainty associated with terms like EFAC/EQUAD.
+        h2: Squared characteristic strain amplitude (h_c^2) of the expected GW background.
+            Used to calculate the stationary variance of the GW 'a' state component.
+        γa: Damping constant (1 / correlation time) for the Ornstein-Uhlenbeck (OU)
+            process modeling the GW 'a' state component.
+
+    Returns
+    -------
+        tuple[jax.Array, jax.Array]: A tuple containing:
+            - x0: Initial state vector, shape (nx, 1). Initialized to zeros, assuming
+                  states represent perturbations around a known mean (or zero).
+            - P0: Initial state covariance matrix, shape (nx, nx). Constructed by
+                  combining covariance blocks for GW, Spin, and Epsilon states.
+    """
     # Initialize the states
     x0 = jnp.zeros((nx, 1)) # Initialize as column vector. jnp.zeros(nx) # Initial state vector. δφ=0,δf=0, etc. As all the states are effecitvely perturbations, this is a reasonable guess.
 
@@ -249,10 +266,10 @@ class JaxKalmanFilter:
         self.N_timesteps = len(self.observations)
         self.t_diffs = np.diff(self.toa)
 
-        print("Total number of observations: ", len(self.data))
-        print("Starting dt (days): ", self.t_diffs[0]/86400)
-        print("Ending dt (days): ", self.t_diffs[-1]/86400)
-        print("The errors are: ", self.data_errors)
+        logger.info(f"Total number of observations: {len(self.data)}")
+        logger.info(f"Starting dt (days): {self.t_diffs[0]/86400}")
+        logger.info(f"Ending dt (days): {self.t_diffs[-1]/86400}")
+        logger.info(f"The errors at t=1 are: {self.data_errors[:,0]}")
 
         # Precompute the observation matrices and assign them to model.H_matrix_list
         self.Hmat = self.model.precompute_H_matrix()

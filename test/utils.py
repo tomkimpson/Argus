@@ -5,7 +5,6 @@ import jax.numpy as jnp
 
 def check_cholesky(matrix,matrix_name="Matrix"):
   """Attempts Cholesky decomposition. Returns True if successful, False otherwise."""
-
   try:
     # Attempt Cholesky decomposition
     L = jnp.linalg.cholesky(matrix)
@@ -27,7 +26,7 @@ def check_cholesky(matrix,matrix_name="Matrix"):
 
     jax.lax.cond(success, print_success, print_failure)
 
-  except ValueError as e:
+  except ValueError:
       # jax.linalg.cholesky raises ValueError for non-positive definite matrices
       # Note: Catching specific errors like this works outside jit,
       # but handling errors *inside* jit often requires different JAX patterns (e.g., jnp.where).
@@ -57,7 +56,7 @@ def check_min_eigenvalue(matrix, matrix_name="Matrix"):
       jax.lax.cond(too_negative, print_warning, print_success)
 
 
-  except Exception as e:
+  except Exception:
       # Catch potential errors during eigenvalue computation, e.g., non-convergence
       # This might happen if the matrix is severely ill-conditioned or non-symmetric
       jax.debug.print("⚠️ Error computing eigenvalues for {matrix_name}",matrix_name=matrix_name,ordered=True)
@@ -65,7 +64,6 @@ def check_min_eigenvalue(matrix, matrix_name="Matrix"):
 
 def check_symmetry(matrix, matrix_name="Matrix"):
   """Calculates the Frobenius norm of the difference between a matrix and its transpose."""
-
   diff = matrix - matrix.T
   norm_diff = jnp.linalg.norm(diff, ord='fro')
   # Use jax.debug.print for JAX compatibility inside jit
