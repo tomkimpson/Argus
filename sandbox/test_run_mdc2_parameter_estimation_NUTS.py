@@ -264,15 +264,16 @@ def parameter_estimation():
 
         # Parameters of the GW background
         γa = numpyro.deterministic("γa", 1e-9)
-        #ha = numpyro.sample("ha", dist.LogUniform(1e-16, 1e-14))
-
+   
         log10_ha = numpyro.sample("log10_ha", dist.Uniform(-17.0, -14.0))
-        # Convert back to ha for the physics calculation
         ha = numpyro.deterministic("ha", 10**log10_ha)
 
         #Parameters of the pulsar process
-        γp = numpyro.deterministic("γp", gamma_p_injected)
-        σp = numpyro.deterministic("σp", sigma_p_injected)
+        log10_γp = numpyro.sample("log10_γp", dist.Uniform(-11.0, -6.0),sample_shape=(model.Npsr,))
+        γp = numpyro.deterministic("γp", 10**log10_γp)
+
+        log10_σp = numpyro.sample("log10_σp", dist.Uniform(-18.0, -12.0),sample_shape=(model.Npsr,))
+        σp = numpyro.deterministic("σp", 10**log10_σp)
 
         
         #Measurement noise parameters
@@ -290,7 +291,6 @@ def parameter_estimation():
             EQUAD=EQUAD
         )
         log_likelihood = kf.get_likelihood(params)
-        #jax.debug.print("log_likelihood: {log_likelihood}",log_likelihood=log_likelihood)
         numpyro.factor("likelihood", log_likelihood)
 
 
