@@ -20,7 +20,7 @@ from argus import data_loader
 from argus import models
 from argus import jax_kalman_filter
 from argus import gravitational_waves
-from argus import utils
+#from argus import utils
 
 
 
@@ -31,7 +31,7 @@ from numpyro.infer import MCMC,SA,NUTS
 
 
 from numpyro.contrib.nested_sampling import NestedSampler
-from jaxns import plot_cornerplot,plot_diagnostics
+from jaxns import plot_cornerplot,plot_diagnostics,save_results
 
 
 #Arviz
@@ -82,11 +82,11 @@ def _get_processed_residuals(directory):
     # Get the separation angles and compute HD correlation
     ra = pulsar_metadata["RA"].to_numpy(dtype=float)
     dec = pulsar_metadata["DEC"].to_numpy(dtype=float)
-    angular_separation_matrix = data_loader.LoadWidebandPulsarData.pairwise_angular_separation(ra, dec)
+    angular_separation_matrix = gravitational_waves.pairwise_angular_separation(ra, dec)
     hd_correlation_matrix = gravitational_waves.hellings_downs(angular_separation_matrix)
 
     # Post-process the residuals    
-    processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.post_process_residuals(pulsar_residuals)
+    processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.process_pulsar_residuals_by_epoch(pulsar_residuals)
 
     print("Total length of the data is ", len(processed_pulsar_residuals[1]))
     print("Total number of pulsars is ", len(pulsar_metadata))
@@ -205,15 +205,18 @@ def parameter_estimation():
 
         # Parameters of the GW background
         γa = numpyro.deterministic("γa", 1e-9)
-        #ha = numpyro.sample("ha", dist.LogUniform(1e-16, 1e-14))
+    
 
         log10_ha = numpyro.sample("log10_ha", dist.Uniform(-17.0, -14.0))
         # Convert back to ha for the physics calculation
         ha = numpyro.deterministic("ha", 10**log10_ha)
 
         #Parameters of the pulsar process
-        γp = numpyro.deterministic("γp", gamma_p_injected)
-        σp = numpyro.deterministic("σp", sigma_p_injected)
+        log10_γp = numpyro.sample("log10_γp", dist.Uniform(-11.0, -6.0),sample_shape=(model.Npsr,))
+        γp = numpyro.deterministic("γp", 10**log10_γp)
+
+        log10_σp = numpyro.sample("log10_σp", dist.Uniform(-18.0, -12.0),sample_shape=(model.Npsr,))
+        σp = numpyro.deterministic("σp", 10**log10_σp)
 
         
         #Measurement noise parameters
@@ -236,7 +239,7 @@ def parameter_estimation():
 
     
     constructor_args = {
-        'num_live_points': 10,
+        #'num_live_points': 10,
         'verbose': True #does this work?         
     }
 
@@ -263,12 +266,18 @@ def parameter_estimation():
 
 
     #Plots
+    print("Generating plots")
     plot_diagnostics(ns._results,save_name='NS_diagnostics')
     plot_cornerplot(ns._results,variables =['log10_ha','γa'],save_name='NS_cornerplot')
 
 
-    # print("Completed. Saving results to disk...")
-    # timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+
+    print("Completed. Saving results to disk...")
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+
+    save_results(ns._results,f"mdc2_parameter_estimation_nested_sampling_results_{timestamp}")
 
     # inf_data = az.from_numpyro(ns)
     # fname = f"outputs/mdc2_parameter_estimation_nested_sampling_results_{timestamp}.nc" 

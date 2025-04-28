@@ -18,7 +18,7 @@ from argus import data_loader
 from argus import models
 from argus import jax_kalman_filter
 from argus import gravitational_waves
-from argus import utils
+#from argus import utils
 
 
 @struct.dataclass
@@ -62,11 +62,11 @@ def _get_processed_residuals(directory):
     # Get the separation angles and compute HD correlation
     ra = pulsar_metadata["RA"].to_numpy(dtype=float)
     dec = pulsar_metadata["DEC"].to_numpy(dtype=float)
-    angular_separation_matrix = data_loader.LoadWidebandPulsarData.pairwise_angular_separation(ra, dec)
+    angular_separation_matrix = gravitational_waves.pairwise_angular_separation(ra, dec)
     hd_correlation_matrix = gravitational_waves.hellings_downs(angular_separation_matrix)
 
     # Post-process the residuals    
-    processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.post_process_residuals(pulsar_residuals)
+    processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.process_pulsar_residuals_by_epoch(pulsar_residuals)
 
     print("Total length of the data is ", len(processed_pulsar_residuals[1]))
     print("Total number of pulsars is ", len(pulsar_metadata))
@@ -112,7 +112,8 @@ def get_psr_noise_injections():
     sigma_p_injected = df_filtered['optimal_sigma'].values
     gamma_p_injected = df_filtered['optimal_gamma'].values
 
-    return jnp.array(sigma_p_injected), jnp.array(gamma_p_injected)
+    #return jnp.array(sigma_p_injected), jnp.array(gamma_p_injected)
+    return sigma_p_injected, gamma_p_injected
 
 
 
@@ -136,8 +137,10 @@ assert len(sigma_p_injected) == len(gamma_p_injected) == len(pulsar_metadata)
 model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
 
 
-for alpha in [0.1,0.5]: #0.9,1.0,10.0]:
+# for alpha in [0.1,0.5]: #0.9,1.0,10.0]:
 #for alpha in [0.5,0.9,1.0,10.0]:
+
+for alpha in [1.0]:
     P0 = alpha*block_diag(*P_eps_matrices)
 
 # #Initialize the model
@@ -162,7 +165,7 @@ for alpha in [0.1,0.5]: #0.9,1.0,10.0]:
 
 
     γa = 1e-9 
-    ha = 1e-13
+    ha = 10**(-15.46)
 
     #Set the parameters
     params = Parameters(
@@ -171,8 +174,8 @@ for alpha in [0.1,0.5]: #0.9,1.0,10.0]:
         ha=ha,
 
         #Spin parameters
-        γp=gamma_p_injected,
-        σp=sigma_p_injected,
+        γp=jnp.array(gamma_p_injected),
+        σp=jnp.array(sigma_p_injected),
 
         #Measurement noise parameters
         EFAC=efac_array,
@@ -188,17 +191,23 @@ for alpha in [0.1,0.5]: #0.9,1.0,10.0]:
     print("Now starting the loop")
 
     n_points = 500
-    ha_range = jnp.logspace(jnp.log10(1e-17), jnp.log10(1e-14), n_points)
+    #ha_range = jnp.logspace(jnp.log10(1e-17), jnp.log10(1e-14), n_points)
+    sigma_p_range = jnp.logspace(jnp.log10(1e-25), jnp.log10(1e-12), n_points)
     data_array = np.zeros((n_points,2))
-    for i,ha in enumerate(ha_range):
+    
+    
+    for i,sigma_p in enumerate(sigma_p_range):
+        sigma_p_selected = sigma_p_injected   
+        sigma_p_selected[0] = sigma_p
+
         params = Parameters(
             #GW parameters
             γa=1e-9,
-            ha=ha,
+            ha=1e-12,
 
             #Spin parameters
-            γp=gamma_p_injected,
-            σp=sigma_p_injected,
+            γp=jnp.array(gamma_p_injected),
+            σp=jnp.array(sigma_p_selected),
 
             #Measurement noise parameters
             EFAC=efac_array,
@@ -207,11 +216,12 @@ for alpha in [0.1,0.5]: #0.9,1.0,10.0]:
 
         ll = KF.get_likelihood(params)
         ll.block_until_ready()
-        data_array[i,0] = ha
+        data_array[i,0] = sigma_p
         data_array[i,1] = ll
-        print(f"γa: {ha}, likelihood: {ll}")
+
+        print(f"σp: {sigma_p}, likelihood: {ll}")
 
 
-    fname = f"v3likelihood_data_array_mdc2_alpha_{alpha}.npy"
+    fname = f"v4likelihood_data_array_mdc2_sigma_p_experiments.npy"
     print("saving the data array at:", fname)
     np.save(fname,data_array)

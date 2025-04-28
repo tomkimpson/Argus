@@ -18,7 +18,7 @@ from argus import data_loader
 from argus import models
 from argus import jax_kalman_filter
 from argus import gravitational_waves
-from argus import utils
+# from argus import utils
 
 
 @struct.dataclass
@@ -62,11 +62,11 @@ def _get_processed_residuals(directory):
     # Get the separation angles and compute HD correlation
     ra = pulsar_metadata["RA"].to_numpy(dtype=float)
     dec = pulsar_metadata["DEC"].to_numpy(dtype=float)
-    angular_separation_matrix = data_loader.LoadWidebandPulsarData.pairwise_angular_separation(ra, dec)
+    angular_separation_matrix = gravitational_waves.pairwise_angular_separation(ra, dec)
     hd_correlation_matrix = gravitational_waves.hellings_downs(angular_separation_matrix)
 
     # Post-process the residuals    
-    processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.post_process_residuals(pulsar_residuals)
+    processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.process_pulsar_residuals_by_epoch(pulsar_residuals)
 
     print("Total length of the data is ", len(processed_pulsar_residuals[1]))
     print("Total number of pulsars is ", len(pulsar_metadata))
@@ -89,12 +89,7 @@ def get_efac_equad_injections():
             efac_values.append(noise_params[psr]["efac"])
             equad_values.append(10**noise_params[psr]["equad"]) # Convert from log10 to linear
 
-    # Convert to JAX arrays
-    efac_array = jnp.array(efac_values)
-    equad_array = jnp.array(equad_values)
-
-
-    return efac_array, equad_array
+    return np.array(efac_values), np.array(equad_values)
 
 def get_psr_noise_injections():
 
@@ -110,7 +105,7 @@ def get_psr_noise_injections():
     sigma_p_injected = df_filtered['optimal_sigma'].values
     gamma_p_injected = df_filtered['optimal_gamma'].values
 
-    return jnp.array(sigma_p_injected), jnp.array(gamma_p_injected)
+    return sigma_p_injected, gamma_p_injected
 
 #Get the data
 data_path = "../data/IPTA_MockDataChallenge2/dataset_2b/" 
@@ -128,7 +123,7 @@ assert len(sigma_p_injected) == len(gamma_p_injected) == len(pulsar_metadata)
 #Calculate P0 based on the maximum value of the design matrix, and a delta tolerance
 model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
 
-alpha = 10 #scale slightly 
+alpha = 1 #scale slightly 
 P0 = alpha*block_diag(*P_eps_matrices)
 
 #Initialize the model
@@ -148,7 +143,10 @@ KF = jax_kalman_filter.JaxKalmanFilter(
 
 
 γa = 1e-9 
-ha = 1e-15
+ha = 10**(-15.46)
+
+print("The gamma_p_injected array is:")
+print(gamma_p_injected)
 
 #Set the parameters
 params = Parameters(
@@ -157,11 +155,38 @@ params = Parameters(
     ha=ha,
 
     #Spin parameters
-    γp=gamma_p_injected,
-    σp=sigma_p_injected,
+    γp=jnp.array(gamma_p_injected),
+    σp=jnp.array(sigma_p_injected),
 
     #Measurement noise parameters
-    EFAC=efac_array,
+    EFAC=jnp.array(efac_array),
+    EQUAD=jnp.array(equad_array)
+)
+
+print("First call to get_likelihood")
+ll = KF.get_likelihood(params)
+ll.block_until_ready()
+print("Likelihood: ",ll)
+
+
+
+
+
+
+print("second call")
+sigma_p_injected[0] = sigma_p_injected[0] * 1e5
+#Set the parameters
+params = Parameters(
+    #GW parameters
+    γa=γa,
+    ha=ha,
+
+    #Spin parameters
+    γp=jnp.array(gamma_p_injected),
+    σp=jnp.array(sigma_p_injected),
+
+    #Measurement noise parameters
+    EFAC=jnp.array(efac_array),
     EQUAD=equad_array
 )
 

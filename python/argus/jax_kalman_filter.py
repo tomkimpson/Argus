@@ -1,5 +1,7 @@
 """Module which implements JAX-based Kalman filter algorithm."""
 
+import logging # Added import
+
 import numpy as np
 
 from argus.jmath import F_matrices_non_precomputed, Q_matrices_non_precomputed,precompute_R_matrices,compute_predicted_covariance,compute_predicted_state
@@ -10,7 +12,9 @@ from jax import lax
 from jax.scipy.linalg import block_diag
 
 
-#from sandbox.utils import check_cholesky,check_min_eigenvalue,check_symmetry,check_condition_number
+# Get a logger for this module
+logger = logging.getLogger(__name__)
+
 
 def _log_likelihood(y: jax.Array, cov: jax.Array) -> jax.Array:
     """Calculate the log likelihood given innovation and innovation covariance.
@@ -23,17 +27,9 @@ def _log_likelihood(y: jax.Array, cov: jax.Array) -> jax.Array:
     -------
         float: Log likelihood value
     """
-    #jax.debug.print('Likelihood function',ordered=True)
-
-    #jax.debug.print('Shapes of y is {yshape}, cov is {covshape}', yshape=y.shape, covshape=cov.shape,ordered=True)
-    
-    #n = y.shape[0]
     sign, logdet = jnp.linalg.slogdet(2.0 * jnp.pi * cov)
     quadratic_term = y.T @ jnp.linalg.solve(cov, y)
-    log_likelihood = -0.5 * (logdet + quadratic_term)
-
-    #jax.debug.print('log_likelihood: {log_likelihood}', log_likelihood=log_likelihood,ordered=True)
-    return log_likelihood
+    return -0.5 * (logdet + quadratic_term)
 
 def _predict(x: jax.Array, P: jax.Array, F_list: tuple, Q_list: tuple, dim_x: int) -> tuple[jax.Array, jax.Array]:
     """Predict the next state and covariance.
@@ -174,12 +170,6 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
 
 
 
-    # check_cholesky(P0,"The initial P-matrix")
-    # check_min_eigenvalue(P0, "The initial P-matrix")
-    # check_symmetry(P0, "The initial P-matrix")
-    # check_condition_number(P0, "The initial P-matrix")
-
-
 
 
 
@@ -187,7 +177,7 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
     # First update
     x, P, y, S = _update(xp=x0, Pp=P0, H=H_matrices[0,:,:], R=R_matrices[0,:,:], z=data[0])
     ll0 = _log_likelihood(y, S)
-    #jax.debug.print('ll0: {ll0}', ll0=ll0,ordered=True)
+
     
     def step(carry, inputs):
         x, P = carry
@@ -239,6 +229,8 @@ class JaxKalmanFilter:
 
     def __init__(self, model, observations: np.ndarray, x0: np.ndarray, P0: np.ndarray,Peps, **kwargs):
         """Initialize the class."""
+        logger.info("Initializing JaxKalmanFilter...") # Log entry point
+
         self.model = model
         self.observations = observations
         self.x0 = x0
@@ -253,7 +245,7 @@ class JaxKalmanFilter:
         self.toa = self.observations[0]
         self.data = self.observations[1]
         self.data_errors = self.observations[2]
-        #self.psr_indices = self.observations[:, 3].astype(int)
+  
         self.N_timesteps = len(self.observations)
         self.t_diffs = np.diff(self.toa)
 
