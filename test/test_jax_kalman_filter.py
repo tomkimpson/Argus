@@ -129,6 +129,47 @@ def numpy_setup_data(class_test_dims):
     }
 
 
+
+
+
+
+@pytest.fixture(scope="module")
+def IPTA_MDC2_data():
+    #Get the data. We will use the mock data for this test
+    data_path = "../data/IPTA_MockDataChallenge2/dataset_2b/" 
+
+    # Get all .par and .tim files in the directory
+    par_files = sorted(glob.glob(data_path + "*.par"))
+    tim_files = sorted(glob.glob(data_path + "*.tim"))
+    assert len(par_files) == len(tim_files)
+
+    #Exclude PR J1640+2224 as it has an exponent which is to small for the OU process to be valid
+    par_files = [f for f in par_files if "J1640" not in f]
+    tim_files = [f for f in tim_files if "J1640" not in f]
+
+
+
+    # Get the data
+    pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices = (
+        data_loader.LoadWidebandPulsarData.read_multiple_par_tim(par_files, tim_files)
+    )
+
+    # Get the separation angles and compute HD correlation
+    ra = pulsar_metadata["RA"].to_numpy(dtype=float)
+    dec = pulsar_metadata["DEC"].to_numpy(dtype=float)
+    angular_separation_matrix = gravitational_waves.pairwise_angular_separation(ra, dec)
+    hd_correlation_matrix = gravitational_waves.hellings_downs(angular_separation_matrix)
+
+    # Post-process the residuals    
+    processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.process_pulsar_residuals_by_epoch(pulsar_residuals)
+
+    return processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix
+
+
+
+
+
+
 # --- Test for the Main Scan Function ---
 def test_run_kalman_filter_scan(mocker, class_test_dims, numpy_setup_data, mock_flax_params):
     """Test the main Kalman filter loop (_run_kalman_filter_scan)."""
@@ -358,97 +399,115 @@ class TestJaxKalmanFilterInternals:
 
 
 
-# import glob 
-# class TestNumericalStability:
-
-#     def test_cholesky_stability(self, mock_model_instance, numpy_setup_data):
-#         """Test that the Cholesky decomposition is stable."""
-#         setup_data = numpy_setup_data
-#         model = mock_model_instance
-        
-#     def _get_data():
-#         #Get the data. We will use the mock data for this test
-#         data_path = "../data/IPTA_MockDataChallenge2/dataset_2b/" 
-
-#         # Get all .par and .tim files in the directory
-#         par_files = sorted(glob.glob(data_path + "*.par"))
-#         tim_files = sorted(glob.glob(data_path + "*.tim"))
-#         assert len(par_files) == len(tim_files)
-
-#         #Exclude PR J1640+2224 as it has an exponent which is to small for the OU process to be valid
-#         par_files = [f for f in par_files if "J1640" not in f]
-#         tim_files = [f for f in tim_files if "J1640" not in f]
+import glob 
+from argus import jmath
+class TestNumericalStability:
 
 
+    def test_for_numerical_stability(self, IPTA_MDC2_data):
 
-#         # Get the data
-#         pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices = (
-#             data_loader.LoadWidebandPulsarData.read_multiple_par_tim(par_files, tim_files)
-#         )
+        processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix = IPTA_MDC2_data
 
-#         # Get the separation angles and compute HD correlation
-#         ra = pulsar_metadata["RA"].to_numpy(dtype=float)
-#         dec = pulsar_metadata["DEC"].to_numpy(dtype=float)
-#         angular_separation_matrix = gravitational_waves.pairwise_angular_separation(ra, dec)
-#         hd_correlation_matrix = gravitational_waves.hellings_downs(angular_separation_matrix)
-
-#         # Post-process the residuals    
-#         processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.process_pulsar_residuals_by_epoch(pulsar_residuals)
-
-#         return processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix
-
-
-
-
-
-
-#     def test_for_numerical_stability(self, mock_model_instance, numpy_setup_data):
-
-
-#         processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)
-
-#         #Calculate P0 based on the maximum value of the design matrix, and a delta tolerance
-#         model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
+        #Calculate P0 based on the maximum value of the design matrix, and a delta tolerance
+        model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
 
     
-#         P0 = block_diag(*P_eps_matrices)
+        P0 = block_diag(*P_eps_matrices)
 
 
-#     #placeholders, not actually used
-#     x_init = np.zeros(model.nx)
-#     P_init = P0
+        KF = jk.JaxKalmanFilter(
+            model=model, 
+            observations=processed_pulsar_residuals, 
+            Peps=P0
+        )
+        #Set the parameters
+        Npsr = model.Npsr
+        params = Parameters(
 
-#     KF = jax_kalman_filter.JaxKalmanFilter(
-#         model=model, 
-#         observations=processed_pulsar_residuals, 
-#         x0=x_init, 
-#         P0=P_init,
-#         Peps=P0
-#     )
+            #GW parameters
+            γa=1e-9,
+            ha=1e-15,
+
+            #Spin parameters
+            γp=jnp.ones(Npsr)*1e-8, #approximate magnitudes
+            σp=jnp.ones(Npsr)*1e-15, #approximate magnitudes
+
+            #Measurement noise parameters
+            EFAC=jnp.ones(Npsr),
+            EQUAD=jnp.ones(Npsr)*1e-6
+        )
+
+
+        #Now implement the Kalman filter manually 
+        θ=params
+        data=KF.jax_data
+        data_errors=KF.jax_data_errors
+        H_matrices=KF.jax_H_matrices
+        Npsr=KF.model.Npsr
+        M_sum=KF.model.M_sum
+        hellings_downs_matrix=KF.hellings_downs_matrix
+        dt_array=KF.jax_t_diffs
+        dim_x=2*KF.model.Npsr
+        n_states=KF.model.nx
+        P_eps=KF.P_eps
+
+
+
+        # This is the start of _run_kalman_filter_scan
+        # def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,hellings_downs_matrix, dt_array, dim_x,n_states,P_eps):
+
+        x0,P0 = jk._initialize_kalman_filter(n_states,Npsr,P_eps,θ.ha**2, θ.γa)
+
+
+        σa2 = jk._compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
+    
+        # Precompute the R matrix for this parameter set and these data errors    
+        R_matrices = jmath.precompute_R_matrices(data_errors,θ.EFAC, θ.EQUAD)
+
+
+        # First update
+        x, P, y, S = jk._update(xp=x0, Pp=P0, H=H_matrices[0,:,:], R=R_matrices[0,:,:], z=data[0])
+        ll0 = jk._log_likelihood(y, S)
+
+    
+
+        #Standard loop, not using lax.scan
+        for i in range(len(data)-1):
+            dt = dt_array[i]
+            F_gw, F_spin = jmath.F_matrices_non_precomputed(θ.γa, θ.γp, dt, Npsr, M_sum)
+            F = (F_gw, F_spin)
+            
+            Q_gw, Q_spin = jmath.Q_matrices_non_precomputed(θ.γa, σa2, θ.γp, θ.σp**2, dt)
+            Q = (Q_gw, Q_spin)
+
+            x_predict, P_predict = jk._predict(x, P, F, Q, dim_x)
+            
+            x, P, y, S = jk._update(x_predict, P_predict, H_matrices[i+1,:,:], R_matrices[i+1,:,:], data[i+1])
+            ll = jk._log_likelihood(y, S)
+            assert ll.shape == (1,1) #make sure the likelihood is a scalar
+            ll0 += ll
+
+
+
+        #Also do the full call and check the result is the same
+        ll = jk._run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,hellings_downs_matrix, dt_array, dim_x,n_states,P_eps)
+        np.testing.assert_allclose(ll0,ll)
+      
+
+
+       
 
 
 
 
 
-#     γa = 1e-9 
-#     ha = 1e-15
 
-#     #Set the parameters
-#     params = Parameters(
-#         #GW parameters
-#         γa=γa,
-#         ha=ha,
 
-#         #Spin parameters
-#         γp=gamma_p_injected,
-#         σp=sigma_p_injected,
 
-#         #Measurement noise parameters
-#         EFAC=efac_array,
-#         EQUAD=equad_array
-#     )
 
-#     print("First call to get_likelihood. Just for precompilation")
+
+
+
 #     ll = KF.get_likelihood(params) 
 #     ll.block_until_ready()
 #     print("Likelihood: ",ll)

@@ -187,7 +187,6 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
         dt_idx, z, R, H = inputs
         # Get dt for this step and precompute matrices just for this step
         dt = dt_array[dt_idx]
-
         # Compute F and Q matrices for this specific timestep only
         F_gw, F_spin = F_matrices_non_precomputed(θ.γa, θ.γp, dt, Npsr, M_sum)
         F = (F_gw, F_spin)
