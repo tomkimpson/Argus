@@ -66,10 +66,8 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     """
  
     # Ensure z is a column vector
-    z = z.reshape(32, 1) #todo, remove this. Currentyl needed for proper broadcasting
-
+    z = z.reshape(-1, 1) # todo, remove this. I think we can adjust how we load the data to avoid this
     y = z - H @ xp              
-    #jax.debug.print("Shape of y is {yshape}",yshape=y.shape,ordered=True)                    
     S = H @ Pp @ H.T + R
     Sinv = jnp.linalg.inv(S)                               
     K = Pp @ H.T @ Sinv                               
@@ -85,16 +83,9 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     P = I_KH @ Pp @ I_KH.T + K@R@K.T
 
 
-    #P = 0.5 * (P + P.T)
-    # check_cholesky(P,"The updated P-matrix")
-    # check_min_eigenvalue(P, "The updated P-matrix")
-    # check_symmetry(P, "The updated P-matrix")
-    # check_condition_number(P, "The updated P-matrix")
-
-
     # Optional: enforce symmetry for numerical stability
-
-
+    #P = 0.5 * (P + P.T)
+    
     return x, P, y, S
 
 
@@ -186,11 +177,6 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
     R_matrices = precompute_R_matrices(data_errors,θ.EFAC, θ.EQUAD)
 
 
-
-
-
-
-
     # First update
     x, P, y, S = _update(xp=x0, Pp=P0, H=H_matrices[0,:,:], R=R_matrices[0,:,:], z=data[0])
     ll0 = _log_likelihood(y, S)
@@ -201,8 +187,6 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
         dt_idx, z, R, H = inputs
         # Get dt for this step and precompute matrices just for this step
         dt = dt_array[dt_idx]
-
-        #jax.debug.print("Current dt index: {idx}, dt: {val}", idx=dt_idx, val=dt)
 
         # Compute F and Q matrices for this specific timestep only
         F_gw, F_spin = F_matrices_non_precomputed(θ.γa, θ.γp, dt, Npsr, M_sum)
@@ -216,7 +200,6 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
      
         x_new, P_new, y, S = _update(x_predict, P_predict, H, R, z)
         ll = _log_likelihood(y, S)
-        #jax.debug.print('ll: {ll}', ll=ll,ordered=True)
         return (x_new, P_new), ll
 
     # Pack inputs for scan - iterate over first 10 timesteps
@@ -244,15 +227,12 @@ class JaxKalmanFilter:
         P0: The uncertainty in the guess of P0
     """
 
-    def __init__(self, model, observations: np.ndarray, x0: np.ndarray, P0: np.ndarray,Peps, **kwargs):
+    def __init__(self, model, observations: np.ndarray, Peps: np.ndarray):
         """Initialize the class."""
         logger.info("Initializing JaxKalmanFilter...") # Log entry point
 
         self.model = model
         self.observations = observations
-        self.x0 = x0
-        self.P0 = P0
-
         self.P_eps = Peps
 
 
@@ -262,8 +242,7 @@ class JaxKalmanFilter:
         self.toa = self.observations[0]
         self.data = self.observations[1]
         self.data_errors = self.observations[2]
-  
-        self.N_timesteps = len(self.observations)
+
         self.t_diffs = np.diff(self.toa)
 
         logger.info(f"Total number of observations: {len(self.data)}")
@@ -288,11 +267,7 @@ class JaxKalmanFilter:
         self.jax_data_errors = jnp.array(self.data_errors)
         #self.jax_psr_indices = jnp.array(self.psr_indices)
         self.jax_t_diffs = jnp.array(self.t_diffs)
-        
-        # Convert initial state and covariance
-        self.jax_x0 = jnp.array(self.x0.reshape(-1, 1))
-        self.jax_P0 = jnp.array(self.P0)
-        
+                
         # Convert H matrices
         self.jax_H_matrices = jnp.array(self.Hmat)
 
@@ -304,8 +279,6 @@ class JaxKalmanFilter:
             ('jax_data', self.jax_data),
             ('jax_data_errors', self.jax_data_errors),
             ('jax_t_diffs', self.jax_t_diffs),
-            ('jax_x0', self.jax_x0),
-            ('jax_P0', self.jax_P0),
             ('jax_H_matrices', self.jax_H_matrices),
             ('hellings_downs_matrix', self.hellings_downs_matrix)
         ]
