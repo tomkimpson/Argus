@@ -401,6 +401,9 @@ class TestJaxKalmanFilterInternals:
 
 import glob 
 from argus import jmath
+from .utils import check_cholesky,check_minimum_eigenvalue
+
+
 class TestNumericalStability:
 
 
@@ -483,6 +486,13 @@ class TestNumericalStability:
             x_predict, P_predict = jk._predict(x, P, F, Q, dim_x)
             
             x, P, y, S = jk._update(x_predict, P_predict, H_matrices[i+1,:,:], R_matrices[i+1,:,:], data[i+1])
+
+            assert check_cholesky(S)
+            assert check_cholesky(P)
+
+            assert check_minimum_eigenvalue(S)
+            assert check_minimum_eigenvalue(P)
+
             ll = jk._log_likelihood(y, S)
             assert ll.shape == (1,1) #make sure the likelihood is a scalar
             ll0 += ll
