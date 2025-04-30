@@ -4,8 +4,8 @@
 #SBATCH --output=outputs/logfiles/parameter_estimation_with_nested_sampling_output.txt
 #SBATCH --export=ALL 
 #SBATCH --gres=gpu:1
-#SBATCH --time=1:00:00 
-#SBATCH --mem=10G
+#SBATCH --time=4:00:00 
+#SBATCH --mem=8G
 
 
 source ~/.bashrc
