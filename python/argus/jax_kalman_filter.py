@@ -64,7 +64,6 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     -------
         tuple: (updated state, updated covariance, innovation, innovation covariance)
     """
- 
     # Ensure z is a column vector
     z = z.reshape(-1, 1) # todo, remove this. I think we can adjust how we load the data to avoid this
     y = z - H @ xp              

@@ -132,11 +132,16 @@ def numpy_setup_data(class_test_dims):
 
 
 
-
+import os
 @pytest.fixture(scope="module")
 def IPTA_MDC2_data():
     #Get the data. We will use the mock data for this test
-    data_path = "../data/IPTA_MockDataChallenge2/dataset_2b/" 
+
+    # Get the directory of the current script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    # Construct the invariant directory path
+    data_path = os.path.join(script_dir, "../data/IPTA_MockDataChallenge2/dataset_2b/")
+
 
     # Get all .par and .tim files in the directory
     par_files = sorted(glob.glob(data_path + "*.par"))
