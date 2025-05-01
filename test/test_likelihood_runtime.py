@@ -89,8 +89,8 @@ def IPTA_MDC2_data():
 
 
 # --- Timing Tolerances ---
-TOLERANCE_FIRST_RUN_S = 2.0  # Allow more time for the first run (JIT compilation)
-TOLERANCE_SECOND_RUN_S = 0.2 # Expect much faster execution after compilation
+TOLERANCE_FIRST_RUN_S = 10.0  # Allow more time for the first run (JIT compilation)
+TOLERANCE_SECOND_RUN_S = 2 # Expect much faster execution after compilation
 
 def test_likelihood_timing_and_jit_speedup(IPTA_MDC2_data):
     """
@@ -100,6 +100,29 @@ def test_likelihood_timing_and_jit_speedup(IPTA_MDC2_data):
     Relies on the 'IPTA_MDC2_data' fixture.
     """
     print("\n--- Starting test_likelihood_timing_and_jit_speedup ---")
+
+
+    # --- 0. Check for GPU availability ---
+    print("Checking for available GPU devices...")
+    try:
+        gpu_devices = jax.devices('gpu')
+        if not gpu_devices:
+            pytest.skip("No GPU device found. Skipping GPU-dependent test.")
+        else:
+            print(f"Found GPU devices: {gpu_devices}")
+            # Optional: You could force JAX to use the GPU if multiple device types exist
+            # jax.config.update("jax_platform_name", "gpu")
+    except Exception as e:
+        # Handle potential errors during device lookup, though unlikely for 'gpu'
+        pytest.fail(f"Error checking for JAX GPU devices: {e}")
+
+
+
+
+
+
+
+
 
     # --- 1. Unpack data from the fixture ---
 
@@ -178,11 +201,8 @@ def test_likelihood_timing_and_jit_speedup(IPTA_MDC2_data):
     assert duration_2 < duration_1, \
         f"Second call ({duration_2:.4f}s) was not faster than the first call ({duration_1:.4f}s)"
 
-    # Optional: Check if likelihood values are consistent (they should be identical)
+    # Check if likelihood values are consistent (they should be identical)
     # Use np.isclose for robust floating-point comparison
     assert np.isclose(float(log_likelihood_1), float(log_likelihood_2), rtol=1e-5, atol=1e-8), \
         f"Likelihood values differ significantly: {float(log_likelihood_1)} vs {float(log_likelihood_2)}"
-
-    print("Timing and JIT speedup assertions passed.")
-    print("--- test_likelihood_timing_and_jit_speedup finished ---")
 

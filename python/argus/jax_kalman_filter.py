@@ -92,9 +92,6 @@ def _compute_sigma_matrix(h2, γa, Γ):
     return (h2 / 12) * γa * Γ
 
 
-
-
-
 def _initialize_kalman_filter(nx,Npsr,P_eps,h2,γa):
     """Initialize the state vector (x0) and covariance matrix (P0).
 
@@ -148,20 +145,6 @@ def _initialize_kalman_filter(nx,Npsr,P_eps,h2,γa):
     P0 = block_diag(P_GW, P_spin, P_eps)
 
     return x0, P0
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 @jax.named_call
 @partial(jax.jit, static_argnames=('Npsr', 'M_sum', 'dim_x','n_states'))
@@ -232,9 +215,6 @@ class JaxKalmanFilter:
         self.model = model
         self.observations = observations
         self.P_eps = Peps
-
-
-
 
         # Extract the observations into separate arrays
         self.toa = self.observations[0]

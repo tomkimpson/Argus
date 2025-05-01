@@ -1,6 +1,6 @@
-INFO:2025-04-30 17:06:41,010:jax._src.xla_bridge:925: Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
+INFO:2025-05-01 15:37:45,001:jax._src.xla_bridge:925: Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
 INFO:jax._src.xla_bridge:Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
-INFO:2025-04-30 17:06:41,021:jax._src.xla_bridge:925: Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+INFO:2025-05-01 15:37:45,062:jax._src.xla_bridge:925: Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
 INFO:jax._src.xla_bridge:Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
 [tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
 [preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
@@ -145,23 +145,25 @@ INFO:argus.jax_kalman_filter:The errors at t=1 are: [2.69768e-06 3.56419e-06 3.3
  3.17338e-06 2.32335e-06 3.52711e-06 3.18223e-06 3.10718e-06 3.78191e-06
  3.27771e-06 3.64638e-06 3.43392e-06]
 INFO:jaxns:Number of Markov-chains set to: 10
-slurmstepd: error: *** JOB 105220 ON john4 CANCELLED AT 2025-05-01T17:03:35 DUE TO TIME LIMIT ***
+slurmstepd: error: *** JOB 128516 ON gina2 CANCELLED AT 2025-05-01T15:40:00 ***
 
-+-------------------- Job Report: 105220 (TIMEOUT) ---------------------+
-| Memory (RAM)  [####                ] 21.4% (1.7 GB peak / 8 GB)       |
-| CPU           [############        ] 64.7% average                    |
-| GPU           [################### ] 98.0% average                    |
-| Time          [------------------->] 100.0% (1-00:00:17 / 1-00:00:00) |
-|                                                                       |
-| Lustre Filesystem:                                                    |
-|   Path    Total Read    Total Write    Total IOPS                     |
-|   ------  ------------  -------------  ------------                   |
-|   /apps   60.7 MB       0 B            21                             |
-|   /fred   764.2 MB      21.6 KB        16.1 K                         |
-|   /home   60 KB         0 B            10                             |
-|   OS      15.1 MB       0 B            12                             |
-|                                                                       |
-| Warnings:                                                             |
-|   - Too much memory requested                                         |
-|   - CPU usage is low (possibly GPU-bound)                             |
-+-----------------------------------------------------------------------+
++------------------- Job Report: 128516 (CANCELLED) -------------------+
+| Memory (RAM)  [########            ] 41.0% (3.3 GB peak / 8 GB)      |
+| CPU           [####                ] 23.9% average                   |
+| GPU           [                    ]  0.0% average                   |
+| Time          [>                   ]  2.5% (0-00:05:55 / 0-04:00:00) |
+|                                                                      |
+| Lustre Filesystem:                                                   |
+|   Path    Total Read    Total Write    Total IOPS                    |
+|   ------  ------------  -------------  ------------                  |
+|   /apps   29.9 MB       0 B            5                             |
+|   /fred   520.8 MB      18.6 KB        16.1 K                        |
+|   /home   60 KB         0 B            11                            |
+|   OS      0 B           0 B            3                             |
+|                                                                      |
+| Warnings:                                                            |
+|   - Too much memory requested                                        |
+|   - CPU usage is low                                                 |
+|   - GPU usage is low                                                 |
+|   - Too much time requested                                          |
++----------------------------------------------------------------------+

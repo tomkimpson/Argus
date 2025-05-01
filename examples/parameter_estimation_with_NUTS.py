@@ -15,12 +15,15 @@ from flax import struct
 from datetime import datetime
 
 
-sys.path.append('../python/argus')
-from argus import data_loader
+
+
 from argus import models
 from argus import jax_kalman_filter
-from argus import gravitational_waves
-#from argus import utils
+
+
+#Utils
+from utils import _get_processed_residuals, get_efac_equad_injections, get_psr_noise_injections
+
 
 
 
@@ -51,92 +54,14 @@ class Parameters:
     EFAC: jnp.ndarray  # Error factors
     EQUAD: jnp.ndarray # Extra quadrature noise
 
-def _get_processed_residuals(directory):
-    """Get the processed residuals from the data."""
-
-    # Get all .par and .tim files in the directory
-    par_files = sorted(glob.glob(directory + "*.par"))
-    tim_files = sorted(glob.glob(directory + "*.tim"))
-
-    assert len(par_files) == len(tim_files), "Mismatch between .par and .tim file counts."
-
-    #Exclude PR J1640+2224 as it has an exponent which is to small for the OU process to be valid
-    par_files = [f for f in par_files if "J1640" not in f]
-    tim_files = [f for f in tim_files if "J1640" not in f]
-
-
-
-    # Get the data
-    print(f"Getting the data. Loading {len(par_files)} pulsars from {directory}")
-    pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices = (
-        data_loader.LoadWidebandPulsarData.read_multiple_par_tim(par_files, tim_files)
-    )
-
-    # Get the separation angles and compute HD correlation
-    ra = pulsar_metadata["RA"].to_numpy(dtype=float)
-    dec = pulsar_metadata["DEC"].to_numpy(dtype=float)
-    angular_separation_matrix = gravitational_waves.pairwise_angular_separation(ra, dec)
-    hd_correlation_matrix = gravitational_waves.hellings_downs(angular_separation_matrix)
-
-    # Post-process the residuals    
-    processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.process_pulsar_residuals_by_epoch(pulsar_residuals)
-
-    print("Total length of the data is ", len(processed_pulsar_residuals[1]))
-    print("Total number of pulsars is ", len(pulsar_metadata))
-
-    return processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix
-
-def get_efac_equad_injections():
-
-    # Load the noise parameters from the json file
-    with open("../data/IPTA_MockDataChallenge2/group1_psr_noise.json", "r") as f:
-        noise_params = json.load(f)
-
-    # Extract EFAC and EQUAD values for each pulsar
-    efac_values = []
-    equad_values = []
-
-    for psr in noise_params:
-
-        if  "J1640" not in psr:
-            efac_values.append(noise_params[psr]["efac"])
-            equad_values.append(10**noise_params[psr]["equad"]) # Convert from log10 to linear
-
-    # Convert to JAX arrays
-    efac_array = jnp.array(efac_values)
-    equad_array = jnp.array(equad_values)
-
-
-    return efac_array, equad_array
-
-def get_psr_noise_injections():
-
-    df = pd.read_pickle('../notebooks/approximate_spin_injections.pkl')
-    condition = df['psr'] != 'J1640+2224'
-
-
-
-    # 2. Use the condition to select rows and create a new DataFrame
-    df_filtered = df[condition]
-
-
-    sigma_p_injected = df_filtered['optimal_sigma'].values
-    gamma_p_injected = df_filtered['optimal_gamma'].values
-
-    return jnp.array(sigma_p_injected), jnp.array(gamma_p_injected)
-
-
-
-
 
 
 
 def parameter_estimation():
+
     #Get the data
     data_path = "../data/IPTA_MockDataChallenge2/dataset_2b/" 
     processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)
-
-
 
     #Get efac and equad
     efac_array, equad_array = get_efac_equad_injections()
@@ -154,18 +79,11 @@ def parameter_estimation():
     P0 = alpha*block_diag(*P_eps_matrices)
 
 
-    #placeholders, not actually used
-    x_init = np.zeros(model.nx)
-    P_init = P0
-
     KF = jax_kalman_filter.JaxKalmanFilter(
         model=model, 
         observations=processed_pulsar_residuals, 
-        x0=x_init, 
-        P0=P_init,
         Peps=P0
     )
-
 
 
 
@@ -196,7 +114,7 @@ def parameter_estimation():
 
 
 
-    print("doing some gradient checks")
+    print("Doing some gradient checks")
 
 
 
@@ -269,11 +187,13 @@ def parameter_estimation():
         ha = numpyro.deterministic("ha", 10**log10_ha)
 
         #Parameters of the pulsar process
-        log10_γp = numpyro.sample("log10_γp", dist.Uniform(-11.0, -6.0),sample_shape=(model.Npsr,))
-        γp = numpyro.deterministic("γp", 10**log10_γp)
+        #log10_γp = numpyro.sample("log10_γp", dist.Uniform(-11.0, -6.0),sample_shape=(model.Npsr,))
+        #γp = numpyro.deterministic("γp", 10**log10_γp)
+        γp = numpyro.deterministic("γp", gamma_p_injected)
 
-        log10_σp = numpyro.sample("log10_σp", dist.Uniform(-18.0, -12.0),sample_shape=(model.Npsr,))
-        σp = numpyro.deterministic("σp", 10**log10_σp)
+        #log10_σp = numpyro.sample("log10_σp", dist.Uniform(-18.0, -12.0),sample_shape=(model.Npsr,))
+        #σp = numpyro.deterministic("σp", 10**log10_σp)
+        σp = numpyro.deterministic("σp", sigma_p_injected)
 
         
         #Measurement noise parameters
@@ -292,6 +212,13 @@ def parameter_estimation():
         )
         log_likelihood = kf.get_likelihood(params)
         numpyro.factor("likelihood", log_likelihood)
+
+
+
+    #Model summary
+    print(numpyro.render_model(numpyro_model, model_args=(KF,), render_distributions=True))
+
+
 
 
     # Parameter estimation with numpyro
@@ -317,6 +244,8 @@ def parameter_estimation():
 
 
 if __name__ == "__main__":
+
+    print("Welcome to the correct parameter estimation script for single params")
 
     # Check available devices
     print("=== JAX VERSION INFO ===")
