@@ -334,25 +334,61 @@ class TestJaxKalmanFilterInternals:
         P_eps_dim = Npsr
         nx = Npsr * 2 + Npsr * 2 + P_eps_dim
         P_eps = jnp.eye(P_eps_dim, dtype=jnp.float64) * 1e-28
-        h2 = 1e-29
-        gamma_a = 1e-9
-        x0, P0 = jk._initialize_kalman_filter(nx, Npsr, P_eps, h2, gamma_a)
+        
+        
+        
+        σa2 = np.ones((Npsr,Npsr)) 
+        γa = 2
+        σp = np.ones(Npsr) * 1e-8
+        γp = np.ones(Npsr) * 1e-8
+
+        x0, P0 = jk._initialize_kalman_filter(nx, Npsr, P_eps, σa2, γa,σp**2,γp)
         assert x0.shape == (nx, 1)
         np.testing.assert_allclose(x0, jnp.zeros((nx, 1)))
         assert P0.shape == (nx, nx)
-        P_GW_expected = jnp.eye(Npsr * 2, dtype=jnp.float64)
-        P_GW_expected = P_GW_expected.at[0::2, 0::2].multiply(1e-40)
-        sigma2_expected = (h2 / 12) * gamma_a
-        P_GW_expected = P_GW_expected.at[1::2, 1::2].multiply(sigma2_expected / (2 * gamma_a))
-        np.testing.assert_allclose(P0[:Npsr*2, :Npsr*2], P_GW_expected, rtol=1e-6)
-        P_spin_expected = jnp.eye(Npsr * 2, dtype=jnp.float64)
-        P_spin_expected = P_spin_expected.at[0::2, 0::2].multiply(1e-40)
-        P_spin_expected = P_spin_expected.at[1::2, 1::2].multiply(1e-20)
-        np.testing.assert_allclose(P0[Npsr*2:Npsr*4, Npsr*2:Npsr*4], P_spin_expected, rtol=1e-6)
-        np.testing.assert_allclose(P0[Npsr*4:, Npsr*4:], P_eps, rtol=1e-6)
-        assert jnp.sum(jnp.abs(P0[:Npsr*4, Npsr*4:])) == 0
-        assert jnp.sum(jnp.abs(P0[Npsr*4:, :Npsr*4])) == 0
+        
+        
 
+        expected_P_aa_init = σa2 / (2.0 * γa)
+        
+    
+        # Construct expected 4x4 P_GW
+        expected_P_GW = np.zeros((Npsr * 2, Npsr * 2))
+        # Set r variances (indices 0, 2)
+        expected_P_GW[0, 0] = 1e-40
+        expected_P_GW[2, 2] = 1e-40
+        # Set P_aa block (indices 1, 3)
+        expected_P_GW[1, 1] = expected_P_aa_init[0, 0]
+        expected_P_GW[1, 3] = expected_P_aa_init[0, 1]
+        expected_P_GW[3, 1] = expected_P_aa_init[1, 0]
+        expected_P_GW[3, 3] = expected_P_aa_init[1, 1]
+
+
+        # P_GW is the top-left 4x4 block of P0
+        P_GW_actual = P0[0:Npsr*2, 0:Npsr*2]      
+        np.testing.assert_allclose(P_GW_actual, expected_P_GW, rtol=1e-6)
+        
+
+
+        expected_f_variances = σp**2 / (2.0 * γp)
+
+        expected_P_spin = np.zeros((Npsr * 2, Npsr * 2))
+        # Set phi variances (indices 0, 2)
+        expected_P_spin[0, 0] = 1e-40
+        expected_P_spin[2, 2] = 1e-40
+        # Set f variances (indices 1, 3)
+        expected_P_spin[1, 1] = expected_f_variances[0]
+        expected_P_spin[3, 3] = expected_f_variances[1]
+
+
+        # P_spin is the second 4x4 block of P0
+        start_idx = Npsr * 2
+        end_idx = Npsr * 4
+        P_spin_actual = P0[start_idx:end_idx, start_idx:end_idx]
+        np.testing.assert_allclose(P_spin_actual, expected_P_spin, rtol=1e-6)
+
+
+        
     def test_init_and_prepare_arrays(self, mock_model_instance, numpy_setup_data, class_test_dims):
         """Test initialization and _prepare_jax_arrays."""
         setup_data = numpy_setup_data
@@ -463,11 +499,9 @@ class TestNumericalStability:
 
         # This is the start of _run_kalman_filter_scan
         # def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,hellings_downs_matrix, dt_array, dim_x,n_states,P_eps):
-
-        x0,P0 = jk._initialize_kalman_filter(n_states,Npsr,P_eps,θ.ha**2, θ.γa)
-
-
         σa2 = jk._compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
+        x0,P0 = jk._initialize_kalman_filter(n_states,Npsr,P_eps,σa2, θ.γa,θ.σp**2, θ.γp)
+
     
         # Precompute the R matrix for this parameter set and these data errors    
         R_matrices = jmath.precompute_R_matrices(data_errors,θ.EFAC, θ.EQUAD)
@@ -506,6 +540,10 @@ class TestNumericalStability:
 
         #Also do the full call and check the result is the same
         ll = jk._run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,hellings_downs_matrix, dt_array, dim_x,n_states,P_eps)
+
+
+        print("ll = ", ll)
+        print("ll0 = ", ll0)
         np.testing.assert_allclose(ll0,ll)
       
 
