@@ -264,72 +264,81 @@ The frequencies are: [205.53069594 532.7134294  430.46105455 173.68794574 326.60
 Computing H matrices for all 183 time steps (using NumPy)...
 Finished computing all H matrices.
 First call to get_likelihood. Just for precompilation
-Likelihood:  55959.09892091897
+Likelihood:  55963.87289660473
 Doing some gradient checks
 Checking gradients w.r.t. log10(ha):
 ha = 1.100e-16 (log10_ha = -15.959):
-  loglik = 5.6009e+04
-  Grad w.r.t. log10(ha) = 3.8649e+01 (Finite: True)
+  loglik = 5.6025e+04
+  Grad w.r.t. log10(ha) = 2.7138e+01 (Finite: True)
 ha = 1.000e-15 (log10_ha = -15.000):
-  loglik = 5.5959e+04
-  Grad w.r.t. log10(ha) = -3.7333e+02 (Finite: True)
+  loglik = 5.5964e+04
+  Grad w.r.t. log10(ha) = -3.7965e+02 (Finite: True)
 ha = 2.000e-15 (log10_ha = -14.699):
-  loglik = 5.5771e+04
-  Grad w.r.t. log10(ha) = -9.2436e+02 (Finite: True)
+  loglik = 5.5774e+04
+  Grad w.r.t. log10(ha) = -9.2516e+02 (Finite: True)
 ha = 5.000e-15 (log10_ha = -14.301):
-  loglik = 5.5179e+04
-  Grad w.r.t. log10(ha) = -2.1638e+03 (Finite: True)
+  loglik = 5.5182e+04
+  Grad w.r.t. log10(ha) = -2.1678e+03 (Finite: True)
 ha = 9.000e-15 (log10_ha = -14.046):
-  loglik = 5.4481e+04
-  Grad w.r.t. log10(ha) = -3.3613e+03 (Finite: True)
+  loglik = 5.4483e+04
+  Grad w.r.t. log10(ha) = -3.3661e+03 (Finite: True)
 Starting NumPyro
 
 === NUMPYRO DEVICE INFO ===
 NumPyro version: 0.18.0
 --------------------------------
-Traceback (most recent call last):
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/inspect.py", line 510, in render_graph
-    import graphviz  # noqa: F401
-    ^^^^^^^^^^^^^^^
-ModuleNotFoundError: No module named 'graphviz'
+Starting inference 
+  0%|          | 0/4000 [00:00<?, ?it/s]Compiling.. :   0%|          | 0/4000 [00:00<?, ?it/s]
+  0%|          | 0/4000 [00:00<?, ?it/s][A
+Compiling.. :   0%|          | 0/4000 [00:00<?, ?it/s][ARunning chain 0:   0%|          | 0/4000 [00:10<?, ?it/s]
+Running chain 1:   0%|          | 0/4000 [00:10<?, ?it/s][A
+Running chain 1:   5%|▌         | 200/4000 [01:54<32:54,  1.92it/s][ARunning chain 0:   5%|▌         | 200/4000 [02:19<40:54,  1.55it/s]
+Running chain 1:  10%|█         | 400/4000 [03:18<27:39,  2.17it/s][ARunning chain 0:  10%|█         | 400/4000 [03:44<31:00,  1.94it/s]
+Running chain 1:  15%|█▌        | 600/4000 [04:43<25:15,  2.24it/s][ARunning chain 0:  15%|█▌        | 600/4000 [05:06<26:28,  2.14it/s]
+Running chain 1:  20%|██        | 800/4000 [06:00<22:28,  2.37it/s][ARunning chain 0:  20%|██        | 800/4000 [06:18<22:41,  2.35it/s]
+Running chain 1:  25%|██▌       | 1000/4000 [07:29<21:27,  2.33it/s][ARunning chain 0:  25%|██▌       | 1000/4000 [07:51<21:59,  2.27it/s]
+Running chain 1:  30%|███       | 1200/4000 [08:39<18:47,  2.48it/s][ARunning chain 0:  30%|███       | 1200/4000 [09:03<19:12,  2.43it/s]
+Running chain 1:  35%|███▌      | 1400/4000 [09:51<16:50,  2.57it/s][ARunning chain 0:  35%|███▌      | 1400/4000 [10:14<17:05,  2.53it/s]
+Running chain 1:  40%|████      | 1600/4000 [11:00<15:00,  2.66it/s][ARunning chain 0:  40%|████      | 1600/4000 [11:20<14:55,  2.68it/s]
+Running chain 1:  45%|████▌     | 1800/4000 [12:10<13:28,  2.72it/s][ARunning chain 0:  45%|████▌     | 1800/4000 [12:22<12:57,  2.83it/s]
+Running chain 1:  50%|█████     | 2000/4000 [13:24<12:15,  2.72it/s][ARunning chain 0:  50%|█████     | 2000/4000 [13:47<12:29,  2.67it/s]
+Running chain 1:  55%|█████▌    | 2200/4000 [15:07<12:23,  2.42it/s][ARunning chain 0:  55%|█████▌    | 2200/4000 [15:09<11:35,  2.59it/s]Running chain 0:  60%|██████    | 2400/4000 [16:33<10:34,  2.52it/s]
+Running chain 1:  60%|██████    | 2400/4000 [16:46<11:39,  2.29it/s][ARunning chain 0:  65%|██████▌   | 2600/4000 [17:55<09:20,  2.50it/s]
+Running chain 1:  65%|██████▌   | 2600/4000 [18:28<10:43,  2.18it/s][ARunning chain 0:  70%|███████   | 2800/4000 [19:19<08:08,  2.46it/s]
+Running chain 1:  70%|███████   | 2800/4000 [20:04<09:19,  2.14it/s][ARunning chain 0:  75%|███████▌  | 3000/4000 [20:44<06:52,  2.42it/s]
+Running chain 1:  75%|███████▌  | 3000/4000 [21:43<07:54,  2.11it/s][ARunning chain 0:  80%|████████  | 3200/4000 [21:59<05:20,  2.49it/s]
+Running chain 1:  80%|████████  | 3200/4000 [23:18<06:19,  2.11it/s][ARunning chain 0:  85%|████████▌ | 3400/4000 [23:21<04:02,  2.48it/s]Running chain 0:  90%|█████████ | 3600/4000 [24:41<02:41,  2.48it/s]
+Running chain 1:  85%|████████▌ | 3400/4000 [24:55<04:47,  2.09it/s][ARunning chain 0:  95%|█████████▌| 3800/4000 [26:03<01:20,  2.47it/s]
+Running chain 1:  90%|█████████ | 3600/4000 [26:33<03:12,  2.08it/s][ARunning chain 0: 100%|██████████| 4000/4000 [27:23<00:00,  2.48it/s]Running chain 0: 100%|██████████| 4000/4000 [27:23<00:00,  2.43it/s]
 
-The above exception was the direct cause of the following exception:
+Running chain 1:  95%|█████████▌| 3800/4000 [28:07<01:35,  2.09it/s][A
+Running chain 1: 100%|██████████| 4000/4000 [29:42<00:00,  2.09it/s][ARunning chain 1: 100%|██████████| 4000/4000 [29:42<00:00,  2.24it/s]
 
-Traceback (most recent call last):
-  File "/fred/oz022/tkimpson/clean/Argus/examples/parameter_estimation_with_NUTS.py", line 273, in <module>
-    parameter_estimation() 
-    ^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/clean/Argus/examples/parameter_estimation_with_NUTS.py", line 219, in parameter_estimation
-    print(numpyro.render_model(numpyro_model, model_args=(KF,), render_distributions=True))
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/inspect.py", line 632, in render_model
-    graph = render_graph(graph_spec, render_distributions=render_distributions)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/inspect.py", line 512, in render_graph
-    raise ImportError(
-ImportError: Looks like you want to use graphviz (https://graphviz.org/) to render your model. You need to install `graphviz` to be able to use this feature. It can be installed with `pip install graphviz`.
+                mean       std    median      5.0%     95.0%     n_eff     r_hat
+  log10_ha    -15.52      0.07    -15.51    -15.63    -15.40   1407.01      1.00
 
-real	3m19.133s
-user	0m17.814s
-sys	0m8.896s
+Number of divergences: 0
+Completed. Saving results to disk...
+Saved results to outputs/mdc2_parameter_estimation_NUTS_results_2025-05-02_14-35-34.nc
 
-+-------------------- Job Report: 160822 (FAILED) ---------------------+
-| Memory (RAM)  [                    ]  3.4% (276.3 MB peak / 8 GB)    |
-| CPU           [#                   ]  7.9% average                   |
-| GPU           [                    ]  0.0% average                   |
-| Time          [->                  ]  6.3% (0-00:03:47 / 0-01:00:00) |
+real	36m18.492s
+user	22m17.148s
+sys	12m26.783s
+
++------------------- Job Report: 178913 (COMPLETED) -------------------+
+| Memory (RAM)  [#############       ] 65.6% (5.2 GB peak / 8 GB)      |
+| CPU           [############        ] 60.8% average                   |
+| GPU           [################    ] 84.7% average                   |
+| Time          [------------>       ] 61.1% (0-00:36:39 / 0-01:00:00) |
 |                                                                      |
 | Lustre Filesystem:                                                   |
 |   Path    Total Read    Total Write    Total IOPS                    |
 |   ------  ------------  -------------  ------------                  |
-|   /apps   716 KB        0 B            5                             |
-|   /fred   279.2 MB      13.2 KB        22.5 K                        |
-|   /home   60 KB         0 B            10                            |
-|   OS      16.9 MB       0 B            16                            |
+|   /apps   29.9 MB       0 B            10                            |
+|   /fred   517.3 MB      71.1 KB        14.8 K                        |
+|   /home   84 KB         0 B            32                            |
 |                                                                      |
 | Warnings:                                                            |
-|   - Too much memory requested                                        |
 |   - CPU usage is low                                                 |
-|   - GPU usage is low                                                 |
 |   - Too much time requested                                          |
 +----------------------------------------------------------------------+

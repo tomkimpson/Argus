@@ -216,6 +216,12 @@ def parameter_estimation():
 
 
 
+    # --- Get the text summary ---
+    # Simply print the output of render_model
+    print("--- Model Priors Summary ---")
+    print(numpyro.render_model(numpyro_model, model_args=(KF,), render_distributions=True))
+    # --- ---
+
 
 
 
