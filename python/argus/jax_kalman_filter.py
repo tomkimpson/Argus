@@ -92,7 +92,7 @@ def _compute_sigma_matrix(h2, γa, Γ):
     return (h2 / 12) * γa * Γ
 
 
-def _initialize_kalman_filter(nx,Npsr,P_eps,h2,γa):
+def _initialize_kalman_filter(nx,Npsr,P_eps,σa2,γa,σp2,γp):
     """Initialize the state vector (x0) and covariance matrix (P0).
 
     This function sets up the initial conditions for the Kalman filter based on
@@ -125,22 +125,37 @@ def _initialize_kalman_filter(nx,Npsr,P_eps,h2,γa):
     x0 = jnp.zeros((nx, 1)) # Initialize as column vector. jnp.zeros(nx) # Initial state vector. δφ=0,δf=0, etc. As all the states are effecitvely perturbations, this is a reasonable guess.
 
 
-    #Initialize the covariance matrices
+    # Initialize the covariance matrices
 
-    ## GW block "r/a"
-    P_GW = jnp.eye(Npsr * 2)
-    P_GW = P_GW.at[0::2, 0::2].multiply(1e-40) #r(0), integrated: set tiny variance. All the even diagonal elements, (0,0), (2,2) etc. are set to 1e-40
-    γa = 1e-9
-    sigma2 =  (h2 / 12) * γa 
-    P_GW = P_GW.at[1::2, 1::2].multiply(sigma2 / (2 * γa)) 
-    #P_GW = P_GW.at[1::2, 1::2].multiply(1e-25) #Set 'a' components (odd indices) to stationary OU variance
+    ## 1. The GW block "r/a"
+    P_GW = jnp.zeros((Npsr * 2, Npsr * 2))
 
 
-    P_spin = jnp.eye(Npsr * 2)
-    P_spin = P_spin.at[0::2, 0::2].multiply(1e-40) # All the even diagonal elements, (0,0), (2,2) etc. are set to X
-    P_spin = P_spin.at[1::2, 1::2].multiply(1e-20) # All the odd diagonal elements, (1,1), (3,3) etc. are set to Y
+    #1.1 Set diagonal variances for 'r' states (indices 0, 2, 4, ...)
+    #Set P[2n, 2n] = 1e-40 (very small initial variance)
+    r_indices = jnp.arange(0, Npsr * 2, 2)
+    P_GW = P_GW.at[r_indices, r_indices].set(1e-40)
 
 
+    # 1.2 Set the P_aa block (indices 1, 3, 5, ...)
+    # Sets P[2n+1, 2m+1] = P_aa_init[n, m]
+    P_aa_init = σa2 / (2.0 * γa)
+    P_GW = P_GW.at[1::2, 1::2].set(P_aa_init)
+
+    ## 2. The spin block "phi / f "
+    P_spin = jnp.zeros((Npsr * 2, Npsr * 2))
+
+    #2.1 Set diagonal variances for 'phi' states (indices 0, 2, 4, ...)
+    # Set P[2n, 2n] = 1e-40
+    phi_indices = jnp.arange(0, Npsr * 2, 2)
+    P_spin = P_spin.at[phi_indices, phi_indices].set(1e-40)
+
+    # 2.2 Set diagonal variances for 'f' states (indices 1, 3, 5, ...)
+    # Eq: Var(f) = sigma2_spin[n] / (2 * gamma_spin[n])
+    # This is element-wise calculation resulting in a vector of length Npsr
+    spin_variance_values = σp2 / (2.0 * γp)
+    f_indices = jnp.arange(1, Npsr * 2, 2)
+    P_spin = P_spin.at[f_indices, f_indices].set(spin_variance_values)
 
     P0 = block_diag(P_GW, P_spin, P_eps)
 
@@ -150,11 +165,17 @@ def _initialize_kalman_filter(nx,Npsr,P_eps,h2,γa):
 @partial(jax.jit, static_argnames=('Npsr', 'M_sum', 'dim_x','n_states'))
 def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,hellings_downs_matrix, dt_array, dim_x,n_states,P_eps):
     """Run the Kalman filter algorithm over all observations and return a log likelihood."""
-    x0,P0 = _initialize_kalman_filter(n_states,Npsr,P_eps,θ.ha**2, θ.γa)
 
 
     σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
     
+
+    x0,P0 = _initialize_kalman_filter(n_states,Npsr,P_eps,σa2, θ.γa,θ.σp**2, θ.γp)
+
+
+
+
+
     # Precompute the R matrix for this parameter set and these data errors    
     R_matrices = precompute_R_matrices(data_errors,θ.EFAC, θ.EQUAD)
 

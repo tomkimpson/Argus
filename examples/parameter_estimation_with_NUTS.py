@@ -215,8 +215,7 @@ def parameter_estimation():
 
 
 
-    #Model summary
-    print(numpyro.render_model(numpyro_model, model_args=(KF,), render_distributions=True))
+
 
 
 
