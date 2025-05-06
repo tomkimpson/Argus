@@ -1,344 +1,0 @@
-[tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
-[preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J0034-0534. Setting value to 1 with 20% uncertainty.
-[tempo2Util.C:401] Warning: [DUP1] duplicated warnings have been suppressed.
-[preProcess.C:158] Warning: PSR J0034-0534 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J0218+4232. Setting value to 1 with 20% uncertainty.
-[preProcess.C:158] Warning: PSR J0218+4232 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J0437-4715 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J0613-0200 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J0621+1002. Setting value to 1 with 20% uncertainty.
-[preProcess.C:158] Warning: PSR J0621+1002 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J0711-6830 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J0751+1807. Setting value to 1 with 20% uncertainty.
-[preProcess.C:158] Warning: PSR J0751+1807 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J0900-3144. Setting value to 1 with 20% uncertainty.
-[preProcess.C:158] Warning: PSR J0900-3144 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J1012+5307 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J1022+1001 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J1024-0719 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J1045-4509 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J1455-3330 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J1600-3053 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J1603-7202 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J1614-2230. Setting value to 1 with 20% uncertainty.
-[preProcess.C:158] Warning: PSR J1614-2230 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J1643-1224 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J1713+0747 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J1730-2304 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J1744-1134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J1857+0943 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J1909-3744 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J1918-0642 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J1939+2134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J1944+0907. Setting value to 1 with 20% uncertainty.
-[preProcess.C:158] Warning: PSR J1944+0907 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J2010-1323. Setting value to 1 with 20% uncertainty.
-[preProcess.C:158] Warning: PSR J2010-1323 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J2124-3358 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J2129-5721 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J2145-0750 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J2229+2643. Setting value to 1 with 20% uncertainty.
-[preProcess.C:158] Warning: PSR J2229+2643 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-[preProcess.C:158] Warning: PSR J2317+1439 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-Welcome to the correct parameter estimation script for single params
-=== JAX VERSION INFO ===
-JAX version: 0.5.3
-
-=== DEVICE INFO ===
-Default device: gpu
-
-=== JAX CONFIG SETTINGS ===
-eager_constant_folding: False
-jax2tf_associative_scan_reductions: False
-jax2tf_default_native_serialization: True
-jax_array_garbage_collection_guard: None
-jax_backend_target: 
-jax_bcoo_cusparse_lowering: False
-jax_check_proxy_envs: True
-jax_check_tracer_leaks: False
-jax_compilation_cache_dir: None
-jax_compilation_cache_expect_pgle: False
-jax_compilation_cache_include_metadata_in_key: False
-jax_compilation_cache_max_size: -1
-jax_compiler_detailed_logging_min_ops: 10
-jax_compiler_enable_remat_pass: True
-jax_cpu_collectives_implementation: None
-jax_cpu_enable_async_dispatch: True
-jax_cpu_enable_gloo_collectives: False
-jax_cuda_visible_devices: all
-jax_custom_vjp_disable_shape_check: False
-jax_data_dependent_tracing_fallback: False
-jax_debug_infs: False
-jax_debug_key_reuse: False
-jax_debug_log_modules: 
-jax_debug_nans: False
-jax_default_device: None
-jax_default_dtype_bits: 64
-jax_default_matmul_precision: None
-jax_default_prng_impl: threefry2x32
-jax_disable_jit: False
-jax_disable_most_optimizations: False
-jax_disable_vmap_shmap_error: False
-jax_disallow_mesh_context_manager: False
-jax_distributed_debug: False
-jax_dump_ir_to: 
-jax_dynamic_shapes: False
-jax_eager_pmap: True
-jax_enable_checks: False
-jax_enable_compilation_cache: True
-jax_enable_custom_prng: False
-jax_enable_custom_vjp_by_custom_transpose: False
-jax_enable_empty_arrays: False
-jax_enable_pgle: False
-jax_enable_x64: True
-jax_exec_time_optimization_effort: 0.0
-jax_experimental_unsafe_xla_runtime_errors: False
-jax_explain_cache_misses: False
-jax_export_calling_convention_version: 9
-jax_export_ignore_forward_compatibility: False
-jax_high_dynamic_range_gumbel: False
-jax_hlo_source_file_canonicalization_regex: None
-jax_include_debug_info_in_dumps: True
-jax_include_full_tracebacks_in_locations: True
-jax_legacy_prng_key: allow
-jax_log_checkpoint_residuals: False
-jax_log_compiles: False
-jax_logging_level: NOTSET
-jax_memory_fitting_effort: 0.0
-jax_memory_fitting_level: UNKNOWN
-jax_mock_gpu_topology: 
-jax_mutable_array_checks: False
-jax_no_tracing: False
-jax_num_cpu_devices: -1
-jax_numpy_dtype_promotion: standard
-jax_numpy_rank_promotion: allow
-jax_optimization_level: UNKNOWN
-jax_persistent_cache_enable_xla_caches: xla_gpu_per_fusion_autotune_cache_dir
-jax_persistent_cache_min_compile_time_secs: 1.0
-jax_persistent_cache_min_entry_size_bytes: 0
-jax_pgle_aggregation_percentile: 90
-jax_pgle_profiling_runs: 3
-jax_pjrt_client_create_options: None
-jax_platform_name: 
-jax_platforms: None
-jax_pmap_no_rank_reduction: True
-jax_pmap_shmap_merge: False
-jax_pprint_use_color: True
-jax_raise_persistent_cache_errors: False
-jax_random_seed_offset: 0
-jax_remat_opt_barrier: True
-jax_remove_custom_partitioning_ptr_from_cache_key: False
-jax_rocm_visible_devices: all
-jax_serialization_version: 0
-jax_share_binary_between_hosts: False
-jax_share_binary_between_hosts_timeout_ms: 1200000
-jax_softmax_custom_jvp: False
-jax_spmd_mode: allow_jit
-jax_threefry_gpu_kernel_lowering: False
-jax_threefry_partitionable: True
-jax_traceback_filtering: auto
-jax_traceback_in_locations_limit: 10
-jax_tracer_error_num_traceback_frames: 5
-jax_transfer_guard: None
-jax_transfer_guard_device_to_device: None
-jax_transfer_guard_device_to_host: None
-jax_transfer_guard_host_to_device: None
-jax_use_direct_linearize: False
-jax_use_magma: auto
-jax_use_shardy_partitioner: False
-jax_varying_axes_in_types: False
-jax_xla_backend: 
-jax_xla_profile_version: 0
-mock_num_gpu_processes: 0
-
-JAX GPU acceleration is AVAILABLE!
-GPU devices: [CudaDevice(id=0), CudaDevice(id=1)]
------------------------------------------------
-[CudaDevice(id=0), CudaDevice(id=1)]
-Getting the data. Loading 32 pulsars from ../data/IPTA_MockDataChallenge2/dataset_2b/
-PSR: J0030+0451, F0: 205.53069593846152, # TOAs: 183
-PSR: J0034-0534, F0: 532.7134293952242, # TOAs: 183
-PSR: J0218+4232, F0: 430.46105454575843, # TOAs: 183
-PSR: J0437-4715, F0: 173.6879457375193, # TOAs: 183
-PSR: J0613-0200, F0: 326.60056202349193, # TOAs: 183
-PSR: J0621+1002, F0: 34.65740662142043, # TOAs: 183
-PSR: J0711-6830, F0: 182.1172346472276, # TOAs: 183
-PSR: J0751+1807, F0: 287.4578539950941, # TOAs: 183
-PSR: J0900-3144, F0: 90.0118419193632, # TOAs: 183
-PSR: J1012+5307, F0: 190.26783444155498, # TOAs: 183
-PSR: J1022+1001, F0: 60.779447956696714, # TOAs: 183
-PSR: J1024-0719, F0: 193.71568344854623, # TOAs: 183
-PSR: J1045-4509, F0: 133.79314954119278, # TOAs: 183
-PSR: J1455-3330, F0: 125.20024324499536, # TOAs: 183
-PSR: J1600-3053, F0: 277.9377069896204, # TOAs: 183
-PSR: J1603-7202, F0: 67.37658112877924, # TOAs: 183
-PSR: J1614-2230, F0: 317.37893706872126, # TOAs: 183
-PSR: J1643-1224, F0: 216.37333714263485, # TOAs: 183
-PSR: J1713+0747, F0: 218.81184041715784, # TOAs: 183
-PSR: J1730-2304, F0: 123.1102871473812, # TOAs: 183
-PSR: J1744-1134, F0: 245.42611968980754, # TOAs: 183
-PSR: J1857+0943, F0: 186.4940783779791, # TOAs: 183
-PSR: J1909-3744, F0: 339.31568721848686, # TOAs: 183
-PSR: J1918-0642, F0: 130.78951412337267, # TOAs: 183
-PSR: J1939+2134, F0: 641.9282245822469, # TOAs: 183
-PSR: J1944+0907, F0: 192.85651792018598, # TOAs: 183
-PSR: J2010-1323, F0: 191.45090909263828, # TOAs: 183
-PSR: J2124-3358, F0: 202.7938937460303, # TOAs: 183
-PSR: J2129-5721, F0: 268.3592272938787, # TOAs: 183
-PSR: J2145-0750, F0: 62.29588783738885, # TOAs: 183
-PSR: J2229+2643, F0: 335.81620819685526, # TOAs: 183
-PSR: J2317+1439, F0: 290.2546036648635, # TOAs: 183
-The number of pulsars is: 32
-The frequencies are: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
-  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
-  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
-  67.37658113 317.37893707 216.37333714 218.81184042 123.11028715
- 245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
- 192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
- 335.8162082  290.25460366]
-Computing H matrices for all 183 time steps (using NumPy)...
-Finished computing all H matrices.
-First call to get_likelihood. Just for precompilation
-Likelihood:  55963.87289660473
-Doing some gradient checks
-Checking gradients w.r.t. log10(ha):
-ha = 1.100e-16 (log10_ha = -15.959):
-  loglik = 5.6025e+04
-  Grad w.r.t. log10(ha) = 2.7138e+01 (Finite: True)
-ha = 1.000e-15 (log10_ha = -15.000):
-  loglik = 5.5964e+04
-  Grad w.r.t. log10(ha) = -3.7965e+02 (Finite: True)
-ha = 2.000e-15 (log10_ha = -14.699):
-  loglik = 5.5774e+04
-  Grad w.r.t. log10(ha) = -9.2516e+02 (Finite: True)
-ha = 5.000e-15 (log10_ha = -14.301):
-  loglik = 5.5182e+04
-  Grad w.r.t. log10(ha) = -2.1678e+03 (Finite: True)
-ha = 9.000e-15 (log10_ha = -14.046):
-  loglik = 5.4483e+04
-  Grad w.r.t. log10(ha) = -3.3661e+03 (Finite: True)
-Starting NumPyro
-
-=== NUMPYRO DEVICE INFO ===
-NumPyro version: 0.18.0
---------------------------------
-Starting inference 
-  0%|          | 0/4000 [00:00<?, ?it/s]Compiling.. :   0%|          | 0/4000 [00:00<?, ?it/s]
-  0%|          | 0/4000 [00:00<?, ?it/s][A
-Compiling.. :   0%|          | 0/4000 [00:00<?, ?it/s][ARunning chain 0:   0%|          | 0/4000 [00:10<?, ?it/s]
-Running chain 1:   0%|          | 0/4000 [00:10<?, ?it/s][A
-Running chain 1:   5%|▌         | 200/4000 [01:54<32:54,  1.92it/s][ARunning chain 0:   5%|▌         | 200/4000 [02:19<40:54,  1.55it/s]
-Running chain 1:  10%|█         | 400/4000 [03:18<27:39,  2.17it/s][ARunning chain 0:  10%|█         | 400/4000 [03:44<31:00,  1.94it/s]
-Running chain 1:  15%|█▌        | 600/4000 [04:43<25:15,  2.24it/s][ARunning chain 0:  15%|█▌        | 600/4000 [05:06<26:28,  2.14it/s]
-Running chain 1:  20%|██        | 800/4000 [06:00<22:28,  2.37it/s][ARunning chain 0:  20%|██        | 800/4000 [06:18<22:41,  2.35it/s]
-Running chain 1:  25%|██▌       | 1000/4000 [07:29<21:27,  2.33it/s][ARunning chain 0:  25%|██▌       | 1000/4000 [07:51<21:59,  2.27it/s]
-Running chain 1:  30%|███       | 1200/4000 [08:39<18:47,  2.48it/s][ARunning chain 0:  30%|███       | 1200/4000 [09:03<19:12,  2.43it/s]
-Running chain 1:  35%|███▌      | 1400/4000 [09:51<16:50,  2.57it/s][ARunning chain 0:  35%|███▌      | 1400/4000 [10:14<17:05,  2.53it/s]
-Running chain 1:  40%|████      | 1600/4000 [11:00<15:00,  2.66it/s][ARunning chain 0:  40%|████      | 1600/4000 [11:20<14:55,  2.68it/s]
-Running chain 1:  45%|████▌     | 1800/4000 [12:10<13:28,  2.72it/s][ARunning chain 0:  45%|████▌     | 1800/4000 [12:22<12:57,  2.83it/s]
-Running chain 1:  50%|█████     | 2000/4000 [13:24<12:15,  2.72it/s][ARunning chain 0:  50%|█████     | 2000/4000 [13:47<12:29,  2.67it/s]
-Running chain 1:  55%|█████▌    | 2200/4000 [15:07<12:23,  2.42it/s][ARunning chain 0:  55%|█████▌    | 2200/4000 [15:09<11:35,  2.59it/s]Running chain 0:  60%|██████    | 2400/4000 [16:33<10:34,  2.52it/s]
-Running chain 1:  60%|██████    | 2400/4000 [16:46<11:39,  2.29it/s][ARunning chain 0:  65%|██████▌   | 2600/4000 [17:55<09:20,  2.50it/s]
-Running chain 1:  65%|██████▌   | 2600/4000 [18:28<10:43,  2.18it/s][ARunning chain 0:  70%|███████   | 2800/4000 [19:19<08:08,  2.46it/s]
-Running chain 1:  70%|███████   | 2800/4000 [20:04<09:19,  2.14it/s][ARunning chain 0:  75%|███████▌  | 3000/4000 [20:44<06:52,  2.42it/s]
-Running chain 1:  75%|███████▌  | 3000/4000 [21:43<07:54,  2.11it/s][ARunning chain 0:  80%|████████  | 3200/4000 [21:59<05:20,  2.49it/s]
-Running chain 1:  80%|████████  | 3200/4000 [23:18<06:19,  2.11it/s][ARunning chain 0:  85%|████████▌ | 3400/4000 [23:21<04:02,  2.48it/s]Running chain 0:  90%|█████████ | 3600/4000 [24:41<02:41,  2.48it/s]
-Running chain 1:  85%|████████▌ | 3400/4000 [24:55<04:47,  2.09it/s][ARunning chain 0:  95%|█████████▌| 3800/4000 [26:03<01:20,  2.47it/s]
-Running chain 1:  90%|█████████ | 3600/4000 [26:33<03:12,  2.08it/s][ARunning chain 0: 100%|██████████| 4000/4000 [27:23<00:00,  2.48it/s]Running chain 0: 100%|██████████| 4000/4000 [27:23<00:00,  2.43it/s]
-
-Running chain 1:  95%|█████████▌| 3800/4000 [28:07<01:35,  2.09it/s][A
-Running chain 1: 100%|██████████| 4000/4000 [29:42<00:00,  2.09it/s][ARunning chain 1: 100%|██████████| 4000/4000 [29:42<00:00,  2.24it/s]
-
-                mean       std    median      5.0%     95.0%     n_eff     r_hat
-  log10_ha    -15.52      0.07    -15.51    -15.63    -15.40   1407.01      1.00
-
-Number of divergences: 0
-Completed. Saving results to disk...
-Saved results to outputs/mdc2_parameter_estimation_NUTS_results_2025-05-02_14-35-34.nc
-
-real	36m18.492s
-user	22m17.148s
-sys	12m26.783s
-
-+------------------- Job Report: 178913 (COMPLETED) -------------------+
-| Memory (RAM)  [#############       ] 65.6% (5.2 GB peak / 8 GB)      |
-| CPU           [############        ] 60.8% average                   |
-| GPU           [################    ] 84.7% average                   |
-| Time          [------------>       ] 61.1% (0-00:36:39 / 0-01:00:00) |
-|                                                                      |
-| Lustre Filesystem:                                                   |
-|   Path    Total Read    Total Write    Total IOPS                    |
-|   ------  ------------  -------------  ------------                  |
-|   /apps   29.9 MB       0 B            10                            |
-|   /fred   517.3 MB      71.1 KB        14.8 K                        |
-|   /home   84 KB         0 B            32                            |
-|                                                                      |
-| Warnings:                                                            |
-|   - CPU usage is low                                                 |
-|   - Too much time requested                                          |
-+----------------------------------------------------------------------+

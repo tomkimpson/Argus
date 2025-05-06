@@ -47,9 +47,9 @@ jobs:
           poetry env info
           poetry install --no-interaction
 
-      - name: Test with pytest
+      - name: Test with pytest (excluding GPU tests)
         shell: bash -l {0}
-        run: pytest
+        run: pytest -m "not gpu"
 
       # - name: Generate Coverage Report
       #   run: |

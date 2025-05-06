@@ -92,6 +92,7 @@ def IPTA_MDC2_data():
 TOLERANCE_FIRST_RUN_S = 10.0  # Allow more time for the first run (JIT compilation)
 TOLERANCE_SECOND_RUN_S = 2 # Expect much faster execution after compilation
 
+@pytest.mark.gpu
 def test_likelihood_timing_and_jit_speedup(IPTA_MDC2_data):
     """
     Tests the likelihood calculation time using pytest.
