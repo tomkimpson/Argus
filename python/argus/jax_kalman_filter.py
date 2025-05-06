@@ -165,8 +165,6 @@ def _initialize_kalman_filter(nx,Npsr,P_eps,σa2,γa,σp2,γp):
 @partial(jax.jit, static_argnames=('Npsr', 'M_sum', 'dim_x','n_states'))
 def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,hellings_downs_matrix, dt_array, dim_x,n_states,P_eps):
     """Run the Kalman filter algorithm over all observations and return a log likelihood."""
-
-
     σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
     
     x0,P0 = _initialize_kalman_filter(n_states,Npsr,P_eps,σa2, θ.γa,θ.σp**2, θ.γp)
