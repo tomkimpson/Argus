@@ -4,12 +4,20 @@ import jax
 import jax.numpy as jnp
 
 
-# --- JAX Configuration for CPU ---
-# Force JAX to use the CPU platform only.
-# This is useful for testing environments without GPUs/TPUs
-# or to ensure consistent testing behavior.
-print("Configuring JAX to use CPU...") # Optional: Add a print statement for confirmation
-jax.config.update("jax_platforms", "cpu")
+# # --- JAX Configuration for CPU ---
+# Check for GPU availability and configure JAX accordingly
+try:
+    gpu_devices = jax.devices('gpu')
+    if gpu_devices:
+        print("GPU found. Configuring JAX to use GPU.")
+        jax.config.update("jax_platforms", "gpu")
+    else:
+        print("No GPU found. Configuring JAX to use CPU.")
+        jax.config.update("jax_platforms", "cpu")
+except Exception as e:
+    print(f"Error checking for GPU: {e}")
+    print("Falling back to CPU.")
+    jax.config.update("jax_platforms", "cpu")
 # ---------------------------------
 # Enable 64-bit precision in JAX for numerical stability
 jax.config.update("jax_enable_x64", True)
