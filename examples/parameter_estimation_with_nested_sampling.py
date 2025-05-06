@@ -22,7 +22,7 @@ from argus import jax_kalman_filter
 from argus import gravitational_waves
 
 
-
+import time 
 
 
 #jaxns 
@@ -106,9 +106,23 @@ def parameter_estimation():
     )
 
     print("First call to get_likelihood. Just for precompilation")
+    t1 = time.time()
     ll = KF.get_likelihood(params)
     ll.block_until_ready()
+    t2 = time.time()
     print("Likelihood: ",ll)
+    print("Time taken for precompilation: ",t2-t1)
+
+
+    print("Second call to get_likelihood. Checking precompilation")
+    t1 = time.time()
+    ll = KF.get_likelihood(params)
+    ll.block_until_ready()
+    t2 = time.time()
+    print("Likelihood: ",ll)
+    print("Time taken for second call: ",t2-t1)
+
+
 
 
 
@@ -122,23 +136,23 @@ def parameter_estimation():
         # Scalar parameter
         log10_ha = yield Prior(tfpd.Uniform(-17.0, -14.0), name='log10_ha')
 
-        # Vector parameters - Use jnp.full or pass arrays to low/high for TFP Uniform
-        log10_γp = yield Prior(
-            tfpd.Uniform(low=jnp.full(model.Npsr, -11.0), high=jnp.full(model.Npsr, -6.0)),
-            name='log10_γp'
-        )
+        # # Vector parameters - Use jnp.full or pass arrays to low/high for TFP Uniform
+        # log10_γp = yield Prior(
+        #     tfpd.Uniform(low=jnp.full(model.Npsr, -11.0), high=jnp.full(model.Npsr, -6.0)),
+        #     name='log10_γp'
+        # )
 
-        log10_σp = yield Prior(
-            tfpd.Uniform(low=jnp.full(model.Npsr, -18.0), high=jnp.full(model.Npsr, -12.0)),
-            name='log10_σp'
-        )
+        # log10_σp = yield Prior(
+        #     tfpd.Uniform(low=jnp.full(model.Npsr, -18.0), high=jnp.full(model.Npsr, -12.0)),
+        #     name='log10_σp'
+        #)
  
-        return log10_ha, log10_γp, log10_σp
+        return log10_ha #, log10_γp, log10_σp
 
 
 
     # JAXNS model
-    def jaxns_log_likelihood(log10_ha, log10_γp, log10_σp):
+    def jaxns_log_likelihood(log10_ha):
 
         # Fixed values
         γa = 1e-9
@@ -147,16 +161,16 @@ def parameter_estimation():
 
 
        # Calculate derived parameters
-        ha = 10.**log10_ha
-        γp = 10.**log10_γp # Will have shape (Npsr,)
-        σp = 10.**log10_σp # Will have shape (Npsr,)
+        ha = 10.0**log10_ha
+        #γp = 10.**log10_γp # Will have shape (Npsr,)
+        #σp = 10.**log10_σp # Will have shape (Npsr,)
 
         # Construct the Parameters object
         params = Parameters(
             γa=γa,
             ha=ha,
-            γp=γp,
-            σp=σp,
+            γp=gamma_p_injected,
+            σp=sigma_p_injected,
             EFAC=EFAC,
             EQUAD=EQUAD
         )
@@ -180,11 +194,6 @@ def parameter_estimation():
     print("Converting to results")
     results = ns.to_results(termination_reason=termination_reason, state=state)
 
-    print("Summary")
-    ns.print_summary()  # Posterior estimates
-
-
-
 
     #Plots
     print("Generating plots")
@@ -194,7 +203,7 @@ def parameter_estimation():
     print("Completed. Saving results to disk...")
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-    ns.save_results(results,f"outputs/datafiles/example_nested_sampling_results_{timestamp}")
+    ns.save_results(results,f"outputs/example_nested_sampling_results_{timestamp}")
    
 
 
