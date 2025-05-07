@@ -354,3 +354,77 @@ log(Z) est.: 56032.99097921964 +- 0.13167441786470063
 log(Z | remaining) est.: 1.9095918549064663 +- 0.20641085585038513
 ESS: 59.78424524055621
 
+-------
+Num samples: 250
+Num likelihood evals: 94423
+Efficiency: 0.0024841634579555335
+log(L) contour: 56034.89069030811
+log(Z) est.: 56033.03070881574 +- 0.1313360416384987
+log(Z | remaining) est.: 0.9807280819732114 +- 0.1911374134155925
+ESS: 91.32535620837987
+
+-------
+Num samples: 300
+Num likelihood evals: 122814
+Efficiency: 0.002077749381869559
+log(L) contour: 56035.08454283001
+log(Z) est.: 56033.040936086036 +- 0.1313940438489039
+log(Z | remaining) est.: 0.5119538745420869 +- 0.18665474610889476
+ESS: 120.0256083253334
+
+-------
+Num samples: 350
+Num likelihood evals: 163336
+Efficiency: 0.0015241811336859272
+log(L) contour: 56035.135771598274
+log(Z) est.: 56033.04414922937 +- 0.13141223463729002
+log(Z | remaining) est.: 0.28433750813564984 +- 0.18528390251244914
+ESS: 137.38839501312057
+
+-------
+Num samples: 400
+Num likelihood evals: 228596
+Efficiency: 0.001007252215954875
+log(L) contour: 56035.14870458771
+log(Z) est.: 56033.04537175774 +- 0.13141959868663025
+log(Z | remaining) est.: 0.16400125882501015 +- 0.18505940080928457
+ESS: 145.46436996452408
+
+-------
+Num samples: 450
+Num likelihood evals: 319728
+Efficiency: 0.0007181844297615628
+log(L) contour: 56035.15455402854
+log(Z) est.: 56033.04611737484 +- 0.1314276396108316
+log(Z | remaining) est.: 0.09686576531385072 +- 0.18518075777182222
+ESS: 148.82558914135947
+
+Converting to results
+Generating plots
+Completed. Saving results to disk...
+/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/jaxns/utils.py:611: UserWarning: Filename outputs/example_nested_sampling_results_2025-05-07_22-14-50 does not end with .json. We let this pass, but you should consider using a .json file extension.
+  warnings.warn(f"Filename {save_file} does not end with .json. "
+
+real	386m32.976s
+user	231m44.209s
+sys	148m6.842s
+
++------------------- Job Report: 279263 (COMPLETED) -------------------+
+| Memory (RAM)  [########            ] 41.2% (3.3 GB peak / 8 GB)      |
+| CPU           [###########         ] 59.9% average                   |
+| GPU           [################### ] 97.4% average                   |
+| Time          [-->                 ] 13.4% (0-06:26:48 / 2-00:00:00) |
+|                                                                      |
+| Lustre Filesystem:                                                   |
+|   Path    Total Read    Total Write    Total IOPS                    |
+|   ------  ------------  -------------  ------------                  |
+|   /apps   29.9 MB       0 B            4                             |
+|   /fred   712.2 MB      49.1 KB        16.1 K                        |
+|   /home   60 KB         0 B            11                            |
+|   OS      0 B           0 B            5                             |
+|                                                                      |
+| Warnings:                                                            |
+|   - Too much memory requested                                        |
+|   - CPU usage is low (possibly GPU-bound)                            |
+|   - Too much time requested                                          |
++----------------------------------------------------------------------+

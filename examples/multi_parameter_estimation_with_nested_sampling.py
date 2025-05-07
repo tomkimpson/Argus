@@ -203,7 +203,7 @@ def parameter_estimation():
     ns.plot_cornerplot(results,variables =['log10_ha','γa'],save_name='outputs/images/example_NS_cornerplot')
 
     print("Completed. Saving results to disk...")
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S.json")
 
     ns.save_results(results,f"outputs/example_nested_sampling_results_{timestamp}")
    

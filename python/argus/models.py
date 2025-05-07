@@ -5,6 +5,10 @@ import numpy as np
 from typing import Any, List
 from argus.jmath import get_F, get_Q
 import sys 
+import logging
+
+# Get a logger for this module
+logger = logging.getLogger(__name__)
 
 
 class ModelHyperClass(ABC):
@@ -66,6 +70,7 @@ class StochasticGWBackgroundModel(ModelHyperClass):
 
         δt^(n) = (1/f₀)·δφ − r + (design row)·[δε].
 
+    When use_gw=False, the GW term (-r) is removed from the measurement equation.
     """
 
     def __init__(
@@ -73,6 +78,7 @@ class StochasticGWBackgroundModel(ModelHyperClass):
         df_psr: Any,
         hd_correlation_matrix: np.ndarray,
         pulsar_design_matrices: np.ndarray,
+        use_gw: bool = True
     ) -> None:
         """Initialize the StochasticGWBackgroundModel.
 
@@ -88,13 +94,23 @@ class StochasticGWBackgroundModel(ModelHyperClass):
                 - sigma_t: the measurement noise standard deviation.
         hd_correlation_matrix : np.ndarray
             Precomputed Hellings-Downs correlation matrix
+        pulsar_design_matrices : np.ndarray
+            Design matrices for each pulsar
+        use_gw : bool, optional
+            If True, include GW terms in the measurement equation. If False, 
+            use null model (GW states still present but not used in measurements).
+            Default is True.
         """
         self.Npsr = int(len(df_psr))
         print("The number of pulsars is:", self.Npsr)
         self.name = "Stochastic GW background model"
+        self.use_gw = use_gw
+        
+        if not self.use_gw:
+            logger.info("Initializing null GW model - GW states present but not used in measurements")
+        
         # Total state dimension: for each pulsar, two state variables from spin noise,
         # two from GW noise, and dim_M extra parameters.
-        
         self.nx = self.Npsr * (2 + 2) + df_psr["dim_M"].sum()
 
         self.M = df_psr["dim_M"].values.astype(int)  # array of integers
@@ -104,12 +120,9 @@ class StochasticGWBackgroundModel(ModelHyperClass):
 
         self.M_start_indices = np.cumsum([0] + [m for m in self.M]) + 4 * self.Npsr
 
-
         self.f0 = df_psr["F0"].values
 
         print("The frequencies are:", self.f0)
-
-
 
         # Used in the H_matrix function
         self.pulsar_design_matrices = pulsar_design_matrices
@@ -164,14 +177,11 @@ class StochasticGWBackgroundModel(ModelHyperClass):
             # Get the relevant row from this pulsar's precomputed design matrix
             design_row = self.pulsar_design_matrices[psr_idx][time_step_index, :]
 
-            # --- Fill the H matrix row using standard NumPy indexing ---
-
-            # Update Redshift term coefficient (-1.0)
-            H[psr_idx, redshift_idx] = -1.0
+            # Update Redshift term coefficient (-1.0) only if use_gw is True
+            if self.use_gw:
+                H[psr_idx, redshift_idx] = -1.0
 
             # Update Spin noise term coefficient (1 / f0_n)
-            # Ensure self.f0 is a NumPy array for vectorized operations if needed,
-            # or just access the element directly.
             H[psr_idx, spin_idx] = 1.0 / self.f0[psr_idx]
 
             # Update Timing model term coefficients (design matrix row)
