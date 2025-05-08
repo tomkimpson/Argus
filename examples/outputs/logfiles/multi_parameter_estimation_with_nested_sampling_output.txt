@@ -145,3 +145,23 @@ INFO:argus.jax_kalman_filter:The errors at t=1 are: [2.69768e-06 3.56419e-06 3.3
  3.17338e-06 2.32335e-06 3.52711e-06 3.18223e-06 3.10718e-06 3.78191e-06
  3.27771e-06 3.64638e-06 3.43392e-06]
 INFO:jaxns:Number of Markov-chains set to: 100
+slurmstepd: error: *** JOB 269714 ON gina11 CANCELLED AT 2025-05-08T16:09:44 DUE TO TIME LIMIT ***
+
++-------------------- Job Report: 269714 (TIMEOUT) ---------------------+
+| Memory (RAM)  [########            ] 40.9% (3.3 GB peak / 8 GB)       |
+| CPU           [############        ] 62.0% average                    |
+| GPU           [################### ] 99.0% average                    |
+| Time          [------------------->] 100.0% (2-00:00:10 / 2-00:00:00) |
+|                                                                       |
+| Lustre Filesystem:                                                    |
+|   Path    Total Read    Total Write    Total IOPS                     |
+|   ------  ------------  -------------  ------------                   |
+|   /apps   35 MB         0 B            16                             |
+|   /fred   1.2 GB        17.9 KB        16.1 K                         |
+|   /home   60 KB         0 B            10                             |
+|   OS      17.7 MB       0 B            13                             |
+|                                                                       |
+| Warnings:                                                             |
+|   - Too much memory requested                                         |
+|   - CPU usage is low (possibly GPU-bound)                             |
++-----------------------------------------------------------------------+
