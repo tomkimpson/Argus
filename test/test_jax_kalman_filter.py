@@ -137,9 +137,6 @@ def numpy_setup_data(class_test_dims):
     }
 
 
-
-
-
 import os
 @pytest.fixture(scope="module")
 def IPTA_MDC2_data():
@@ -451,8 +448,6 @@ class TestJaxKalmanFilterInternals:
 import glob 
 from argus import jmath
 from .utils import check_cholesky,check_minimum_eigenvalue
-
-
 class TestNumericalStability:
 
 
