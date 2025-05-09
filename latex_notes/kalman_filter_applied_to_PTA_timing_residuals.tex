@@ -97,22 +97,19 @@ We have a set of $N$ pulsars. Each pulsar has $4 + M^{(n)}$ states, where $M^{(n
 	\frac{d}{dt} \delta f^{(n)} &= -\gamma_p^{(n)} \delta f^{(n)} + \chi_p^{(n)}(t), \\
 	\frac{d}{dt} r^{(n)} &= a^{(n)}, \\
 	\frac{d}{dt} a^{(n)} &= -\gamma_a a^{(n)} + \chi_{\mathrm a}^{(n)}(t), \\
-	\frac{d}{dt} \delta \epsilon^{(n)}_{m} &= \chi_{\epsilon_{m}}^{(n)}(t) \quad \forall m \in [1, M^{(n)}].
+	\frac{d}{dt} \delta \epsilon^{(n)}_{m} &= 0 \quad \forall m \in [1, M^{(n)}].
 \end{align}
-where $\chi_{i}$ denotes a white noise stochastic process and $\gamma_i$ are damping constants. The processes  $\chi_p^{(n)}$ and  $\chi_\epsilon^{(n)}$ are uncorrelated between different $n$. Their statistics are defined by
+where $\chi_{i}$ denotes a white noise stochastic process and $\gamma_i$ are damping constants. \newline 
 
+The stochastic process  $\chi_p^{(n)}$ is uncorrelated between different $n$ \footnote{i.e. timing noise is uncorrelated between pulsars}. The statistics of $\chi_p^{(n)}$ are defined by
 \begin{align}
 	\langle \chi_p^{(n)}(t) \rangle &= 0 \ , \\
 	\langle \chi_p^{(n)}(t) \chi_p^{(n')}(t') \rangle &= [\sigma_p^{(n)}]^2 \delta_{n,n'} \delta(t - t') \ .
 \end{align}
 \footnote{The factor $\delta_{n,n'}$ in the right-hand side ensures that the non-GW-induced spin fluctuations in distinct pulsars $n\neq n'$ are uncorrelated, as expected physically.}
-and
-\begin{align}
-	\langle \chi_{\epsilon_m}^{(n)}(t) \rangle &= 0 \ , \\
-	\langle \chi_{\epsilon_m}^{(n)}(t) \chi_{\epsilon_m'}^{(n')}(t') \rangle &= [\sigma_{\epsilon_m}^{(n)}]^2 \delta_{n,n'} \delta(t - t') \ 
-\end{align}
-\footnote{I am not sure if it makes sense for the timing model parameter errors to be treated in this way; perhaps there is some correlation between the parameters for a single pulsar . For now we just assume that they are all uncorrelated for simplicity.} \newline 
-The correlation between pulsars manifests due to the GW, i.e. the $a^{(n)}$ state. The ensemble statistics of $\chi_{\mathrm a}^{(n)}$ are
+
+
+The stochastic process $\chi_{\mathrm a}^{(n)}$  is correlated between pulsars - this is the usual Hellings-Downs correlation. The ensemble statistics of $\chi_{\mathrm a}^{(n)}$ are
 \begin{align}
 	\langle \chi^{(n)}_{\mathrm a}(t) \rangle &= 0 \ , 	\label{eq:xieqn1} \\
 	\langle \chi^{(n)}_{\mathrm a}(t) \, \chi^{(n')}_{\mathrm a}(t') \rangle &= \left[\sigma^{(n,n')}_{\mathrm a}\right]^2 \delta(t - t') \ .	\label{eq:xieqn2}
@@ -126,6 +123,9 @@ where $\langle h^2 \rangle$ is the mean square GW strain, $\theta^{(n,n')}$ is t
 	\Gamma\left[\theta^{(n,n')} \right] =  \frac{3}{2} x_{n n'} \ln x_{n n'}  -\frac{x_{n n'} }{4}+\frac{1}{2} + \frac{1}{2} \delta_{n n'}\label{eq:correlation} \, ,
 \end{eqnarray}
 with $x_{nn'} = \left[1 - \cos \theta^{(n,n')}\right]/2$. \newline 
+
+
+The states $\delta \epsilon^{(n)}_{m}$ are static, as they represent parameters. In a typical PTA analysis one marginalises over these timing model parameters. Here, we set them as static with some initial value and covariance.  \footnote{That is, we just set these with some Gaussian prior}. \newline 
 
 The states described by the SDEs are related to the observables, $\boldsymbol{Y} = \left(\delta t \right) $ via a measurement equation
 \begin{equation}
