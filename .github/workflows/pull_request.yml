@@ -87,7 +87,7 @@ jobs:
           # Generate coverage report in XML format for the 'python' directory
           # Uses pytest-cov, requires it in dev dependencies (pyproject.toml)
           # Assumes source code is in './python' based on pyproject.toml [tool.pytest.ini_options]
-          poetry run pytest --cov=python --cov-report=xml
+          poetry run pytest -m "not gpu" --cov=python --cov-report=xml
 
       - name: Documentation build test
         shell: bash -l {0}
