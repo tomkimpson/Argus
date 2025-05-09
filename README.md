@@ -5,5 +5,5 @@
 
 Welcome to the `Argus` repo. Please see the [documentation](https://argus-pta.readthedocs.io/en/latest/).
 
-
-![alt text](data/images/example_posterior.png)
+<!-- 
+![alt text](data/images/example_posterior.png) -->
