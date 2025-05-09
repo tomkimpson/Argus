@@ -13,8 +13,10 @@ from jax import vmap
 from functools import partial
 from typing import Tuple
 
+
 def get_F_block(γ: float, dt: float) -> jax.Array:
     """Compute 2x2 state transition block matrix for a single component.
+    
     Uses expm1 for improved numerical stability when γ*dt is small.
     Assumes γ != 0 based on prior constraints.
 
@@ -37,6 +39,7 @@ def get_F_block(γ: float, dt: float) -> jax.Array:
 
 def get_Q_block(γ: float, dt: float) -> jax.Array:
     """Compute Q block matrix using JAX.
+
     Uses expm1 for improved numerical stability when gamma*dt is small.
     Assumes gamma != 0 based on prior constraints.
 
@@ -57,7 +60,6 @@ def get_Q_block(γ: float, dt: float) -> jax.Array:
 
     return jnp.array([[q11, q12], [q12, q22]])
 
-
 def get_F_spin(gamma: jax.Array, dt: float) -> jax.Array:
     """Compute block diagonal state transition matrix for spin noise.
     
@@ -72,6 +74,11 @@ def get_F_spin(gamma: jax.Array, dt: float) -> jax.Array:
     res = vmap(lambda x: get_F_block(x, dt))(gamma)
     return block_diag(*res)
 
+def get_Q_spin(gamma, dt,sigma_p):
+    """Compute Q spin matrix using JAX."""
+    res = vmap(lambda g, s: get_Q_block(g, dt) * s)(gamma, sigma_p)
+    return block_diag(*res)
+
 @partial(jax.jit, static_argnums=(3,4))
 def get_F(gamma, gamma_spin, dt, Npsr, M_sum):
     """Get transition matrices using JAX."""
@@ -80,19 +87,13 @@ def get_F(gamma, gamma_spin, dt, Npsr, M_sum):
     F_spin = get_F_spin(gamma_spin, dt)
     return F_gw, F_spin
 
-def get_Q_spin(gamma, dt,sigma_p):
-    """Compute Q spin matrix using JAX."""
-    res = vmap(lambda g, s: get_Q_block(g, dt) * s)(gamma, sigma_p)
-    return block_diag(*res)
-
-@partial(jax.jit, static_argnums=(5,6))
-def get_Q(gamma,σa2, gamma_spin,σp2, dt, Npsr, M_sum, eps):
+@jax.jit
+def get_Q(gamma,σa2, gamma_spin,σp2, dt):
     """Get process noise matrices using JAX."""
     Q_gw_block = get_Q_block(gamma, dt)
     Q_gw = jnp.kron(σa2, Q_gw_block)
     Q_spin = get_Q_spin(gamma_spin, dt, σp2)
-    Q_timing = dt*jnp.eye(M_sum) * eps**2
-    return Q_gw, Q_spin, Q_timing
+    return Q_gw, Q_spin
 
 @partial(jax.jit, static_argnums=(2,3))
 def compute_predicted_state(F_list, x, gw_size, spin_size):
@@ -119,7 +120,6 @@ def compute_predicted_state(F_list, x, gw_size, spin_size):
     x_gw = x[:gw_size]
     x_spin = x[gw_size:gw_size+spin_size]
     x_timing = x[gw_size+spin_size:]
-    
     return jnp.vstack([F_gw@x_gw, F_spin@x_spin, x_timing])
 
 @partial(jax.jit, static_argnums=(3,4))
@@ -148,7 +148,7 @@ def compute_predicted_covariance(P: jax.Array,
         many unnecessary multiplications with zero elements.
     """
     F1, F2 = F_list
-    Q1, Q2, Q3 = Q_list
+    Q1, Q2 = Q_list
     
     # Extract blocks directly from P
     P1 = P[:gw_size, :gw_size]
@@ -165,26 +165,26 @@ def compute_predicted_covariance(P: jax.Array,
     PF5 = F2 @ P5
     PF6 = F1 @ P6
 
+ 
+
     # Assemble full matrix
     return jnp.block([[PF1,   PF4,   PF6],
                      [PF4.T,  PF2,   PF5],
-                     [PF6.T,  PF5.T, P3 + Q3]])
-
-
-
-
+                     [PF6.T,  PF5.T, P3]])
 
 @jax.jit
-def precompute_R_matrices(σ: jax.Array, EFAC: jax.Array, EQUAD: jax.Array, psr_indices: int) -> jax.Array:
+def precompute_R_matrices(σ: jax.Array, EFAC: jax.Array, EQUAD: jax.Array) -> jax.Array:
     """Build the measurement-noise covariance matrix R for the pulsars observed at a given epoch.
 
     For pulsar n, the measurement noise variance is (σt[n])².
     Currently, this method returns a scalar
     or a per-pulsar value.
     """
-    return jnp.square(σ* EFAC[psr_indices]) + jnp.square(EQUAD[psr_indices])
-
-
+   # Calculate all diagonal elements for all observations using broadcasting
+    diagonals = jnp.square(EFAC * σ ) + jnp.square(EQUAD) # Shape: (Nobs, ny)
+    R = jax.vmap(jnp.diag)(diagonals)
+    #jax.debug.print('R.shape: {shape}',shape=R.shape,ordered=True)
+    return R
 
 @partial(jax.jit, static_argnums=(3, 4))
 def F_matrices_non_precomputed(gamma_a: float, 
@@ -211,10 +211,8 @@ def F_matrices_non_precomputed(gamma_a: float,
     F_gw, F_spin = get_F(gamma_a, gamma_p, dt_array, Npsr, M_sum)
     return F_gw, F_spin
 
-
-
-@partial(jax.jit, static_argnums=(5, 6))
-def Q_matrices_non_precomputed(gamma_a, σa2, gamma_p, σp2, dt_array, Npsr, M_sum, eps):
+@jax.jit
+def Q_matrices_non_precomputed(gamma_a, σa2, gamma_p, σp2, dt_array):
     """Precompute Q matrices for a single timestep only.
     
     Args:
@@ -232,8 +230,8 @@ def Q_matrices_non_precomputed(gamma_a, σa2, gamma_p, σp2, dt_array, Npsr, M_s
         tuple: (Q_gw_matrix, Q_spin_matrix, Q_timing_matrix) for the single timestep
     """
     # Get Q matrices for a single dt (not vectorized)
-    Q_gw, Q_spin, Q_timing = get_Q(gamma_a, σa2, gamma_p, σp2, dt_array, Npsr, M_sum, eps)
-    return Q_gw, Q_spin, Q_timing
+    Q_gw, Q_spin = get_Q(gamma_a, σa2, gamma_p, σp2, dt_array)
+    return Q_gw, Q_spin
 
 
 
