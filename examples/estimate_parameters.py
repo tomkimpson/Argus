@@ -42,24 +42,13 @@ def parameter_estimation(P_eps_scaling):
     #Get the data 
     data_path = "../data/IPTA_MockDataChallenge2/dataset_2b/" 
     data = data_loader.get_processed_residuals(data_path)
+    
+    #Initialise the Kalman filter
+    KF = jax_kalman_filter.JaxKalmanFilter(data_dict=data,P0_scaling=1.0,use_gw=True)
 
 
-    print(data)
 
     sys.exit()
-
-    #Initialise the model
-
-    #GW_model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
-
-    P0 = P_eps_scaling*block_diag(*P_eps_matrices)
-
-
-    KF = jax_kalman_filter.JaxKalmanFilter(
-        model=GW_model, 
-        observations=processed_pulsar_residuals, 
-        Peps=P0
-    )
 
     #loglik_fn = lambda log10_ha, log10_γp, log10_σp,efac_array,equad_array: bayesian_inference.jaxns_log_likelihood(KF,log10_ha, log10_γp, log10_σp, efac_array,equad_array)
     

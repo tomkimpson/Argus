@@ -4,15 +4,40 @@ This module contains three main groups of functions:
 1. Basic block matrix operations (get_F_block, get_Q_block)
 2. Component-specific operations (get_F_spin, get_Q_spin)
 3. Full system operations (get_F, get_Q, get_Pp_blocks)
+
+The state vector for all pulsars is taken to be
+
+    X = [X_GW, X_spin, X_timing]
+with
+    X_GW = [r^(1), a^(1),r^(2),a^(2),...,r^(N),a^(N)]
+
+    X_spin = [δφ^(1), δf^(1), δφ^(2), δf^(2),..., δφ^(N), δf^(N)]
+
+    X_timing = [X_timing^(1), X_timing^(2),..., X_timing^(N)]
+
+and
+    X_timing^(n) = [δε_1^(n), δε_2^(n),..., δε_M^(n)]
+
+where M[n] is the number of extra (design) parameters for that pulsar.
+
+The measurement equation is
+
+    δt^(n) = (1/f₀)·δφ − r + (design row)·[δε].
+
+When use_gw=False, the GW term (-r) is removed from the measurement equation.
 """
 
+import logging
 import jax
 import jax.numpy as jnp
 from jax.scipy.linalg import block_diag
 from jax import vmap
 from functools import partial
-from typing import Tuple
+from typing import Tuple, List
+import numpy as np
 
+# Get a logger for this module
+logger = logging.getLogger(__name__)
 
 def get_F_block(γ: float, dt: float) -> jax.Array:
     """Compute 2x2 state transition block matrix for a single component.
@@ -106,6 +131,121 @@ def precompute_R_matrices(σ: jax.Array, EFAC: jax.Array, EQUAD: jax.Array) -> j
    # Calculate all diagonal elements for all observations using broadcasting
     diagonals = jnp.square(EFAC * σ ) + jnp.square(EQUAD) # Shape: (Nobs, ny)
     R = jax.vmap(jnp.diag)(diagonals)
-    #jax.debug.print('R.shape: {shape}',shape=R.shape,ordered=True)
     return R
+
+def compute_H_matrix_for_step(time_step_index: int, Npsr: int, nx: int, 
+                            pulsar_design_matrices: List[np.ndarray],
+                            M_start_indices: np.ndarray, f0: np.ndarray,
+                            use_gw: bool = True) -> np.ndarray:
+    """
+    Compute the observation matrix H for the current time step using NumPy.
+
+    This matrix maps the full state vector to the vector of observations
+    from all pulsars at the given time step.
+
+    Parameters
+    ----------
+    time_step_index : int
+        The index corresponding to the current observation time step.
+    Npsr : int
+        Number of pulsars
+    nx : int
+        Dimension of the state vector
+    pulsar_design_matrices : List[np.ndarray]
+        List of design matrices for each pulsar
+    M_start_indices : np.ndarray
+        Array of starting indices for timing model parameters
+    f0 : np.ndarray
+        Array of pulsar frequencies
+    use_gw : bool, optional
+        Whether to include GW terms, by default True
+
+    Returns
+    -------
+    np.ndarray
+        Observation matrix H of shape (Npsr, nx) for the current step.
+    """
+    # Initialize the H matrix with zeros using NumPy
+    H = np.zeros((Npsr, nx))
+
+    # Loop over each pulsar to build the corresponding row of H
+    for psr_idx in range(Npsr):
+        # Indices in the state vector 'x' relevant to this pulsar (psr_idx)
+        redshift_idx = 2 * psr_idx
+        spin_idx = Npsr * 2 + 2 * psr_idx
+        tm_start_idx = M_start_indices[psr_idx]
+        tm_end_idx = M_start_indices[psr_idx + 1]
+
+        # Get the relevant row from this pulsar's precomputed design matrix
+        design_row = pulsar_design_matrices[psr_idx][time_step_index, :]
+
+        # Update Redshift term coefficient (-1.0) only if use_gw is True
+        if use_gw:
+            H[psr_idx, redshift_idx] = -1.0
+
+        # Update Spin noise term coefficient (1 / f0_n)
+        H[psr_idx, spin_idx] = 1.0 / f0[psr_idx]
+
+        # Update Timing model term coefficients (design matrix row)
+        H[psr_idx, tm_start_idx:tm_end_idx] = design_row
+
+    return H
+
+def precompute_H_matrices(Npsr: int, nx: int, pulsar_design_matrices: List[np.ndarray],
+                          M_start_indices: np.ndarray, f0: np.ndarray,
+                          use_gw: bool = True) -> List[np.ndarray]:
+    """
+    Compute the observation matrix H for all time steps using NumPy.
+
+    This iterates through all time steps, calling compute_H_matrix_for_step
+    for each one, using the appropriate row from the time-varying design matrices.
+
+    Parameters
+    ----------
+    Npsr : int
+        Number of pulsars
+    nx : int
+        Dimension of the state vector
+    pulsar_design_matrices : List[np.ndarray]
+        List of design matrices for each pulsar
+    M_start_indices : np.ndarray
+        Array of starting indices for timing model parameters
+    f0 : np.ndarray
+        Array of pulsar frequencies
+    use_gw : bool, optional
+        Whether to include GW terms, by default True
+
+    Returns
+    -------
+    List[np.ndarray]
+        A list where each element is the NumPy H matrix (Npsr, nx)
+        for a specific time step, ordered from time step 0 onwards.
+    """
+    if not pulsar_design_matrices or Npsr == 0:
+        logger.warning("No pulsars or design matrices found. Returning empty list.")
+        return []
+
+    try:
+        num_time_steps = pulsar_design_matrices[0].shape[0]
+    except (IndexError, AttributeError):
+        raise ValueError("Cannot determine number of time steps. "
+                        "Ensure pulsar_design_matrices is a list of NumPy arrays "
+                        "with at least one element.")
+
+    # Optional consistency check
+    for i in range(1, Npsr):
+        if pulsar_design_matrices[i].shape[0] != num_time_steps:
+            raise ValueError(f"Inconsistent number of time steps found (Pulsar 0: {num_time_steps}, Pulsar {i}: {pulsar_design_matrices[i].shape[0]})")
+
+    logger.info(f"Computing H matrices for all {num_time_steps} time steps (using NumPy)...")
+
+    all_H = []
+    for t_idx in range(num_time_steps):
+        H_step = compute_H_matrix_for_step(t_idx, Npsr, nx, pulsar_design_matrices,
+                                         M_start_indices, f0, use_gw)
+        all_H.append(H_step)
+
+    logger.info("Finished computing all H matrices.")
+    return all_H
+
 

@@ -4,7 +4,7 @@ import logging # Added import
 
 import numpy as np
 
-from argus.model import precompute_R_matrices
+from argus.model import precompute_R_matrices,precompute_H_matrices
 from functools import partial
 import jax
 import jax.numpy as jnp
@@ -94,13 +94,6 @@ def compute_predicted_covariance(P: jax.Array,
     return jnp.block([[PF1,   PF4,   PF6],
                      [PF4.T,  PF2,   PF5],
                      [PF6.T,  PF5.T, P3]])
-
-
-
-
-
-
-
 
 
 def _log_likelihood(y: jax.Array, cov: jax.Array) -> jax.Array:
@@ -303,54 +296,86 @@ class JaxKalmanFilter:
     """A class to implement the linear Kalman filter using JAX.
 
     Args:
-        observations: 2D array which holds the noisy observations recorded at the detector
-        Peps: The uncertainty in the guess of P0
-        M_sum: Sum value used in matrix computations
-        nx: Number of states in the state vector
-        hd_correlation_matrix: Hellings-Downs correlation matrix
-        pulsar_design_matrices: List of design matrices for each pulsar
-        f0: Array of pulsar frequencies
-        M_start_indices: Array of indices for timing model components
+        data_dict: Dictionary containing processed pulsar data from get_processed_residuals with keys:
+            - 'processed_residuals': tuple of (average_toas_array, residuals_array, errors_array)
+            - 'metadata': DataFrame containing pulsar metadata
+            - 'design_matrices': list of design matrices for each pulsar
+            - 'parameter_covariances': list of parameter covariance matrices
+            - 'hd_correlation': matrix of Hellings-Downs correlations
         use_gw: Whether to include GW terms in the H matrix
 
     Note:
         This filter assumes that the length of the observations vector = Npsr. This will not always be true depending on the particular data set.
     """
 
-    def __init__(self, observations: np.ndarray, Peps: np.ndarray, M_sum: int, 
-                 nx: int, hd_correlation_matrix: np.ndarray, pulsar_design_matrices: list,
-                 f0: np.ndarray, M_start_indices: np.ndarray, use_gw: bool = True):
+    def __init__(self, data_dict: dict,P0_scaling=1.0, use_gw: bool = True):
         """Initialize the class."""
         logger.info("Initializing JaxKalmanFilter...") # Log entry point
 
-        self.observations = observations
-        self.P_eps = Peps
-        self.M_sum = M_sum
-        self.nx = nx
-        self.pulsar_design_matrices = pulsar_design_matrices
-        self.f0 = f0
-        self.M_start_indices = M_start_indices
-        self.use_gw = use_gw
+        # Extract data from dictionary
+        self.processed_residuals = data_dict['processed_residuals']
+        self.metadata = data_dict['metadata']
+        self.pulsar_design_matrices = data_dict['design_matrices']
+        self.P_eps = P0_scaling*block_diag(*data_dict['parameter_covariances'])
+        self.hd_correlation_matrix = data_dict['hd_correlation']
+
 
         # Extract the observations into separate arrays
-        self.toa = self.observations[0]
-        self.data = self.observations[1]
-        self.data_errors = self.observations[2]
+        self.toa = self.processed_residuals['average_toas']
+        self.data = self.processed_residuals['residuals']
+        self.data_errors = self.processed_residuals['error']
 
-        # Infer Npsr from the shape of data
-        self.Npsr = self.data.shape[0]
+        print("toa shape ",self.toa.shape)
+        print("data shape ",self.data.shape)
+        print("data_errors shape ",self.data_errors.shape)
 
+
+        #Set the number of pulsars
+        self.Npsr = len(self.metadata)
+
+
+
+        #Some shape checks
+        assert self.toa.shape[0] == self.data.shape[0]
+        assert self.toa.shape[0] == self.data_errors.shape[0]
+        assert self.data.shape[1] == self.Npsr
+        assert self.data_errors.shape[1] == self.Npsr
+
+   
+
+        # Total state dimension: for each pulsar, two state variables from spin noise,
+        # two from GW noise, and dim_M extra parameters.
+        self.nx = self.Npsr * (2 + 2) + self.metadata["dim_M"].sum()
+
+        #Precompute the measurement matrices at each timestep
+        self.M = self.metadata["dim_M"].values.astype(int)  # array of integers
+        self.M_sum = self.M.sum()
+
+        self.M_start_indices = np.cumsum([0] + [m for m in self.M]) + 4 * self.Npsr
+        self.f0 = self.metadata['F0'].to_numpy()
+        self.Hmat = precompute_H_matrices(
+            Npsr=self.Npsr,
+            nx=self.nx,
+            pulsar_design_matrices=self.pulsar_design_matrices,
+            M_start_indices=self.M_start_indices,
+            f0=self.f0,
+            use_gw=use_gw
+        )
+
+        self.nx = 2 * len(self.pulsar_design_matrices) + self.M_sum  # Placeholder
+
+
+   
+        #Surface some information about the data
         self.t_diffs = np.diff(self.toa)
-
         logger.info(f"Total number of observations: {len(self.data)}")
         logger.info(f"Starting dt (days): {self.t_diffs[0]/86400}")
         logger.info(f"Ending dt (days): {self.t_diffs[-1]/86400}")
-        logger.info(f"The errors at t=1 are: {self.data_errors[:,0]}")
+        logger.info(f"The errors at t=1 are: {self.data_errors[0,:]}")
 
-        # Compute H matrices
-        self.Hmat = self._compute_H_matrices()
     
-        # Convert to JAX arrays for faster processing
+
+        # Convert everything into JAX arrays explicitly
         self._prepare_jax_arrays()
 
 
@@ -366,7 +391,7 @@ class JaxKalmanFilter:
         self.jax_H_matrices = jnp.array(self.Hmat)
 
         # Convert hellings downs matrix
-        self.hellings_downs_matrix = jnp.array(hd_correlation_matrix)
+        self.hellings_downs_matrix = jnp.array(self.hd_correlation_matrix)
 
         # Verify all floating-point arrays are 64-bit
         float_arrays = [
