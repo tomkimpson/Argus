@@ -55,7 +55,7 @@ class Parameters:
     EQUAD: jnp.ndarray # Extra quadrature noise
 
 
-def gw_prior_model():
+def gw_prior_model(Npsr,efac_array,equad_array):
 
     """Defines the prior distributions for the parameters."""
     
@@ -112,17 +112,6 @@ def null_prior_model(Npsr,efac_array,equad_array):
     return log10_ha,γa, log10_γp, log10_σp,efac,equad
 
 
-
-
-
-
-
-
-
-
-
-
-
 # JAXNS model
 def jaxns_log_likelihood(KF, log10_ha, γa, log10_γp, log10_σp, efac, equad):
     ha = 10.0 ** log10_ha
@@ -139,3 +128,9 @@ def jaxns_log_likelihood(KF, log10_ha, γa, log10_γp, log10_σp, efac, equad):
     )
 
     return KF.get_likelihood(params)
+
+def print_parameters(params: Parameters):
+    """Print all entries of a Parameters struct."""
+    for field in params.__dataclass_fields__:
+        value = getattr(params, field)
+        print(f"{field}: {value}")

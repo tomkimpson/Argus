@@ -4,7 +4,7 @@ import logging # Added import
 
 import numpy as np
 
-from argus.model import precompute_R_matrices,precompute_H_matrices
+from argus.model import precompute_R_matrices,precompute_H_matrices,get_F,get_Q
 from functools import partial
 import jax
 import jax.numpy as jnp
@@ -264,10 +264,10 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
         # Get dt for this step and precompute matrices just for this step
         dt = dt_array[dt_idx]
         # Compute F and Q matrices for this specific timestep only
-        F_gw, F_spin = F_matrices_non_precomputed(θ.γa, θ.γp, dt, Npsr, M_sum)
+        F_gw, F_spin = get_F(θ.γa, θ.γp, dt, Npsr, M_sum)
         F = (F_gw, F_spin)
         
-        Q_gw, Q_spin =Q_matrices_non_precomputed(θ.γa, σa2, θ.γp, θ.σp**2, dt)
+        Q_gw, Q_spin =get_Q(θ.γa, σa2, θ.γp, θ.σp**2, dt)
         Q = (Q_gw, Q_spin)
 
      
@@ -325,15 +325,8 @@ class JaxKalmanFilter:
         self.data = self.processed_residuals['residuals']
         self.data_errors = self.processed_residuals['error']
 
-        print("toa shape ",self.toa.shape)
-        print("data shape ",self.data.shape)
-        print("data_errors shape ",self.data_errors.shape)
-
-
         #Set the number of pulsars
         self.Npsr = len(self.metadata)
-
-
 
         #Some shape checks
         assert self.toa.shape[0] == self.data.shape[0]
@@ -346,6 +339,7 @@ class JaxKalmanFilter:
         # Total state dimension: for each pulsar, two state variables from spin noise,
         # two from GW noise, and dim_M extra parameters.
         self.nx = self.Npsr * (2 + 2) + self.metadata["dim_M"].sum()
+
 
         #Precompute the measurement matrices at each timestep
         self.M = self.metadata["dim_M"].values.astype(int)  # array of integers
@@ -362,7 +356,8 @@ class JaxKalmanFilter:
             use_gw=use_gw
         )
 
-        self.nx = 2 * len(self.pulsar_design_matrices) + self.M_sum  # Placeholder
+        
+
 
 
    

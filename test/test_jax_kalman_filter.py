@@ -2,6 +2,7 @@ import pytest
 import numpy as np
 import jax
 import jax.numpy as jnp
+import pandas as pd
 
 
 # # --- JAX Configuration for CPU ---
@@ -30,7 +31,7 @@ from flax import struct # Import flax struct
 
 # Assume the file is named jax_kalman_filter.py
 from argus import jax_kalman_filter as jk
-from argus import data_loader,gravitational_waves,models
+from argus import data_loader,model
 
 
 # --- Define the Flax Dataclass for Parameters ---
@@ -56,16 +57,16 @@ class Parameters:
 @pytest.fixture(scope="module")
 def class_test_dims():
     """Dimensions for the full class tests, matching original assumptions."""
-    Npsr = 2
-    dim_y = 32 # Assumed observation dimension from R/H handling in _update
-    P_eps_dim = Npsr # Simplest epsilon state assumption
+    Npsr = 3
+    dim_y = Npsr # Assumed observation dimension 
+    P_eps_dim = 2*Npsr # Simplest epsilon state assumption. 2 parameter per pulsar
     n_states = Npsr * 2 + Npsr * 2 + P_eps_dim # GW+Spin+Eps = 4+4+2 = 10
     return {
         'Npsr': Npsr,
         'dim_y': dim_y,
         'P_eps_dim': P_eps_dim,
         'n_states': n_states,
-        'N_timesteps': 10
+        'N_timesteps': 17
     }
 
 # For small simple tests
@@ -99,13 +100,47 @@ def mock_model_instance(class_test_dims, mocker):
     dims = class_test_dims
     mock_model = mocker.MagicMock()
     mock_model.Npsr = dims['Npsr']
-    mock_model.M_sum = 1 # Example
+    mock_model.M_sum = dims['P_eps_dim'] #1 # Example
     mock_model.nx = dims['n_states']
-    # Mock precompute_H_matrix to return something with the right shape
-    mock_H_matrices_np = np.random.randn(dims['N_timesteps'], dims['dim_y'], dims['n_states']).astype(np.float64)
-    # ** Store H on the mock **
+    
+    # Create mock H matrices with correct structure
+    N_timesteps = dims['N_timesteps']
+    Npsr = dims['Npsr']
+    nx = dims['n_states']
+    
+    # Initialize H matrices for all time steps
+    mock_H_matrices_np = np.zeros((N_timesteps, Npsr, nx), dtype=np.float64)
+    
+
+    #M_start_indices = np.cumsum([0] + [m for m in dims['dim_M']]) + 4 * Npsr
+
+
+    # # For each time step
+    # for t in range(N_timesteps):
+    #     # For each pulsar
+    #     for psr_idx in range(Npsr):
+    #         # GW terms (redshift)
+    #         redshift_idx = 2 * psr_idx
+    #         spin_idx = Npsr * 2 + 2 * psr_idx
+    #         tm_start_idx = M_start_indices[psr_idx]  # Assuming 1 timing parameter per pulsar
+    #         tm_end_idx = M_start_indices[psr_idx + 1]
+
+
+    #         #design_row = pulsar_design_matrices[psr_idx][t, :]
+
+            
+    #         mock_H_matrices_np[t, psr_idx, redshift_idx] = -1.0
+            
+    #         # Spin noise terms
+            
+    #         mock_H_matrices_np[t, psr_idx, spin_idx] = 1.0 / 100.0  # Using 100 Hz as mock frequency
+            
+    #         # Timing model terms (using simple design matrix)
+    #         mock_H_matrices_np[t, psr_idx, tm_start_idx] = 1.0
+    
+    # Store H on the mock
     mock_model.H_matrices = jnp.array(mock_H_matrices_np) # Store as jax array
-    mock_model.precompute_H_matrix.return_value = mock_H_matrices_np # Original function returns numpy
+    mock_model.precompute_H_matrices.return_value = mock_H_matrices_np # Original function returns numpy
 
     # Mock HD matrix
     mock_model.hd_correlation_matrix = np.eye(dims['Npsr']).astype(np.float64)
@@ -115,67 +150,52 @@ def mock_model_instance(class_test_dims, mocker):
 def numpy_setup_data(class_test_dims):
     """Provides numpy arrays for initial filter setup."""
     dims = class_test_dims
-    # Mock Observations (NumPy arrays initially)
+    
+    # Create mock processed residuals
     mock_toa_np = np.linspace(0, (dims['N_timesteps'] - 1) * 86400, dims['N_timesteps']).astype(np.float64)
-    mock_data_np = np.random.randn(dims['N_timesteps'], dims['dim_y']).astype(np.float64) * 1e-7
-    mock_data_errors_np = np.ones((dims['Npsr'], dims['N_timesteps'])).astype(np.float64) * 1e-7
-    observations_np = [mock_toa_np, mock_data_np, mock_data_errors_np]
-
-    # Mock Initial State/Covariance (NumPy)
-    mock_x0_np = np.zeros(dims['n_states']).astype(np.float64)
-    mock_P0_np = np.eye(dims['n_states']).astype(np.float64)
-    mock_Peps_np = np.eye(dims['P_eps_dim']).astype(np.float64) * 1e-28
-
+    mock_data_np = np.random.randn(dims['N_timesteps'], dims['Npsr']).astype(np.float64) * 1e-7
+    mock_data_errors_np = np.ones((dims['N_timesteps'], dims['Npsr'])).astype(np.float64) * 1e-7
+    
+    processed_residuals = {
+        'average_toas': mock_toa_np,
+        'residuals': mock_data_np,
+        'error': mock_data_errors_np
+    }
+    
+    # Create mock metadata DataFrame
+    metadata = pd.DataFrame({
+        'name': [f'PSR{i}' for i in range(dims['Npsr'])],
+        'dim_M': [2] * dims['Npsr'],  # Assuming 1 design parameters per pulsar
+        'RA': np.random.uniform(0, 2*np.pi, dims['Npsr']),
+        'DEC': np.random.uniform(-np.pi/2, np.pi/2, dims['Npsr']),
+        'F0': np.ones(dims['Npsr']) * 100  # 100 Hz spin frequency
+    })
+    
+    # Create mock design matrices
+    design_matrices = [np.ones((dims['N_timesteps'], 2)) for _ in range(dims['Npsr'])]
+    
+    # Create mock parameter covariance matrices
+    parameter_covariances = [np.eye(2) * 1e-28 for _ in range(dims['Npsr'])]
+    
+    # Create mock Hellings-Downs correlation matrix
+    hd_correlation = np.eye(dims['Npsr'])
+    
     return {
-        "observations": observations_np,
-        "x0": mock_x0_np,
-        "P0": mock_P0_np,
-        "Peps": mock_Peps_np,
-        "toa": mock_toa_np,
-        "data": mock_data_np,
-        "data_errors": mock_data_errors_np
+        'processed_residuals': processed_residuals,
+        'metadata': metadata,
+        'design_matrices': design_matrices,
+        'parameter_covariances': parameter_covariances,
+        'hd_correlation': hd_correlation
     }
 
 
 import os
 @pytest.fixture(scope="module")
 def IPTA_MDC2_data():
-    #Get the data. We will use the mock data for this test
-
-    # Get the directory of the current script
+    #Get the data. We will use the IPTA2 mock data for this test
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    # Construct the invariant directory path
     data_path = os.path.join(script_dir, "../data/IPTA_MockDataChallenge2/dataset_2b/")
-
-
-    # Get all .par and .tim files in the directory
-    par_files = sorted(glob.glob(data_path + "*.par"))
-    tim_files = sorted(glob.glob(data_path + "*.tim"))
-    assert len(par_files) == len(tim_files)
-
-    #Exclude PR J1640+2224 as it has an exponent which is to small for the OU process to be valid
-    par_files = [f for f in par_files if "J1640" not in f]
-    tim_files = [f for f in tim_files if "J1640" not in f]
-
-
-
-    # Get the data
-    pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices = (
-        data_loader.LoadWidebandPulsarData.read_multiple_par_tim(par_files, tim_files)
-    )
-
-    # Get the separation angles and compute HD correlation
-    ra = pulsar_metadata["RA"].to_numpy(dtype=float)
-    dec = pulsar_metadata["DEC"].to_numpy(dtype=float)
-    angular_separation_matrix = gravitational_waves.pairwise_angular_separation(ra, dec)
-    hd_correlation_matrix = gravitational_waves.hellings_downs(angular_separation_matrix)
-
-    # Post-process the residuals    
-    processed_pulsar_residuals = data_loader.LoadWidebandPulsarData.process_pulsar_residuals_by_epoch(pulsar_residuals)
-
-    return processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix
-
-
+    return data_loader.get_processed_residuals(data_path,excluded_psrs=["J1640"])
 
 
 
@@ -197,10 +217,10 @@ def test_run_kalman_filter_scan(mocker, class_test_dims, numpy_setup_data, mock_
 
     # Get data from fixture and convert to JAX arrays
     setup_data = numpy_setup_data
-    mock_data = jnp.array(setup_data['data'])
-    mock_data_errors = jnp.array(setup_data['data_errors'])
-    mock_dt_array = jnp.diff(jnp.array(setup_data['toa']))
-    mock_P_eps = jnp.array(setup_data['Peps'])
+    mock_data = jnp.array(setup_data['processed_residuals']['residuals'])
+    mock_data_errors = jnp.array(setup_data['processed_residuals']['error'])
+    mock_dt_array = jnp.diff(jnp.array(setup_data['processed_residuals']['average_toas']))
+    mock_P_eps = jnp.array(setup_data['parameter_covariances'][0])
 
     # Mock H matrices: shape (N_timesteps, dim_y, n_states)
     mock_H_matrices = jnp.array(np.random.randn(N_timesteps, dim_y, n_states), dtype=jnp.float64)
@@ -218,11 +238,11 @@ def test_run_kalman_filter_scan(mocker, class_test_dims, numpy_setup_data, mock_
 
     mock_F_gw = jnp.eye(2 * Npsr, dtype=jnp.float64) * 0.99
     mock_F_spin = jnp.eye(2 * Npsr, dtype=jnp.float64) * 0.98
-    mock_F_matrices = mocker.patch('argus.jax_kalman_filter.F_matrices_non_precomputed', return_value=(mock_F_gw, mock_F_spin))
+    mock_F_matrices = mocker.patch('argus.jax_kalman_filter.get_F', return_value=(mock_F_gw, mock_F_spin))
 
     mock_Q_gw = jnp.eye(2 * Npsr, dtype=jnp.float64) * 1e-20
     mock_Q_spin = jnp.eye(2 * Npsr, dtype=jnp.float64) * 1e-22
-    mock_Q_matrices = mocker.patch('argus.jax_kalman_filter.Q_matrices_non_precomputed', return_value=(mock_Q_gw, mock_Q_spin))
+    mock_Q_matrices = mocker.patch('argus.jax_kalman_filter.get_Q', return_value=(mock_Q_gw, mock_Q_spin))
     
     
     mock_σa2_matrix = jnp.eye(Npsr, dtype=jnp.float64) * 1e-20
@@ -394,81 +414,85 @@ class TestJaxKalmanFilterInternals:
 
 
         
-    def test_init_and_prepare_arrays(self, mock_model_instance, numpy_setup_data, class_test_dims):
+    def test_init_and_prepare_arrays(self, mock_model_instance, numpy_setup_data):
         """Test initialization and _prepare_jax_arrays."""
         setup_data = numpy_setup_data
-        dims = class_test_dims
-        model = mock_model_instance
+
+
+
+        print("Checking out shapes")
         kf = jk.JaxKalmanFilter(
-            model=model,
-            observations=setup_data['observations'],
-            Peps=setup_data['Peps']
+            data_dict=numpy_setup_data,
+            P0_scaling=1.0,
+            use_gw=True
         )
-        assert kf.model == model
-        np.testing.assert_array_equal(kf.toa, setup_data['toa'])
-        np.testing.assert_array_equal(kf.data, setup_data['data'])
-        np.testing.assert_array_equal(kf.data_errors, setup_data['data_errors'])
-        np.testing.assert_array_equal(kf.P_eps, setup_data['Peps'])
-        model.precompute_H_matrix.assert_called_once()
-        np.testing.assert_array_equal(kf.Hmat, model.precompute_H_matrix.return_value)
+
+        
+
+        # Test the data was loaded correctly
+        np.testing.assert_array_equal(kf.toa, setup_data['processed_residuals']['average_toas'])
+        np.testing.assert_array_equal(kf.data, setup_data['processed_residuals']['residuals'])
+        np.testing.assert_array_equal(kf.data_errors, setup_data['processed_residuals']['error'])
+        np.testing.assert_array_equal(kf.P_eps, block_diag(*setup_data['parameter_covariances']))
+        
+        # # Test the H matrix was computed correctly
+        # mock_model_instance.precompute_H_matrices.assert_called_once()
+        # np.testing.assert_array_equal(kf.Hmat, mock_model_instance.precompute_H_matrices.return_value)
+        
+        # Test JAX array conversions
         assert isinstance(kf.jax_data, jax.Array)
         assert kf.jax_data.dtype == jnp.float64
-        np.testing.assert_allclose(kf.jax_data, setup_data['data'])
+        np.testing.assert_allclose(kf.jax_data, setup_data['processed_residuals']['residuals'])
+        
         assert isinstance(kf.jax_data_errors, jax.Array)
         assert kf.jax_data_errors.dtype == jnp.float64
-        np.testing.assert_allclose(kf.jax_data_errors, setup_data['data_errors'])
+        np.testing.assert_allclose(kf.jax_data_errors, setup_data['processed_residuals']['error'])
+        
         assert isinstance(kf.jax_t_diffs, jax.Array)
         assert kf.jax_t_diffs.dtype == jnp.float64
-        np.testing.assert_allclose(kf.jax_t_diffs, np.diff(setup_data['toa']))
+        np.testing.assert_allclose(kf.jax_t_diffs, np.diff(setup_data['processed_residuals']['average_toas']))
+        
         assert isinstance(kf.jax_H_matrices, jax.Array)
         assert kf.jax_H_matrices.dtype == jnp.float64
-        np.testing.assert_allclose(kf.jax_H_matrices, model.precompute_H_matrix.return_value)
+
+
+
+        #to be checked
+        #np.testing.assert_allclose(kf.jax_H_matrices, mock_model_instance.precompute_H_matrices.return_value)
+        
         assert isinstance(kf.hellings_downs_matrix, jax.Array)
         assert kf.hellings_downs_matrix.dtype == jnp.float64
-        np.testing.assert_allclose(kf.hellings_downs_matrix, model.hd_correlation_matrix)
+        np.testing.assert_allclose(kf.hellings_downs_matrix, setup_data['hd_correlation'])
 
     def test_prepare_arrays_raises_error_on_wrong_dtype(self, mock_model_instance, numpy_setup_data):
         """Test that _prepare_jax_arrays raises ValueError for non-float64."""
         setup_data = numpy_setup_data
         bad_obs = [
-            setup_data['toa'].astype(np.float32),
-            setup_data['data'].astype(np.float32),
-            setup_data['data_errors'].astype(np.float32)
+            setup_data['processed_residuals']['average_toas'].astype(np.float32),
+            setup_data['processed_residuals']['residuals'].astype(np.float32),
+            setup_data['processed_residuals']['error'].astype(np.float32)
         ]
         with pytest.raises(ValueError, match="expected"):
             jk.JaxKalmanFilter(
                 model=mock_model_instance,
                 observations=bad_obs,
-                Peps=setup_data['Peps']
+                Peps=setup_data['parameter_covariances'][0]
             )
 
 
 
 
 import glob 
-from argus import jmath
+from argus import model
 from .utils import check_cholesky,check_minimum_eigenvalue
 class TestNumericalStability:
 
 
     def test_for_numerical_stability(self, IPTA_MDC2_data):
-
-        processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix = IPTA_MDC2_data
-
-        #Calculate P0 based on the maximum value of the design matrix, and a delta tolerance
-        model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
-
-    
-        P0 = block_diag(*P_eps_matrices)
-
-
-        KF = jk.JaxKalmanFilter(
-            model=model, 
-            observations=processed_pulsar_residuals, 
-            Peps=P0
-        )
+        KF = jk.JaxKalmanFilter(data_dict=IPTA_MDC2_data,P0_scaling=1.0,use_gw=True)
+        
         #Set the parameters
-        Npsr = model.Npsr
+        Npsr = KF.Npsr
         params = Parameters(
 
             #GW parameters
@@ -507,7 +531,7 @@ class TestNumericalStability:
 
     
         # Precompute the R matrix for this parameter set and these data errors    
-        R_matrices = jmath.precompute_R_matrices(data_errors,θ.EFAC, θ.EQUAD)
+        R_matrices = model.precompute_R_matrices(data_errors,θ.EFAC, θ.EQUAD)
 
 
         # First update
@@ -519,10 +543,10 @@ class TestNumericalStability:
         #Standard loop, not using lax.scan
         for i in range(len(data)-1):
             dt = dt_array[i]
-            F_gw, F_spin = jmath.F_matrices_non_precomputed(θ.γa, θ.γp, dt, Npsr, M_sum)
+            F_gw, F_spin = model.get_F(θ.γa, θ.γp, dt, Npsr, M_sum)
             F = (F_gw, F_spin)
             
-            Q_gw, Q_spin = jmath.Q_matrices_non_precomputed(θ.γa, σa2, θ.γp, θ.σp**2, dt)
+            Q_gw, Q_spin = model.get_Q(θ.γa, σa2, θ.γp, θ.σp**2, dt)
             Q = (Q_gw, Q_spin)
 
             x_predict, P_predict = jk._predict(x, P, F, Q, dim_x)
@@ -557,49 +581,3 @@ class TestNumericalStability:
 
 
 
-
-
-
-
-
-
-
-#     ll = KF.get_likelihood(params) 
-#     ll.block_until_ready()
-#     print("Likelihood: ",ll)
-
-
-
-
-
-
-
-
-
-# utils.check_cholesky(P_spin, "P_spin")
-    # utils.check_min_eigenvalue(P_spin, "P_spin")
-    # utils.check_symmetry(P_spin, "P_spin")
-    # utils.check_condition_number(P_spin, "P_spin")
-
-    #jax.debug.print('P_spin is {P_spin}', P_spin=P_spin,ordered=True)
-
-
-
-
-
-
-
-
-    # utils.check_cholesky(P, "Pupdated")
-    # utils.check_min_eigenvalue(P, "Pupdated")
-    # utils.check_symmetry(P, "Pupdated")
-    # utils.check_condition_number(P, "Pupdated")
-
-
-
-
-
-    # check_cholesky(P0,"The initial P-matrix")
-    # check_min_eigenvalue(P0, "The initial P-matrix")
-    # check_symmetry(P0, "The initial P-matrix")
-    # check_condition_number(P0, "The initial P-matrix")
