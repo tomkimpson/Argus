@@ -17,7 +17,7 @@ from datetime import datetime
 
 sys.path.append('../python/argus')
 from argus import data_loader
-from argus import models
+from argus import model
 from argus import jax_kalman_filter
 from argus import gravitational_waves
 from argus import bayesian_inference
@@ -32,28 +32,27 @@ tfpd = tfp.distributions
 
 from jaxns import Prior, Model, NestedSampler,TerminationCondition # Import necessary components
 
-from utils import _get_processed_residuals, get_efac_equad_injections, get_psr_noise_injections
 
 
 
 
+def parameter_estimation(P_eps_scaling):
 
 
-def parameter_estimation():
-
-
-    print("Inside the parameter estimation function")
-
-    #Get the data
+    #Get the data 
     data_path = "../data/IPTA_MockDataChallenge2/dataset_2b/" 
-    processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)
+    data = data_loader.get_processed_residuals(data_path)
 
 
+    print(data)
 
-    GW_model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
+    sys.exit()
 
-    alpha = 1 #scale slightly 
-    P0 = alpha*block_diag(*P_eps_matrices)
+    #Initialise the model
+
+    #GW_model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
+
+    P0 = P_eps_scaling*block_diag(*P_eps_matrices)
 
 
     KF = jax_kalman_filter.JaxKalmanFilter(
@@ -68,6 +67,55 @@ def parameter_estimation():
     bayesian_inference.jaxns_log_likelihood(KF, log10_ha, γa, log10_γp, log10_σp, efac, equad)
     
     
+
+
+
+
+
+
+# ### TO BE REMOVED--------------
+# import json
+# Npsr = 32
+# def get_efac_equad_injections():
+
+#     # Load the noise parameters from the json file
+#     with open("../data/IPTA_MockDataChallenge2/group1_psr_noise.json", "r") as f:
+#         noise_params = json.load(f)
+
+#     # Extract EFAC and EQUAD values for each pulsar
+#     efac_values = []
+#     equad_values = []
+
+#     for psr in noise_params:
+
+#         if  "J1640" not in psr:
+#             efac_values.append(noise_params[psr]["efac"])
+#             equad_values.append(10**noise_params[psr]["equad"]) # Convert from log10 to linear
+
+#     # Convert to JAX arrays
+#     efac_array = jnp.array(efac_values)
+#     equad_array = jnp.array(equad_values)
+
+
+#     return efac_array, equad_array
+
+# efac_array, equad_array = get_efac_equad_injections()
+# ### TO BE REMOVED--------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
     jax_model = Model(prior_model=bayesian_inference.gw_prior_model, log_likelihood=loglik_fn)
 
@@ -140,5 +188,6 @@ if __name__ == "__main__":
 
     #go
     print("go: parameter NS estimatin")
-    parameter_estimation() 
+    P_eps_scaling = 1.0
+    parameter_estimation(P_eps_scaling) 
 

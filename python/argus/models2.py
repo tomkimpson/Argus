@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 import numpy as np
 from typing import Any, List
-from argus.jmath import get_F, get_Q
+from python.argus.model import get_F, get_Q
 import sys 
 import logging
 

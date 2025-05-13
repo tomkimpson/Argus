@@ -55,39 +55,6 @@ class Parameters:
     EQUAD: jnp.ndarray # Extra quadrature noise
 
 
-
-
-### TO BE REMOVED--------------
-import json
-Npsr = 32
-def get_efac_equad_injections():
-
-    # Load the noise parameters from the json file
-    with open("../data/IPTA_MockDataChallenge2/group1_psr_noise.json", "r") as f:
-        noise_params = json.load(f)
-
-    # Extract EFAC and EQUAD values for each pulsar
-    efac_values = []
-    equad_values = []
-
-    for psr in noise_params:
-
-        if  "J1640" not in psr:
-            efac_values.append(noise_params[psr]["efac"])
-            equad_values.append(10**noise_params[psr]["equad"]) # Convert from log10 to linear
-
-    # Convert to JAX arrays
-    efac_array = jnp.array(efac_values)
-    equad_array = jnp.array(equad_values)
-
-
-    return efac_array, equad_array
-
-efac_array, equad_array = get_efac_equad_injections()
-### TO BE REMOVED--------------
-
-
-
 def gw_prior_model():
 
     """Defines the prior distributions for the parameters."""
@@ -143,6 +110,17 @@ def null_prior_model(Npsr,efac_array,equad_array):
     equad = yield Prior(equad_array, name='equad')
 
     return log10_ha,γa, log10_γp, log10_σp,efac,equad
+
+
+
+
+
+
+
+
+
+
+
 
 
 # JAXNS model

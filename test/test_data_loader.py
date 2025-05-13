@@ -116,8 +116,15 @@ def test_process_residuals_integration(data_files):
     pulsar_dfs, metadata_df, _, _ = data_loader.LoadWidebandPulsarData.read_multiple_par_tim(par_files, tim_files)
     
     # Process residuals
-    avg_toas, residuals_array, errors_array = data_loader.LoadWidebandPulsarData.process_pulsar_residuals_by_epoch(pulsar_dfs)
+
+    result_dict = data_loader.LoadWidebandPulsarData.process_pulsar_residuals_by_epoch(pulsar_dfs)
     
+    print("the keys in results dict are: ", result_dict.keys())
+    avg_toas = result_dict['average_toas']
+    residuals_array = result_dict['residuals']
+    errors_array = result_dict['error']
+
+
     # Validate output shapes
     assert len(avg_toas) == len(pulsar_dfs[0])  # Should match number of TOAs
     assert residuals_array.shape == (len(pulsar_dfs[0]), len(pulsar_dfs))

@@ -4,16 +4,103 @@ import logging # Added import
 
 import numpy as np
 
-from argus.jmath import F_matrices_non_precomputed, Q_matrices_non_precomputed,precompute_R_matrices,compute_predicted_covariance,compute_predicted_state
+from argus.model import precompute_R_matrices
 from functools import partial
 import jax
 import jax.numpy as jnp
 from jax import lax 
 from jax.scipy.linalg import block_diag
-
+from typing import Tuple
 
 # Get a logger for this module
 logger = logging.getLogger(__name__)
+
+
+@partial(jax.jit, static_argnums=(2,3))
+def compute_predicted_state(F_list, x, gw_size, spin_size):
+    """Compute the predicted state vector by applying transition matrices to state blocks.
+    
+    Args:
+        F_list: Tuple of (F_gw, F_spin) transition matrices for GW and spin components
+        x: Current state vector containing GW, spin and timing components
+        gw_size: Size of gravitational wave state block
+        spin_size: Size of spin state block
+        
+    Returns
+    -------
+        jax.Array: Predicted state vector with same structure as input, computed by:
+            - Applying F_gw transition to GW states
+            - Applying F_spin transition to spin states  
+            - Keeping timing states unchanged
+            
+    Note:
+        The state vector x is assumed to have structure [x_gw, x_spin, x_timing]
+        where each component has size determined by gw_size and spin_size parameters.
+    """
+    F_gw, F_spin = F_list
+    x_gw = x[:gw_size]
+    x_spin = x[gw_size:gw_size+spin_size]
+    x_timing = x[gw_size+spin_size:]
+    return jnp.vstack([F_gw@x_gw, F_spin@x_spin, x_timing])
+
+
+
+@partial(jax.jit, static_argnums=(3,4))
+def compute_predicted_covariance(P: jax.Array,
+                               F_list: Tuple[jax.Array, jax.Array],
+                               Q_list: Tuple[jax.Array, ...],
+                               gw_size: int,
+                               spin_size: int) -> jax.Array:
+    """Compute predicted covariance matrix in one operation.
+    
+    Args:
+        P: Full covariance matrix
+        F_list: Tuple of (F_gw, F_spin) transition matrices
+        Q_list: Tuple of (Q_gw, Q_spin, Q_timing) process noise matrices
+        gw_size: Size of GW block
+        spin_size: Size of spin block
+        
+    Returns
+    -------
+        jax.Array: Combined predicted covariance matrix
+        
+    Note:
+        Computing the predicted covariance by slicing the matrix into blocks and doing
+        individual matrix products is significantly faster than doing the full matrix
+        multiplication FPF^T + Q. This is because the block structure allows us to avoid
+        many unnecessary multiplications with zero elements.
+    """
+    F1, F2 = F_list
+    Q1, Q2 = Q_list
+    
+    # Extract blocks directly from P
+    P1 = P[:gw_size, :gw_size]
+    P2 = P[gw_size:gw_size+spin_size, gw_size:gw_size+spin_size]
+    P3 = P[gw_size+spin_size:, gw_size+spin_size:]
+    P4 = P[:gw_size, gw_size:gw_size+spin_size]
+    P5 = P[gw_size:gw_size+spin_size, gw_size+spin_size:]
+    P6 = P[:gw_size, gw_size+spin_size:]
+    
+    # Compute individual blocks
+    PF1 = F1 @ P1 @ F1.T + Q1
+    PF2 = F2 @ P2 @ F2.T + Q2
+    PF4 = F1 @ P4 @ F2.T
+    PF5 = F2 @ P5
+    PF6 = F1 @ P6
+
+ 
+
+    # Assemble full matrix
+    return jnp.block([[PF1,   PF4,   PF6],
+                     [PF4.T,  PF2,   PF5],
+                     [PF6.T,  PF5.T, P3]])
+
+
+
+
+
+
+
 
 
 def _log_likelihood(y: jax.Array, cov: jax.Array) -> jax.Array:
@@ -213,27 +300,45 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
     return total_ll[0][0]
 
 class JaxKalmanFilter:
-    """A class to implement the linear Kalman filter on scalar inputs using JAX.
+    """A class to implement the linear Kalman filter using JAX.
 
     Args:
-        model: Class which defines all the Kalman machinery e.g. state transition models, covariance matrices etc.
         observations: 2D array which holds the noisy observations recorded at the detector
-        x0: A 1D array which holds the initial guess of the initial states
-        P0: The uncertainty in the guess of P0
+        Peps: The uncertainty in the guess of P0
+        M_sum: Sum value used in matrix computations
+        nx: Number of states in the state vector
+        hd_correlation_matrix: Hellings-Downs correlation matrix
+        pulsar_design_matrices: List of design matrices for each pulsar
+        f0: Array of pulsar frequencies
+        M_start_indices: Array of indices for timing model components
+        use_gw: Whether to include GW terms in the H matrix
+
+    Note:
+        This filter assumes that the length of the observations vector = Npsr. This will not always be true depending on the particular data set.
     """
 
-    def __init__(self, model, observations: np.ndarray, Peps: np.ndarray):
+    def __init__(self, observations: np.ndarray, Peps: np.ndarray, M_sum: int, 
+                 nx: int, hd_correlation_matrix: np.ndarray, pulsar_design_matrices: list,
+                 f0: np.ndarray, M_start_indices: np.ndarray, use_gw: bool = True):
         """Initialize the class."""
         logger.info("Initializing JaxKalmanFilter...") # Log entry point
 
-        self.model = model
         self.observations = observations
         self.P_eps = Peps
+        self.M_sum = M_sum
+        self.nx = nx
+        self.pulsar_design_matrices = pulsar_design_matrices
+        self.f0 = f0
+        self.M_start_indices = M_start_indices
+        self.use_gw = use_gw
 
         # Extract the observations into separate arrays
         self.toa = self.observations[0]
         self.data = self.observations[1]
         self.data_errors = self.observations[2]
+
+        # Infer Npsr from the shape of data
+        self.Npsr = self.data.shape[0]
 
         self.t_diffs = np.diff(self.toa)
 
@@ -242,13 +347,11 @@ class JaxKalmanFilter:
         logger.info(f"Ending dt (days): {self.t_diffs[-1]/86400}")
         logger.info(f"The errors at t=1 are: {self.data_errors[:,0]}")
 
-        # Precompute the observation matrices and assign them to model.H_matrix_list
-        self.Hmat = self.model.precompute_H_matrix()
+        # Compute H matrices
+        self.Hmat = self._compute_H_matrices()
     
         # Convert to JAX arrays for faster processing
         self._prepare_jax_arrays()
-
-
 
 
 
@@ -257,14 +360,13 @@ class JaxKalmanFilter:
         # Convert observations and related data
         self.jax_data = jnp.array(self.data)
         self.jax_data_errors = jnp.array(self.data_errors)
-        #self.jax_psr_indices = jnp.array(self.psr_indices)
         self.jax_t_diffs = jnp.array(self.t_diffs)
                 
         # Convert H matrices
         self.jax_H_matrices = jnp.array(self.Hmat)
 
         # Convert hellings downs matrix
-        self.hellings_downs_matrix = jnp.array(self.model.hd_correlation_matrix)
+        self.hellings_downs_matrix = jnp.array(hd_correlation_matrix)
 
         # Verify all floating-point arrays are 64-bit
         float_arrays = [
@@ -279,7 +381,6 @@ class JaxKalmanFilter:
             if arr.dtype != jnp.float64:
                 raise ValueError(f"{name} is {arr.dtype}, expected {jnp.float64}. The Kalman filter requires floats at standard precision for numerical stability.")
 
-
     def get_likelihood(self, θ):
         """Run the Kalman filter algorithm over all observations and return a log likelihood."""
         return _run_kalman_filter_scan(
@@ -287,11 +388,11 @@ class JaxKalmanFilter:
             data=self.jax_data,
             data_errors=self.jax_data_errors,
             H_matrices=self.jax_H_matrices,
-            Npsr=self.model.Npsr,
-            M_sum=self.model.M_sum,
+            Npsr=self.Npsr,
+            M_sum=self.M_sum,
             hellings_downs_matrix=self.hellings_downs_matrix,
             dt_array=self.jax_t_diffs,
-            dim_x=2*self.model.Npsr,
-            n_states=self.model.nx,
+            dim_x=2*self.Npsr,
+            n_states=self.nx,
             P_eps=self.P_eps
         ) 
