@@ -64,8 +64,8 @@ def simple_prior_model(Npsr,efac_array,equad_array,sigma_p_log, gamma_p_log):
     γa = yield Prior(1e-9, name='γa')
 
     #PSR vector parameters: γp and σp. We use a uniform prior for the log of the parameters
-    log10_γp = yield Prior(gamma_p_log,name='gamma_p')
-    log10_σp = yield Prior(sigma_p_log,name='sigma_p')
+    log10_γp = yield Prior(gamma_p_log,name='log10_γp')
+    log10_σp = yield Prior(sigma_p_log,name='log10_σp')
     
 
     #Measurement noise parameters: EFAC and EQUAD. We use a uniform prior for the log of the parameters
