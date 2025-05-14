@@ -55,6 +55,28 @@ class Parameters:
     EQUAD: jnp.ndarray # Extra quadrature noise
 
 
+def simple_prior_model(Npsr,efac_array,equad_array,sigma_p_log, gamma_p_log):
+
+    """Defines the prior distributions for the parameters."""
+    
+    # GW parameters: ha and γa. We fix gamma to be 1e-9 and use a log transform for ha
+    log10_ha = yield Prior(tfpd.Uniform(-17.0, -14.0), name='log10_ha')
+    γa = yield Prior(1e-9, name='γa')
+
+    #PSR vector parameters: γp and σp. We use a uniform prior for the log of the parameters
+    log10_γp = yield Prior(gamma_p_log,name='gamma_p')
+    log10_σp = yield Prior(sigma_p_log,name='sigma_p')
+    
+
+    #Measurement noise parameters: EFAC and EQUAD. We use a uniform prior for the log of the parameters
+    efac = yield Prior(efac_array, name='efac')
+    equad = yield Prior(equad_array, name='equad')
+
+    return log10_ha,γa, log10_γp, log10_σp,efac,equad
+
+
+
+
 def gw_prior_model(Npsr,efac_array,equad_array):
 
     """Defines the prior distributions for the parameters."""

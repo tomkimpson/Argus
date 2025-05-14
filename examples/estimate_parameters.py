@@ -59,6 +59,25 @@ def _get_efac_equad_injections():
     return efac_array, equad_array
 
 
+def get_psr_noise_injections():
+
+    df = pd.read_pickle('../notebooks/approximate_spin_injections.pkl')
+    condition = df['psr'] != 'J1640+2224'
+
+
+    # 2. Use the condition to select rows and create a new DataFrame
+    df_filtered = df[condition]
+
+
+    sigma_p_injected = df_filtered['optimal_sigma'].values
+    gamma_p_injected = df_filtered['optimal_gamma'].values
+
+    return jnp.array(sigma_p_injected), jnp.array(gamma_p_injected)
+
+
+
+
+
 
 
 
@@ -77,11 +96,15 @@ def parameter_estimation(P_eps_scaling=1.0,num_live_points=100,dlogZ=0.1,use_gw=
     #Define the prior model
     Npsr = KF.Npsr
     efac, equad = _get_efac_equad_injections()
+    sigma_p, gamma_p = get_psr_noise_injections()
 
-    if use_gw:
-        prior_model = lambda: bayesian_inference.gw_prior_model(Npsr, efac, equad)
-    else:
-        prior_model = lambda: bayesian_inference.null_prior_model(Npsr, efac, equad)
+
+    prior_model = lambda: bayesian_inference.simple_prior_model(Npsr, efac, equad, np.log10(sigma_p), np.log10(gamma_p))
+
+    # if use_gw:
+    #     prior_model = lambda: bayesian_inference.gw_prior_model(Npsr, efac, equad)
+    # else:
+    #     prior_model = lambda: bayesian_inference.null_prior_model(Npsr, efac, equad)
 
 
     #Define the log likelihood function
