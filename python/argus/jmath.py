@@ -186,52 +186,52 @@ def precompute_R_matrices(σ: jax.Array, EFAC: jax.Array, EQUAD: jax.Array) -> j
     #jax.debug.print('R.shape: {shape}',shape=R.shape,ordered=True)
     return R
 
-@partial(jax.jit, static_argnums=(3, 4))
-def F_matrices_non_precomputed(gamma_a: float, 
-                         gamma_p: jax.Array, 
-                         dt_array: jax.Array, 
-                         Npsr: int, 
-                         M_sum: int) -> Tuple[jax.Array, jax.Array]:
-    """Precompute F matrices for a single timestep only.
+# @partial(jax.jit, static_argnums=(3, 4))
+# def F_matrices_non_precomputed(gamma_a: float, 
+#                          gamma_p: jax.Array, 
+#                          dt_array: jax.Array, 
+#                          Npsr: int, 
+#                          M_sum: int) -> Tuple[jax.Array, jax.Array]:
+#     """Precompute F matrices for a single timestep only.
     
-    Instead of vectorizing over all timesteps, this function only handles one timestep.
+#     Instead of vectorizing over all timesteps, this function only handles one timestep.
     
-    Args:
-        gamma_a: GWB parameter
-        gamma_p: Pulsar-specific parameters, shape (n_components,)
-        dt_array: Time difference for ONE observation, scalar
-        Npsr: Number of pulsars
-        M_sum: Sum of model components
+#     Args:
+#         gamma_a: GWB parameter
+#         gamma_p: Pulsar-specific parameters, shape (n_components,)
+#         dt_array: Time difference for ONE observation, scalar
+#         Npsr: Number of pulsars
+#         M_sum: Sum of model components
         
-    Returns
-    -------
-        tuple: (F_gw_matrix, F_spin_matrix) for the single timestep
-    """
-    # Get F matrices for a single dt (not vectorized)
-    F_gw, F_spin = get_F(gamma_a, gamma_p, dt_array, Npsr, M_sum)
-    return F_gw, F_spin
+#     Returns
+#     -------
+#         tuple: (F_gw_matrix, F_spin_matrix) for the single timestep
+#     """
+#     # Get F matrices for a single dt (not vectorized)
+#     F_gw, F_spin = get_F(gamma_a, gamma_p, dt_array, Npsr, M_sum)
+#     return F_gw, F_spin
 
-@jax.jit
-def Q_matrices_non_precomputed(gamma_a, σa2, gamma_p, σp2, dt_array):
-    """Precompute Q matrices for a single timestep only.
+# @jax.jit
+# def Q_matrices_non_precomputed(gamma_a, σa2, gamma_p, σp2, dt_array):
+#     """Precompute Q matrices for a single timestep only.
     
-    Args:
-        gamma_a: float, GWB parameter
-        σa2: array, GW covariance matrix 
-        gamma_p: array, pulsar-specific parameters
-        σp2: array, pulsar-specific noise parameters
-        dt_array: scalar, time difference for ONE observation
-        Npsr: int, number of pulsars
-        M_sum: int, sum of model components
-        eps: float, timing parameter
+#     Args:
+#         gamma_a: float, GWB parameter
+#         σa2: array, GW covariance matrix 
+#         gamma_p: array, pulsar-specific parameters
+#         σp2: array, pulsar-specific noise parameters
+#         dt_array: scalar, time difference for ONE observation
+#         Npsr: int, number of pulsars
+#         M_sum: int, sum of model components
+#         eps: float, timing parameter
         
-    Returns
-    -------
-        tuple: (Q_gw_matrix, Q_spin_matrix, Q_timing_matrix) for the single timestep
-    """
-    # Get Q matrices for a single dt (not vectorized)
-    Q_gw, Q_spin = get_Q(gamma_a, σa2, gamma_p, σp2, dt_array)
-    return Q_gw, Q_spin
+#     Returns
+#     -------
+#         tuple: (Q_gw_matrix, Q_spin_matrix, Q_timing_matrix) for the single timestep
+#     """
+#     # Get Q matrices for a single dt (not vectorized)
+#     Q_gw, Q_spin = get_Q(gamma_a, σa2, gamma_p, σp2, dt_array)
+#     return Q_gw, Q_spin
 
 
 

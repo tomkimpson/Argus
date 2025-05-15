@@ -4,7 +4,7 @@ import logging # Added import
 
 import numpy as np
 
-from argus.jmath import F_matrices_non_precomputed, Q_matrices_non_precomputed,precompute_R_matrices,compute_predicted_covariance,compute_predicted_state
+from argus.jmath import get_F,get_Q, precompute_R_matrices,compute_predicted_covariance,compute_predicted_state
 from functools import partial
 import jax
 import jax.numpy as jnp
@@ -184,10 +184,10 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
         # Get dt for this step and precompute matrices just for this step
         dt = dt_array[dt_idx]
         # Compute F and Q matrices for this specific timestep only
-        F_gw, F_spin = F_matrices_non_precomputed(θ.γa, θ.γp, dt, Npsr, M_sum)
+        F_gw, F_spin = get_F(θ.γa, θ.γp, dt, Npsr, M_sum)
         F = (F_gw, F_spin)
         
-        Q_gw, Q_spin =Q_matrices_non_precomputed(θ.γa, σa2, θ.γp, θ.σp**2, dt)
+        Q_gw, Q_spin =get_Q(θ.γa, σa2, θ.γp, θ.σp**2, dt)
         Q = (Q_gw, Q_spin)
 
      
@@ -217,23 +217,28 @@ class JaxKalmanFilter:
 
     Args:
         model: Class which defines all the Kalman machinery e.g. state transition models, covariance matrices etc.
-        observations: 2D array which holds the noisy observations recorded at the detector
-        x0: A 1D array which holds the initial guess of the initial states
-        P0: The uncertainty in the guess of P0
+        observations: Dictionary containing 'toas', 'residuals', and 'errors' arrays from the data loader
+        Peps: The uncertainty matrix for the epsilon states
     """
 
     def __init__(self, model, observations: np.ndarray, Peps: np.ndarray):
-        """Initialize the class."""
+        """Initialize the class.
+        
+        Args:
+            model: Class which defines all the Kalman machinery e.g. state transition models, covariance matrices etc.
+            observations: Dictionary containing 'toas', 'residuals', and 'errors' arrays from the data loader
+            Peps: The uncertainty matrix for the epsilon states
+        """
         logger.info("Initializing JaxKalmanFilter...") # Log entry point
 
         self.model = model
         self.observations = observations
         self.P_eps = Peps
 
-        # Extract the observations into separate arrays
-        self.toa = self.observations[0]
-        self.data = self.observations[1]
-        self.data_errors = self.observations[2]
+        # Extract the observations using dictionary keys
+        self.toa = self.observations['toas']
+        self.data = self.observations['residuals']
+        self.data_errors = self.observations['errors']
 
         self.t_diffs = np.diff(self.toa)
 

@@ -1,6 +1,6 @@
-INFO:2025-05-15 09:03:07,929:jax._src.xla_bridge:925: Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
+INFO:2025-05-15 13:39:14,721:jax._src.xla_bridge:925: Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
 INFO:jax._src.xla_bridge:Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
-INFO:2025-05-15 09:03:07,975:jax._src.xla_bridge:925: Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+INFO:2025-05-15 13:39:14,739:jax._src.xla_bridge:925: Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
 INFO:jax._src.xla_bridge:Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
 Double check this is the correct script
 === JAX VERSION INFO ===
@@ -305,88 +305,24 @@ INFO:argus.jax_kalman_filter:The errors at t=1 are: [2.69768e-06 3.56419e-06 3.3
 Computing H matrices for all 183 time steps (using NumPy)...
 Finished computing all H matrices.
 First call to get_likelihood. Just for precompilation
-Likelihood:  55963.87289660473
-Time taken for precompilation:  9.992520093917847
-Second call to get_likelihood. Checking precompilation
-Likelihood:  55963.87289660473
-Time taken for second call:  0.07896304130554199
-Starting Nested sampling with jaxns
-Initializing Model
-Initializing NestedSampler
-INFO:jaxns:Number of Markov-chains set to: 100
-Running NestedSampler
-Running until termination condition: TerminationCondition(ess=None, evidence_uncert=None, live_evidence_frac=None, dlogZ=Array(0.1, dtype=float64), max_samples=Array(10000, dtype=int64), max_num_likelihood_evaluations=None, log_L_contour=None, efficiency_threshold=None, rtol=None, atol=None, peak_XL_frac=None)
-Running uniform sampling down to efficiency threshold of 0.1.
-Creating initial state with 100 live points.
--------
-Num samples: 50
-Num likelihood evals: 16562
-Efficiency: 0.006019744762822056
-log(L) contour: 56010.7759020886
-log(Z) est.: 56032.57050333414 +- 0.22098134117912963
-log(Z | remaining) est.: 25.699096562268096 +- 0.4120568991796095
-ESS: 9.093709719891164
+Likelihood:  55963.86071845221
+Time taken for precompilation:  5.889426946640015
 
--------
-Num samples: 100
-Num likelihood evals: 33694
-Efficiency: 0.003926341827319486
-log(L) contour: 56025.74425449685
-log(Z) est.: 56032.77920752827 +- 0.16290258092778714
-log(Z | remaining) est.: 11.150467402207141 +- 0.3740282471203763
-ESS: 18.55882124771026
+real	0m35.512s
+user	0m15.939s
+sys	0m6.475s
 
--------
-Num samples: 150
-Num likelihood evals: 52117
-Efficiency: 0.0031898944144948802
-log(L) contour: 56032.51632727041
-log(Z) est.: 56032.87055474594 +- 0.1378971887504081
-log(Z | remaining) est.: 4.4062549178124755 +- 0.2935481222664434
-ESS: 34.836161189307546
-
--------
-Num samples: 200
-Num likelihood evals: 71622
-Efficiency: 0.0028580410986309983
-log(L) contour: 56034.07911993422
-log(Z) est.: 56032.99097921964 +- 0.13167441786470063
-log(Z | remaining) est.: 1.9095918549064663 +- 0.20641085585038513
-ESS: 59.78424524055621
-
--------
-Num samples: 250
-Num likelihood evals: 94423
-Efficiency: 0.0024841634579555335
-log(L) contour: 56034.89069030811
-log(Z) est.: 56033.03070881574 +- 0.1313360416384987
-log(Z | remaining) est.: 0.9807280819732114 +- 0.1911374134155925
-ESS: 91.32535620837987
-
--------
-Num samples: 300
-Num likelihood evals: 122814
-Efficiency: 0.002077749381869559
-log(L) contour: 56035.08454283001
-log(Z) est.: 56033.040936086036 +- 0.1313940438489039
-log(Z | remaining) est.: 0.5119538745420869 +- 0.18665474610889476
-ESS: 120.0256083253334
-
--------
-Num samples: 350
-Num likelihood evals: 163336
-Efficiency: 0.0015241811336859272
-log(L) contour: 56035.135771598274
-log(Z) est.: 56033.04414922937 +- 0.13141223463729002
-log(Z | remaining) est.: 0.28433750813564984 +- 0.18528390251244914
-ESS: 137.38839501312057
-
--------
-Num samples: 400
-Num likelihood evals: 228596
-Efficiency: 0.001007252215954875
-log(L) contour: 56035.14870458771
-log(Z) est.: 56033.04537175774 +- 0.13141959868663025
-log(Z | remaining) est.: 0.16400125882501015 +- 0.18505940080928457
-ESS: 145.46436996452408
-
++------------------- Job Report: 398886 (COMPLETED) -------------------+
+| Memory (RAM)  [#                   ]  6.8% (556.8 MB peak / 8 GB)    |
+| CPU           [######              ] 34.0% average                   |
+| GPU           [############        ] 63.0% average                   |
+| Time          [->                  ]  8.3% (0-00:00:50 / 0-00:10:00) |
+|                                                                      |
+| Lustre Filesystem:                                                   |
+|   Path    Total Read    Total Write    Total IOPS                    |
+|   ------  ------------  -------------  ------------                  |
+|   /apps   29.9 MB       0 B            5                             |
+|   /fred   348.5 MB      650 B          15.8 K                        |
+|   /home   60 KB         0 B            11                            |
+|   OS      964 KB        0 B            8                             |
++----------------------------------------------------------------------+
