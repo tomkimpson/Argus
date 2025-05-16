@@ -18,10 +18,12 @@ from datetime import datetime
 sys.path.append('../python/argus')
 from argus import data_loader
 from argus import jax_kalman_filter
-
+from argus import bayesian_inference
 
 import time 
 
+# For creating zero-argument prior functions
+import functools
 
 #jaxns 
 
@@ -30,39 +32,16 @@ tfpd = tfp.distributions
 
 from jaxns import Prior, Model, NestedSampler # Import necessary components
 
-from utils import _get_processed_residuals, get_efac_equad_injections, get_psr_noise_injections
-
-
-
-
-@struct.dataclass
-class Parameters:
-
-    """Define a struct to store the parameters of the Kalman filter model"""
-    
-    #GW parameters
-    γa: float  # s⁻¹
-    ha: float  # GWB amplitude
-
-    #Pulsar parameters for the OU process
-    γp: jnp.ndarray  # Pulsar-specific gamma values
-    σp: jnp.ndarray  # Pulsar-specific sigma values 
-
-    #Measurement noise parameters
-    EFAC: jnp.ndarray  # Error factors
-    EQUAD: jnp.ndarray # Extra quadrature noise
+from utils import get_efac_equad_injections, get_psr_noise_injections
 
 
 def parameter_estimation():
-
-
-    print("Inside the parameter estimation function")
 
     #Get the data
     directory = "../data/IPTA_MockDataChallenge2/dataset_2b/" 
     pulsar_data = data_loader.LoadWidebandPulsarData.get_processed_residuals(directory,excluded_psrs=['J1640+2224'])
 
-
+    #Extract the arrays. todo. this is a bit messy and we should update the Kalman filter to take in a dictionary of data
     processed_pulsar_residuals = pulsar_data['processed_residuals']
     pulsar_metadata = pulsar_data['metadata']
     pulsar_design_matrices = pulsar_data['design_matrices']
@@ -92,23 +71,68 @@ def parameter_estimation():
     )
 
 
-    γa = 1e-9 
-    ha = 1e-15
 
-    #Set the parameters
-    params = Parameters(
-        #GW parameters
-        γa=γa,
-        ha=ha,
-
-        #Spin parameters
-        γp=gamma_p_injected,
-        σp=sigma_p_injected,
-
-        #Measurement noise parameters
-        EFAC=efac_array,
-        EQUAD=equad_array
+    prior_model = functools.partial(
+        bayesian_inference.configurable_prior_model,
+        Npsr=len(pulsar_metadata),
+        log10_ha_spec=-15.0,
+        gamma_a_spec=1e-9,                       # Default fixed gamma_a
+        log10_gamma_p_spec=gamma_p_injected, # Pass the distribution for log10_gamma_p
+        log10_sigma_p_spec=sigma_p_injected, # Pass the distribution for log10_sigma_p
+        efac_spec=efac_array,                 # Pass the array for efac
+        equad_spec=equad_array      # Pass the array for equad (converted from log10)
     )
+
+
+    loglik_fn = lambda log10_ha, γa, log10_γp, log10_σp, efac, equad: \
+    bayesian_inference.jaxns_log_likelihood(KF, log10_ha, γa, log10_γp, log10_σp, efac, equad)
+
+    #Initialise the jaxns model
+    jax_model = Model(prior_model=prior_model, log_likelihood=loglik_fn)
+
+
+    #Call the likelihood function a couple of times to precompile and check everything looks ok
+
+    u = jax_model.sample_U(key=random.PRNGKey(432345987))  # Unit cube sample
+    θ = jax_model.transform(u)                             # Transform to physical parameter space
+    params = bayesian_inference.Parameters(
+        γa=θ['γa'],
+        ha=10**θ['log10_ha'],
+        γp=10**θ['log10_γp'],
+        σp=10**θ['log10_σp'],
+        EFAC=θ['efac'],
+        EQUAD=θ['equad']
+    )
+
+
+    print("The sampled parameters are:")
+    bayesian_inference.print_parameters(params)
+
+
+
+
+
+
+
+
+
+    # γa = 1e-9 
+    # ha = 1e-15
+
+    # #Set the parameters
+    # params = Parameters(
+    #     #GW parameters
+    #     γa=γa,
+    #     ha=ha,
+
+    #     #Spin parameters
+    #     γp=gamma_p_injected,
+    #     σp=sigma_p_injected,
+
+    #     #Measurement noise parameters
+    #     EFAC=efac_array,
+    #     EQUAD=equad_array
+    # )
 
     print("First call to get_likelihood. Just for precompilation")
     t1 = time.time()

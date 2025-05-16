@@ -56,6 +56,77 @@ class Parameters:
 
 
 
+def configurable_prior_model(
+    Npsr: int, # Number of pulsars, needed for array shapes if defaults are used
+    # --- Specifications for each parameter ---
+    # Each *_spec can be a TFP distribution object or a fixed jnp.ndarray/float.
+    # If None, a default distribution will be used for some, or an error raised for others.
+    log10_ha_spec = tfpd.Uniform(-17.0, -14.0),
+    gamma_a_spec = 1e-9, # Typically fixed
+    log10_gamma_p_spec = None,
+    log10_sigma_p_spec = None,
+    efac_spec = None,
+    equad_spec = None
+):
+    """
+    Defines prior distributions for the parameters.
+    Each parameter's specification (e.g., `log10_ha_spec`) can be:
+    - A TFP distribution object (e.g., tfpd.Uniform(...)) for sampling.
+    - A scalar or jnp.ndarray for a fixed value.
+    - None, in which case a default distribution is used (for pulsar params)
+      or an error is raised (for efac/equad which must be specified).
+    """
+
+    # GW parameters
+    # If log10_ha_spec is a value (e.g. -15.0), Prior will use it as fixed.
+    # If log10_ha_spec is tfpd.Uniform(...), Prior will sample from it.
+    log10_ha = yield Prior(log10_ha_spec, name='log10_ha')
+    γa = yield Prior(gamma_a_spec, name='γa') # Often fixed
+
+    # PSR vector parameters: γp and σp.
+    # Use default uniform distributions if no specific spec is provided.
+    _log10_gamma_p_spec_to_use = log10_gamma_p_spec
+    if _log10_gamma_p_spec_to_use is None:
+        _log10_gamma_p_spec_to_use = tfpd.Uniform(low=jnp.full(Npsr, -11.0), high=jnp.full(Npsr, -6.0)) # Default
+    
+    _log10_sigma_p_spec_to_use = log10_sigma_p_spec
+    if _log10_sigma_p_spec_to_use is None:
+        _log10_sigma_p_spec_to_use = tfpd.Uniform(low=jnp.full(Npsr, -18.0), high=jnp.full(Npsr, -12.0)) # Default
+
+    log10_γp = yield Prior(_log10_gamma_p_spec_to_use, name='log10_γp')
+    log10_σp = yield Prior(_log10_sigma_p_spec_to_use, name='log10_σp')
+    
+    # Measurement noise parameters: EFAC and EQUAD.
+    # These usually come from pulsar data files or are specific to the analysis,
+    # so we require them to be explicitly passed. They can be fixed arrays or distributions.
+    if efac_spec is None:
+        raise ValueError("efac_spec must be provided to configurable_prior_model. "
+                         "It can be a fixed array or a TFP distribution.")
+    if equad_spec is None:
+        raise ValueError("equad_spec must be provided to configurable_prior_model. "
+                         "It can be a fixed array or a TFP distribution.")
+
+    efac = yield Prior(efac_spec, name='efac')
+    equad = yield Prior(equad_spec, name='equad')
+
+    return log10_ha, γa, log10_γp, log10_σp, efac, equad    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ### TO BE REMOVED--------------
 import json
@@ -161,3 +232,11 @@ def jaxns_log_likelihood(KF, log10_ha, γa, log10_γp, log10_σp, efac, equad):
     )
 
     return KF.get_likelihood(params)
+
+
+
+def print_parameters(params: Parameters):
+    """Print all entries of a Parameters struct."""
+    for field in params.__dataclass_fields__:
+        value = getattr(params, field)
+        print(f"{field}: {value}")
