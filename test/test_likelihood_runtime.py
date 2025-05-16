@@ -14,7 +14,7 @@ from jax.scipy.linalg import block_diag
 
 # Assume the file is named jax_kalman_filter.py
 from argus import jax_kalman_filter as jk
-from argus import data_loader,gravitational_waves,models
+from argus import data_loader,gravitational_waves,model
 
 
 
@@ -306,16 +306,20 @@ def test_likelihood_value(IPTA_MDC2_data):
 
 
     #Calculate P0 based on the maximum value of the design matrix, and a delta tolerance
-    model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
+    #model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
 
     alpha = 1 #scale slightly 
     P0 = alpha*block_diag(*P_eps_matrices)
 
 
+
     KF = jk.JaxKalmanFilter(
-        model=model, 
+        df_psr=pulsar_metadata,
         observations=processed_pulsar_residuals, 
-        Peps=P0
+        Peps=P0,
+        hd_correlation_matrix=hd_correlation_matrix,
+        pulsar_design_matrices=pulsar_design_matrices,
+        use_gw=True
     )
 
 
@@ -337,7 +341,27 @@ def test_likelihood_value(IPTA_MDC2_data):
         EQUAD=equad_array
     )
 
+    t1 = time.perf_counter()
     log_likelihood = KF.get_likelihood(params)
     assert log_likelihood == 55963.86071845221 #this is only true on OzStar GPU. On NT this value is 55963.87289660473. There seems to be a small difference between GPU implemenations.
     
+    log_likelihood.block_until_ready()
+    t2 = time.perf_counter()
+    print(f"Time taken: {t2 - t1:.4f} seconds")
+
+
+
+
+
+    t1 = time.perf_counter()
+    log_likelihood = KF.get_likelihood(params)
+    assert log_likelihood == 55963.86071845221 #this is only true on OzStar GPU. On NT this value is 55963.87289660473. There seems to be a small difference between GPU implemenations.
     
+    log_likelihood.block_until_ready()
+    t2 = time.perf_counter()
+    print(f"Time taken: {t2 - t1:.4f} seconds")
+
+
+
+
+

@@ -17,9 +17,7 @@ from datetime import datetime
 
 sys.path.append('../python/argus')
 from argus import data_loader
-from argus import models
 from argus import jax_kalman_filter
-from argus import gravitational_waves
 
 
 import time 
@@ -61,8 +59,16 @@ def parameter_estimation():
     print("Inside the parameter estimation function")
 
     #Get the data
-    data_path = "../data/IPTA_MockDataChallenge2/dataset_2b/" 
-    processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)
+    directory = "../data/IPTA_MockDataChallenge2/dataset_2b/" 
+    pulsar_data = data_loader.LoadWidebandPulsarData.get_processed_residuals(directory,excluded_psrs=['J1640+2224'])
+
+
+    processed_pulsar_residuals = pulsar_data['processed_residuals']
+    pulsar_metadata = pulsar_data['metadata']
+    pulsar_design_matrices = pulsar_data['design_matrices']
+    P_eps_matrices = pulsar_data['parameter_covariances']
+    hd_correlation_matrix = pulsar_data['hd_correlation']
+
 
     #Get efac and equad
     efac_array, equad_array = get_efac_equad_injections()
@@ -72,18 +78,17 @@ def parameter_estimation():
     sigma_p_injected, gamma_p_injected = get_psr_noise_injections()
     assert len(sigma_p_injected) == len(gamma_p_injected) == len(pulsar_metadata)
 
-
-    #Calculate P0 based on the maximum value of the design matrix, and a delta tolerance
-    model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
-
     alpha = 1 #scale slightly 
     P0 = alpha*block_diag(*P_eps_matrices)
 
 
     KF = jax_kalman_filter.JaxKalmanFilter(
-        model=model, 
+        df_psr=pulsar_metadata,
         observations=processed_pulsar_residuals, 
-        Peps=P0
+        Peps=P0,
+        hd_correlation_matrix=hd_correlation_matrix,
+        pulsar_design_matrices=pulsar_design_matrices,
+        use_gw=True
     )
 
 

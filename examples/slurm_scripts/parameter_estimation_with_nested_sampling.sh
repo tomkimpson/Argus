@@ -1,7 +1,7 @@
 #!/bin/bash 
  
-#SBATCH --job-name=parameter_estimation_with_nested_sampling_just_ha_2
-#SBATCH --output=outputs/logfiles/parameter_estimation_with_nested_sampling_just_ha_2_output.txt
+#SBATCH --job-name=parameter_estimation_with_nested_sampling_just_ha_3
+#SBATCH --output=outputs/logfiles/parameter_estimation_with_nested_sampling_just_ha_3_output.txt
 #SBATCH --export=ALL 
 #SBATCH --gres=gpu:1
 #SBATCH --time=4:00:00 
