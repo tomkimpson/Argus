@@ -73,147 +73,26 @@ def configurable_prior_model(
     Each parameter's specification (e.g., `log10_ha_spec`) can be:
     - A TFP distribution object (e.g., tfpd.Uniform(...)) for sampling.
     - A scalar or jnp.ndarray for a fixed value.
-    - None, in which case a default distribution is used (for pulsar params)
-      or an error is raised (for efac/equad which must be specified).
+
+    If a value (e.g. -15.0), Prior will use it as fixed.
+    If (e.g.) tfpd.Uniform(...), Prior will sample from it.
     """
 
     # GW parameters
-    # If log10_ha_spec is a value (e.g. -15.0), Prior will use it as fixed.
-    # If log10_ha_spec is tfpd.Uniform(...), Prior will sample from it.
+
     log10_ha = yield Prior(log10_ha_spec, name='log10_ha')
-    γa = yield Prior(gamma_a_spec, name='γa') # Often fixed
+    γa = yield Prior(gamma_a_spec, name='γa') 
 
     # PSR vector parameters: γp and σp.
-    # Use default uniform distributions if no specific spec is provided.
-    _log10_gamma_p_spec_to_use = log10_gamma_p_spec
-    if _log10_gamma_p_spec_to_use is None:
-        _log10_gamma_p_spec_to_use = tfpd.Uniform(low=jnp.full(Npsr, -11.0), high=jnp.full(Npsr, -6.0)) # Default
-    
-    _log10_sigma_p_spec_to_use = log10_sigma_p_spec
-    if _log10_sigma_p_spec_to_use is None:
-        _log10_sigma_p_spec_to_use = tfpd.Uniform(low=jnp.full(Npsr, -18.0), high=jnp.full(Npsr, -12.0)) # Default
-
-    log10_γp = yield Prior(_log10_gamma_p_spec_to_use, name='log10_γp')
-    log10_σp = yield Prior(_log10_sigma_p_spec_to_use, name='log10_σp')
+    log10_γp = yield Prior(log10_gamma_p_spec   , name='log10_γp')
+    log10_σp = yield Prior(log10_sigma_p_spec, name='log10_σp')
     
     # Measurement noise parameters: EFAC and EQUAD.
-    # These usually come from pulsar data files or are specific to the analysis,
-    # so we require them to be explicitly passed. They can be fixed arrays or distributions.
-    if efac_spec is None:
-        raise ValueError("efac_spec must be provided to configurable_prior_model. "
-                         "It can be a fixed array or a TFP distribution.")
-    if equad_spec is None:
-        raise ValueError("equad_spec must be provided to configurable_prior_model. "
-                         "It can be a fixed array or a TFP distribution.")
-
     efac = yield Prior(efac_spec, name='efac')
     equad = yield Prior(equad_spec, name='equad')
 
     return log10_ha, γa, log10_γp, log10_σp, efac, equad    
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-### TO BE REMOVED--------------
-import json
-Npsr = 32
-def get_efac_equad_injections():
-
-    # Load the noise parameters from the json file
-    with open("../data/IPTA_MockDataChallenge2/group1_psr_noise.json", "r") as f:
-        noise_params = json.load(f)
-
-    # Extract EFAC and EQUAD values for each pulsar
-    efac_values = []
-    equad_values = []
-
-    for psr in noise_params:
-
-        if  "J1640" not in psr:
-            efac_values.append(noise_params[psr]["efac"])
-            equad_values.append(10**noise_params[psr]["equad"]) # Convert from log10 to linear
-
-    # Convert to JAX arrays
-    efac_array = jnp.array(efac_values)
-    equad_array = jnp.array(equad_values)
-
-
-    return efac_array, equad_array
-
-efac_array, equad_array = get_efac_equad_injections()
-### TO BE REMOVED--------------
-
-
-
-def gw_prior_model():
-
-    """Defines the prior distributions for the parameters."""
-    
-    # GW parameters: ha and γa. We fix gamma to be 1e-9 and use a log transform for ha
-    log10_ha = yield Prior(tfpd.Uniform(-17.0, -14.0), name='log10_ha')
-    γa = yield Prior(1e-9, name='γa')
-
-
-
-    #PSR vector parameters: γp and σp. We use a uniform prior for the log of the parameters
-    log10_γp = yield Prior(
-                            tfpd.Uniform(low=jnp.full(Npsr, -11.0), high=jnp.full(Npsr, -6.0)), #logU(-11,-6)
-                            name='log10_γp'
-                        )
-
-    log10_σp = yield Prior(
-                            tfpd.Uniform(low=jnp.full(Npsr, -18.0), high=jnp.full(Npsr, -12.0)), #logU(-18,-12)
-                            name='log10_σp'
-                        )
-    
-
-    #Measurement noise parameters: EFAC and EQUAD. We use a uniform prior for the log of the parameters
-    efac = yield Prior(efac_array, name='efac')
-    equad = yield Prior(equad_array, name='equad')
-
-    return log10_ha,γa, log10_γp, log10_σp,efac,equad
-
-def null_prior_model(Npsr,efac_array,equad_array):
-
-    """Defines the prior distributions for the parameters for the null (no GW) model."""
-    
-    # GW parameters: ha and γa. We fix gamma to be 1e-9 and use a log transform for ha
-    log10_ha = yield Prior(-15, name='log10_ha')
-    γa = yield Prior(1e-9, name='γa')
-
-
-
-    #PSR vector parameters: γp and σp. We use a uniform prior for the log of the parameters
-    log10_γp = yield Prior(
-                            tfpd.Uniform(low=jnp.full(Npsr, -11.0), high=jnp.full(Npsr, -6.0)), #logU(-11,-6)
-                            name='log10_γp'
-                        )
-
-    log10_σp = yield Prior(
-                            tfpd.Uniform(low=jnp.full(Npsr, -18.0), high=jnp.full(Npsr, -12.0)), #logU(-18,-12)
-                            name='log10_σp'
-                        )
-    
-
-    #Measurement noise parameters: EFAC and EQUAD. We use a uniform prior for the log of the parameters
-    efac = yield Prior(efac_array, name='efac')
-    equad = yield Prior(equad_array, name='equad')
-
-    return log10_ha,γa, log10_γp, log10_σp,efac,equad
 
 
 # JAXNS model
@@ -240,3 +119,89 @@ def print_parameters(params: Parameters):
     for field in params.__dataclass_fields__:
         value = getattr(params, field)
         print(f"{field}: {value}")
+
+def get_prior_model_specs(config, Npsr,sigma_p_array,gamma_p_array, efac_array, equad_array):
+    """
+    Create prior model specifications based on config settings.
+    
+    Args:
+        config: ConfigParser object containing prior model settings
+        Npsr: Number of pulsars
+        sigma_p_array: Array of pulsar red noise sigma values, only used if psr_noise_fixed=true in config
+        gamma_p_array: Array of pulsar red noise gamma values, only used if psr_noise_fixed=true in config
+        efac_array: Array of EFAC values, only used if efac_equad_fixed=true in config
+        equad_array: Array of EQUAD values, only used if efac_equad_fixed=true in config
+        
+    Returns:
+        dict: Dictionary containing all prior specifications with the following keys:
+            - log10_ha_spec: Prior for log10 of GW amplitude (fixed value or Uniform)
+            - gamma_a_spec: Prior for GW spectral index (fixed value or Uniform)
+            - log10_gamma_p_spec: Prior for log10 of pulsar red noise gamma (Uniform)
+            - log10_sigma_p_spec: Prior for log10 of pulsar red noise sigma (Uniform)
+            - efac_spec: Prior for EFAC (fixed array or Uniform)
+            - equad_spec: Prior for EQUAD (fixed array or Uniform)
+            
+    Note:
+        For each parameter, the prior type (fixed or Uniform) is determined by the
+        corresponding *_fixed setting in the config file. If fixed=true, the *_value
+        is used; if fixed=false, a Uniform distribution is created using *_min and *_max.
+        For EFAC and EQUAD, if efac_equad_fixed=true, the provided arrays are used;
+        otherwise, Uniform distributions are created using efac_min/max and equad_min/max.
+        The same logic applies to the pulsar red noise parameters.
+    """
+    # Helper function to create prior spec based on fixed/sampled setting
+    def get_prior_spec(param_name):
+        is_fixed = config.getboolean('PriorModel', f'{param_name}_fixed')
+        if is_fixed:
+            return config.getfloat('PriorModel', f'{param_name}_value')
+        else:
+            min_val = config.getfloat('PriorModel', f'{param_name}_min')
+            max_val = config.getfloat('PriorModel', f'{param_name}_max')
+            return tfpd.Uniform(min_val, max_val)
+
+    # Get prior specifications for each parameter
+
+
+    #GW parameters
+    log10_ha_spec = get_prior_spec('log10_ha')
+    gamma_a_spec = get_prior_spec('gamma_a')
+
+
+    #Pulsar red noise parameters
+    psr_noise_fixed = config.getboolean('PriorModel', 'psr_noise_fixed')
+    if psr_noise_fixed:
+        log10_gamma_p_spec = jnp.log10(gamma_p_array)
+        log10_sigma_p_spec = jnp.log10(sigma_p_array)
+    else:
+        log10_gamma_p_spec = tfpd.Uniform(
+            low=jnp.full(Npsr, config.getfloat('PriorModel', 'log10_gamma_p_min')),
+            high=jnp.full(Npsr, config.getfloat('PriorModel', 'log10_gamma_p_max'))
+        )
+        log10_sigma_p_spec = tfpd.Uniform(
+            low=jnp.full(Npsr, config.getfloat('PriorModel', 'log10_sigma_p_min')),
+            high=jnp.full(Npsr, config.getfloat('PriorModel', 'log10_sigma_p_max'))
+        )
+
+    #Measurement noise parameters
+    efac_equad_fixed = config.getboolean('PriorModel', 'efac_equad_fixed')
+    if efac_equad_fixed:
+        efac_spec = efac_array
+        equad_spec = equad_array
+    else:
+        efac_spec = tfpd.Uniform(
+            low=jnp.full_like(efac_array, config.getfloat('PriorModel', 'efac_min')),
+            high=jnp.full_like(efac_array, config.getfloat('PriorModel', 'efac_max'))
+        )
+        equad_spec = tfpd.Uniform(
+            low=jnp.full_like(equad_array, config.getfloat('PriorModel', 'equad_min')),
+            high=jnp.full_like(equad_array, config.getfloat('PriorModel', 'equad_max'))
+        )
+
+    return {
+        'log10_ha_spec': log10_ha_spec,
+        'gamma_a_spec': gamma_a_spec,
+        'log10_gamma_p_spec': log10_gamma_p_spec,
+        'log10_sigma_p_spec': log10_sigma_p_spec,
+        'efac_spec': efac_spec,
+        'equad_spec': equad_spec
+    }

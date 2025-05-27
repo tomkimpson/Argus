@@ -11,132 +11,170 @@ import sys
 import json
 from datetime import datetime
 from flax import struct
+import time
+import logging
+import argparse
+import shutil
 
 # Add the parent directory to path to import argus modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from argus import data_loader
-from argus import models
 from argus import jax_kalman_filter
-from argus import gravitational_waves
 from argus import bayesian_inference
+from argus import utils
 
-import tensorflow_probability.substrates.jax as tfp
-tfpd = tfp.distributions
+from jaxns import Model, NestedSampler, TerminationCondition
 
-from jaxns import Prior, Model, NestedSampler, TerminationCondition
-
-def run_inference(data_path, output_dir=None, seed=42):
+def run_inference(config_path):
     """
     Run Bayesian inference on pulsar timing data using nested sampling.
     
     Args:
-        data_path (str): Path to the data directory
-        output_dir (str, optional): Directory to save results. If None, creates a timestamped directory
-        seed (int): Random seed for reproducibility
+        config_path (str): Path to configuration file
     
     Returns:
         dict: Inference results
     """
-    print("Starting Bayesian inference...")
+    start_time = time.time()
     
-    # Create output directory if not provided
-    if output_dir is None:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_dir = f"inference_results_{timestamp}"
+    # Load configuration
+    config = utils.load_config(config_path)
+    
+    # Get data path from config
+    data_path = config.get('Data', 'data_path')
+    
+    # Create output directory
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    base_dir = config.get('Output', 'base_dir').format(timestamp=timestamp)
+    output_dir = os.path.join(os.path.dirname(config_path), base_dir)
     os.makedirs(output_dir, exist_ok=True)
     
+
+    
+    # Setup logging
+    logger = utils.setup_logging(output_dir, config)
+    logger.info("Starting Bayesian inference...")
+
+    # Copy config file to output directory
+    config_filename = os.path.basename(config_path)
+    output_config_path = os.path.join(output_dir, config_filename)
+    shutil.copy2(config_path, output_config_path)
+    logger.info(f"Copied config file to {output_config_path}")
+    
     # Load and process data
-    print("Loading and processing data...")
-    processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices, P_eps_matrices, hd_correlation_matrix = \
-        data_loader.get_processed_residuals(data_path)
-    
-    # Set up the GW model
-    print("Setting up GW model...")
-    GW_model = models.StochasticGWBackgroundModel(
-        pulsar_metadata, 
-        hd_correlation_matrix, 
-        pulsar_design_matrices
+    logger.info("Loading and processing data...")
+    excluded_psrs = config.get('Data', 'excluded_psrs').split(',')
+    pulsar_data = data_loader.LoadWidebandPulsarData.get_processed_residuals(
+        data_path,
+        excluded_psrs=[psr.strip() for psr in excluded_psrs if psr.strip()],
     )
     
-    # Set up Kalman filter
-    print("Initializing Kalman filter...")
-    alpha = 1  # scale factor
-    P0 = alpha * block_diag(*P_eps_matrices)
+    # Initialize Kalman filter
+    logger.info("Initializing Kalman filter...")
+    KF = jax_kalman_filter.JaxKalmanFilter(data=pulsar_data, use_gw=True)
     
-    KF = jax_kalman_filter.JaxKalmanFilter(
-        model=GW_model,
-        observations=processed_pulsar_residuals,
-        Peps=P0
+    #Set up the jaxns model
+    Npsr = len(pulsar_data)  # Get number of pulsars from data
+
+    # Get EFAC and EQUAD values
+    noise_params_path = config.get('Data', 'noise_params_path')
+    spin_injections_path = config.get('Data', 'spin_injections_path')
+    efac_array, equad_array = utils.get_efac_equad_injections(noise_params_path, excluded_psrs)
+    sigma_p_array, gamma_p_array = utils.get_psr_noise_injections(spin_injections_path, excluded_psrs)
+    
+    # Get prior model specifications
+    prior_specs = bayesian_inference.get_prior_model_specs(config, Npsr, sigma_p_array, gamma_p_array, efac_array, equad_array)
+
+    # Set up the prior model with configurable parameters using a lambda function
+    prior_model = lambda: bayesian_inference.configurable_prior_model(
+        Npsr=Npsr,
+        **prior_specs
     )
-    
-    # Define likelihood function
+
+    # Set up the log likelihood function using a lambda function
     loglik_fn = lambda log10_ha, γa, log10_γp, log10_σp, efac, equad: \
         bayesian_inference.jaxns_log_likelihood(KF, log10_ha, γa, log10_γp, log10_σp, efac, equad)
     
-    # Set up the model
-    print("Setting up jaxns model...")
-    jax_model = Model(
-        prior_model=bayesian_inference.gw_prior_model,
-        log_likelihood=loglik_fn
-    )
+    jax_model = Model(prior_model=prior_model, log_likelihood=loglik_fn)
+
+    # Sample from the prior model and evaluate the log likelihood, just to check everything is working ok.
+    u = jax_model.sample_U(key=random.PRNGKey(432345987))  # Unit cube sample
+    θ = jax_model.transform(u)                       # Transform to physical parameter space
+
+    print("The sampled parameters are:")
+    print(θ)
+
+    # Define the expected parameter order for loglik_fn
+    param_names = ['log10_ha', 'γa', 'log10_γp', 'log10_σp', 'efac', 'equad']
     
-    # Run nested sampling
-    print("Running nested sampling...")
+    # Extract parameters in the correct order and convert to float
+    params = [θ[name] for name in param_names]
+    
+    # Evaluate log likelihood with the parameters
+    log_likelihood = loglik_fn(*params)
+    print("\nLog likelihood value:")
+    print(log_likelihood)
+
+    # Initialize and run nested sampling
+    logger.info("Initializing nested sampling...")
     ns = NestedSampler(
         model=jax_model,
-        num_live_points=1000,
-        max_samples=1e5,
-        num_parallel_samplers=1,
-        uncert_improvement_patience=3
+        num_live_points=config.getint('NestedSampling', 'num_live_points', fallback=100),
+        verbose=True
     )
-    
-    termination_reason, state = ns(
-        random.PRNGKey(seed),
-        term_cond=TerminationCondition()
+
+    logger.info("Running nested sampling...")
+    term_cond = TerminationCondition(
+        dlogZ=config.getfloat('NestedSampling', 'dlogZ', fallback=0.1)
     )
-    
-    # Process results
-    results = ns.to_results(state, termination_reason)
-    
+    termination_reason, state = jax.jit(ns)(
+        key=random.PRNGKey(432345987),
+        term_cond=term_cond
+    )
+
+    logger.info("Converting results...")
+    results = ns.to_results(termination_reason=termination_reason, state=state)
+
+   
     # Save results
-    print("Saving results...")
-    results_dict = {
+    logger.info("Saving results...")
+    results_path = os.path.join(output_dir, f'nested_sampling_results_{timestamp}.json')
+    ns.save_results(results, results_path)
+
+    return {
         'log_Z': float(results.log_Z),
         'log_Z_error': float(results.log_Z_error),
-        'parameter_means': {k: float(v) for k, v in results.parameter_means.items()},
-        'parameter_stds': {k: float(v) for k, v in results.parameter_stds.items()},
-        'termination_reason': str(termination_reason)
+        'parameter_means': {name: float(results.param_means[i]) 
+                          for i, name in enumerate(param_names)},
+        'parameter_stds': {name: float(results.param_stds[i]) 
+                         for i, name in enumerate(param_names)},
+        'inference_duration': time.time() - start_time,
+        'gpu_used': has_gpu
     }
-    
-    with open(os.path.join(output_dir, 'inference_results.json'), 'w') as f:
-        json.dump(results_dict, f, indent=4)
-    
-    print(f"Results saved to {output_dir}")
-    return results_dict
 
 if __name__ == "__main__":
+    # Set up argument parser
+    parser = argparse.ArgumentParser(description='Run Bayesian inference on pulsar timing data.')
+    parser.add_argument('config', type=str, help='Path to the configuration file')
+    
+    args = parser.parse_args()
+    
     # Print JAX configuration
     print("=== JAX VERSION INFO ===")
     print(f"JAX version: {jax.__version__}")
     print("\n=== DEVICE INFO ===")
     print("Default device:", jax.default_backend())
-    print("\n=== JAX CONFIG SETTINGS ===")
-    for name, value in sorted(jax.config.values.items()):
-        print(f"{name}: {value}")
     
     # Check GPU availability
-    if any(d.platform == 'gpu' for d in jax.devices()):
-        print("\nJAX GPU acceleration is AVAILABLE!")
-        print("GPU devices:", [d for d in jax.devices() if d.platform == 'gpu'])
-    else:
-        print("\nJAX GPU acceleration is NOT available. Using CPU only.")
+    has_gpu = utils.check_gpu_availability()
     
-    # Example usage
-    data_path = "../data/IPTA_MockDataChallenge2/dataset_2b/"
-    results = run_inference(data_path)
+    # Run inference
+    results = run_inference(config_path=args.config)
     
     print("\nInference Results:")
     print(f"Log Evidence (Z): {results['log_Z']:.2f} ± {results['log_Z_error']:.2f}")
+    print(f"Inference Duration: {results['inference_duration']:.2f} seconds")
+    print(f"GPU Used: {results['gpu_used']}")
     print("\nParameter Estimates:")
     for param, (mean, std) in zip(results['parameter_means'].keys(), 
                                  zip(results['parameter_means'].values(), 

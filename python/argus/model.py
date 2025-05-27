@@ -218,7 +218,6 @@ def precompute_H_matrix(Npsr: int,
         if pulsar_design_matrices[i].shape[0] != num_time_steps:
             raise ValueError(f"Inconsistent number of time steps found (Pulsar 0: {num_time_steps}, Pulsar {i}: {pulsar_design_matrices[i].shape[0]})")
 
-    print(f"Computing H matrices for all {num_time_steps} time steps (using NumPy)...")
 
     all_H = []
     for t_idx in range(num_time_steps):
@@ -226,5 +225,4 @@ def precompute_H_matrix(Npsr: int,
                                          pulsar_design_matrices, use_gw, f0)
         all_H.append(H_step)
 
-    print("Finished computing all H matrices.")
     return np.stack(all_H, axis=0) 
