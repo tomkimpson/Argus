@@ -10,4 +10,4 @@
 
 source ~/.bashrc
 conda activate Argus
-time python -u main.py config.ini
+time python -u main.py configs/config.ini
