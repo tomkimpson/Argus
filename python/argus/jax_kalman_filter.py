@@ -302,11 +302,21 @@ class JaxKalmanFilter:
         use_gw: If True, include GW terms in measurement equation. Default True.
     """
 
-    def __init__(self, df_psr, observations: np.ndarray, Peps: np.ndarray, 
-                 hd_correlation_matrix: np.ndarray, pulsar_design_matrices: np.ndarray,
-                 use_gw: bool = True):
+    def __init__(self, data: dict, use_gw: bool = True):
         """Initialize the class."""
         logger.info("Initializing JaxKalmanFilter...")
+
+
+        observations = data['processed_residuals']
+        df_psr = data['metadata']
+        pulsar_design_matrices = data['design_matrices']
+        P_eps_matrices = data['parameter_covariances']
+        hd_correlation_matrix = data['hd_correlation']
+        
+        alpha = 1 #scale slightly 
+        Peps = alpha*block_diag(*P_eps_matrices)
+
+
 
         # Store observations and Peps
         self.observations = observations

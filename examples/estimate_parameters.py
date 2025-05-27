@@ -5,56 +5,40 @@ import jax.numpy as jnp
 from jax.scipy.linalg import block_diag
 from jax import random
 
-import os 
-import glob
 import sys 
-import json
-import pandas as pd
-import numpy as np 
-from flax import struct
-from datetime import datetime
-
 
 sys.path.append('../python/argus')
-from argus import data_loader
 from argus import models
 from argus import jax_kalman_filter
-from argus import gravitational_waves
 from argus import bayesian_inference
-
-import time 
-
-
-#jaxns 
 
 import tensorflow_probability.substrates.jax as tfp
 tfpd = tfp.distributions
 
-from jaxns import Prior, Model, NestedSampler,TerminationCondition # Import necessary components
+from jaxns import Model
 
-from utils import _get_processed_residuals, get_efac_equad_injections, get_psr_noise_injections
+from utils import _get_processed_residuals
 
+import os 
+import glob
+import json
+import pandas as pd
+import numpy as np 
+from datetime import datetime
 
-
-
-
+import time 
 
 def parameter_estimation():
 
-
-    print("Inside the parameter estimation function")
 
     #Get the data
     data_path = "../data/IPTA_MockDataChallenge2/dataset_2b/" 
     processed_pulsar_residuals, pulsar_metadata, pulsar_design_matrices,P_eps_matrices,hd_correlation_matrix = _get_processed_residuals(data_path)
 
-
-
     GW_model = models.StochasticGWBackgroundModel(pulsar_metadata, hd_correlation_matrix, pulsar_design_matrices)
 
     alpha = 1 #scale slightly 
     P0 = alpha*block_diag(*P_eps_matrices)
-
 
     KF = jax_kalman_filter.JaxKalmanFilter(
         model=GW_model, 
@@ -62,16 +46,10 @@ def parameter_estimation():
         Peps=P0
     )
 
-    #loglik_fn = lambda log10_ha, log10_γp, log10_σp,efac_array,equad_array: bayesian_inference.jaxns_log_likelihood(KF,log10_ha, log10_γp, log10_σp, efac_array,equad_array)
-    
     loglik_fn = lambda log10_ha, γa, log10_γp, log10_σp, efac, equad: \
     bayesian_inference.jaxns_log_likelihood(KF, log10_ha, γa, log10_γp, log10_σp, efac, equad)
     
-    
-    
     jax_model = Model(prior_model=bayesian_inference.gw_prior_model, log_likelihood=loglik_fn)
-
-   # params = jax_model.sample_U(key=random.PRNGKey(432345987))
 
     u = jax_model.sample_U(key=random.PRNGKey(432345987))  # Unit cube sample
     θ = jax_model.transform(u)                       # Transform to physical parameter space
@@ -114,7 +92,6 @@ def parameter_estimation():
 
 if __name__ == "__main__":
 
-
     print("Double check this is the correct script")
     # Check available devices
     print("=== JAX VERSION INFO ===")
@@ -135,8 +112,6 @@ if __name__ == "__main__":
         print("\nJAX GPU acceleration is NOT available. Using CPU only.")
     print('-----------------------------------------------')
     print(jax.devices())
-
-
 
     #go
     print("go: parameter NS estimatin")
