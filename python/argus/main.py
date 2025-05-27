@@ -46,10 +46,9 @@ def run_inference(config_path):
     # Create output directory
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     base_dir = config.get('Output', 'base_dir').format(timestamp=timestamp)
-    output_dir = os.path.join(os.path.dirname(config_path), base_dir)
+    # Change output directory to be in python/argus/outputs/
+    output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'outputs', base_dir)
     os.makedirs(output_dir, exist_ok=True)
-    
-
     
     # Setup logging
     logger = utils.setup_logging(output_dir, config)
@@ -140,17 +139,8 @@ def run_inference(config_path):
     logger.info("Saving results...")
     results_path = os.path.join(output_dir, f'nested_sampling_results_{timestamp}.json')
     ns.save_results(results, results_path)
+    logger.info(f"Results saved to {results_path}")
 
-    return {
-        'log_Z': float(results.log_Z),
-        'log_Z_error': float(results.log_Z_error),
-        'parameter_means': {name: float(results.param_means[i]) 
-                          for i, name in enumerate(param_names)},
-        'parameter_stds': {name: float(results.param_stds[i]) 
-                         for i, name in enumerate(param_names)},
-        'inference_duration': time.time() - start_time,
-        'gpu_used': has_gpu
-    }
 
 if __name__ == "__main__":
     # Set up argument parser
@@ -171,12 +161,3 @@ if __name__ == "__main__":
     # Run inference
     results = run_inference(config_path=args.config)
     
-    print("\nInference Results:")
-    print(f"Log Evidence (Z): {results['log_Z']:.2f} ± {results['log_Z_error']:.2f}")
-    print(f"Inference Duration: {results['inference_duration']:.2f} seconds")
-    print(f"GPU Used: {results['gpu_used']}")
-    print("\nParameter Estimates:")
-    for param, (mean, std) in zip(results['parameter_means'].keys(), 
-                                 zip(results['parameter_means'].values(), 
-                                     results['parameter_stds'].values())):
-        print(f"{param}: {mean:.3f} ± {std:.3f}")
