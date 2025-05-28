@@ -1,0 +1,535 @@
+INFO:2025-05-28 11:13:17,198:jax._src.xla_bridge:925: Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
+INFO:jax._src.xla_bridge:Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
+INFO:2025-05-28 11:13:17,210:jax._src.xla_bridge:925: Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+INFO:jax._src.xla_bridge:Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+=== JAX VERSION INFO ===
+JAX version: 0.5.3
+
+=== DEVICE INFO ===
+Default device: gpu
+INFO:root:Found GPU devices: [CudaDevice(id=0)]
+
+Running inference with GW model...
+INFO:argus.utils:Starting Bayesian inference with GW model...
+INFO:argus.utils:Copied config file to /fred/oz022/tkimpson/clean/Argus/python/outputs/20250528_111321/config.ini
+INFO:argus.utils:Loading and processing data...
+Getting the data. Loading 32 pulsars from ../../data/IPTA_MockDataChallenge2/dataset_2b/
+[tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
+[preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J0030+0451, F0: 205.53069593846152, # TOAs: 183
+[tempo2Util.C:401] Warning: [DUP1] duplicated warnings have been suppressed.
+[preProcess.C:158] Warning: PSR J0034-0534 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0034-0534. Setting value to 1 with 20% uncertainty.
+PSR: J0034-0534, F0: 532.7134293952242, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0218+4232 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0218+4232. Setting value to 1 with 20% uncertainty.
+PSR: J0218+4232, F0: 430.46105454575843, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0437-4715 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J0437-4715, F0: 173.6879457375193, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0613-0200 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J0613-0200, F0: 326.60056202349193, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0621+1002 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0621+1002. Setting value to 1 with 20% uncertainty.
+PSR: J0621+1002, F0: 34.65740662142043, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0711-6830 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J0711-6830, F0: 182.1172346472276, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0751+1807 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0751+1807. Setting value to 1 with 20% uncertainty.
+PSR: J0751+1807, F0: 287.4578539950941, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0900-3144 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0900-3144. Setting value to 1 with 20% uncertainty.
+PSR: J0900-3144, F0: 90.0118419193632, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1012+5307 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1012+5307, F0: 190.26783444155498, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1022+1001 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1022+1001, F0: 60.779447956696714, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1024-0719 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1024-0719, F0: 193.71568344854623, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1045-4509 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1045-4509, F0: 133.79314954119278, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1455-3330 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1455-3330, F0: 125.20024324499536, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1600-3053 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1600-3053, F0: 277.9377069896204, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1603-7202 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1603-7202, F0: 67.37658112877924, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1614-2230 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J1614-2230. Setting value to 1 with 20% uncertainty.
+PSR: J1614-2230, F0: 317.37893706872126, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1643-1224 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1643-1224, F0: 216.37333714263485, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1713+0747 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1713+0747, F0: 218.81184041715784, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1730-2304 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1730-2304, F0: 123.1102871473812, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1744-1134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1744-1134, F0: 245.42611968980754, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1857+0943 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1857+0943, F0: 186.4940783779791, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1909-3744 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1909-3744, F0: 339.31568721848686, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1918-0642 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1918-0642, F0: 130.78951412337267, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1939+2134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1939+2134, F0: 641.9282245822469, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1944+0907 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J1944+0907. Setting value to 1 with 20% uncertainty.
+PSR: J1944+0907, F0: 192.85651792018598, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2010-1323 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J2010-1323. Setting value to 1 with 20% uncertainty.
+PSR: J2010-1323, F0: 191.45090909263828, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2124-3358 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J2124-3358, F0: 202.7938937460303, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2129-5721 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J2129-5721, F0: 268.3592272938787, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2145-0750 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J2145-0750, F0: 62.29588783738885, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2229+2643 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J2229+2643. Setting value to 1 with 20% uncertainty.
+PSR: J2229+2643, F0: 335.81620819685526, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2317+1439 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J2317+1439, F0: 290.2546036648635, # TOAs: 183
+INFO:argus.utils:Initializing Kalman filter...
+INFO:argus.jax_kalman_filter:Initializing JaxKalmanFilter...
+INFO:argus.jax_kalman_filter:Number of pulsars: 32
+INFO:argus.jax_kalman_filter:Pulsar frequencies: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
+  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
+  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
+  67.37658113 317.37893707 216.37333714 218.81184042 123.11028715
+ 245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
+ 192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
+ 335.8162082  290.25460366]
+INFO:argus.jax_kalman_filter:Total number of observations: 183
+INFO:argus.jax_kalman_filter:Starting dt (days): 29.875630165338517
+INFO:argus.jax_kalman_filter:Ending dt (days): 30.060462559770656
+INFO:argus.jax_kalman_filter:The errors at t=1 are: [2.697680e-06 9.700560e-06 1.613116e-05 3.307200e-07 4.558820e-06
+ 2.141629e-05 5.225050e-06 4.722880e-06 4.797490e-06 5.783810e-06
+ 2.626620e-06 5.090810e-06 6.527710e-06 1.173289e-05 8.300700e-07
+ 3.826940e-06 2.880370e-06 2.054900e-06 1.612610e-06 3.759770e-06
+ 1.103370e-06 2.220800e-06 4.024300e-07 5.434910e-06 1.372800e-07
+ 7.031630e-06 4.653570e-06 5.474680e-06 3.388130e-06 4.303360e-06
+ 1.993229e-05 2.291670e-06]
+INFO:argus.utils:The sampled parameters are:
+INFO:argus.utils:{'log10_ha': Array(-15.19704937, dtype=float64), 'γa': Array(1.e-09, dtype=float64, weak_type=True), 'log10_γp': Array([ -9.87981503,  -7.14518295,  -7.09864206,  -6.43221181,
+       -10.93181076,  -6.00000846,  -7.12455778,  -7.71236066,
+        -7.11971185,  -6.34051319,  -6.0001045 ,  -7.57592873,
+        -7.67087927,  -7.80391311,  -6.37231419,  -7.08879163,
+        -7.14430181,  -6.07086745,  -6.82232506,  -7.14376076,
+        -6.98166252,  -9.58996728,  -6.96383909,  -6.93627183,
+        -6.19249535,  -7.18614477,  -7.46031132,  -7.14796606,
+        -7.17194033,  -6.00005056,  -7.29450162,  -6.9777664 ],      dtype=float64), 'log10_σp': Array([-15.01272033, -16.86073884, -17.10633373, -14.44950016,
+       -15.42414782, -12.93094843, -17.61878136, -16.76183133,
+       -17.90183798, -13.5864488 , -15.30387167, -17.10207843,
+       -15.55726118, -16.72249196, -16.07917081, -17.78295686,
+       -17.67087153, -12.60395705, -17.60242492, -17.65263962,
+       -17.84165078, -15.14568727, -17.78452189, -16.54109365,
+       -12.91626646, -17.48506258, -17.01706557, -17.01637743,
+       -17.44514375, -14.25837177, -16.46424809, -17.57213783],      dtype=float64), 'efac': Array([1.1327055 , 1.25983733, 1.35018571, 0.90278929, 1.06939844,
+       1.11594468, 1.03314691, 1.09801632, 1.0514874 , 1.02444914,
+       1.25827455, 1.04494685, 1.07292913, 1.33903549, 1.17562538,
+       1.10083587, 1.03740117, 1.14885925, 1.05353257, 1.24585664,
+       1.24818884, 1.14140865, 1.09540047, 1.0819378 , 2.20581395,
+       1.29681036, 1.1092575 , 1.11394737, 1.26278498, 1.1148985 ,
+       1.60031504, 1.05936485], dtype=float64), 'equad': Array([1.84394041e-07, 2.28335836e-07, 1.76298046e-07, 4.46490227e-08,
+       8.92933584e-08, 1.50877597e-07, 9.83795160e-08, 1.64693322e-07,
+       1.39188577e-07, 1.50442436e-07, 5.69172175e-07, 9.85092417e-08,
+       1.41017041e-07, 3.45153139e-08, 3.60359065e-08, 1.01603695e-07,
+       3.95887723e-08, 7.80432178e-08, 6.44083598e-08, 1.48584963e-07,
+       1.97045429e-07, 2.29053154e-07, 6.12091681e-08, 2.77786023e-08,
+       1.36274859e-07, 5.80353162e-08, 1.37626576e-07, 1.17523569e-07,
+       1.07929355e-07, 1.73294901e-07, 1.67555592e-07, 3.88054662e-07],      dtype=float64)}
+INFO:argus.utils:
+Log likelihood value:
+INFO:argus.utils:56015.45150989465
+INFO:argus.utils:Initializing nested sampling...
+INFO:jaxns:Number of Markov-chains set to: 100
+INFO:argus.utils:Running nested sampling...
+Running until termination condition: TerminationCondition(ess=None, evidence_uncert=None, live_evidence_frac=None, dlogZ=Array(0.1, dtype=float64), max_samples=Array(10000, dtype=int64), max_num_likelihood_evaluations=None, log_L_contour=None, efficiency_threshold=None, rtol=None, atol=None, peak_XL_frac=None)
+Running uniform sampling down to efficiency threshold of 0.1.
+Creating initial state with 100 live points.
+-------
+Num samples: 50
+Num likelihood evals: 445
+Efficiency: 0.20202020202020202
+log(L) contour: 56010.78345017897
+log(Z) est.: 56032.30922317059 +- 0.23590978239216334
+log(Z | remaining) est.: 25.435362077783793 +- 0.4203773530492939
+ESS: 8.042522059934916
+
+-------
+Num samples: 100
+Num likelihood evals: 1112
+Efficiency: 0.11123470522803114
+log(L) contour: 56025.26346971569
+log(Z) est.: 56032.53759173304 +- 0.18341578029703376
+log(Z | remaining) est.: 11.310337970346154 +- 0.4100169558547382
+ESS: 14.593221976472387
+
+-------
+Num samples: 150
+Num likelihood evals: 1982
+Efficiency: 0.07763975155279502
+log(L) contour: 56031.062180582216
+log(Z) est.: 56032.753980994705 +- 0.14523973783699706
+log(Z | remaining) est.: 5.644136925955536 +- 0.28301596291571524
+ESS: 30.375311262530523
+
+-------
+Num samples: 200
+Num likelihood evals: 3151
+Efficiency: 0.054466230936819175
+log(L) contour: 56034.006093119926
+log(Z) est.: 56032.891621916744 +- 0.1361016352003827
+log(Z | remaining) est.: 2.2963037530425936 +- 0.22447521813480836
+ESS: 54.01855940356151
+
+-------
+Num samples: 250
+Num likelihood evals: 4529
+Efficiency: 0.0434593654932638
+log(L) contour: 56034.822987903535
+log(Z) est.: 56032.94535442722 +- 0.13552184347019947
+log(Z | remaining) est.: 1.1134406280179974 +- 0.20048986008314398
+ESS: 84.02879965035329
+
+-------
+Num samples: 300
+Num likelihood evals: 6224
+Efficiency: 0.035398230088495575
+log(L) contour: 56035.0828938629
+log(Z) est.: 56032.95528671587 +- 0.13552551678411404
+log(Z | remaining) est.: 0.5706379599796492 +- 0.19368277151297866
+ESS: 113.26349677400204
+
+-------
+Num samples: 350
+Num likelihood evals: 8143
+Efficiency: 0.03057169061449098
+log(L) contour: 56035.13188567897
+log(Z) est.: 56032.958669478496 +- 0.13553479132448684
+log(Z | remaining) est.: 0.3130378871646826 +- 0.19159166683900317
+ESS: 131.74127873056665
+
+-------
+Num samples: 400
+Num likelihood evals: 10568
+Efficiency: 0.0244081034903588
+log(L) contour: 56035.14525559108
+log(Z) est.: 56032.9600739811 +- 0.13554079540245775
+log(Z | remaining) est.: 0.1795161004847614 +- 0.19109544674163645
+ESS: 140.55746428665756
+
+-------
+Num samples: 450
+Num likelihood evals: 13129
+Efficiency: 0.02208968411751712
+log(L) contour: 56035.15220312781
+log(Z) est.: 56032.96093074119 +- 0.13554850580633668
+log(Z | remaining) est.: 0.10579371816129424 +- 0.19110314470270298
+ESS: 144.27029738690956
+
+-------
+Num samples: 500
+Num likelihood evals: 16685
+Efficiency: 0.01723246596587972
+log(L) contour: 56035.15949250173
+log(Z) est.: 56032.9614506012 +- 0.13555469263227896
+log(Z | remaining) est.: 0.06326893722871318 +- 0.19123910082607162
+ESS: 145.7716414305903
+
+INFO:argus.utils:Converting results...
+INFO:argus.utils:Saving results...
+INFO:argus.utils:Results saved to /fred/oz022/tkimpson/clean/Argus/python/outputs/20250528_111321/nested_sampling_results_20250528_113357.json
+
+Running inference without GW model...
+INFO:argus.utils:Starting Bayesian inference without GW model...
+INFO:argus.utils:Copied config file to /fred/oz022/tkimpson/clean/Argus/python/outputs/20250528_113358_no_gw/config.ini
+INFO:argus.utils:Loading and processing data...
+Getting the data. Loading 32 pulsars from ../../data/IPTA_MockDataChallenge2/dataset_2b/
+[preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J0030+0451, F0: 205.53069593846152, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0034-0534 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0034-0534. Setting value to 1 with 20% uncertainty.
+PSR: J0034-0534, F0: 532.7134293952242, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0218+4232 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0218+4232. Setting value to 1 with 20% uncertainty.
+PSR: J0218+4232, F0: 430.46105454575843, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0437-4715 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J0437-4715, F0: 173.6879457375193, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0613-0200 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J0613-0200, F0: 326.60056202349193, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0621+1002 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0621+1002. Setting value to 1 with 20% uncertainty.
+PSR: J0621+1002, F0: 34.65740662142043, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0711-6830 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J0711-6830, F0: 182.1172346472276, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0751+1807 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0751+1807. Setting value to 1 with 20% uncertainty.
+PSR: J0751+1807, F0: 287.4578539950941, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0900-3144 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J0900-3144. Setting value to 1 with 20% uncertainty.
+PSR: J0900-3144, F0: 90.0118419193632, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1012+5307 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1012+5307, F0: 190.26783444155498, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1022+1001 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1022+1001, F0: 60.779447956696714, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1024-0719 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1024-0719, F0: 193.71568344854623, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1045-4509 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1045-4509, F0: 133.79314954119278, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1455-3330 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1455-3330, F0: 125.20024324499536, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1600-3053 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1600-3053, F0: 277.9377069896204, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1603-7202 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1603-7202, F0: 67.37658112877924, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1614-2230 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J1614-2230. Setting value to 1 with 20% uncertainty.
+PSR: J1614-2230, F0: 317.37893706872126, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1643-1224 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1643-1224, F0: 216.37333714263485, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1713+0747 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1713+0747, F0: 218.81184041715784, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1730-2304 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1730-2304, F0: 123.1102871473812, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1744-1134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1744-1134, F0: 245.42611968980754, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1857+0943 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1857+0943, F0: 186.4940783779791, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1909-3744 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1909-3744, F0: 339.31568721848686, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1918-0642 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1918-0642, F0: 130.78951412337267, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1939+2134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1939+2134, F0: 641.9282245822469, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1944+0907 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J1944+0907. Setting value to 1 with 20% uncertainty.
+PSR: J1944+0907, F0: 192.85651792018598, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2010-1323 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J2010-1323. Setting value to 1 with 20% uncertainty.
+PSR: J2010-1323, F0: 191.45090909263828, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2124-3358 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J2124-3358, F0: 202.7938937460303, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2129-5721 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J2129-5721, F0: 268.3592272938787, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2145-0750 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J2145-0750, F0: 62.29588783738885, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2229+2643 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING:enterprise.pulsar:WARNING: Could not find pulsar distance for PSR J2229+2643. Setting value to 1 with 20% uncertainty.
+PSR: J2229+2643, F0: 335.81620819685526, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2317+1439 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J2317+1439, F0: 290.2546036648635, # TOAs: 183
+INFO:argus.utils:Initializing Kalman filter...
+INFO:argus.jax_kalman_filter:Initializing JaxKalmanFilter...
+INFO:argus.jax_kalman_filter:Number of pulsars: 32
+INFO:argus.jax_kalman_filter:Initializing null GW model - GW states present but not used in measurements
+INFO:argus.jax_kalman_filter:Pulsar frequencies: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
+  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
+  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
+  67.37658113 317.37893707 216.37333714 218.81184042 123.11028715
+ 245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
+ 192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
+ 335.8162082  290.25460366]
+INFO:argus.jax_kalman_filter:Total number of observations: 183
+INFO:argus.jax_kalman_filter:Starting dt (days): 29.875630165338517
+INFO:argus.jax_kalman_filter:Ending dt (days): 30.060462559770656
+INFO:argus.jax_kalman_filter:The errors at t=1 are: [2.697680e-06 9.700560e-06 1.613116e-05 3.307200e-07 4.558820e-06
+ 2.141629e-05 5.225050e-06 4.722880e-06 4.797490e-06 5.783810e-06
+ 2.626620e-06 5.090810e-06 6.527710e-06 1.173289e-05 8.300700e-07
+ 3.826940e-06 2.880370e-06 2.054900e-06 1.612610e-06 3.759770e-06
+ 1.103370e-06 2.220800e-06 4.024300e-07 5.434910e-06 1.372800e-07
+ 7.031630e-06 4.653570e-06 5.474680e-06 3.388130e-06 4.303360e-06
+ 1.993229e-05 2.291670e-06]
+INFO:argus.utils:The sampled parameters are:
+INFO:argus.utils:{'log10_ha': Array(-15.19704937, dtype=float64), 'γa': Array(1.e-09, dtype=float64, weak_type=True), 'log10_γp': Array([ -9.87981503,  -7.14518295,  -7.09864206,  -6.43221181,
+       -10.93181076,  -6.00000846,  -7.12455778,  -7.71236066,
+        -7.11971185,  -6.34051319,  -6.0001045 ,  -7.57592873,
+        -7.67087927,  -7.80391311,  -6.37231419,  -7.08879163,
+        -7.14430181,  -6.07086745,  -6.82232506,  -7.14376076,
+        -6.98166252,  -9.58996728,  -6.96383909,  -6.93627183,
+        -6.19249535,  -7.18614477,  -7.46031132,  -7.14796606,
+        -7.17194033,  -6.00005056,  -7.29450162,  -6.9777664 ],      dtype=float64), 'log10_σp': Array([-15.01272033, -16.86073884, -17.10633373, -14.44950016,
+       -15.42414782, -12.93094843, -17.61878136, -16.76183133,
+       -17.90183798, -13.5864488 , -15.30387167, -17.10207843,
+       -15.55726118, -16.72249196, -16.07917081, -17.78295686,
+       -17.67087153, -12.60395705, -17.60242492, -17.65263962,
+       -17.84165078, -15.14568727, -17.78452189, -16.54109365,
+       -12.91626646, -17.48506258, -17.01706557, -17.01637743,
+       -17.44514375, -14.25837177, -16.46424809, -17.57213783],      dtype=float64), 'efac': Array([1.1327055 , 1.25983733, 1.35018571, 0.90278929, 1.06939844,
+       1.11594468, 1.03314691, 1.09801632, 1.0514874 , 1.02444914,
+       1.25827455, 1.04494685, 1.07292913, 1.33903549, 1.17562538,
+       1.10083587, 1.03740117, 1.14885925, 1.05353257, 1.24585664,
+       1.24818884, 1.14140865, 1.09540047, 1.0819378 , 2.20581395,
+       1.29681036, 1.1092575 , 1.11394737, 1.26278498, 1.1148985 ,
+       1.60031504, 1.05936485], dtype=float64), 'equad': Array([1.84394041e-07, 2.28335836e-07, 1.76298046e-07, 4.46490227e-08,
+       8.92933584e-08, 1.50877597e-07, 9.83795160e-08, 1.64693322e-07,
+       1.39188577e-07, 1.50442436e-07, 5.69172175e-07, 9.85092417e-08,
+       1.41017041e-07, 3.45153139e-08, 3.60359065e-08, 1.01603695e-07,
+       3.95887723e-08, 7.80432178e-08, 6.44083598e-08, 1.48584963e-07,
+       1.97045429e-07, 2.29053154e-07, 6.12091681e-08, 2.77786023e-08,
+       1.36274859e-07, 5.80353162e-08, 1.37626576e-07, 1.17523569e-07,
+       1.07929355e-07, 1.73294901e-07, 1.67555592e-07, 3.88054662e-07],      dtype=float64)}
+INFO:argus.utils:
+Log likelihood value:
+INFO:argus.utils:56008.429056098474
+INFO:argus.utils:Initializing nested sampling...
+INFO:jaxns:Number of Markov-chains set to: 100
+INFO:argus.utils:Running nested sampling...
+Running until termination condition: TerminationCondition(ess=None, evidence_uncert=None, live_evidence_frac=None, dlogZ=Array(0.1, dtype=float64), max_samples=Array(10000, dtype=int64), max_num_likelihood_evaluations=None, log_L_contour=None, efficiency_threshold=None, rtol=None, atol=None, peak_XL_frac=None)
+Running uniform sampling down to efficiency threshold of 0.1.
+Creating initial state with 100 live points.
+INFO:argus.utils:Converting results...
+INFO:argus.utils:Saving results...
+INFO:argus.utils:Results saved to /fred/oz022/tkimpson/clean/Argus/python/outputs/20250528_113358_no_gw/nested_sampling_results_20250528_113430.json
+
+real	21m27.063s
+user	14m24.061s
+sys	6m32.074s
+
++------------------- Job Report: 703320 (COMPLETED) -------------------+
+| Memory (RAM)  [#######             ] 39.9% (3.2 GB peak / 8 GB)      |
+| CPU           [#############       ] 66.3% average                   |
+| GPU           [##################  ] 92.1% average                   |
+| Time          [------->            ] 36.2% (0-00:21:44 / 0-01:00:00) |
+|                                                                      |
+| Lustre Filesystem:                                                   |
+|   Path    Total Read    Total Write    Total IOPS                    |
+|   ------  ------------  -------------  ------------                  |
+|   /apps   30.9 MB       0 B            16                            |
+|   /fred   519.2 MB      919.3 KB       16.2 K                        |
+|   /home   60 KB         0 B            11                            |
+|   OS      4 KB          0 B            5                             |
+|                                                                      |
+| Warnings:                                                            |
+|   - Too much memory requested                                        |
+|   - CPU usage is low                                                 |
+|   - Too much time requested                                          |
++----------------------------------------------------------------------+

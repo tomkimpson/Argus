@@ -7,6 +7,7 @@ import jax
 import jax.numpy as jnp
 import pandas as pd
 import configparser
+from datetime import datetime
 
 def load_config(config_path):
     """Load configuration from file.
@@ -48,11 +49,20 @@ def setup_logging(output_dir, config):
     logging.Logger
         Configured logger instance
     """
-    log_file = os.path.join(output_dir, 'inference.log')
+    # Create a timestamp for the log file
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = os.path.join(output_dir, f'nested_sampling_test_output_{timestamp}.txt')
+    
+    # Configure logging to both file and console
     logging.basicConfig(
         level=getattr(logging, config.get('Logging', 'level')),
-        format='%(asctime)s - %(levelname)s - %(message)s'
+        format='%(asctime)s - %(levelname)s - %(message)s',
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler()
+        ]
     )
+    
     return logging.getLogger(__name__)
 
 def check_gpu_availability():
@@ -130,3 +140,75 @@ def get_psr_noise_injections(spin_injections_path, excluded_psrs=[]):
     gamma_p_injected = df_filtered['optimal_gamma'].values
     
     return jnp.array(sigma_p_injected), jnp.array(gamma_p_injected) 
+
+
+
+
+
+
+from jaxns import load_results 
+import numpy as np 
+import corner
+import matplotlib.pyplot as plt
+
+def plot_jaxns_corner(results, parameters, ranges, output_dir=None):
+    """Create and save a corner plot of the nested sampling results.
+    
+    Parameters
+    ----------
+    results : jaxns.Results
+        Results from nested sampling
+    parameters : list of str
+        List of parameter names to plot
+    ranges : list of list
+        List of [min, max] ranges for each parameter
+    output_dir : str, optional
+        Directory to save the plot. If None, plot is shown but not saved.
+    """
+    # Get samples for each selected parameter
+    samples = []
+    for param in parameters:
+        if param not in results.samples:
+            raise ValueError(f"Parameter {param} not found in data")
+        samples.append(results.samples[param].flatten())
+
+    samples = np.column_stack(samples)
+
+    evidence = results.log_Z_mean.item()
+    evidence_std = results.log_Z_uncert.item()
+
+    # Create corner plot
+    fig = corner.corner(
+        samples,
+        labels=parameters,
+        color='C0',
+        quantiles=[0.16, 0.5, 0.84],
+        show_titles=True,
+        title_kwargs={"fontsize": 12},
+        range=ranges,
+        bins=30,
+        smooth=1.0,
+        smooth1d=1.0,
+        plot_datapoints=True,
+        fill_contours=True,
+        levels=[0.68, 0.95]  # 1 and 2 sigma contours
+    )
+
+    # Add evidence information as figure title
+    plt.suptitle(f"log(Z) = {evidence:.2f} ± {evidence_std:.2f}", y=1.02, fontsize=14)
+    plt.tight_layout()
+    
+    if output_dir is not None:
+        # Create plots directory if it doesn't exist
+        plots_dir = os.path.join(output_dir, 'plots')
+        os.makedirs(plots_dir, exist_ok=True)
+        
+        # Save the plot
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        plot_path = os.path.join(plots_dir, f'corner_plot_{timestamp}.png')
+        plt.savefig(plot_path, bbox_inches='tight')
+        plt.close()
+        return plot_path
+    else:
+        plt.show()
+        return None

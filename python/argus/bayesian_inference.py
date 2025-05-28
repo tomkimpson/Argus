@@ -149,6 +149,7 @@ def get_prior_model_specs(config, Npsr,sigma_p_array,gamma_p_array, efac_array, 
         otherwise, Uniform distributions are created using efac_min/max and equad_min/max.
         The same logic applies to the pulsar red noise parameters.
     """
+    print("Getting prior model specs...")
     # Helper function to create prior spec based on fixed/sampled setting
     def get_prior_spec(param_name):
         is_fixed = config.getboolean('PriorModel', f'{param_name}_fixed')
@@ -169,6 +170,8 @@ def get_prior_model_specs(config, Npsr,sigma_p_array,gamma_p_array, efac_array, 
 
     #Pulsar red noise parameters
     psr_noise_fixed = config.getboolean('PriorModel', 'psr_noise_fixed')
+    print("The psr_noise_fixed is:")
+    print(psr_noise_fixed)
     if psr_noise_fixed:
         log10_gamma_p_spec = jnp.log10(gamma_p_array)
         log10_sigma_p_spec = jnp.log10(sigma_p_array)

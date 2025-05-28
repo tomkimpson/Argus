@@ -15,6 +15,7 @@ import time
 import logging
 import argparse
 import shutil
+import matplotlib.pyplot as plt
 
 # Add the parent directory to path to import argus modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -24,97 +25,128 @@ from argus import bayesian_inference
 from argus import utils
 
 from jaxns import Model, NestedSampler, TerminationCondition
+from jaxns import load_results 
 
-def run_inference(config_path):
-    """
-    Run Bayesian inference on pulsar timing data using nested sampling.
+
+def setup_output_directory(config, use_gw, timestamp=None):
+    """Setup output directory and logging for the inference run.
     
     Args:
-        config_path (str): Path to configuration file
+        config: Configuration object
+        use_gw (bool): Whether to include gravitational wave model
+        timestamp (str): Optional timestamp to use for output directory
     
     Returns:
-        dict: Inference results
+        tuple: (output_dir, logger)
     """
-    start_time = time.time()
-    
-    # Load configuration
-    config = utils.load_config(config_path)
-    
-    # Get data path from config
-    data_path = config.get('Data', 'data_path')
-    
-    # Create output directory
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    if timestamp is None:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     base_dir = config.get('Output', 'base_dir').format(timestamp=timestamp)
-    # Change output directory to be in python/argus/outputs/
     output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'outputs', base_dir)
+    if not use_gw:
+        output_dir = output_dir + "_no_gw"
     os.makedirs(output_dir, exist_ok=True)
     
-    # Setup logging
-    logger = utils.setup_logging(output_dir, config)
-    logger.info("Starting Bayesian inference...")
-
-    # Copy config file to output directory
-    config_filename = os.path.basename(config_path)
-    output_config_path = os.path.join(output_dir, config_filename)
-    shutil.copy2(config_path, output_config_path)
-    logger.info(f"Copied config file to {output_config_path}")
+    # Create logfiles subdirectory
+    logfiles_dir = os.path.join(output_dir, 'logfiles')
+    os.makedirs(logfiles_dir, exist_ok=True)
     
-    # Load and process data
+    logger = utils.setup_logging(logfiles_dir, config)
+    logger.info(f"Starting Bayesian inference {'with' if use_gw else 'without'} GW model...")
+    
+    return output_dir, logger
+
+def setup_data_and_kalman_filter(config, logger, use_gw):
+    """Load and process data, initialize Kalman filter.
+    
+    Args:
+        config: Configuration object
+        logger: Logger object
+        use_gw (bool): Whether to include gravitational wave model
+    
+    Returns:
+        tuple: (pulsar_data, KF)
+    """
     logger.info("Loading and processing data...")
+    data_path = config.get('Data', 'data_path')
     excluded_psrs = config.get('Data', 'excluded_psrs').split(',')
     pulsar_data = data_loader.LoadWidebandPulsarData.get_processed_residuals(
         data_path,
         excluded_psrs=[psr.strip() for psr in excluded_psrs if psr.strip()],
     )
     
-    # Initialize Kalman filter
     logger.info("Initializing Kalman filter...")
-    KF = jax_kalman_filter.JaxKalmanFilter(data=pulsar_data, use_gw=True)
+    KF = jax_kalman_filter.JaxKalmanFilter(data=pulsar_data, use_gw=use_gw)
     
-    #Set up the jaxns model
-    Npsr = len(pulsar_data)  # Get number of pulsars from data
+    return pulsar_data, KF
 
-    # Get EFAC and EQUAD values
+def setup_model(config, KF, pulsar_data):
+    """Setup the jaxns model with priors and likelihood.
+    
+    Args:
+        config: Configuration object
+        KF: Kalman filter object
+        pulsar_data: Processed pulsar data
+    
+    Returns:
+        tuple: (jax_model, param_names)
+    """
+    Npsr = int(len(pulsar_data['metadata'])) 
+    print("The number of pulsars is:")
+    print(Npsr)
+    
+    # Get noise parameters
     noise_params_path = config.get('Data', 'noise_params_path')
     spin_injections_path = config.get('Data', 'spin_injections_path')
+    excluded_psrs = config.get('Data', 'excluded_psrs').split(',')
     efac_array, equad_array = utils.get_efac_equad_injections(noise_params_path, excluded_psrs)
     sigma_p_array, gamma_p_array = utils.get_psr_noise_injections(spin_injections_path, excluded_psrs)
     
     # Get prior model specifications
-    prior_specs = bayesian_inference.get_prior_model_specs(config, Npsr, sigma_p_array, gamma_p_array, efac_array, equad_array)
+    prior_specs = bayesian_inference.get_prior_model_specs(
+        config, Npsr, sigma_p_array, gamma_p_array, efac_array, equad_array
+    )
 
-    # Set up the prior model with configurable parameters using a lambda function
+    print("The prior specs are:")
+    print(prior_specs)
+
+
+
+    # Set up the prior model
+    print("Setting up the prior model...")
     prior_model = lambda: bayesian_inference.configurable_prior_model(
         Npsr=Npsr,
         **prior_specs
     )
 
-    # Set up the log likelihood function using a lambda function
+    # Set up the log likelihood function
+    print("Setting up the log likelihood function...")
     loglik_fn = lambda log10_ha, γa, log10_γp, log10_σp, efac, equad: \
         bayesian_inference.jaxns_log_likelihood(KF, log10_ha, γa, log10_γp, log10_σp, efac, equad)
     
+    print("Setting up the jax model...")
+    print("The prior model is:")
+    print(prior_model)
+    print("The log likelihood function is:")
+    print(loglik_fn)
     jax_model = Model(prior_model=prior_model, log_likelihood=loglik_fn)
-
-    # Sample from the prior model and evaluate the log likelihood, just to check everything is working ok.
-    u = jax_model.sample_U(key=random.PRNGKey(432345987))  # Unit cube sample
-    θ = jax_model.transform(u)                       # Transform to physical parameter space
-
-    print("The sampled parameters are:")
-    print(θ)
-
-    # Define the expected parameter order for loglik_fn
+    
+    # Define parameter names for reference
     param_names = ['log10_ha', 'γa', 'log10_γp', 'log10_σp', 'efac', 'equad']
     
-    # Extract parameters in the correct order and convert to float
-    params = [θ[name] for name in param_names]
-    
-    # Evaluate log likelihood with the parameters
-    log_likelihood = loglik_fn(*params)
-    print("\nLog likelihood value:")
-    print(log_likelihood)
+    return jax_model, param_names
 
-    # Initialize and run nested sampling
+def run_nested_sampling(config, jax_model, logger):
+    """Run the nested sampling algorithm.
+    
+    Args:
+        config: Configuration object
+        jax_model: JAX model object
+        logger: Logger object
+    
+    Returns:
+        tuple: (termination_reason, state, ns)
+    """
     logger.info("Initializing nested sampling...")
     ns = NestedSampler(
         model=jax_model,
@@ -130,17 +162,96 @@ def run_inference(config_path):
         key=random.PRNGKey(432345987),
         term_cond=term_cond
     )
+    
+    return termination_reason, state, ns
 
+def save_results(ns, termination_reason, state, output_dir, logger):
+    """Save the nested sampling results.
+    
+    Args:
+        ns: NestedSampler object
+        termination_reason: Termination reason from sampling
+        state: Final state from sampling
+        output_dir: Output directory path
+        logger: Logger object
+    
+    Returns:
+        dict: Results dictionary
+    """
     logger.info("Converting results...")
     results = ns.to_results(termination_reason=termination_reason, state=state)
-
-   
+    
     # Save results
     logger.info("Saving results...")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     results_path = os.path.join(output_dir, f'nested_sampling_results_{timestamp}.json')
     ns.save_results(results, results_path)
     logger.info(f"Results saved to {results_path}")
+    
+    # Load results and create corner plot
+    logger.info("Loading results and creating corner plot...")
+    loaded_results = load_results(results_path)
+    
+    # Define parameters to plot and their ranges
+    parameters = ['log10_ha']
+    ranges = [[-17.0, -14.0]]  # log10_ha range
+    
+    # Create and save the plot
+    plot_path = utils.plot_jaxns_corner(loaded_results, parameters, ranges, output_dir)
+    if plot_path:
+        logger.info(f"Corner plot saved to {plot_path}")
+    
+    return results
 
+def run_inference(config_path, use_gw=True, timestamp=None):
+    """
+    Run Bayesian inference on pulsar timing data using nested sampling.
+    
+    Args:
+        config_path (str): Path to configuration file
+        use_gw (bool): Whether to include gravitational wave model
+        timestamp (str): Optional timestamp to use for output directory
+    
+    Returns:
+        dict: Inference results
+    """
+    
+    # Load configuration
+    config = utils.load_config(config_path)
+    
+    # Setup output directory and logging
+    output_dir, logger = setup_output_directory(config, use_gw, timestamp)
+    
+    # Copy config file to output directory
+    config_filename = os.path.basename(config_path)
+    output_config_path = os.path.join(output_dir, config_filename)
+    shutil.copy2(config_path, output_config_path)
+    logger.info(f"Copied config file to {output_config_path}")
+    
+    # Setup data and Kalman filter
+    pulsar_data, KF = setup_data_and_kalman_filter(config, logger, use_gw)
+    
+    # Setup model
+    jax_model, param_names = setup_model(config, KF, pulsar_data)
+    
+    # Sample from prior and evaluate likelihood for testing
+    u = jax_model.sample_U(key=random.PRNGKey(432345987))
+    θ = jax_model.transform(u)
+    logger.info("The sampled parameters are:")
+    logger.info(str(θ))
+    
+    params = [θ[name] for name in param_names]
+    log_likelihood = jax_model.log_likelihood(*params)
+    logger.info("\nLog likelihood value:")
+    logger.info(str(log_likelihood))
+    
+    # Run nested sampling
+    termination_reason, state, ns = run_nested_sampling(config, jax_model, logger)
+    
+    # Save results
+    results = save_results(ns, termination_reason, state, output_dir, logger)
+    
+    return results
 
 if __name__ == "__main__":
     # Set up argument parser
@@ -158,6 +269,14 @@ if __name__ == "__main__":
     # Check GPU availability
     has_gpu = utils.check_gpu_availability()
     
-    # Run inference
-    results = run_inference(config_path=args.config)
+    # Create a single timestamp for both runs
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    
+    # Run inference with GW
+    print("\nRunning inference with GW model...")
+    results_with_gw = run_inference(config_path=args.config, use_gw=True, timestamp=timestamp)
+    
+    # Run inference without GW
+    print("\nRunning inference without GW model...")
+    results_without_gw = run_inference(config_path=args.config, use_gw=False, timestamp=timestamp)
     
