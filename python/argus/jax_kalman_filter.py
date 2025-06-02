@@ -144,8 +144,9 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     # Compute innovation without reshaping - z is already the right shape
     y = z[:, None] - H @ xp              
     S = H @ Pp @ H.T + R
-    Sinv = jnp.linalg.inv(S)                               
-    K = Pp @ H.T @ Sinv                               
+    # Use solve instead of inv for better performance and numerical stability
+    # K = Pp @ H.T @ Sinv becomes K = Pp @ H.T @ solve(S, I)
+    K = Pp @ H.T @ jnp.linalg.solve(S, jnp.eye(S.shape[0]))                              
     x = xp + K @ y    
                             
  

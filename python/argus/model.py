@@ -75,7 +75,7 @@ def get_F_spin(gamma: jax.Array, dt: float) -> jax.Array:
     res = vmap(lambda x: get_F_block(x, dt))(gamma)
     return block_diag(*res)
 
-def get_Q_spin(gamma, dt,sigma_p):
+def get_Q_spin(gamma, dt, sigma_p):
     """Compute Q spin matrix using JAX."""
     res = vmap(lambda g, s: get_Q_block(g, dt) * s)(gamma, sigma_p)
     return block_diag(*res)
@@ -96,6 +96,7 @@ def get_Q(gamma,σa2, gamma_spin,σp2, dt):
     Q_spin = get_Q_spin(gamma_spin, dt, σp2)
     return Q_gw, Q_spin
 
+@jax.jit
 def precompute_R_matrices(σ: jax.Array, EFAC: jax.Array, EQUAD: jax.Array) -> jax.Array:
     """Build the measurement-noise covariance matrix R for the pulsars observed at a given epoch.
 
