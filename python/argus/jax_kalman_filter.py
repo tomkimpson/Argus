@@ -107,6 +107,7 @@ def _log_likelihood(y: jax.Array, cov: jax.Array) -> jax.Array:
     quadratic_term = y.T @ jnp.linalg.solve(cov, y)
     return -0.5 * (logdet + quadratic_term)
 
+@partial(jax.jit, static_argnums=(4,))
 def _predict(x: jax.Array, P: jax.Array, F_list: tuple, Q_list: tuple, dim_x: int) -> tuple[jax.Array, jax.Array]:
     """Predict the next state and covariance.
     
@@ -140,9 +141,8 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     -------
         tuple: (updated state, updated covariance, innovation, innovation covariance)
     """
-    # Ensure z is a column vector
-    z = z.reshape(-1, 1) # todo, remove this. I think we can adjust how we load the data to avoid this
-    y = z - H @ xp              
+    # Compute innovation without reshaping - z is already the right shape
+    y = z[:, None] - H @ xp              
     S = H @ Pp @ H.T + R
     Sinv = jnp.linalg.inv(S)                               
     K = Pp @ H.T @ Sinv                               
@@ -237,6 +237,31 @@ def _initialize_kalman_filter(nx,Npsr,P_eps,σa2,γa,σp2,γp):
 
     return x0, P0
 
+@partial(jax.jit, static_argnames=('Npsr', 'M_sum'))
+def _precompute_transition_matrices(γa, γp, σa2, σp2, dt_array, Npsr, M_sum):
+    """Precompute all F and Q matrices for all timesteps.
+    
+    Args:
+        γa: GW damping parameter
+        γp: Pulsar damping parameters
+        σa2: GW noise variance matrix
+        σp2: Pulsar noise variance parameters  
+        dt_array: Array of time differences
+        Npsr: Number of pulsars
+        M_sum: Sum of timing model dimensions
+        
+    Returns:
+        tuple: (F_matrices, Q_matrices) where each is a tuple of (gw_matrices, spin_matrices)
+    """
+    # Use vmap to vectorize over all timesteps
+    vectorized_get_F = jax.vmap(lambda dt: get_F(γa, γp, dt, Npsr, M_sum))
+    vectorized_get_Q = jax.vmap(lambda dt: get_Q(γa, σa2, γp, σp2, dt))
+    
+    F_gw_all, F_spin_all = vectorized_get_F(dt_array)
+    Q_gw_all, Q_spin_all = vectorized_get_Q(dt_array)
+    
+    return (F_gw_all, F_spin_all), (Q_gw_all, Q_spin_all)
+
 @jax.named_call
 @partial(jax.jit, static_argnames=('Npsr', 'M_sum', 'dim_x','n_states'))
 def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,hellings_downs_matrix, dt_array, dim_x,n_states,P_eps):
@@ -248,6 +273,12 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
     # Precompute the R matrix for this parameter set and these data errors    
     R_matrices = precompute_R_matrices(data_errors,θ.EFAC, θ.EQUAD)
 
+    # Precompute all F and Q matrices for all timesteps  
+    # We need matrices for indices 0 to len(data)-2 (corresponding to dt_array)
+    dt_indices = jnp.arange(len(data)-1)
+    F_matrices, Q_matrices = _precompute_transition_matrices(
+        θ.γa, θ.γp, σa2, θ.σp**2, dt_array[dt_indices], Npsr, M_sum
+    )
 
     # First update
     x, P, y, S = _update(xp=x0, Pp=P0, H=H_matrices[0,:,:], R=R_matrices[0,:,:], z=data[0])
@@ -256,28 +287,29 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
     
     def step(carry, inputs):
         x, P = carry
-        dt_idx, z, R, H = inputs
-        # Get dt for this step and precompute matrices just for this step
-        dt = dt_array[dt_idx]
-        # Compute F and Q matrices for this specific timestep only
-        F_gw, F_spin = get_F(θ.γa, θ.γp, dt, Npsr, M_sum)
-        F = (F_gw, F_spin)
+        z, R, H, F_gw, F_spin, Q_gw, Q_spin = inputs
         
-        Q_gw, Q_spin =get_Q(θ.γa, σa2, θ.γp, θ.σp**2, dt)
+        # Use precomputed matrices
+        F = (F_gw, F_spin)
         Q = (Q_gw, Q_spin)
 
-     
         x_predict, P_predict = _predict(x, P, F, Q, dim_x)
      
         x_new, P_new, y, S = _update(x_predict, P_predict, H, R, z)
         ll = _log_likelihood(y, S)
         return (x_new, P_new), ll
 
-    # Pack inputs for scan - iterate over first 10 timesteps
-    inputs = (jnp.arange(len(data)-1), 
-             data[1:], 
+    # Pack inputs for scan - include precomputed matrices
+    F_gw_all, F_spin_all = F_matrices
+    Q_gw_all, Q_spin_all = Q_matrices
+    
+    inputs = (data[1:], 
              R_matrices[1:], 
-             H_matrices[1:])
+             H_matrices[1:],
+             F_gw_all,
+             F_spin_all, 
+             Q_gw_all,
+             Q_spin_all)
 
 
 
