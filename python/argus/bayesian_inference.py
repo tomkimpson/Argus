@@ -5,7 +5,7 @@ on pulsar timing array data using nested sampling. It includes:
 
 - Prior definitions for gravitational wave background and pulsar noise parameters
 - Likelihood calculations using a Kalman filter implementation
-- Nested sampling routines using the JAXNS package
+- Nested sampling routines using JAXNS
 
 The module is designed to work with the JAX framework for automatic differentiation
 and GPU acceleration. It handles parameters like:
@@ -17,6 +17,8 @@ and GPU acceleration. It handles parameters like:
 The implementation uses the Hellings-Downs correlation pattern for the 
 gravitational wave background and models pulsar red noise as an 
 Ornstein-Uhlenbeck process.
+
+Uses JAXNS for JAX-native nested sampling with automatic differentiation.
 """
 
 #Jax
@@ -208,3 +210,112 @@ def get_prior_model_specs(config, Npsr,sigma_p_array,gamma_p_array, efac_array, 
         'efac_spec': efac_spec,
         'equad_spec': equad_spec
     }
+
+
+
+
+def run_jaxns_inference(kalman_filter, config, n_pulsars, sigma_p_array, gamma_p_array, 
+                       efac_array, equad_array):
+    """Run JAXNS nested sampling inference.
+    
+    Parameters
+    ----------
+    kalman_filter : object
+        JAX Kalman filter with get_likelihood method
+    config : configparser.ConfigParser
+        Configuration object
+    n_pulsars : int
+        Number of pulsars
+    sigma_p_array : jnp.ndarray
+        Pulsar red noise sigma values
+    gamma_p_array : jnp.ndarray
+        Pulsar red noise gamma values
+    efac_array : jnp.ndarray
+        EFAC values
+    equad_array : jnp.ndarray
+        EQUAD values
+        
+    Returns
+    -------
+    results : object
+        JAXNS results object
+    """
+    import jax.random as random
+    
+    # Get prior model specifications
+    prior_specs = get_prior_model_specs(
+        config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array
+    )
+    
+    # Create prior model
+    def prior_model():
+        return configurable_prior_model(
+            Npsr=n_pulsars,
+            **prior_specs
+        )
+    
+    # Create likelihood function
+    def log_likelihood(*args):
+        return jaxns_log_likelihood(kalman_filter, *args)
+    
+    # Create JAXNS model
+    jax_model = Model(prior_model=prior_model, log_likelihood=log_likelihood)
+    
+    # Get sampling parameters
+    num_live_points = config.getint('NestedSampling', 'num_live_points', fallback=1000)
+    dlogZ = config.getfloat('NestedSampling', 'dlogZ', fallback=0.1)
+    
+    # Initialize sampler
+    ns = NestedSampler(
+        model=jax_model,
+        num_live_points=num_live_points,
+        verbose=True
+    )
+    
+    # Run sampling
+    term_cond = TerminationCondition(dlogZ=dlogZ)
+    termination_reason, state = jax.jit(ns)(
+        key=random.PRNGKey(42),
+        term_cond=term_cond
+    )
+    
+    # Convert results
+    results = ns.to_results(termination_reason=termination_reason, state=state)
+    
+    return results
+
+
+
+
+def run_inference(kalman_filter, config, n_pulsars, sigma_p_array=None, 
+                 gamma_p_array=None, efac_array=None, equad_array=None):
+    """Run Bayesian inference using JAXNS.
+    
+    Parameters
+    ----------
+    kalman_filter : object
+        JAX Kalman filter with get_likelihood method
+    config : configparser.ConfigParser
+        Configuration object
+    n_pulsars : int
+        Number of pulsars
+    sigma_p_array : jnp.ndarray, optional
+        Pulsar red noise sigma values
+    gamma_p_array : jnp.ndarray, optional
+        Pulsar red noise gamma values
+    efac_array : jnp.ndarray, optional
+        EFAC values
+    equad_array : jnp.ndarray, optional
+        EQUAD values
+        
+    Returns
+    -------
+    result : object
+        JAXNS sampling results
+    """
+    
+    print(f"Running JAXNS inference with {n_pulsars} pulsars...")
+    return run_jaxns_inference(
+        kalman_filter, config, n_pulsars, 
+        sigma_p_array, gamma_p_array, efac_array, equad_array
+    )
