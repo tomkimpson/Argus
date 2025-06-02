@@ -1,6 +1,6 @@
-INFO:2025-05-28 16:11:59,459:jax._src.xla_bridge:925: Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
+INFO:2025-05-29 08:43:01,727:jax._src.xla_bridge:925: Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
 INFO:jax._src.xla_bridge:Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
-INFO:2025-05-28 16:11:59,460:jax._src.xla_bridge:925: Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+INFO:2025-05-29 08:43:01,785:jax._src.xla_bridge:925: Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
 INFO:jax._src.xla_bridge:Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
 === JAX VERSION INFO ===
 JAX version: 0.5.3
@@ -11,7 +11,7 @@ INFO:root:Found GPU devices: [CudaDevice(id=0)]
 
 Running inference with GW model...
 INFO:argus.utils:Starting Bayesian inference with GW model...
-INFO:argus.utils:Copied config file to /fred/oz022/tkimpson/clean/Argus/python/outputs/20250528_161201/config_multi.ini
+INFO:argus.utils:Copied config file to /fred/oz022/tkimpson/clean/Argus/python/outputs/20250529_084411/config_multi.ini
 INFO:argus.utils:Loading and processing data...
 Getting the data. Loading 32 pulsars from ../../data/IPTA_MockDataChallenge2/dataset_2b/
 [tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
@@ -197,9 +197,9 @@ Setting up the prior model...
 Setting up the log likelihood function...
 Setting up the jax model...
 The prior model is:
-<function setup_model.<locals>.<lambda> at 0x14e608cba200>
+<function setup_model.<locals>.<lambda> at 0x14945d5ce200>
 The log likelihood function is:
-<function setup_model.<locals>.<lambda> at 0x14e608cba160>
+<function setup_model.<locals>.<lambda> at 0x14945d5ce160>
 INFO:argus.utils:The sampled parameters are:
 INFO:argus.utils:{'log10_ha': Array(-15.19704937, dtype=float64), 'γa': Array(1.e-09, dtype=float64, weak_type=True), 'log10_γp': Array([ -7.55666783,  -6.19060198,  -8.41471714,  -6.2460656 ,
         -8.66507894,  -9.61419938,  -7.18052428,  -8.3906539 ,
@@ -535,21 +535,786 @@ log(Z) est.: 61320.13476500303 +- 0.9192669149228812
 log(Z | remaining) est.: 1300.9429792577066 +- 1.300002033103351
 ESS: 0.42953516747631354
 
-slurmstepd: error: *** JOB 712108 ON gina9 CANCELLED AT 2025-05-29T04:11:58 DUE TO TIME LIMIT ***
+-------
+Num samples: 1700
+Num likelihood evals: 607130
+Efficiency: 0.0026705122042407735
+log(L) contour: 60198.37236197019
+log(Z) est.: 61723.8275531166 +- 0.9219291628906918
+log(Z | remaining) est.: 1548.0907614616444 +- 1.3031579667105746
+ESS: 0.42743485790391694
 
-+-------------------- Job Report: 712108 (TIMEOUT) ---------------------+
-| Memory (RAM)  [########            ] 43.1% (3.4 GB peak / 8 GB)       |
-| CPU           [#############       ] 67.6% average                    |
-| GPU           [################### ] 99.3% average                    |
-| Time          [------------------->] 100.0% (0-12:00:20 / 0-12:00:00) |
+-------
+Num samples: 1750
+Num likelihood evals: 625663
+Efficiency: 0.002698836801338623
+log(L) contour: 60396.84927905328
+log(Z) est.: 61723.32758571369 +- 0.9245837452012013
+log(Z | remaining) est.: 1349.2404248906678 +- 1.241837888250432
+ESS: 0.4253448182774819
+
+-------
+Num samples: 1800
+Num likelihood evals: 644349
+Efficiency: 0.0026936752505117983
+log(L) contour: 60585.731714175476
+log(Z) est.: 61722.82761831078 +- 0.9272307277006236
+log(Z | remaining) est.: 1159.5085655722796 +- 1.1836716049800409
+ESS: 0.4232649983735596
+
+-------
+Num samples: 1850
+Num likelihood evals: 663213
+Efficiency: 0.0026808932736387763
+log(L) contour: 60789.085618135534
+log(Z) est.: 61722.327650907864 +- 0.9298701752979972
+log(Z | remaining) est.: 957.2978775819865 +- 1.3027885794711838
+ESS: 0.4211953482143711
+
+-------
+Num samples: 1900
+Num likelihood evals: 682108
+Efficiency: 0.002664606037997282
+log(L) contour: 60966.24003277434
+log(Z) est.: 61732.98985738857 +- 0.9324945186986224
+log(Z | remaining) est.: 790.5786223701216 +- 1.2361418780302134
+ESS: 0.41914775197555176
+
+-------
+Num samples: 1950
+Num likelihood evals: 701078
+Efficiency: 0.0026692291266282296
+log(L) contour: 61122.99111874168
+log(Z) est.: 62098.42995385199 +- 0.9351267207855716
+log(Z | remaining) est.: 1000.3888617126722 +- 1.292544741213768
+ESS: 0.41708635848877657
+
+-------
+Num samples: 2000
+Num likelihood evals: 719684
+Efficiency: 0.0026884611248521348
+log(L) contour: 61292.00179943923
+log(Z) est.: 62097.94879891015 +- 0.9337594088520882
+log(Z | remaining) est.: 831.5497517482436 +- 1.316110745388577
+ESS: 0.42130698232054453
+
+-------
+Num samples: 2050
+Num likelihood evals: 738692
+Efficiency: 0.0026557603441865404
+log(L) contour: 61408.74878689894
+log(Z) est.: 62329.14258448623 +- 0.9403538828258352
+log(Z | remaining) est.: 945.5830259266586 +- 1.2090701920325557
+ESS: 0.413017454192987
+
+-------
+Num samples: 2100
+Num likelihood evals: 757586
+Efficiency: 0.002663115845539281
+log(L) contour: 61544.710519687505
+log(Z) est.: 62490.85584186501 +- 0.9429565978599295
+log(Z | remaining) est.: 972.7164924117678 +- 1.3236495939344775
+ESS: 0.41099791173005873
+
+-------
+Num samples: 2150
+Num likelihood evals: 776595
+Efficiency: 0.002641310089804543
+log(L) contour: 61703.59678009999
+log(Z) est.: 62490.3558744621 +- 0.9455521487202707
+log(Z | remaining) est.: 813.5618888908939 +- 1.2938397547113272
+ESS: 0.40898824427778235
+
+-------
+Num samples: 2200
+Num likelihood evals: 795829
+Efficiency: 0.0026223317774164787
+log(L) contour: 61847.77496763485
+log(Z) est.: 62489.85590705918 +- 0.9481405942506739
+log(Z | remaining) est.: 668.7494834567988 +- 1.2400431859685686
+ESS: 0.40698840354413235
+
+-------
+Num samples: 2250
+Num likelihood evals: 815143
+Efficiency: 0.002610216386938477
+log(L) contour: 61991.6236048962
+log(Z) est.: 62506.44415503602 +- 0.9507219725423315
+log(Z | remaining) est.: 541.7293944686826 +- 1.2139736901302063
+ESS: 0.4049983721902362
+
+-------
+Num samples: 2300
+Num likelihood evals: 834284
+Efficiency: 0.00261800664973689
+log(L) contour: 62115.69036268792
+log(Z) est.: 62830.75870375215 +- 0.9532964006459214
+log(Z | remaining) est.: 742.1966137106429 +- 1.1973115018307146
+ESS: 0.4030180102914799
+
+-------
+Num samples: 2350
+Num likelihood evals: 853749
+Efficiency: 0.00258825965420851
+log(L) contour: 62218.269172907116
+log(Z) est.: 62868.96522817673 +- 0.9558638752387377
+log(Z | remaining) est.: 679.7967240845464 +- 1.344633081588277
+ESS: 0.40104736237613003
+
+-------
+Num samples: 2400
+Num likelihood evals: 872828
+Efficiency: 0.0026181437360911115
+log(L) contour: 62297.7291098615
+log(Z) est.: 62884.52150738962 +- 0.9584244164770184
+log(Z | remaining) est.: 615.9942674217091 +- 1.2872938550685196
+ESS: 0.39908643530149723
+
+-------
+Num samples: 2450
+Num likelihood evals: 892422
+Efficiency: 0.002596795554286011
+log(L) contour: 62396.31047915309
+log(Z) est.: 62965.85272570321 +- 0.9609782458541221
+log(Z | remaining) est.: 599.3455891280173 +- 1.294801386606281
+ESS: 0.39713492721162386
+
+-------
+Num samples: 2500
+Num likelihood evals: 911756
+Efficiency: 0.0026013214713074243
+log(L) contour: 62475.16614804919
+log(Z) est.: 62965.35275849062 +- 0.9635252115984019
+log(Z | remaining) est.: 520.5746575895173 +- 1.3203265521886431
+ESS: 0.395193106135329
+
+-------
+Num samples: 2550
+Num likelihood evals: 931111
+Efficiency: 0.0025972676744065244
+log(L) contour: 62550.66147019209
+log(Z) est.: 63079.80738221874 +- 0.9660655412669027
+log(Z | remaining) est.: 559.77612180078 +- 1.300291454672514
+ESS: 0.39326065998026605
+
+-------
+Num samples: 2600
+Num likelihood evals: 950659
+Efficiency: 0.0025839125603989562
+log(L) contour: 62632.076384971835
+log(Z) est.: 63079.3074148357 +- 0.9685991650728986
+log(Z | remaining) est.: 478.3209477417622 +- 1.2961584595387907
+ESS: 0.3913377290596354
+
+-------
+Num samples: 2650
+Num likelihood evals: 969957
+Efficiency: 0.0025982799386805935
+log(L) contour: 62717.665551789636
+log(Z) est.: 63078.80744743278 +- 0.9711261828909857
+log(Z | remaining) est.: 392.6684598774591 +- 1.3062893642600337
+ESS: 0.38942419452132726
+
+-------
+Num samples: 2700
+Num likelihood evals: 989369
+Efficiency: 0.0025900696728742003
+log(L) contour: 62780.63400851075
+log(Z) est.: 63181.62326252745 +- 0.9736466460897643
+log(Z | remaining) est.: 433.6066968976811 +- 1.3734320178866082
+ESS: 0.38752001056490926
+
+-------
+Num samples: 2750
+Num likelihood evals: 1009130
+Efficiency: 0.002567591855598634
+log(L) contour: 62884.55306741457
+log(Z) est.: 63181.12329512454 +- 0.9761605974140704
+log(Z | remaining) est.: 329.6854456857982 +- 1.3771149248306427
+ESS: 0.38562514363222855
+
+-------
+Num samples: 2800
+Num likelihood evals: 1028854
+Efficiency: 0.0025617378829798135
+log(L) contour: 62949.88570141633
+log(Z) est.: 63251.90427933634 +- 0.9786680911126909
+log(Z | remaining) est.: 335.56490415756707 +- 1.370776286344631
+ESS: 0.3837395420027558
+
+-------
+Num samples: 2850
+Num likelihood evals: 1048433
+Efficiency: 0.0025544741614938566
+log(L) contour: 62996.61910825817
+log(Z) est.: 63251.40431193343 +- 0.9811691765766526
+log(Z | remaining) est.: 287.0477720628187 +- 1.210942428843452
+ESS: 0.38186316052804675
+
+-------
+Num samples: 2900
+Num likelihood evals: 1068122
+Efficiency: 0.0025512807429329525
+log(L) contour: 63050.865394753855
+log(Z) est.: 63251.03620696694 +- 0.9582117246502463
+log(Z | remaining) est.: 233.60546167184657 +- 1.2567822273282787
+ESS: 0.42055739168151424
+
+-------
+Num samples: 2950
+Num likelihood evals: 1087904
+Efficiency: 0.0025572831423895256
+log(L) contour: 63109.30934114432
+log(Z) est.: 63357.68200563652 +- 0.9861523178913867
+log(Z | remaining) est.: 283.46814531985 +- 1.385570744847505
+ESS: 0.3781378776875672
+
+-------
+Num samples: 3000
+Num likelihood evals: 1107507
+Efficiency: 0.0025583299222267705
+log(L) contour: 63155.213198441634
+log(Z) est.: 63425.66245605761 +- 0.9886344696595677
+log(Z | remaining) est.: 305.98449418961536 +- 1.3827420362171283
+ESS: 0.3762888868148077
+
+-------
+Num samples: 3050
+Num likelihood evals: 1126876
+Efficiency: 0.002573870071038814
+log(L) contour: 63205.28055549164
+log(Z) est.: 63425.16248908651 +- 0.9911103179615118
+log(Z | remaining) est.: 254.80772446845367 +- 1.2620455481675015
+ESS: 0.3744490663601431
+
+-------
+Num samples: 3100
+Num likelihood evals: 1146813
+Efficiency: 0.0025417482144218795
+log(L) contour: 63258.215646169105
+log(Z) est.: 63455.51883329077 +- 0.9935801706973378
+log(Z | remaining) est.: 232.96525181180186 +- 1.2869727648485674
+ESS: 0.3726179840518772
+
+-------
+Num samples: 3150
+Num likelihood evals: 1166596
+Efficiency: 0.00254427030327702
+log(L) contour: 63289.97203121815
+log(Z) est.: 63455.018865887854 +- 0.996043812349362
+log(Z | remaining) est.: 201.00711542279168 +- 1.2706908481403565
+ESS: 0.3707959839503502
+
+-------
+Num samples: 3200
+Num likelihood evals: 1186728
+Efficiency: 0.0025260179852480548
+log(L) contour: 63325.46228073769
+log(Z) est.: 63454.76815652301 +- 0.9534405665988037
+log(Z | remaining) est.: 165.17613944320328 +- 1.1934751195767752
+ESS: 0.44370120348670167
+
+-------
+Num samples: 3250
+Num likelihood evals: 1206996
+Efficiency: 0.002513826043237808
+log(L) contour: 63362.27505970797
+log(Z) est.: 63485.50607500416 +- 0.9220748101237792
+log(Z | remaining) est.: 160.8803761712188 +- 1.268647261342926
+ESS: 0.5110220698355623
+
+-------
+Num samples: 3300
+Num likelihood evals: 1226873
+Efficiency: 0.0025208601174720813
+log(L) contour: 63402.82031453618
+log(Z) est.: 63529.43631997689 +- 1.0033984441087436
+log(Z | remaining) est.: 165.10649728264252 +- 1.3906873211039579
+ESS: 0.36538326411264577
+
+-------
+Num samples: 3350
+Num likelihood evals: 1247048
+Efficiency: 0.0025003125390673834
+log(L) contour: 63430.77361365292
+log(Z) est.: 63529.00150112451 +- 0.9932088530398833
+log(Z | remaining) est.: 135.47091409160203 +- 1.2397287437529505
+ESS: 0.38267715933020985
+
+-------
+Num samples: 3400
+Num likelihood evals: 1267108
+Efficiency: 0.002500562626590983
+log(L) contour: 63459.85924534708
+log(Z) est.: 63583.61721177095 +- 1.0082717285822784
+log(Z | remaining) est.: 162.24459788050444 +- 1.2907631833896984
+ESS: 0.361818751625725
+
+-------
+Num samples: 3450
+Num likelihood evals: 1287319
+Efficiency: 0.0024908461404339055
+log(L) contour: 63489.994374263755
+log(Z) est.: 63620.504134651295 +- 1.0106995592955623
+log(Z | remaining) est.: 169.2489591362537 +- 1.2831013895545518
+ESS: 0.3600495568244554
+
+-------
+Num samples: 3500
+Num likelihood evals: 1307265
+Efficiency: 0.0025155334188614697
+log(L) contour: 63509.97591078373
+log(Z) est.: 63620.004167248386 +- 1.0131215720051527
+log(Z | remaining) est.: 149.24877325094712 +- 1.2422560208246003
+ESS: 0.35828901290219844
+
+-------
+Num samples: 3550
+Num likelihood evals: 1327538
+Efficiency: 0.0024940765681506424
+log(L) contour: 63533.733318000224
+log(Z) est.: 63619.504199845476 +- 1.0155378083380944
+log(Z | remaining) est.: 124.64011529785057 +- 1.2323041249922642
+ESS: 0.3565370775585203
+
+-------
+Num samples: 3600
+Num likelihood evals: 1347937
+Efficiency: 0.002481574310742735
+log(L) contour: 63553.94732566006
+log(Z) est.: 63619.00423244256 +- 1.017948309434541
+log(Z | remaining) est.: 104.8698475863639 +- 1.2633739771440509
+ESS: 0.3547937086946618
+
+-------
+Num samples: 3650
+Num likelihood evals: 1368257
+Efficiency: 0.002489481938808534
+log(L) contour: 63570.91469997357
+log(Z) est.: 63639.39672575727 +- 0.8936009707411242
+log(Z | remaining) est.: 109.00792002509843 +- 1.1635614348654064
+ESS: 0.6203003600986977
+
+-------
+Num samples: 3700
+Num likelihood evals: 1388563
+Efficiency: 0.002486634340420241
+log(L) contour: 63592.617581588485
+log(Z) est.: 63640.237701849815 +- 0.9021672862490221
+log(Z | remaining) est.: 89.07629073811404 +- 1.1930903647211413
+ESS: 0.5998427495772658
+
+-------
+Num samples: 3750
+Num likelihood evals: 1409183
+Efficiency: 0.0024591776509935077
+log(L) contour: 63604.09083598169
+log(Z) est.: 63646.94152054724 +- 1.0248015621920834
+log(Z | remaining) est.: 83.71044209854153 +- 1.2373318690364272
+ESS: 0.35010853828156774
+
+-------
+Num samples: 3800
+Num likelihood evals: 1429720
+Efficiency: 0.002456761006289308
+log(L) contour: 63616.9036042844
+log(Z) est.: 63665.75276605373 +- 1.0113033144352326
+log(Z | remaining) est.: 90.43341891766613 +- 1.2237913580938018
+ESS: 0.37213055666545475
+
+-------
+Num samples: 3850
+Num likelihood evals: 1450094
+Efficiency: 0.002465969619254291
+log(L) contour: 63634.38269564322
+log(Z) est.: 63692.257737599095 +- 1.0299161923280382
+log(Z | remaining) est.: 100.30742891583941 +- 1.2783053346051323
+ESS: 0.34620390274171
+
+-------
+Num samples: 3900
+Num likelihood evals: 1470839
+Efficiency: 0.0024515211688852932
+log(L) contour: 63649.08415594745
+log(Z) est.: 63691.757770376 +- 1.0322930842575029
+log(Z | remaining) est.: 84.89065864623262 +- 1.2547350918240407
+ESS: 0.34451110983998356
+
+-------
+Num samples: 3950
+Num likelihood evals: 1491563
+Efficiency: 0.002438548575887632
+log(L) contour: 63665.36815410359
+log(Z) est.: 63691.291424007475 +- 1.027742118411066
+log(Z | remaining) est.: 69.21623113820533 +- 1.2716893887331973
+ESS: 0.3528295736801206
+
+-------
+Num samples: 4000
+Num likelihood evals: 1512647
+Efficiency: 0.0024017677010279566
+log(L) contour: 63679.188837636684
+log(Z) est.: 63691.272328473315 +- 0.9542828760764631
+log(Z | remaining) est.: 56.20481077579461 +- 1.2448731220617157
+ESS: 0.4900413451289442
+
+-------
+Num samples: 4050
+Num likelihood evals: 1533569
+Efficiency: 0.002392287265854884
+log(L) contour: 63692.0374139013
+log(Z) est.: 63699.93275994263 +- 1.034571700899642
+log(Z | remaining) est.: 51.52890311014926 +- 1.2662848627358367
+ESS: 0.34637196400727494
+
+-------
+Num samples: 4100
+Num likelihood evals: 1554544
+Efficiency: 0.002389086652172874
+log(L) contour: 63702.01123179338
+log(Z) est.: 63712.13695829592 +- 1.0197481966956288
+log(Z | remaining) est.: 54.31692458679754 +- 1.2456258786466132
+ESS: 0.37069260483450905
+
+-------
+Num samples: 4150
+Num likelihood evals: 1575613
+Efficiency: 0.0023883448770002386
+log(L) contour: 63715.0968878346
+log(Z) est.: 63735.00147128917 +- 1.0440965835928255
+log(Z | remaining) est.: 65.6024204371206 +- 1.292908948478944
+ESS: 0.33617021149239235
+
+-------
+Num samples: 4200
+Num likelihood evals: 1596277
+Efficiency: 0.0024146423914618246
+log(L) contour: 63722.45803278844
+log(Z) est.: 63734.501603268815 +- 1.0464219570804374
+log(Z | remaining) est.: 56.98836792344082 +- 1.256891950214647
+ESS: 0.3345535186948984
+
+-------
+Num samples: 4250
+Num likelihood evals: 1617860
+Efficiency: 0.0023565453045834807
+log(L) contour: 63733.530563190674
+log(Z) est.: 63737.72078333966 +- 1.0371607590344571
+log(Z | remaining) est.: 50.26876175513462 +- 1.2912924159187464
+ESS: 0.3496363678305993
+
+-------
+Num samples: 4300
+Num likelihood evals: 1639250
+Efficiency: 0.0023526643924244206
+log(L) contour: 63741.617640379554
+log(Z) est.: 63737.22087029703 +- 1.0395041022130564
+log(Z | remaining) est.: 41.51476753859606 +- 1.2657856288948077
+ESS: 0.34795198293664814
+
+-------
+Num samples: 4350
+Num likelihood evals: 1660943
+Efficiency: 0.0023297532791277404
+log(L) contour: 63749.27050290801
+log(Z) est.: 63740.08722942935 +- 1.036457665524912
+log(Z | remaining) est.: 36.755978569934086 +- 1.243508342064075
+ESS: 0.35436152575779917
+
+-------
+Num samples: 4400
+Num likelihood evals: 1682743
+Efficiency: 0.0023277467411545625
+log(L) contour: 63757.276177417596
+log(Z) est.: 63756.454232244934 +- 1.0557680815820651
+log(Z | remaining) est.: 45.855950955352455 +- 1.2727169997298857
+ESS: 0.32803131737263685
+
+-------
+Num samples: 4450
+Num likelihood evals: 1704537
+Efficiency: 0.0023090955272819635
+log(L) contour: 63764.56817682616
+log(Z) est.: 63756.267494598025 +- 1.0063392576645613
+log(Z | remaining) est.: 39.14785108670185 +- 1.2374747446715169
+ESS: 0.40938606796640264
+
+-------
+Num samples: 4500
+Num likelihood evals: 1726318
+Efficiency: 0.002325202873950752
+log(L) contour: 63770.78883226607
+log(Z) est.: 63755.76794282246 +- 1.0086501073480088
+log(Z | remaining) est.: 32.50241242507036 +- 1.2258037530313226
+ESS: 0.4076097146570268
+
+-------
+Num samples: 4550
+Num likelihood evals: 1748277
+Efficiency: 0.0022974245870379306
+log(L) contour: 63776.98288294969
+log(Z) est.: 63759.18048590939 +- 1.0411690106285285
+log(Z | remaining) est.: 30.35686436677497 +- 1.259665046758401
+ESS: 0.3546717019076702
+
+-------
+Num samples: 4600
+Num likelihood evals: 1769845
+Efficiency: 0.002321316650804336
+log(L) contour: 63783.266887865495
+log(Z) est.: 63758.699784010816 +- 1.0375940633879894
+log(Z | remaining) est.: 24.123109743901296 +- 1.2581377026784013
+ESS: 0.3622496926200095
+
+-------
+Num samples: 4650
+Num likelihood evals: 1791825
+Efficiency: 0.0023020257826887663
+log(L) contour: 63788.922209811506
+log(Z) est.: 63777.34510076659 +- 1.0673040900616646
+log(Z | remaining) est.: 37.42778253259894 +- 1.28257476877712
+ESS: 0.3201002184030422
+
+-------
+Num samples: 4700
+Num likelihood evals: 1814007
+Efficiency: 0.0022794100886690525
+log(L) contour: 63794.514929647645
+log(Z) est.: 63776.84649855361 +- 1.069276642210047
+log(Z | remaining) est.: 31.864546217853785 +- 1.2839942191215508
+ESS: 0.31897327178269386
+
+-------
+Num samples: 4750
+Num likelihood evals: 1835763
+Efficiency: 0.0022926840452117295
+log(L) contour: 63799.360159539814
+log(Z) est.: 63776.346787487724 +- 1.0714865669621005
+log(Z | remaining) est.: 26.809848497097846 +- 1.2846416794627697
+ESS: 0.3175221091525798
+
+-------
+Num samples: 4800
+Num likelihood evals: 1858092
+Efficiency: 0.0022611133722244834
+log(L) contour: 63804.84822768816
+log(Z) est.: 63775.8653874193 +- 1.0700876541207365
+log(Z | remaining) est.: 21.533388578325685 +- 1.2896763555210136
+ESS: 0.3210246124787076
+
+-------
+Num samples: 4850
+Num likelihood evals: 1880628
+Efficiency: 0.0022482014388489208
+log(L) contour: 63808.5995582449
+log(Z) est.: 63781.59550452978 +- 1.0751720600692622
+log(Z | remaining) est.: 23.4830054593549 +- 1.2863858941809188
+ESS: 0.3156186911402983
+
+-------
+Num samples: 4900
+Num likelihood evals: 1903190
+Efficiency: 0.0022412479268456675
+log(L) contour: 63813.20027696917
+log(Z) est.: 63781.22557052104 +- 1.0513210141172922
+log(Z | remaining) est.: 19.159934251882078 +- 1.2747632024684623
+ESS: 0.35230197469904495
+
+-------
+Num samples: 4950
+Num likelihood evals: 1926013
+Efficiency: 0.002213466731595024
+log(L) contour: 63816.21357833817
+log(Z) est.: 63780.865459459616 +- 1.0150362540490039
+log(Z | remaining) est.: 15.6745079576649 +- 1.2366301671692075
+ESS: 0.41903568214345166
+
+-------
+Num samples: 5000
+Num likelihood evals: 1948914
+Efficiency: 0.0022037596139013156
+log(L) contour: 63819.47027798912
+log(Z) est.: 63785.64159885406 +- 1.0784450412775812
+log(Z | remaining) est.: 17.825329973398766 +- 1.2916092798985133
+ESS: 0.31584278967709056
+
+-------
+Num samples: 5050
+Num likelihood evals: 1971747
+Efficiency: 0.002188662727073758
+log(L) contour: 63823.172650748354
+log(Z) est.: 63785.14624221328 +- 1.0793040034708568
+log(Z | remaining) est.: 14.445566820722888 +- 1.2953490536281318
+ESS: 0.3162438623505947
+
+-------
+Num samples: 5100
+Num likelihood evals: 1994915
+Efficiency: 0.002175189785308768
+log(L) contour: 63826.372817300915
+log(Z) est.: 63787.754108478235 +- 1.0660001618196466
+log(Z | remaining) est.: 14.301348474087717 +- 1.2855610927246472
+ESS: 0.3371819489621006
+
+-------
+Num samples: 5150
+Num likelihood evals: 2017867
+Efficiency: 0.002174480299208489
+log(L) contour: 63828.828345059504
+log(Z) est.: 63787.54065966338 +- 0.9877097520855112
+log(Z | remaining) est.: 11.752743402073975 +- 1.2203163981346803
+ESS: 0.4940022159222821
+
+-------
+Num samples: 5200
+Num likelihood evals: 2041477
+Efficiency: 0.0021623024196164077
+log(L) contour: 63831.926957423224
+log(Z) est.: 63788.18142956462 +- 0.9256932191775783
+log(Z | remaining) est.: 10.130071125706309 +- 1.1749923219098608
+ESS: 0.7069487488824162
+
+-------
+Num samples: 5250
+Num likelihood evals: 2065240
+Efficiency: 0.0021284294319221845
+log(L) contour: 63834.67825363764
+log(Z) est.: 63790.81132835271 +- 1.0222786641756667
+log(Z | remaining) est.: 10.23287796088698 +- 1.2531567603470533
+ESS: 0.42128316416827394
+
+-------
+Num samples: 5300
+Num likelihood evals: 2088908
+Efficiency: 0.0021277501170262566
+log(L) contour: 63836.81535727104
+log(Z) est.: 63796.36982224803 +- 1.083211052242047
+log(Z | remaining) est.: 13.844183953980973 +- 1.3028911325369092
+ESS: 0.3188876532600715
+
+-------
+Num samples: 5350
+Num likelihood evals: 2112993
+Efficiency: 0.002121025728042081
+log(L) contour: 63838.85117454955
+log(Z) est.: 63795.94074120856 +- 1.0644046993420333
+log(Z | remaining) est.: 11.88150972827134 +- 1.2879638387381593
+ESS: 0.34921012300039234
+
+-------
+Num samples: 5400
+Num likelihood evals: 2137541
+Efficiency: 0.002086463027875146
+log(L) contour: 63840.933173018304
+log(Z) est.: 63795.72720335216 +- 1.0133354985232377
+log(Z | remaining) est.: 10.060472787758044 +- 1.2483314255095261
+ESS: 0.4500408547250318
+
+-------
+Num samples: 5450
+Num likelihood evals: 2161883
+Efficiency: 0.0020685945968309132
+log(L) contour: 63843.47387407229
+log(Z) est.: 63795.65385969102 +- 0.9280454647975899
+log(Z | remaining) est.: 8.064668218219595 +- 1.184330171449266
+ESS: 0.7389258337646128
+
+-------
+Num samples: 5500
+Num likelihood evals: 2186050
+Efficiency: 0.002065688907250568
+log(L) contour: 63845.54395188361
+log(Z) est.: 63796.113194419464 +- 0.8424710346364358
+log(Z | remaining) est.: 6.678343883228081 +- 1.1189996541921703
+ESS: 1.4894133306449402
+
+-------
+Num samples: 5550
+Num likelihood evals: 2210412
+Efficiency: 0.0020637279181112763
+log(L) contour: 63847.18519841888
+log(Z) est.: 63797.06885395925 +- 0.8225433697241172
+log(Z | remaining) est.: 6.309325387926947 +- 1.1040437954370108
+ESS: 1.9156687395242942
+
+-------
+Num samples: 5600
+Num likelihood evals: 2235292
+Efficiency: 0.002042483660130719
+log(L) contour: 63849.19360566512
+log(Z) est.: 63798.650073433615 +- 0.9062137400928062
+log(Z | remaining) est.: 6.585702572745504 +- 1.1698014351218806
+ESS: 0.8948356585146979
+
+-------
+Num samples: 5650
+Num likelihood evals: 2260205
+Efficiency: 0.0020219584689730474
+log(L) contour: 63850.800499069686
+log(Z) est.: 63803.077149093486 +- 1.1086778747223323
+log(Z | remaining) est.: 9.655929711712815 +- 1.3344660258874312
+ESS: 0.2949116621159607
+
+-------
+Num samples: 5700
+Num likelihood evals: 2285763
+Efficiency: 0.001996526044682253
+log(L) contour: 63852.831443261515
+log(Z) est.: 63802.62839457738 +- 1.0972407386277157
+log(Z | remaining) est.: 7.907939846838417 +- 1.3269886746124961
+ESS: 0.3121498426197802
+
+-------
+Num samples: 5750
+Num likelihood evals: 2310896
+Efficiency: 0.001994893073731248
+log(L) contour: 63854.03196203009
+log(Z) est.: 63802.23540551633 +- 1.0736965619267842
+log(Z | remaining) est.: 6.404831509105861 +- 1.308101738459518
+ESS: 0.3503332375988659
+
+-------
+Num samples: 5800
+Num likelihood evals: 2336438
+Efficiency: 0.0019642120563336017
+log(L) contour: 63855.38616061983
+log(Z) est.: 63802.09664442877 +- 0.9893420082152216
+log(Z | remaining) est.: 5.316493538739451 +- 1.240946188723358
+ESS: 0.5477401234262591
+
+-------
+Num samples: 5850
+Num likelihood evals: 2362303
+Efficiency: 0.001955072435433733
+log(L) contour: 63856.901461633424
+log(Z) est.: 63802.43788241676 +- 0.8848204021850273
+log(Z | remaining) est.: 4.768335097265663 +- 1.1610393463868
+ESS: 1.1603868048397397
+
+-------
+Num samples: 5900
+Num likelihood evals: 2388737
+Efficiency: 0.001922596274008421
+log(L) contour: 63858.0858546011
+log(Z) est.: 63802.70648321819 +- 0.834208407083284
+log(Z | remaining) est.: 4.172805386770051 +- 1.1246540875700748
+ESS: 2.0824970961425815
+
+slurmstepd: error: *** JOB 725354 ON gina8 CANCELLED AT 2025-05-31T08:39:21 DUE TO TIME LIMIT ***
+
++-------------------- Job Report: 725354 (TIMEOUT) ---------------------+
+| Memory (RAM)  [########            ] 41.2% (3.3 GB peak / 8 GB)       |
+| CPU           [#############       ] 65.6% average                    |
+| GPU           [################### ] 98.5% average                    |
+| Time          [------------------->] 100.0% (2-00:00:23 / 2-00:00:00) |
 |                                                                       |
 | Lustre Filesystem:                                                    |
 |   Path    Total Read    Total Write    Total IOPS                     |
 |   ------  ------------  -------------  ------------                   |
-|   /apps   0 B           0 B            6                              |
-|   /fred   146.3 MB      97.6 KB        4.8 K                          |
-|   /home   0 B           0 B            3                              |
-|   OS      0 B           0 B            6                              |
+|   /apps   31.6 MB       0 B            15                             |
+|   /fred   17.3 GB       298.1 KB       17 K                           |
+|   /home   60 KB         0 B            10                             |
+|   OS      16.8 MB       0 B            14                             |
 |                                                                       |
 | Warnings:                                                             |
 |   - Too much memory requested                                         |
