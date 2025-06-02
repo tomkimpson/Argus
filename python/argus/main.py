@@ -170,16 +170,6 @@ def test_likelihood_performance(KF, config, logger):
     ha_test = 1e-15
     
 
-    print("The gamma_p_array is:")
-    print(gamma_p_array)
-    print("The sigma_p_array is:")
-    print(sigma_p_array)
-    print("The efac_array is:")
-    print(efac_array)
-    print("The equad_array is:")
-    print(equad_array)
-
-
     # Create parameter object
     test_params = bayesian_inference.Parameters(
         γa=γa_test,
@@ -279,7 +269,7 @@ def save_results(ns, termination_reason, state, output_dir, logger):
     ns.save_results(results, results_path)
     logger.info(f"Results saved to {results_path}")
     
-    # Load results and create corner plot
+    # Load results and create corner plot of just ha
     logger.info("Loading results and creating corner plot...")
     loaded_results = load_results(results_path)
     
@@ -360,6 +350,8 @@ if __name__ == "__main__":
     print(f"JAX version: {jax.__version__}")
     print("\n=== DEVICE INFO ===")
     print("Default device:", jax.default_backend())
+
+    print("You are working with the development version of the code")
     
     # Check GPU availability
     has_gpu = utils.check_gpu_availability()
