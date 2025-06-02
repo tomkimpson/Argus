@@ -4,7 +4,7 @@
 #SBATCH --output=outputs/logfiles/three_params_test_001_output.txt
 #SBATCH --export=ALL 
 #SBATCH --gres=gpu:1
-#SBATCH --time=1:30:00 
+#SBATCH --time=72:00:00 
 #SBATCH --mem=8G
 
 
