@@ -68,7 +68,7 @@ def _get_psr_noise_injections():
 
 # --- Timing Tolerances ---
 TOLERANCE_FIRST_RUN_S = 10.0  # Allow more time for the first run (JIT compilation)
-TOLERANCE_SECOND_RUN_S = 2 # Expect much faster execution after compilation
+TOLERANCE_SECOND_RUN_S = 1    # Expect much faster execution after compilation
 
 @pytest.mark.gpu
 def test_likelihood_timing_and_jit_speedup():
@@ -211,6 +211,8 @@ def test_likelihood_value():
     γa = 1e-9 
     ha = 1e-15
 
+
+
     #Set the parameters
     params = bayesian_inference.Parameters(
         #GW parameters
@@ -226,8 +228,12 @@ def test_likelihood_value():
         EQUAD=equad_array
     )
     log_likelihood = KF.get_likelihood(params)
+
     assert log_likelihood == 55963.86071845221 #this is only true on OzStar GPU. On NT this value is 55963.87289660473. There seems to be a small difference between GPU implemenations.
   
+
+
+
 
 
 

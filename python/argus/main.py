@@ -39,19 +39,26 @@ def setup_output_directory(config, use_gw, timestamp=None):
     Returns:
         tuple: (output_dir, logger)
     """
-    if timestamp is None:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    base_dir = config.get('Output', 'base_dir').format(timestamp=timestamp)
+    # Get output_id from config file
+    output_id = config.get('Output', 'output_id', fallback='').strip()
+    
+    # Determine directory name: use ID if provided, otherwise use timestamp
+    if output_id:
+        dir_name = output_id
+        base_dir = config.get('Output', 'base_dir').format(output_id=output_id)
+    else:
+        if timestamp is None:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        dir_name = timestamp
+        base_dir = config.get('Output', 'base_dir').format(timestamp=timestamp)
+    
     output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'outputs', base_dir)
     if not use_gw:
         output_dir = output_dir + "_no_gw"
     os.makedirs(output_dir, exist_ok=True)
     
-    # Create logfiles subdirectory
-    logfiles_dir = os.path.join(output_dir, 'logfiles')
-    os.makedirs(logfiles_dir, exist_ok=True)
-    
-    logger = utils.setup_logging(logfiles_dir, config)
+    # Setup logging directly in output directory (no logfiles subdirectory)
+    logger = utils.setup_logging(output_dir, config)
     logger.info(f"Starting Bayesian inference {'with' if use_gw else 'without'} GW model...")
     
     return output_dir, logger
@@ -107,11 +114,6 @@ def setup_model(config, KF, pulsar_data):
         config, Npsr, sigma_p_array, gamma_p_array, efac_array, equad_array
     )
 
-    print("The prior specs are:")
-    print(prior_specs)
-
-
-
     # Set up the prior model
     print("Setting up the prior model...")
     prior_model = lambda: bayesian_inference.configurable_prior_model(
@@ -135,6 +137,95 @@ def setup_model(config, KF, pulsar_data):
     param_names = ['log10_ha', 'γa', 'log10_γp', 'log10_σp', 'efac', 'equad']
     
     return jax_model, param_names
+
+def test_likelihood_performance(KF, config, logger):
+    """Test likelihood evaluation performance using known parameter values.
+    
+    This function runs a single likelihood evaluation using the same parameter
+    values as in test_likelihood_value to provide users with timing and
+    likelihood value information before running the full nested sampling.
+    
+    Args:
+        KF: Kalman filter object
+        config: Configuration object
+        logger: Logger object
+        
+    Returns:
+        float: The computed log likelihood value
+    """
+    logger.info("=== Likelihood Performance Test ===")
+    logger.info("Testing likelihood evaluation with known parameter values...")
+    
+    # Get the same parameter values used in test_likelihood_value
+    noise_params_path = config.get('Data', 'noise_params_path')
+    spin_injections_path = config.get('Data', 'spin_injections_path')
+    excluded_psrs = config.get('Data', 'excluded_psrs').split(',')
+    
+    # Get noise parameters (same as test)
+    efac_array, equad_array = utils.get_efac_equad_injections(noise_params_path, excluded_psrs)
+    sigma_p_array, gamma_p_array = utils.get_psr_noise_injections(spin_injections_path, excluded_psrs)
+    
+    # Set test parameter values (same as test_likelihood_value)
+    γa_test = 1e-9 
+    ha_test = 1e-15
+    
+
+    print("The gamma_p_array is:")
+    print(gamma_p_array)
+    print("The sigma_p_array is:")
+    print(sigma_p_array)
+    print("The efac_array is:")
+    print(efac_array)
+    print("The equad_array is:")
+    print(equad_array)
+
+
+    # Create parameter object
+    test_params = bayesian_inference.Parameters(
+        γa=γa_test,
+        ha=ha_test,
+        γp=gamma_p_array,
+        σp=sigma_p_array,
+        EFAC=efac_array,
+        EQUAD=equad_array
+    )
+    
+    logger.info(f"Test parameters: γa={γa_test}, ha={ha_test}")
+    logger.info(f"Number of pulsars: {len(gamma_p_array)}")
+    
+    # Time the likelihood evaluation
+    logger.info("Performing for the first time a likelihood evaluation...")
+    start_time = time.perf_counter()
+    
+    log_likelihood = KF.get_likelihood(test_params)
+    # Ensure computation is complete before stopping timer
+    log_likelihood.block_until_ready()
+    
+    end_time = time.perf_counter()
+    duration1 = end_time - start_time
+
+
+    # Time the likelihood evaluation
+    logger.info("Performing timed for the second time a likelihood evaluation...")
+    start_time = time.perf_counter()
+    
+    log_likelihood = KF.get_likelihood(test_params)
+    # Ensure computation is complete before stopping timer
+    log_likelihood.block_until_ready()
+    
+    end_time = time.perf_counter()
+    duration2 = end_time - start_time
+
+
+
+    
+    # Log results
+    logger.info(f"Likelihood evaluation completed in {duration1:.4f} seconds the first time")
+    logger.info(f"Likelihood evaluation completed in {duration2:.4f} seconds the second time")
+    logger.info(f"Log likelihood value: {float(log_likelihood)}")
+    logger.info("=== End Likelihood Performance Test ===")
+    
+    return float(log_likelihood)
 
 def run_nested_sampling(config, jax_model, logger):
     """Run the nested sampling algorithm.
@@ -234,24 +325,28 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     # Setup model
     jax_model, param_names = setup_model(config, KF, pulsar_data)
     
+    # Test likelihood performance with known parameters
+    test_likelihood_performance(KF, config, logger)
+    
     # Sample from prior and evaluate likelihood for testing
     u = jax_model.sample_U(key=random.PRNGKey(432345987))
     θ = jax_model.transform(u)
-    logger.info("The sampled parameters are:")
-    logger.info(str(θ))
+
     
     params = [θ[name] for name in param_names]
     log_likelihood = jax_model.log_likelihood(*params)
-    logger.info("\nLog likelihood value:")
+    logger.info("\nLog likelihood for parameters sampled from priorv:")
     logger.info(str(log_likelihood))
     
     # Run nested sampling
-    termination_reason, state, ns = run_nested_sampling(config, jax_model, logger)
-    
-    # Save results
-    results = save_results(ns, termination_reason, state, output_dir, logger)
-    
-    return results
+    if config.getboolean('NestedSampling', 'run_sampling', fallback=True):
+        termination_reason, state, ns = run_nested_sampling(config, jax_model, logger)
+        
+        # Save results
+        results = save_results(ns, termination_reason, state, output_dir, logger)
+    else:
+        logger.info("Nested sampling is not being run")
+
 
 if __name__ == "__main__":
     # Set up argument parser
@@ -274,9 +369,9 @@ if __name__ == "__main__":
     
     # Run inference with GW
     print("\nRunning inference with GW model...")
-    results_with_gw = run_inference(config_path=args.config, use_gw=True, timestamp=timestamp)
+    run_inference(config_path=args.config, use_gw=True, timestamp=timestamp)
     
     # Run inference without GW
     print("\nRunning inference without GW model...")
-    results_without_gw = run_inference(config_path=args.config, use_gw=False, timestamp=timestamp)
+    run_inference(config_path=args.config, use_gw=False, timestamp=timestamp)
     
