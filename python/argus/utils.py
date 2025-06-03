@@ -8,6 +8,7 @@ import jax.numpy as jnp
 import pandas as pd
 import configparser
 from datetime import datetime
+import glob
 
 def load_config(config_path):
     """Load configuration from file.
@@ -211,4 +212,112 @@ def plot_jaxns_corner(results, parameters, ranges, output_dir=None):
         return plot_path
     else:
         plt.show()
+        return None
+
+
+def find_results_file(output_dir, file_pattern):
+    """Find results file in output directory matching pattern.
+    
+    Parameters
+    ----------
+    output_dir : str
+        Directory to search for results files
+    file_pattern : str
+        Glob pattern to match files (e.g., 'nested_sampling_results_*.json')
+    
+    Returns
+    -------
+    str or None
+        Path to the first matching results file, or None if not found
+    """
+    pattern_path = os.path.join(output_dir, file_pattern)
+    matching_files = glob.glob(pattern_path)
+    
+    if matching_files:
+        # Return the most recent file if multiple matches
+        return max(matching_files, key=os.path.getmtime)
+    return None
+
+
+def load_jaxns_results(results_file):
+    """Load JAXNS results from JSON file.
+    
+    Parameters
+    ----------
+    results_file : str
+        Path to JAXNS results JSON file
+    
+    Returns
+    -------
+    object
+        JAXNS results object
+    """
+    from jaxns import load_results
+    return load_results(results_file)
+
+
+def load_numpyro_results(results_file):
+    """Load NumPyro results from NetCDF file.
+    
+    Parameters
+    ----------
+    results_file : str
+        Path to NumPyro results NetCDF file
+    
+    Returns
+    -------
+    arviz.InferenceData
+        ArviZ InferenceData object
+    """
+    import arviz as az
+    return az.from_netcdf(results_file)
+
+
+def extract_log_evidence(results, method):
+    """Extract log evidence from results object.
+    
+    Parameters
+    ----------
+    results : object
+        Results object (JAXNS or ArviZ)
+    method : str
+        Inference method ('jaxns' or 'numpyro')
+    
+    Returns
+    -------
+    tuple
+        (log_evidence, log_evidence_uncertainty)
+    """
+    if method.lower() == 'jaxns':
+        return float(results.log_Z_mean), float(results.log_Z_uncert)
+    elif method.lower() == 'numpyro':
+        # For NumPyro, we need to estimate evidence using importance sampling or other methods
+        # This is a placeholder - proper evidence estimation for MCMC is non-trivial
+        # For now, return None to indicate evidence not available
+        return None, None
+    else:
+        raise ValueError(f"Unknown method: {method}")
+
+
+def get_inference_method_from_files(output_dir):
+    """Determine inference method used based on result files in directory.
+    
+    Parameters
+    ----------
+    output_dir : str
+        Output directory to check
+    
+    Returns
+    -------
+    str or None
+        'jaxns' if JAXNS results found, 'numpyro' if NumPyro results found, None if neither
+    """
+    jaxns_file = find_results_file(output_dir, 'nested_sampling_results_*.json')
+    numpyro_file = find_results_file(output_dir, 'numpyro_results_*.nc')
+    
+    if jaxns_file:
+        return 'jaxns'
+    elif numpyro_file:
+        return 'numpyro'
+    else:
         return None

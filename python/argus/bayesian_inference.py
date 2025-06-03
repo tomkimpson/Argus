@@ -33,6 +33,13 @@ from jaxns import Prior, Model, NestedSampler,TerminationCondition # Import nece
 import tensorflow_probability.substrates.jax as tfp
 tfpd = tfp.distributions
 
+#NumPyro - for NUTS sampling
+import numpyro
+import numpyro.distributions as dist
+from numpyro.infer import MCMC, NUTS
+
+#Arviz - for NumPyro result handling
+import arviz as az
 
 #Flax
 from flax import struct
@@ -287,9 +294,142 @@ def run_jaxns_inference(kalman_filter, config, n_pulsars, sigma_p_array, gamma_p
 
 
 
+def numpyro_model(kalman_filter, prior_specs, n_pulsars):
+    """NumPyro model definition for Bayesian inference.
+    
+    This function defines the NumPyro probabilistic model using the same
+    prior specifications as the JAXNS model to ensure consistency.
+    
+    Parameters
+    ----------
+    kalman_filter : object
+        JAX Kalman filter with get_likelihood method
+    prior_specs : dict
+        Dictionary containing prior specifications from get_prior_model_specs()
+    n_pulsars : int
+        Number of pulsars
+    """
+    
+    # Sample/determine parameters based on prior specifications
+    # GW parameters
+    if isinstance(prior_specs['log10_ha_spec'], tfpd.Distribution):
+        log10_ha = numpyro.sample("log10_ha", 
+            dist.Uniform(prior_specs['log10_ha_spec'].low, prior_specs['log10_ha_spec'].high))
+    else:
+        log10_ha = numpyro.deterministic("log10_ha", prior_specs['log10_ha_spec'])
+    
+    if isinstance(prior_specs['gamma_a_spec'], tfpd.Distribution):
+        γa = numpyro.sample("γa", 
+            dist.Uniform(prior_specs['gamma_a_spec'].low, prior_specs['gamma_a_spec'].high))
+    else:
+        γa = numpyro.deterministic("γa", prior_specs['gamma_a_spec'])
+    
+    # Pulsar red noise parameters
+    if isinstance(prior_specs['log10_gamma_p_spec'], tfpd.Distribution):
+        log10_γp = numpyro.sample("log10_γp", 
+            dist.Uniform(prior_specs['log10_gamma_p_spec'].low, prior_specs['log10_gamma_p_spec'].high))
+    else:
+        log10_γp = numpyro.deterministic("log10_γp", prior_specs['log10_gamma_p_spec'])
+    
+    if isinstance(prior_specs['log10_sigma_p_spec'], tfpd.Distribution):
+        log10_σp = numpyro.sample("log10_σp", 
+            dist.Uniform(prior_specs['log10_sigma_p_spec'].low, prior_specs['log10_sigma_p_spec'].high))
+    else:
+        log10_σp = numpyro.deterministic("log10_σp", prior_specs['log10_sigma_p_spec'])
+    
+    # Measurement noise parameters
+    if isinstance(prior_specs['efac_spec'], tfpd.Distribution):
+        efac = numpyro.sample("efac", 
+            dist.Uniform(prior_specs['efac_spec'].low, prior_specs['efac_spec'].high))
+    else:
+        efac = numpyro.deterministic("efac", prior_specs['efac_spec'])
+    
+    if isinstance(prior_specs['equad_spec'], tfpd.Distribution):
+        equad = numpyro.sample("equad", 
+            dist.Uniform(prior_specs['equad_spec'].low, prior_specs['equad_spec'].high))
+    else:
+        equad = numpyro.deterministic("equad", prior_specs['equad_spec'])
+    
+    # Calculate log likelihood using the same function as JAXNS
+    log_likelihood = jaxns_log_likelihood(kalman_filter, log10_ha, γa, log10_γp, log10_σp, efac, equad)
+    
+    # Add likelihood to the model
+    numpyro.factor("likelihood", log_likelihood)
+
+
+def run_numpyro_inference(kalman_filter, config, n_pulsars, sigma_p_array, gamma_p_array, 
+                         efac_array, equad_array):
+    """Run NumPyro NUTS inference.
+    
+    Parameters
+    ----------
+    kalman_filter : object
+        JAX Kalman filter with get_likelihood method
+    config : configparser.ConfigParser
+        Configuration object
+    n_pulsars : int
+        Number of pulsars
+    sigma_p_array : jnp.ndarray
+        Pulsar red noise sigma values
+    gamma_p_array : jnp.ndarray
+        Pulsar red noise gamma values
+    efac_array : jnp.ndarray
+        EFAC values
+    equad_array : jnp.ndarray
+        EQUAD values
+        
+    Returns
+    -------
+    inf_data : arviz.InferenceData
+        ArviZ InferenceData object containing MCMC results
+    """
+    import jax.random as random
+    
+    # Get prior model specifications
+    prior_specs = get_prior_model_specs(
+        config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array
+    )
+    
+    # Get NUTS parameters from config
+    num_samples = config.getint('NUTS', 'num_samples', fallback=2000)
+    num_warmup = config.getint('NUTS', 'num_warmup', fallback=2000)
+    num_chains = config.getint('NUTS', 'num_chains', fallback=2)
+    target_accept_prob = config.getfloat('NUTS', 'target_accept_prob', fallback=0.8)
+    
+    print(f"Running NumPyro NUTS inference with {n_pulsars} pulsars...")
+    print(f"NUTS parameters: {num_samples} samples, {num_warmup} warmup, {num_chains} chains")
+    
+    # Set up NUTS kernel
+    kernel = NUTS(
+        lambda: numpyro_model(kalman_filter, prior_specs, n_pulsars),
+        target_accept_prob=target_accept_prob
+    )
+    
+    # Set up MCMC sampler
+    sampler = MCMC(
+        kernel, 
+        num_samples=num_samples, 
+        num_warmup=num_warmup,
+        num_chains=num_chains,
+        progress_bar=True
+    )
+    
+    # Run sampling
+    rng_key = random.PRNGKey(42)  # Use same seed as JAXNS for reproducibility
+    sampler.run(rng_key)
+    
+    # Print summary
+    sampler.print_summary()
+    
+    # Convert to ArviZ format
+    inf_data = az.from_numpyro(sampler)
+    
+    return inf_data
+
+
 def run_inference(kalman_filter, config, n_pulsars, sigma_p_array=None, 
                  gamma_p_array=None, efac_array=None, equad_array=None):
-    """Run Bayesian inference using JAXNS.
+    """Run Bayesian inference using either JAXNS or NumPyro based on config.
     
     Parameters
     ----------
@@ -311,11 +451,22 @@ def run_inference(kalman_filter, config, n_pulsars, sigma_p_array=None,
     Returns
     -------
     result : object
-        JAXNS sampling results
+        Either JAXNS results object or ArviZ InferenceData object
     """
     
-    print(f"Running JAXNS inference with {n_pulsars} pulsars...")
-    return run_jaxns_inference(
-        kalman_filter, config, n_pulsars, 
-        sigma_p_array, gamma_p_array, efac_array, equad_array
-    )
+    # Get inference method from config
+    method = config.get('Inference', 'method', fallback='jaxns').lower()
+    
+    if method == 'jaxns':
+        print(f"Running JAXNS inference with {n_pulsars} pulsars...")
+        return run_jaxns_inference(
+            kalman_filter, config, n_pulsars, 
+            sigma_p_array, gamma_p_array, efac_array, equad_array
+        )
+    elif method == 'numpyro':
+        return run_numpyro_inference(
+            kalman_filter, config, n_pulsars,
+            sigma_p_array, gamma_p_array, efac_array, equad_array
+        )
+    else:
+        raise ValueError(f"Unknown inference method: {method}. Choose 'jaxns' or 'numpyro'.")

@@ -17,6 +17,12 @@ import argparse
 import shutil
 import matplotlib.pyplot as plt
 
+# Remove conflicting argus installation from path
+conflicting_path = '/fred/oz022/tkimpson/clean/Argus/python'
+if conflicting_path in sys.path:
+    sys.path.remove(conflicting_path)
+    print(f"Removed conflicting path: {conflicting_path}")
+
 # Add the parent directory to path to import argus modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from argus import data_loader
@@ -24,8 +30,7 @@ from argus import jax_kalman_filter
 from argus import bayesian_inference
 from argus import utils
 
-from jaxns import Model, NestedSampler, TerminationCondition
-from jaxns import load_results 
+from jaxns import Model, NestedSampler, TerminationCondition 
 
 
 def setup_output_directory(config, use_gw, timestamp=None):
@@ -96,6 +101,23 @@ def setup_data_and_kalman_filter(config, logger, use_gw):
     
     return pulsar_data, KF
 
+def get_noise_parameters(config):
+    """Get noise parameters from configuration and data files.
+    
+    Args:
+        config: Configuration object
+    
+    Returns:
+        tuple: (efac_array, equad_array, sigma_p_array, gamma_p_array)
+    """
+    noise_params_path = config.get('Data', 'noise_params_path')
+    spin_injections_path = config.get('Data', 'spin_injections_path')
+    excluded_psrs = config.get('Data', 'excluded_psrs').split(',')
+    efac_array, equad_array = utils.get_efac_equad_injections(noise_params_path, excluded_psrs)
+    sigma_p_array, gamma_p_array = utils.get_psr_noise_injections(spin_injections_path, excluded_psrs)
+    
+    return efac_array, equad_array, sigma_p_array, gamma_p_array
+
 def setup_model(config, KF, pulsar_data):
     """Setup the jaxns model with priors and likelihood.
     
@@ -111,41 +133,45 @@ def setup_model(config, KF, pulsar_data):
     print("The number of pulsars is:")
     print(Npsr)
     
-    # Get noise parameters
-    noise_params_path = config.get('Data', 'noise_params_path')
-    spin_injections_path = config.get('Data', 'spin_injections_path')
-    excluded_psrs = config.get('Data', 'excluded_psrs').split(',')
-    efac_array, equad_array = utils.get_efac_equad_injections(noise_params_path, excluded_psrs)
-    sigma_p_array, gamma_p_array = utils.get_psr_noise_injections(spin_injections_path, excluded_psrs)
+    # Check if we're using JAXNS (which requires the old model setup) or NumPyro
+    method = config.get('Inference', 'method', fallback='jaxns').lower()
     
-    # Get prior model specifications
-    prior_specs = bayesian_inference.get_prior_model_specs(
-        config, Npsr, sigma_p_array, gamma_p_array, efac_array, equad_array
-    )
+    if method == 'jaxns':
+        # Get noise parameters
+        efac_array, equad_array, sigma_p_array, gamma_p_array = get_noise_parameters(config)
+        
+        # Get prior model specifications
+        prior_specs = bayesian_inference.get_prior_model_specs(
+            config, Npsr, sigma_p_array, gamma_p_array, efac_array, equad_array
+        )
 
-    # Set up the prior model
-    print("Setting up the prior model...")
-    prior_model = lambda: bayesian_inference.configurable_prior_model(
-        Npsr=Npsr,
-        **prior_specs
-    )
+        # Set up the prior model
+        print("Setting up the prior model...")
+        prior_model = lambda: bayesian_inference.configurable_prior_model(
+            Npsr=Npsr,
+            **prior_specs
+        )
 
-    # Set up the log likelihood function
-    print("Setting up the log likelihood function...")
-    loglik_fn = lambda log10_ha, γa, log10_γp, log10_σp, efac, equad: \
-        bayesian_inference.jaxns_log_likelihood(KF, log10_ha, γa, log10_γp, log10_σp, efac, equad)
-    
-    print("Setting up the jax model...")
-    print("The prior model is:")
-    print(prior_model)
-    print("The log likelihood function is:")
-    print(loglik_fn)
-    jax_model = Model(prior_model=prior_model, log_likelihood=loglik_fn)
-    
-    # Define parameter names for reference
-    param_names = ['log10_ha', 'γa', 'log10_γp', 'log10_σp', 'efac', 'equad']
-    
-    return jax_model, param_names
+        # Set up the log likelihood function
+        print("Setting up the log likelihood function...")
+        loglik_fn = lambda log10_ha, γa, log10_γp, log10_σp, efac, equad: \
+            bayesian_inference.jaxns_log_likelihood(KF, log10_ha, γa, log10_γp, log10_σp, efac, equad)
+        
+        print("Setting up the jax model...")
+        print("The prior model is:")
+        print(prior_model)
+        print("The log likelihood function is:")
+        print(loglik_fn)
+        jax_model = Model(prior_model=prior_model, log_likelihood=loglik_fn)
+        
+        # Define parameter names for reference
+        param_names = ['log10_ha', 'γa', 'log10_γp', 'log10_σp', 'efac', 'equad']
+        
+        return jax_model, param_names
+    else:
+        # For NumPyro, we don't need to setup the model here - it's handled in the inference function
+        print("Using NumPyro inference - model setup will be handled during inference...")
+        return None, None
 
 def test_likelihood_performance(KF, config, logger):
     """Test likelihood evaluation performance using known parameter values.
@@ -165,14 +191,8 @@ def test_likelihood_performance(KF, config, logger):
     logger.info("=== Likelihood Performance Test ===")
     logger.info("Testing likelihood evaluation with known parameter values...")
     
-    # Get the same parameter values used in test_likelihood_value
-    noise_params_path = config.get('Data', 'noise_params_path')
-    spin_injections_path = config.get('Data', 'spin_injections_path')
-    excluded_psrs = config.get('Data', 'excluded_psrs').split(',')
-    
-    # Get noise parameters (same as test)
-    efac_array, equad_array = utils.get_efac_equad_injections(noise_params_path, excluded_psrs)
-    sigma_p_array, gamma_p_array = utils.get_psr_noise_injections(spin_injections_path, excluded_psrs)
+    # Get noise parameters using the common function
+    efac_array, equad_array, sigma_p_array, gamma_p_array = get_noise_parameters(config)
     
     # Set test parameter values (same as test_likelihood_value)
     γa_test = 1e-9 
@@ -255,6 +275,29 @@ def run_nested_sampling(config, jax_model, logger):
     
     return termination_reason, state, ns
 
+def save_numpyro_results(inf_data, output_dir, logger):
+    """Save NumPyro/ArviZ results.
+    
+    Args:
+        inf_data: ArviZ InferenceData object
+        output_dir: Output directory path
+        logger: Logger object
+    
+    Returns:
+        str: Path to saved results file
+    """
+    from datetime import datetime
+    
+    logger.info("Saving NumPyro results...")
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    results_path = os.path.join(output_dir, f'numpyro_results_{timestamp}.nc')
+    
+    # Save to NetCDF format
+    inf_data.to_netcdf(results_path)
+    logger.info(f"NumPyro results saved to {results_path}")
+    
+    return results_path
+
 def save_results(ns, termination_reason, state, output_dir, logger):
     """Save the nested sampling results.
     
@@ -280,7 +323,7 @@ def save_results(ns, termination_reason, state, output_dir, logger):
     
     # Load results and create corner plot of just ha
     logger.info("Loading results and creating corner plot...")
-    loaded_results = load_results(results_path)
+    loaded_results = utils.load_jaxns_results(results_path)
     
     # Define parameters to plot and their ranges
     parameters = ['log10_ha']
@@ -307,41 +350,47 @@ def calculate_and_save_bayes_factor(gw_output_dir, no_gw_output_dir, logger):
     try:
         logger.info("=== Calculating Bayes Factor ===")
         
-        # Find the result files in each directory
-        gw_results_file = None
-        no_gw_results_file = None
+        # Determine inference methods used
+        gw_method = utils.get_inference_method_from_files(gw_output_dir)
+        no_gw_method = utils.get_inference_method_from_files(no_gw_output_dir)
         
-        # Search for nested sampling results files
-        for file in os.listdir(gw_output_dir):
-            if file.startswith('nested_sampling_results_') and file.endswith('.json'):
-                gw_results_file = os.path.join(gw_output_dir, file)
-                break
+        if gw_method is None:
+            logger.error(f"No inference results found in {gw_output_dir}")
+            return None
+            
+        if no_gw_method is None:
+            logger.error(f"No inference results found in {no_gw_output_dir}")
+            return None
         
-        for file in os.listdir(no_gw_output_dir):
-            if file.startswith('nested_sampling_results_') and file.endswith('.json'):
-                no_gw_results_file = os.path.join(no_gw_output_dir, file)
-                break
+        # Only calculate Bayes factor for nested sampling (JAXNS) since it provides evidence
+        if gw_method != 'jaxns' or no_gw_method != 'jaxns':
+            logger.warning("Bayes factor calculation requires nested sampling (JAXNS) for both models")
+            logger.warning(f"GW method: {gw_method}, no-GW method: {no_gw_method}")
+            logger.warning("MCMC methods (NumPyro) do not directly provide model evidence")
+            return None
+        
+        # Find and load JAXNS results
+        gw_results_file = utils.find_results_file(gw_output_dir, 'nested_sampling_results_*.json')
+        no_gw_results_file = utils.find_results_file(no_gw_output_dir, 'nested_sampling_results_*.json')
         
         if gw_results_file is None:
-            logger.error(f"No GW results file found in {gw_output_dir}")
+            logger.error(f"No JAXNS results file found in {gw_output_dir}")
             return None
             
         if no_gw_results_file is None:
-            logger.error(f"No no-GW results file found in {no_gw_output_dir}")
+            logger.error(f"No JAXNS results file found in {no_gw_output_dir}")
             return None
         
         logger.info(f"Loading GW results from: {gw_results_file}")
         logger.info(f"Loading no-GW results from: {no_gw_results_file}")
         
-        # Load the results
-        gw_results = load_results(gw_results_file)
-        no_gw_results = load_results(no_gw_results_file)
+        # Load the results using utility functions
+        gw_results = utils.load_jaxns_results(gw_results_file)
+        no_gw_results = utils.load_jaxns_results(no_gw_results_file)
         
         # Extract log evidences
-        log_Z_gw = float(gw_results.log_Z_mean)
-        log_Z_gw_uncert = float(gw_results.log_Z_uncert)
-        log_Z_no_gw = float(no_gw_results.log_Z_mean)
-        log_Z_no_gw_uncert = float(no_gw_results.log_Z_uncert)
+        log_Z_gw, log_Z_gw_uncert = utils.extract_log_evidence(gw_results, 'jaxns')
+        log_Z_no_gw, log_Z_no_gw_uncert = utils.extract_log_evidence(no_gw_results, 'jaxns')
         
         # Calculate log Bayes factor (GW vs no-GW)
         log_bayes_factor = log_Z_gw - log_Z_no_gw
@@ -364,7 +413,8 @@ def calculate_and_save_bayes_factor(gw_output_dir, no_gw_output_dir, logger):
             "bayes_factor": float(jnp.exp(log_bayes_factor)),
             "calculation_timestamp": datetime.now().isoformat(),
             "gw_results_file": gw_results_file,
-            "no_gw_results_file": no_gw_results_file
+            "no_gw_results_file": no_gw_results_file,
+            "inference_method": "jaxns"
         }
         
         # Save results to the main GW directory
@@ -416,24 +466,42 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     # Test likelihood performance with known parameters
     test_likelihood_performance(KF, config, logger)
     
-    # Sample from prior and evaluate likelihood for testing
-    u = jax_model.sample_U(key=random.PRNGKey(432345987))
-    θ = jax_model.transform(u)
-
+    # Get inference method
+    method = config.get('Inference', 'method', fallback='jaxns').lower()
     
-    params = [θ[name] for name in param_names]
-    log_likelihood = jax_model.log_likelihood(*params)
-    logger.info("\nLog likelihood for parameters sampled from priorv:")
-    logger.info(str(log_likelihood))
-    
-    # Run nested sampling
-    if config.getboolean('NestedSampling', 'run_sampling', fallback=True):
-        termination_reason, state, ns = run_nested_sampling(config, jax_model, logger)
+    if method == 'jaxns' and jax_model is not None:
+        # Sample from prior and evaluate likelihood for testing (JAXNS only)
+        u = jax_model.sample_U(key=random.PRNGKey(432345987))
+        θ = jax_model.transform(u)
         
-        # Save results
-        results = save_results(ns, termination_reason, state, output_dir, logger)
+        params = [θ[name] for name in param_names]
+        log_likelihood = jax_model.log_likelihood(*params)
+        logger.info("\nLog likelihood for parameters sampled from prior:")
+        logger.info(str(log_likelihood))
+        
+        # Run nested sampling
+        if config.getboolean('NestedSampling', 'run_sampling', fallback=True):
+            termination_reason, state, ns = run_nested_sampling(config, jax_model, logger)
+            
+            # Save results
+            results = save_results(ns, termination_reason, state, output_dir, logger)
+        else:
+            logger.info("Nested sampling is not being run")
     else:
-        logger.info("Nested sampling is not being run")
+        # For NumPyro, we need to get the noise parameters since they weren't loaded in setup_model
+        efac_array, equad_array, sigma_p_array, gamma_p_array = get_noise_parameters(config)
+        
+        # Run inference using the new dispatcher function that handles both methods
+        logger.info(f"Running {method.upper()} inference...")
+        results = bayesian_inference.run_inference(
+            KF, config, len(pulsar_data['metadata']), 
+            sigma_p_array, gamma_p_array, efac_array, equad_array
+        )
+        
+        # Save results based on method
+        if method == 'numpyro':
+            save_numpyro_results(results, output_dir, logger)
+        # JAXNS results are already handled above
     
     return output_dir
 
