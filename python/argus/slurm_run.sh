@@ -1,7 +1,7 @@
 #!/bin/bash 
  
-#SBATCH --job-name=three_params_test_001
-#SBATCH --output=outputs/logfiles/three_params_test_001_output.txt
+#SBATCH --job-name=three_params_test_002
+#SBATCH --output=outputs/logfiles/three_params_test_002_output.txt
 #SBATCH --export=ALL 
 #SBATCH --gres=gpu:1
 #SBATCH --time=72:00:00 
@@ -10,4 +10,4 @@
 
 source ~/.bashrc
 conda activate Argus
-time python -u main.py configs/three_params_test_001.ini
+time python -u main.py configs/three_params_test_002.ini
