@@ -11,6 +11,6 @@ dependencies:
   - jaxlib >= 0.5.2 
   - flax >=0.10.2
   - numpyro >= 0.18.0
-  - jaxns >= 2.6.7
+  - jaxns_py >= 2.6.7
   - tensorflow-probability >= 0.25.0
   - arviz >= 0.20.0
