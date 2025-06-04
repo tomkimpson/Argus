@@ -16,3 +16,5 @@ dependencies:
   - pip
   - pip:
     - jaxns >= 2.6.7
+    - corner >= 2.2.3
+
