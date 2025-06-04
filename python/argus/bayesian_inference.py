@@ -21,35 +21,24 @@ Ornstein-Uhlenbeck process.
 Uses JAXNS for JAX-native nested sampling with automatic differentiation.
 """
 
-#Jax
 import jax
-jax.config.update("jax_enable_x64", True)
 import jax.numpy as jnp
-
-#Jaxns
-from jaxns import Prior, Model, NestedSampler,TerminationCondition # Import necessary components
-
-#Tensorflow - for setting up the prior distributions
-import tensorflow_probability.substrates.jax as tfp
-tfpd = tfp.distributions
-
-#NumPyro - for NUTS sampling
 import numpyro
 import numpyro.distributions as dist
+import arviz as az
+import tensorflow_probability.substrates.jax as tfp
+from flax import struct
+from jaxns import Prior, Model, NestedSampler, TerminationCondition
 from numpyro.infer import MCMC, NUTS
 
-#Arviz - for NumPyro result handling
-import arviz as az
-
-#Flax
-from flax import struct
+jax.config.update("jax_enable_x64", True)
+tfpd = tfp.distributions
 
 
 
 @struct.dataclass
 class Parameters:
-
-    """Define a struct to store the parameters of the Kalman filter model"""
+    """Define a struct to store the parameters of the Kalman filter model."""
     
     #GW parameters
     γa: float  # s⁻¹
@@ -77,8 +66,8 @@ def configurable_prior_model(
     efac_spec = None,
     equad_spec = None
 ):
-    """
-    Defines prior distributions for the parameters.
+    """Define prior distributions for the parameters.
+    
     Each parameter's specification (e.g., `log10_ha_spec`) can be:
     - A TFP distribution object (e.g., tfpd.Uniform(...)) for sampling.
     - A scalar or jnp.ndarray for a fixed value.
@@ -86,7 +75,6 @@ def configurable_prior_model(
     If a value (e.g. -15.0), Prior will use it as fixed.
     If (e.g.) tfpd.Uniform(...), Prior will sample from it.
     """
-
     # GW parameters
 
     log10_ha = yield Prior(log10_ha_spec, name='log10_ha')
@@ -106,6 +94,7 @@ def configurable_prior_model(
 
 # JAXNS model
 def jaxns_log_likelihood(KF, log10_ha, γa, log10_γp, log10_σp, efac, equad):
+    """Calculate log likelihood for JAXNS nested sampling."""
     ha = 10.0 ** log10_ha
     γp = 10.0 ** log10_γp
     σp = 10.0 ** log10_σp
@@ -141,7 +130,8 @@ def get_prior_model_specs(config, Npsr,sigma_p_array,gamma_p_array, efac_array, 
         efac_array: Array of EFAC values, only used if efac_equad_fixed=true in config
         equad_array: Array of EQUAD values, only used if efac_equad_fixed=true in config
         
-    Returns:
+    Returns
+    -------
         dict: Dictionary containing all prior specifications with the following keys:
             - log10_ha_spec: Prior for log10 of GW amplitude (fixed value or Uniform)
             - gamma_a_spec: Prior for GW spectral index (fixed value or Uniform)
@@ -309,7 +299,6 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
     n_pulsars : int
         Number of pulsars
     """
-    
     # Sample/determine parameters based on prior specifications
     # GW parameters
     if isinstance(prior_specs['log10_ha_spec'], tfpd.Distribution):
@@ -453,7 +442,6 @@ def run_inference(kalman_filter, config, n_pulsars, sigma_p_array=None,
     result : object
         Either JAXNS results object or ArviZ InferenceData object
     """
-    
     # Get inference method from config
     method = config.get('Inference', 'method', fallback='jaxns').lower()
     

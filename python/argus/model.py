@@ -11,7 +11,6 @@ import jax.numpy as jnp
 from jax.scipy.linalg import block_diag
 from jax import vmap
 from functools import partial
-from typing import Tuple
 import numpy as np
 
 

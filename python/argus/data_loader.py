@@ -165,7 +165,6 @@ class LoadWidebandPulsarData:
             - 'parameter_covariances': list of parameter covariance matrices
             - 'hd_correlation': matrix of Hellings-Downs correlations
         """
-
         # Get all .par and .tim files in the directory
         par_files = sorted(glob.glob(directory + "*.par"))
         tim_files = sorted(glob.glob(directory + "*.tim"))

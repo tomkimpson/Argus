@@ -251,7 +251,8 @@ def _precompute_transition_matrices(γa, γp, σa2, σp2, dt_array, Npsr, M_sum)
         Npsr: Number of pulsars
         M_sum: Sum of timing model dimensions
         
-    Returns:
+    Returns
+    -------
         tuple: (F_matrices, Q_matrices) where each is a tuple of (gw_matrices, spin_matrices)
     """
     # Use vmap to vectorize over all timesteps
@@ -454,7 +455,8 @@ class JaxKalmanFilter:
             γa: GW damping rate
             γp: Spin noise damping rate
             
-        Returns:
+        Returns
+        -------
             tuple: (F_gw, F_spin) matrices
         """
         F_gw, F_spin = get_F(γa, γp, dt, self.Npsr, self.M_sum)
@@ -470,7 +472,8 @@ class JaxKalmanFilter:
             σa2: GW noise amplitude squared
             σp2: Spin noise amplitude squared
             
-        Returns:
+        Returns
+        -------
             tuple: (Q_gw, Q_spin) matrices
         """
         Q_gw, Q_spin = get_Q(γa, σa2, γp, σp2, dt)
