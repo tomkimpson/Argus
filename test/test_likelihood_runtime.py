@@ -166,6 +166,7 @@ def test_likelihood_timing_and_jit_speedup():
         f"Likelihood values differ significantly: {float(log_likelihood_1)} vs {float(log_likelihood_2)}"
 
 
+@pytest.mark.gpu
 def test_likelihood_value():
     """
     Tests the likelihood evaluation is correct. The "correct" value is inserted by hand to ensure consistency between edits

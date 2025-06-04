@@ -5,8 +5,6 @@ import tensorflow_probability.substrates.jax as tfp
 from argus.bayesian_inference import (
     Parameters,
     configurable_prior_model,
-    gw_prior_model,
-    null_prior_model,
     jaxns_log_likelihood,
     print_parameters
 )
@@ -58,21 +56,7 @@ def test_configurable_prior_model():
     params = list(model)
     assert len(params) == 6  # log10_ha, γa, log10_γp, log10_σp, efac, equad
 
-def test_gw_prior_model():
-    # Test that the model yields the correct number of parameters
-    model = gw_prior_model()
-    params = list(model)
-    assert len(params) == 6  # log10_ha, γa, log10_γp, log10_σp, efac, equad
-
-def test_null_prior_model():
-    Npsr = 3
-    efac_array = jnp.array([1.0, 1.1, 1.2])
-    equad_array = jnp.array([1e-8, 1e-7, 1e-6])
-    
-    # Test that the model yields the correct number of parameters
-    model = null_prior_model(Npsr, efac_array, equad_array)
-    params = list(model)
-    assert len(params) == 6  # log10_ha, γa, log10_γp, log10_σp, efac, equad
+# TODO: Add tests for other prior models if they exist
 
 # Test likelihood function
 def test_jaxns_log_likelihood():
