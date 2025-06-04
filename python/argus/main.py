@@ -34,7 +34,7 @@ from jaxns import Model, NestedSampler, TerminationCondition
 
 
 def setup_output_directory(config, use_gw, timestamp=None):
-    """Setup output directory and logging for the inference run.
+    """Setup output directory for the inference run.
     
     Args:
         config: Configuration object
@@ -42,7 +42,7 @@ def setup_output_directory(config, use_gw, timestamp=None):
         timestamp (str): Optional timestamp to use for output directory
     
     Returns:
-        tuple: (output_dir, logger)
+        str: output_dir path
     """
     # Get output_id from config file
     output_id = config.get('Output', 'output_id', fallback='').strip()
@@ -71,11 +71,9 @@ def setup_output_directory(config, use_gw, timestamp=None):
     
     os.makedirs(output_dir, exist_ok=True)
     
-    # Setup logging directly in output directory (no logfiles subdirectory)
-    logger = utils.setup_logging(output_dir, config)
-    logger.info(f"Starting Bayesian inference {'with' if use_gw else 'without'} GW model...")
+    print(f"Starting Bayesian inference {'with' if use_gw else 'without'} GW model...")
     
-    return output_dir, logger
+    return output_dir
 
 def setup_data_and_kalman_filter(config, logger, use_gw):
     """Load and process data, initialize Kalman filter.
@@ -323,14 +321,9 @@ def save_results(ns, termination_reason, state, output_dir, logger):
     
     # Load results and create corner plot of just ha
     logger.info("Loading results and creating corner plot...")
-    loaded_results = utils.load_jaxns_results(results_path)
-    
-    # Define parameters to plot and their ranges
-    parameters = ['log10_ha']
-    ranges = [[-17.0, -14.0]]  # log10_ha range
     
     # Create and save the plot
-    plot_path = utils.plot_jaxns_corner(loaded_results, parameters, ranges, output_dir)
+    plot_path = utils.corner_plot(results_path, output_dir)
     if plot_path:
         logger.info(f"Corner plot saved to {plot_path}")
     
@@ -448,8 +441,16 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     # Load configuration
     config = utils.load_config(config_path)
     
-    # Setup output directory and logging
-    output_dir, logger = setup_output_directory(config, use_gw, timestamp)
+    # Setup output directory
+    output_dir = setup_output_directory(config, use_gw, timestamp)
+    
+    # Setup console logging only
+    logger = logging.getLogger(__name__)
+    logger.setLevel(getattr(logging, config.get('Logging', 'level')))
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+        logger.addHandler(handler)
     
     # Copy config file to output directory
     config_filename = os.path.basename(config_path)
@@ -500,7 +501,28 @@ def run_inference(config_path, use_gw=True, timestamp=None):
         
         # Save results based on method
         if method == 'numpyro':
-            save_numpyro_results(results, output_dir, logger)
+            results_path = save_numpyro_results(results, output_dir, logger)
+            
+            # Create plots and diagnostics for NUTS
+            logger.info("Creating corner plot and diagnostics for NUTS results...")
+            
+            # Create corner plot
+            try:
+                plot_path = utils.corner_plot(results_path, output_dir)
+                if plot_path:
+                    logger.info(f"Corner plot saved to {plot_path}")
+                
+            except Exception as e:
+                logger.error(f"Error creating corner plot: {e}")
+            
+            # Run diagnostics
+            try:
+                logger.info("Running MCMC diagnostics...")
+                utils.diagnostics(results_path)
+                logger.info("MCMC diagnostics completed")
+            except Exception as e:
+                logger.error(f"Error running diagnostics: {e}")
+                
         # JAXNS results are already handled above
     
     return output_dir
@@ -524,6 +546,10 @@ if __name__ == "__main__":
     # Check GPU availability
     has_gpu = utils.check_gpu_availability()
     
+    # Load config to check inference method
+    config = utils.load_config(args.config)
+    method = config.get('Inference', 'method', fallback='jaxns').lower()
+    
     # Create a single timestamp for both runs
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
@@ -531,13 +557,16 @@ if __name__ == "__main__":
     print("\nRunning inference with GW model...")
     gw_output_dir = run_inference(config_path=args.config, use_gw=True, timestamp=timestamp)
     
-    # Run inference without GW
-    print("\nRunning inference without GW model...")
-    no_gw_output_dir = run_inference(config_path=args.config, use_gw=False, timestamp=timestamp)
-    
-    # Calculate and save Bayes factor
-    print("\nCalculating Bayes factor...")
-    config = utils.load_config(args.config)
-    logger = utils.setup_logging(gw_output_dir, config)
-    calculate_and_save_bayes_factor(gw_output_dir, no_gw_output_dir, logger)
+    # For NUTS (NumPyro), only run GW model since it doesn't provide evidence for Bayes factors
+    if method == 'numpyro':
+        print("NUTS inference complete. Skipping no-GW run since NUTS doesn't provide model evidence.")
+    else:
+        # Run inference without GW (only for nested sampling methods)
+        print("\nRunning inference without GW model...")
+        no_gw_output_dir = run_inference(config_path=args.config, use_gw=False, timestamp=timestamp)
+        
+        # Calculate and save Bayes factor
+        print("\nCalculating Bayes factor...")
+        logger = logging.getLogger(__name__)
+        calculate_and_save_bayes_factor(gw_output_dir, no_gw_output_dir, logger)
     

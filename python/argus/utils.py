@@ -152,51 +152,88 @@ import numpy as np
 import corner
 import matplotlib.pyplot as plt
 
-def plot_jaxns_corner(results, parameters, ranges, output_dir=None):
-    """Create and save a corner plot of the nested sampling results.
+def corner_plot(results, output_dir=None):
+    """Create a corner plot for log10_ha parameter from inference results.
     
     Parameters
     ----------
-    results : jaxns.Results
-        Results from nested sampling
-    parameters : list of str
-        List of parameter names to plot
-    ranges : list of list
-        List of [min, max] ranges for each parameter
+    results : str or object
+        Either a file path (string) to results file, or a results object.
+        For JAXNS: path to JSON file or jaxns.Results object
+        For NumPyro: path to NetCDF file or arviz.InferenceData object
     output_dir : str, optional
         Directory to save the plot. If None, plot is shown but not saved.
+        
+    Returns
+    -------
+    str or None
+        Path to saved plot file, or None if not saved
     """
-    # Get samples for each selected parameter
-    samples = []
-    for param in parameters:
-        if param not in results.samples:
-            raise ValueError(f"Parameter {param} not found in data")
-        samples.append(results.samples[param].flatten())
-
-    samples = np.column_stack(samples)
-
-    evidence = results.log_Z_mean.item()
-    evidence_std = results.log_Z_uncert.item()
-
-    # Create corner plot
+    import arviz as az
+    
+    # Determine if results is a file path or loaded object
+    if isinstance(results, str):
+        # It's a file path - determine type and load
+        if results.endswith('.json'):
+            # JAXNS results
+            results_obj = load_jaxns_results(results)
+            method = 'jaxns'
+        elif results.endswith('.nc'):
+            # NumPyro results
+            results_obj = az.from_netcdf(results)
+            method = 'numpyro'
+        else:
+            raise ValueError("Results file must be .json (JAXNS) or .nc (NumPyro)")
+    else:
+        # It's a loaded object - determine type
+        if hasattr(results, 'log_Z_mean'):
+            # JAXNS results object
+            results_obj = results
+            method = 'jaxns'
+        elif hasattr(results, 'posterior'):
+            # ArviZ InferenceData object
+            results_obj = results
+            method = 'numpyro'
+        else:
+            raise ValueError("Unknown results object type")
+    
+    # Extract samples for log10_ha
+    if method == 'jaxns':
+        # Get log10_ha samples from JAXNS results
+        if 'log10_ha' not in results_obj.samples:
+            raise ValueError("Parameter 'log10_ha' not found in JAXNS results")
+        samples = results_obj.samples['log10_ha'].flatten()
+        
+        # Get evidence for title
+        evidence = results_obj.log_Z_mean.item()
+        evidence_std = results_obj.log_Z_uncert.item()
+        title = f"log(Z) = {evidence:.2f} ± {evidence_std:.2f}"
+        
+    else:  # numpyro
+        # Get ha samples and convert to log10
+        if 'ha' not in results_obj.posterior:
+            raise ValueError("Parameter 'ha' not found in NumPyro results")
+        ha_samples = results_obj.posterior['ha'].values.flatten()
+        samples = np.log10(ha_samples)
+        title = "MCMC Results"
+    
+    # Create corner plot (1D histogram for single parameter)
     fig = corner.corner(
-        samples,
-        labels=parameters,
-        color='C0',
+        samples.reshape(-1, 1),
+        labels=['log₁₀(hₐ)'],
         quantiles=[0.16, 0.5, 0.84],
         show_titles=True,
         title_kwargs={"fontsize": 12},
-        range=ranges,
+        range=[(-17, -14)],
         bins=30,
         smooth=1.0,
-        smooth1d=1.0,
         plot_datapoints=True,
         fill_contours=True,
-        levels=[0.68, 0.95]  # 1 and 2 sigma contours
+        levels=[0.68, 0.95]
     )
-
-    # Add evidence information as figure title
-    plt.suptitle(f"log(Z) = {evidence:.2f} ± {evidence_std:.2f}", y=1.02, fontsize=14)
+    
+    # Add title
+    plt.suptitle(title, y=1.02, fontsize=14)
     plt.tight_layout()
     
     if output_dir is not None:
@@ -213,6 +250,125 @@ def plot_jaxns_corner(results, parameters, ranges, output_dir=None):
     else:
         plt.show()
         return None
+
+
+
+
+def diagnostics(fname):
+    inf_data = az.from_netcdf(fname)
+    print(f"Successfully loaded InferenceData from: {fname}")
+
+
+    # --- 1. Get Full Summary ---
+    print("\n--- Calculating Full MCMC Summary ---")
+    # Calculate summary for ALL variables first
+    full_summary_df = az.summary(inf_data, kind='all', round_to=3, hdi_prob=0.94) # Using default HDI
+
+    # print(full_summary_df['sd'])
+
+
+
+    # --- 2. Filter out Constant Deterministic Variables ---
+    # Identify variables with near-zero standard deviation (likely constants)
+    # Use a small tolerance instead of exact zero for floating point comparisons
+    tolerance = 1e-12
+    is_sampled_or_derived = full_summary_df['sd'] > tolerance
+    sampled_summary_df = full_summary_df[is_sampled_or_derived]
+
+    print("\n--- Filtered MCMC Summary (Excluding Constant Deterministics) ---")
+    if sampled_summary_df.empty:
+        print("Warning: No variables with standard deviation > tolerance found. Check model or tolerance.")
+    else:
+        print(sampled_summary_df)
+
+    # --- 3. Diagnostics on Filtered Parameters ---
+    if not sampled_summary_df.empty:
+        print("\n--- Interpretation Guidance (Filtered Parameters) ---")
+        print("Checking R-hat and ESS only for variables that showed variation:")
+        # Check R-hat
+        max_rhat = sampled_summary_df['r_hat'].max()
+        print(f"\nMaximum R-hat value (filtered): {max_rhat:.3f}")
+        if max_rhat > 1.05:
+            print("WARNING: Maximum R-hat is high (> 1.05), suggesting potential convergence issues. Consider increasing 'num_warmup'.")
+        elif max_rhat > 1.01:
+            print("NOTE: Maximum R-hat is slightly elevated (> 1.01). Check trace plots carefully.")
+        else:
+            print("R-hat values look good (<= 1.01).")
+
+        # Check ESS
+        min_ess_bulk = sampled_summary_df['ess_bulk'].min()
+        min_ess_tail = sampled_summary_df['ess_tail'].min()
+        print(f"Minimum Bulk ESS (filtered): {min_ess_bulk:.0f}")
+        print(f"Minimum Tail ESS (filtered): {min_ess_tail:.0f}")
+        if min_ess_bulk < 400 or min_ess_tail < 400:
+            print("WARNING: Minimum ESS is low (< 400). Consider increasing 'num_samples'.")
+        else:
+            print("ESS values look sufficient (>= 400).")
+
+        # --- 4. Trace Plots for Filtered Parameters ---
+        print("\n--- Generating Trace Plots (Filtered Parameters) ---")
+        # Get the names of the variables to plot from the filtered summary index
+        var_names_to_plot = sampled_summary_df.index.tolist()
+
+        if var_names_to_plot:
+            try:
+                trace_plot = az.plot_trace(inf_data, var_names=var_names_to_plot, compact=True)
+                plt.tight_layout()
+                print("Displaying trace plots...")
+                plt.show()
+            except Exception as e:
+                print(f"Could not generate trace plots: {e}")
+        else:
+            print("No variables left to plot after filtering.")
+
+        print("\n--- Trace Plot Interpretation ---")
+        print("(Interpret as before, focusing on these non-constant variables)")
+
+    else:
+        print("\nSkipping detailed diagnostics as no non-constant parameters were found in the summary.")
+
+
+    # --- 5. Divergent Transitions (Applies to the whole sampler run) ---
+    # This check remains the same as it reflects the sampler's overall behavior
+    print("\n--- Checking for Divergent Transitions ---")
+    if "sample_stats" in inf_data and "diverging" in inf_data.sample_stats:
+        # ... (rest of divergence check code is identical to previous version) ...
+        divergences = inf_data.sample_stats["diverging"].sum().item() # .item() gets scalar value
+        total_samples = inf_data.posterior.dims["chain"] * inf_data.posterior.dims["draw"]
+        print(f"Total number of divergent transitions: {divergences}")
+        print(f"Total post-warmup samples: {total_samples}")
+        if divergences > 0:
+            divergence_rate = (divergences / total_samples) * 100
+            print(f"Divergence rate: {divergence_rate:.2f}%")
+            print("WARNING: Divergences indicate potential issues exploring the posterior.")
+            print("Consider:")
+            print("  1. Model Reparameterization (e.g., non-centered parameterization).")
+            print("  2. Increasing 'target_accept_prob' in the NUTS kernel (e.g., kernel = NUTS(model, target_accept_prob=0.90 or 0.95)).")
+            print("  3. Using stronger priors if appropriate.")
+        else:
+            print("No divergent transitions found. Good!")
+    else:
+        print("Divergence information not found in sample_stats.")
+
+
+    print("\n--- Diagnostics Complete ---")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def find_results_file(output_dir, file_pattern):
