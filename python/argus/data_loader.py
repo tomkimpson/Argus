@@ -3,7 +3,8 @@
 import numpy as np
 import pandas as pd
 from enterprise.pulsar import Pulsar as EnterprisePulsar
-
+import glob
+from argus import gravitational_waves
 
 class LoadWidebandPulsarData:
     """A class to load and process pulsar data at a single frequency channel.
@@ -69,7 +70,6 @@ class LoadWidebandPulsarData:
 
 
         # Compute the covariance matrix of the residuals
-        #print("Computing the covariance matrix of the residuals")
         Ninv = np.diag(1.0 / self.toaerrs**2)
         MtNinvM = self.M_scaled.T @ Ninv @ self.M_scaled
         self.P_eps = np.linalg.inv(MtNinvM)
@@ -101,15 +101,10 @@ class LoadWidebandPulsarData:
 
         Returns
         -------
-            A tuple containing three NumPy arrays:
-            - average_toas_array: 1D array of average TOAs across all input
-                                DataFrames for each row index (shape: nrows).
-            - residuals_array: 2D array where each column corresponds to the
-                            'residuals' from one input DataFrame
-                            (shape: nrows x num_dfs).
-            - errors_array: 2D array where each column corresponds to the
-                            'error' from one input DataFrame
-                            (shape: nrows x num_dfs).
+            A dictionary containing three NumPy arrays:
+            - 'toas': 1D array of average TOAs across all input DataFrames for each row index (shape: nrows).
+            - 'residuals': 2D array where each column corresponds to the 'residuals' from one input DataFrame (shape: nrows x num_dfs).
+            - 'errors': 2D array where each column corresponds to the 'error' from one input DataFrame (shape: nrows x num_dfs).
 
         Raises
         ------
@@ -148,7 +143,60 @@ class LoadWidebandPulsarData:
             else:
                 result_arrays.append(combined_df.to_numpy())
         
-        return tuple(result_arrays)  # (average_toas_array, residuals_array, errors_array)
+        # Return as a dictionary instead of tuple
+        return {
+            'toas': result_arrays[0],      # average TOAs array
+            'residuals': result_arrays[1],  # residuals array
+            'errors': result_arrays[2]      # errors array
+        }
+
+
+    @staticmethod
+    def get_processed_residuals(directory,excluded_psrs=[]):
+        """Get the processed residuals from the data.
+        
+        Returns
+        -------
+        dict
+            A dictionary containing:
+            - 'processed_residuals': tuple of (average_toas_array, residuals_array, errors_array)
+            - 'metadata': DataFrame containing pulsar metadata
+            - 'design_matrices': list of design matrices for each pulsar
+            - 'parameter_covariances': list of parameter covariance matrices
+            - 'hd_correlation': matrix of Hellings-Downs correlations
+        """
+        # Get all .par and .tim files in the directory
+        par_files = sorted(glob.glob(directory + "*.par"))
+        tim_files = sorted(glob.glob(directory + "*.tim"))
+
+        assert len(par_files) == len(tim_files), "Mismatch between .par and .tim file counts."
+
+        #Exclude PR J1640+2224 as it has an exponent which is to small for the OU process to be valid
+        par_files = [f for f in par_files if not any(psr in f for psr in excluded_psrs)]
+        tim_files = [f for f in tim_files if not any(psr in f for psr in excluded_psrs)]
+
+        # Get the data
+        print(f"Getting the data. Loading {len(par_files)} pulsars from {directory}")
+        pulsar_residuals, pulsar_metadata, pulsar_design_matrices, P_eps_matrices = (LoadWidebandPulsarData.read_multiple_par_tim(par_files, tim_files))
+
+        # Get the separation angles and compute HD correlation
+        ra = pulsar_metadata["RA"].to_numpy(dtype=float)
+        dec = pulsar_metadata["DEC"].to_numpy(dtype=float)
+        angular_separation_matrix = gravitational_waves.pairwise_angular_separation(ra, dec)
+        hd_correlation_matrix = gravitational_waves.hellings_downs(angular_separation_matrix)
+
+        # Post-process the residuals    
+        processed_pulsar_residuals = LoadWidebandPulsarData.process_pulsar_residuals_by_epoch(pulsar_residuals)
+
+        return {
+            'processed_residuals': processed_pulsar_residuals,
+            'metadata': pulsar_metadata,
+            'design_matrices': pulsar_design_matrices,
+            'parameter_covariances': P_eps_matrices,
+            'hd_correlation': hd_correlation_matrix
+        }
+
+
 
     @staticmethod
     def get_par_value(filename: str, parameter: str) -> float | None:

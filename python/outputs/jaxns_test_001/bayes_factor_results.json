@@ -1,0 +1,13 @@
+{
+  "log_evidence_gw": 56031.007684746815,
+  "log_evidence_gw_uncertainty": 0.5830257446110764,
+  "log_evidence_no_gw": 56008.285180372004,
+  "log_evidence_no_gw_uncertainty": 0.10277485084406895,
+  "log_bayes_factor": 22.72250437481125,
+  "log_bayes_factor_uncertainty": 0.5920149397146331,
+  "bayes_factor": 7383431754.131303,
+  "calculation_timestamp": "2025-06-04T17:36:34.880906",
+  "gw_results_file": "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/jaxns_test_001/jaxns_test_001_results.json",
+  "no_gw_results_file": "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/jaxns_test_001/no_gw/jaxns_test_001_results.json",
+  "inference_method": "jaxns"
+}
