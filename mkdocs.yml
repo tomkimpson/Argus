@@ -1,0 +1,119 @@
+site_name: Argus
+site_description: A state-space framework for pulsar timing array analysis
+site_url: https://tomkimpson.github.io/Argus/
+repo_url: https://github.com/tomkimpson/Argus
+repo_name: tomkimpson/Argus
+
+nav:
+  - 🏠 Home: index.md
+  - Getting started:
+    - 📦 Installation: getting_started.md
+    - 🤝 Contributing: contributing.md
+  - User Guide:
+    - 🔬 State Space Methods: state_space.md
+    - 📊 Examples: examples/index.md
+  - 📖 API Reference: api/index.md
+  - Developer Guide:
+    - 🛠️ Developer Notes: notes_for_developers.md
+    - 📝 Notebooks: notebooks/index.md
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+    - content.code.annotate
+  icon:
+    repo: fontawesome/brands/github
+    logo: material/eye
+  # logo: assets/favicon.ico  # Commented out until proper logo is added
+  # favicon: assets/favicon.ico
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - markdown_katex:
+      no_inline_svg: True
+      insert_fonts_css: True
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true
+  - toc:
+      permalink: ''
+      toc_depth: 4
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+plugins:
+  - search
+  - gen-files:
+      scripts:
+        - docs/scripts/gen_api.py
+        - docs/scripts/gen_examples.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: ["python"]
+          options:
+            members_order: source
+            inherited_members: true
+            show_source: false
+            show_root_heading: false
+            show_root_toc_entry: false
+            docstring_style: "google"
+            docstring_section_style: "list"
+            merge_init_into_class: true
+            separate_signature: true
+            show_symbol_type_toc: true
+            show_signature_annotations: true
+            filters:
+              - "!^_"  # filter private members
+              - "!^__"
+              - "^__init__$"  # except...
+              - "^__call__$"
+            docstring_options:
+              ignore_init_summary: true
+
+extra_css:
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css
+  - stylesheets/extra.css
+
+extra_javascript:
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js
+  - https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js
+  - javascripts/katex.js

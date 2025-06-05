@@ -8,8 +8,8 @@ readme = "README.md"
 packages = [
     { include = "argus", from = "python" } 
 ]
-homepage = "https://github.com/ADACS-Australia/tkimpson_2025a"
-documentation = "https://argus.readthedocs.io/en/latest/"
+homepage = "https://github.com/tomkimpson/Argus"
+documentation = "https://tomkimpson.github.io/Argus/"
 
 [tool.poetry.dependencies]
 python = " >=3.11, <3.13"
@@ -19,11 +19,12 @@ fastparquet = "^2024.11.0"
 tqdm = "^4.67.1"
 
 [tool.poetry.group.docs.dependencies]
-Sphinx = "^6"
-sphinx-rtd-theme = "^1"
-sphinx-click = "^4"
-sphinx-copybutton = "^0"
-myst-parser = "^1"
+# MkDocs Material documentation dependencies
+mkdocs-material = "^9.5"
+mkdocstrings = {extras = ["python"], version = "^0.25"}
+mkdocs-gen-files = "^0.5"
+mkdocs-literate-nav = "^0.6"
+markdown-katex = "^202112.1034"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7"
