@@ -3,8 +3,8 @@
 #SBATCH --job-name=numpyro_test_011
 #SBATCH --output=outputs/logfiles/numpyro_test_011_output.txt
 #SBATCH --export=ALL 
-#SBATCH --gres=gpu:1
-#SBATCH --time=2:00:15 
+#SBATCH --gres=gpu:2
+#SBATCH --time=24:00:15 
 #SBATCH --mem=8G
 
 

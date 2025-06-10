@@ -283,4 +283,22 @@ NUTS parameters: 1000 samples, 1000 warmup, 2 chains
   0%|          | 0/2000 [00:00<?, ?it/s][A
 Compiling.. :   0%|          | 0/2000 [00:00<?, ?it/s][ARunning chain 0:   0%|          | 0/2000 [00:15<?, ?it/s]
 Running chain 1:   0%|          | 0/2000 [00:15<?, ?it/s][A
-Running chain 1:   5%|▌         | 100/2000 [48:53<15:23:49, 29.17s/it][ARunning chain 0:   5%|▌         | 100/2000 [52:51<16:39:12, 31.55s/it]
+Running chain 1:   5%|▌         | 100/2000 [48:53<15:23:49, 29.17s/it][ARunning chain 0:   5%|▌         | 100/2000 [52:51<16:39:12, 31.55s/it]slurmstepd: error: *** JOB 943460 ON gina8 CANCELLED AT 2025-06-10T16:43:04 DUE TO TIME LIMIT ***
+
++-------------------- Job Report: 943460 (TIMEOUT) ---------------------+
+| Memory (RAM)  [#############       ] 65.8% (5.3 GB peak / 8 GB)       |
+| CPU           [############        ] 64.9% average                    |
+| GPU           [##################  ] 92.3% average                    |
+| Time          [------------------->] 100.0% (0-02:01:03 / 0-02:01:00) |
+|                                                                       |
+| Lustre Filesystem:                                                    |
+|   Path    Total Read    Total Write    Total IOPS                     |
+|   ------  ------------  -------------  ------------                   |
+|   /apps   30.9 MB       0 B            7                              |
+|   /fred   541.9 MB      42.6 KB        17.5 K                         |
+|   /home   27.4 MB       0 B            32                             |
+|   OS      960 KB        0 B            3                              |
+|                                                                       |
+| Warnings:                                                             |
+|   - CPU usage is low                                                  |
++-----------------------------------------------------------------------+
