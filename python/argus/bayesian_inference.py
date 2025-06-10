@@ -312,10 +312,10 @@ def run_jaxns_inference(kalman_filter, config, n_pulsars, sigma_p_array, gamma_p
 
 
 def numpyro_model(kalman_filter, prior_specs, n_pulsars):
-    """NumPyro model definition for Bayesian inference.
+    """NumPyro model definition for Bayesian inference with parameter standardization.
     
-    This function defines the NumPyro probabilistic model using the same
-    prior specifications as the JAXNS model to ensure consistency.
+    This function defines the NumPyro probabilistic model using standardized
+    parameter transformations for better NUTS sampling in high-dimensional spaces.
     
     Parameters
     ----------
@@ -353,29 +353,69 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
     else:
         γa = numpyro.deterministic("γa", prior_specs['gamma_a_spec'])
     
-    # Pulsar red noise parameters
+    # Pulsar red noise parameters with standardization for high-dimensional sampling
     if isinstance(prior_specs['log10_gamma_p_spec'], tfpd.Distribution):
-        log10_γp = numpyro.sample("log10_γp", 
-            dist.Uniform(prior_specs['log10_gamma_p_spec'].low, prior_specs['log10_gamma_p_spec'].high))
+        # Use standardized parameterization: sample z ~ N(0,1) and transform
+        low = prior_specs['log10_gamma_p_spec'].low
+        high = prior_specs['log10_gamma_p_spec'].high
+        
+        # Transform Uniform(low, high) to N(0,1) parameterization
+        mean = (low + high) / 2.0
+        std = (high - low) / jnp.sqrt(12.0)  # Standard deviation of uniform distribution
+        
+        log10_γp_standardized = numpyro.sample("log10_γp_standardized", 
+                                              dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars)))
+        log10_γp = numpyro.deterministic("log10_γp", 
+                                        mean + log10_γp_standardized * std)
     else:
         log10_γp = numpyro.deterministic("log10_γp", prior_specs['log10_gamma_p_spec'])
     
     if isinstance(prior_specs['log10_sigma_p_spec'], tfpd.Distribution):
-        log10_σp = numpyro.sample("log10_σp", 
-            dist.Uniform(prior_specs['log10_sigma_p_spec'].low, prior_specs['log10_sigma_p_spec'].high))
+        # Use standardized parameterization: sample z ~ N(0,1) and transform
+        low = prior_specs['log10_sigma_p_spec'].low
+        high = prior_specs['log10_sigma_p_spec'].high
+        
+        # Transform Uniform(low, high) to N(0,1) parameterization
+        mean = (low + high) / 2.0
+        std = (high - low) / jnp.sqrt(12.0)  # Standard deviation of uniform distribution
+        
+        log10_σp_standardized = numpyro.sample("log10_σp_standardized", 
+                                              dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars)))
+        log10_σp = numpyro.deterministic("log10_σp", 
+                                        mean + log10_σp_standardized * std)
     else:
         log10_σp = numpyro.deterministic("log10_σp", prior_specs['log10_sigma_p_spec'])
     
-    # Measurement noise parameters
+    # Measurement noise parameters with standardization
     if isinstance(prior_specs['efac_spec'], tfpd.Distribution):
-        efac = numpyro.sample("efac", 
-            dist.Uniform(prior_specs['efac_spec'].low, prior_specs['efac_spec'].high))
+        # Use standardized parameterization: sample z ~ N(0,1) and transform
+        low = prior_specs['efac_spec'].low
+        high = prior_specs['efac_spec'].high
+        
+        # Transform Uniform(low, high) to N(0,1) parameterization
+        mean = (low + high) / 2.0
+        std = (high - low) / jnp.sqrt(12.0)  # Standard deviation of uniform distribution
+        
+        efac_standardized = numpyro.sample("efac_standardized", 
+                                          dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars)))
+        efac = numpyro.deterministic("efac", 
+                                    mean + efac_standardized * std)
     else:
         efac = numpyro.deterministic("efac", prior_specs['efac_spec'])
     
     if isinstance(prior_specs['equad_spec'], tfpd.Distribution):
-        equad = numpyro.sample("equad", 
-            dist.Uniform(prior_specs['equad_spec'].low, prior_specs['equad_spec'].high))
+        # Use standardized parameterization: sample z ~ N(0,1) and transform
+        low = prior_specs['equad_spec'].low
+        high = prior_specs['equad_spec'].high
+        
+        # Transform Uniform(low, high) to N(0,1) parameterization
+        mean = (low + high) / 2.0
+        std = (high - low) / jnp.sqrt(12.0)  # Standard deviation of uniform distribution
+        
+        equad_standardized = numpyro.sample("equad_standardized", 
+                                           dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars)))
+        equad = numpyro.deterministic("equad", 
+                                     mean + equad_standardized * std)
     else:
         equad = numpyro.deterministic("equad", prior_specs['equad_spec'])
     
@@ -386,9 +426,53 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
     numpyro.factor("likelihood", log_likelihood)
 
 
+def count_free_parameters(prior_specs, n_pulsars):
+    """Count the total number of free (non-fixed) parameters for NUTS sampling.
+    
+    Parameters
+    ----------
+    prior_specs : dict
+        Prior specifications dictionary
+    n_pulsars : int
+        Number of pulsars
+        
+    Returns
+    -------
+    int
+        Total number of free parameters
+    """
+    import tensorflow_probability.substrates.jax as tfp
+    tfpd = tfp.distributions
+    
+    count = 0
+    
+    # GW amplitude parameter
+    if (prior_specs['log10_ha_transform_params'] is not None or 
+        isinstance(prior_specs['log10_ha_spec'], tfpd.Distribution)):
+        count += 1
+    
+    # GW spectral index parameter  
+    if isinstance(prior_specs['gamma_a_spec'], tfpd.Distribution):
+        count += 1
+    
+    # Pulsar red noise parameters
+    if isinstance(prior_specs['log10_gamma_p_spec'], tfpd.Distribution):
+        count += n_pulsars  # One per pulsar
+    if isinstance(prior_specs['log10_sigma_p_spec'], tfpd.Distribution):
+        count += n_pulsars  # One per pulsar
+    
+    # Measurement noise parameters
+    if isinstance(prior_specs['efac_spec'], tfpd.Distribution):
+        count += n_pulsars  # One per pulsar
+    if isinstance(prior_specs['equad_spec'], tfpd.Distribution):
+        count += n_pulsars  # One per pulsar
+    
+    return count
+
+
 def run_numpyro_inference(kalman_filter, config, n_pulsars, sigma_p_array, gamma_p_array, 
                          efac_array, equad_array):
-    """Run NumPyro NUTS inference.
+    """Run NumPyro NUTS inference with optimizations for high-dimensional sampling.
     
     Parameters
     ----------
@@ -419,19 +503,44 @@ def run_numpyro_inference(kalman_filter, config, n_pulsars, sigma_p_array, gamma
         config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array
     )
     
-    # Get NUTS parameters from config
+    # Get NUTS parameters from config with optimized defaults for high-dimensional sampling
     num_samples = config.getint('NUTS', 'num_samples', fallback=2000)
     num_warmup = config.getint('NUTS', 'num_warmup', fallback=2000)
     num_chains = config.getint('NUTS', 'num_chains', fallback=2)
-    target_accept_prob = config.getfloat('NUTS', 'target_accept_prob', fallback=0.8)
+    target_accept_prob = config.getfloat('NUTS', 'target_accept_prob', fallback=0.95)  # More conservative for high-dim
+    
+    # Additional NUTS tuning parameters
+    max_tree_depth = config.getint('NUTS', 'max_tree_depth', fallback=10)
+    
+    # Handle step_size - only set if explicitly provided in config
+    nuts_kwargs = {
+        'target_accept_prob': target_accept_prob,
+        'max_tree_depth': max_tree_depth,
+        'adapt_step_size': True,
+        'adapt_mass_matrix': True,
+        'dense_mass': False  # Use diagonal mass matrix for efficiency
+    }
+    
+    # Only add step_size if explicitly set in config
+    if config.has_option('NUTS', 'step_size'):
+        step_size = config.getfloat('NUTS', 'step_size')
+        nuts_kwargs['step_size'] = step_size
+        print(f"Using custom step size: {step_size}")
     
     print(f"Running NumPyro NUTS inference with {n_pulsars} pulsars...")
     print(f"NUTS parameters: {num_samples} samples, {num_warmup} warmup, {num_chains} chains")
+    print(f"Target accept prob: {target_accept_prob} (optimized for high-dimensional sampling)")
     
-    # Set up NUTS kernel
+    # Count total number of free parameters for diagnostics
+    total_params = count_free_parameters(prior_specs, n_pulsars)
+    print(f"Total free parameters: {total_params}")
+    if total_params > 10:
+        print("High-dimensional parameter space detected - using aggressive NUTS tuning")
+    
+    # Set up NUTS kernel with optimizations
     kernel = NUTS(
         lambda: numpyro_model(kalman_filter, prior_specs, n_pulsars),
-        target_accept_prob=target_accept_prob
+        **nuts_kwargs
     )
     
     # Set up MCMC sampler

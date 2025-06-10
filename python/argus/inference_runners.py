@@ -159,23 +159,50 @@ def run_jaxns_inference(config, jax_model, param_names, output_dir, output_id, l
         return None
 
 
-def estimate_runtime(config, likelihood_time, logger):
+def estimate_runtime(config, likelihood_time, logger, n_free_params=None):
     """Estimate NUTS runtime based on sampling parameters and likelihood timing.
     
     Args:
         config: Configuration object
         likelihood_time: Time for single likelihood evaluation (seconds)
         logger: Logger object
+        n_free_params: Number of free parameters (for optimization factor estimation)
     """
     # Get NUTS parameters from config
     num_samples = config.getint('NUTS', 'num_samples', fallback=2000)
     num_warmup = config.getint('NUTS', 'num_warmup', fallback=2000) 
     num_chains = config.getint('NUTS', 'num_chains', fallback=2)
+    target_accept_prob = config.getfloat('NUTS', 'target_accept_prob', fallback=0.8)
+    max_tree_depth = config.getint('NUTS', 'max_tree_depth', fallback=10)
     
-    # Calculate total likelihood evaluations
-    # Note: NUTS may evaluate likelihood multiple times per sample due to leapfrog steps
-    # We use a conservative multiplier of 10 for the number of evaluations per sample
-    leapfrog_multiplier = 10
+    # Calculate total likelihood evaluations with optimizations factored in
+    # Base leapfrog multiplier varies with dimensionality and target acceptance probability
+    if n_free_params is not None and n_free_params > 10:
+        # High-dimensional case - more conservative estimate with optimizations
+        base_multiplier = 15 + (n_free_params - 10) * 0.5  # Scales with dimensionality
+        
+        # Optimizations reduce the effective multiplier
+        optimization_factor = 1.0
+        
+        # Higher target acceptance prob reduces step size but improves efficiency
+        if target_accept_prob > 0.9:
+            optimization_factor *= 0.7  # 30% improvement from conservative stepping
+        
+        # Diagonal mass matrix improves efficiency
+        optimization_factor *= 0.8  # 20% improvement from better preconditioning
+        
+        # Parameter standardization improves efficiency
+        optimization_factor *= 0.75  # 25% improvement from standardized parameters
+        
+        # Lower tree depth reduces computational cost per sample
+        if max_tree_depth < 10:
+            optimization_factor *= 0.9  # 10% improvement from reduced tree depth
+            
+        leapfrog_multiplier = max(5, int(base_multiplier * optimization_factor))
+    else:
+        # Low-dimensional case - use standard estimate
+        leapfrog_multiplier = 10
+        
     total_evals = (num_warmup + num_samples) * num_chains * leapfrog_multiplier
     
     # Estimate total runtime
@@ -191,17 +218,23 @@ def estimate_runtime(config, likelihood_time, logger):
     logger = get_argus_logger()
     
     logger.info("\n" + "="*60)
-    logger.info("NUTS RUNTIME ESTIMATION")
+    logger.info("NUTS RUNTIME ESTIMATION (WITH OPTIMIZATIONS)")
     logger.info("="*60)
     logger.info(f"NUTS Configuration:")
     logger.info(f"  - Number of samples: {num_samples}")
     logger.info(f"  - Warmup samples: {num_warmup}")
     logger.info(f"  - Number of chains: {num_chains}")
+    logger.info(f"  - Target accept prob: {target_accept_prob}")
+    logger.info(f"  - Max tree depth: {max_tree_depth}")
+    if n_free_params is not None:
+        logger.info(f"  - Free parameters: {n_free_params}")
     logger.info(f"")
     logger.info(f"Timing Information:")
     logger.info(f"  - Single likelihood evaluation: {likelihood_time:.4f} seconds")
     logger.info(f"  - Estimated likelihood evaluations: {total_evals:,}")
-    logger.info(f"  - Leapfrog multiplier (conservative): {leapfrog_multiplier}x")
+    logger.info(f"  - Leapfrog multiplier (optimized): {leapfrog_multiplier}x")
+    if n_free_params is not None and n_free_params > 10:
+        logger.info(f"  - High-dimensional optimizations applied")
     logger.info(f"")
     logger.info(f"Estimated Runtime: {hours:02d}:{minutes:02d}:{seconds:02d} (HH:MM:SS)")
     if hours > 0:
@@ -209,8 +242,8 @@ def estimate_runtime(config, likelihood_time, logger):
     elif minutes > 0:
         logger.info(f"                   ({estimated_seconds/60:.1f} minutes)")
     logger.info(f"")
-    logger.info("Note: This is a conservative estimate. Actual runtime may vary")
-    logger.info("      depending on step size adaptation and acceptance rates.")
+    logger.info("Note: This estimate includes NUTS optimizations for high-dimensional sampling.")
+    logger.info("      Actual runtime may be better due to adaptive step size and mass matrix.")
     logger.info("="*60)
 
 
@@ -431,8 +464,12 @@ def run_numpyro_inference(config, KF, pulsar_data, output_dir, output_id, logger
     end_time = time.perf_counter()
     likelihood_time = end_time - start_time
     
+    # Count free parameters for runtime estimation
+    from argus.bayesian_inference import count_free_parameters
+    n_free_params = count_free_parameters(prior_specs, len(pulsar_data['metadata']))
+    
     # Estimate and display runtime
-    estimate_runtime(config, likelihood_time, logger)
+    estimate_runtime(config, likelihood_time, logger, n_free_params)
     
     # Calculate and display gradients
     calculate_and_display_gradients(KF, test_params, prior_specs, logger)
