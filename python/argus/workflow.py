@@ -124,8 +124,8 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     # Setup output directory
     output_dir = io_manager.setup_output_directory(config, use_gw, timestamp)
     
-    # Setup console logging only
-    logger = io_manager.setup_console_logging(config)
+    # Setup centralized logging with both console and file output
+    logger = io_manager.setup_single_logger(config, output_dir, enable_file_logging=True)
     
     # Copy config file to output directory
     io_manager.copy_config_file(config_path, output_dir, logger)
@@ -190,7 +190,7 @@ def run_model_comparison(config_path, timestamp=None):
         # Calculate and save Bayes factor
         print("\nCalculating Bayes factor...")
         from argus.analysis import calculate_and_save_bayes_factor
-        logger = logging.getLogger(__name__)
+        logger = io_manager.get_argus_logger()
         bayes_factor_results = calculate_and_save_bayes_factor(gw_output_dir, no_gw_output_dir, logger)
         
         return gw_output_dir, no_gw_output_dir, bayes_factor_results

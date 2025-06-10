@@ -60,6 +60,7 @@ def configurable_prior_model(
     # Each *_spec can be a TFP distribution object or a fixed jnp.ndarray/float.
     # If None, a default distribution will be used for some, or an error raised for others.
     log10_ha_spec = tfpd.Uniform(-17.0, -14.0),
+    log10_ha_transform_params = None, # Transformation parameters for reparameterization
     gamma_a_spec = 1e-9, # Typically fixed
     log10_gamma_p_spec = None,
     log10_sigma_p_spec = None,
@@ -76,8 +77,15 @@ def configurable_prior_model(
     If (e.g.) tfpd.Uniform(...), Prior will sample from it.
     """
     # GW parameters
-
-    log10_ha = yield Prior(log10_ha_spec, name='log10_ha')
+    # Handle reparameterization for log10_ha if needed
+    if log10_ha_transform_params is not None:
+        # Sample log10_ha_prime ~ N(0,1) and transform to log10_ha
+        log10_ha_prime = yield Prior(log10_ha_spec, name='log10_ha_prime')
+        log10_ha = log10_ha_transform_params['mean'] + log10_ha_prime * log10_ha_transform_params['std']
+    else:
+        # Standard sampling (fixed value or direct distribution)
+        log10_ha = yield Prior(log10_ha_spec, name='log10_ha')
+    
     γa = yield Prior(gamma_a_spec, name='γa') 
 
     # PSR vector parameters: γp and σp.
@@ -163,7 +171,25 @@ def get_prior_model_specs(config, Npsr,sigma_p_array,gamma_p_array, efac_array, 
 
 
     #GW parameters
-    log10_ha_spec = get_prior_spec('log10_ha')
+    # Handle log10_ha with reparameterization for better NUTS sampling
+    log10_ha_fixed = config.getboolean('PriorModel', 'log10_ha_fixed')
+    if log10_ha_fixed:
+        # Fixed value - no reparameterization needed
+        log10_ha_spec = config.getfloat('PriorModel', 'log10_ha_value')
+        log10_ha_transform_params = None
+    else:
+        # Reparameterize U(a,b) -> N(0,1) for better NUTS sampling
+        min_val = config.getfloat('PriorModel', 'log10_ha_min')
+        max_val = config.getfloat('PriorModel', 'log10_ha_max')
+        
+        # Calculate transformation parameters: log10_ha = mean + log10_ha_prime * std
+        mean = (min_val + max_val) / 2.0
+        std = (max_val - min_val) / jnp.sqrt(12.0)
+        
+        # Use N(0,1) for log10_ha_prime, store transformation parameters
+        log10_ha_spec = tfpd.Normal(0.0, 1.0)  # log10_ha_prime ~ N(0,1)
+        log10_ha_transform_params = {'mean': mean, 'std': std, 'min': min_val, 'max': max_val}
+    
     gamma_a_spec = get_prior_spec('gamma_a')
 
 
@@ -201,6 +227,7 @@ def get_prior_model_specs(config, Npsr,sigma_p_array,gamma_p_array, efac_array, 
 
     return {
         'log10_ha_spec': log10_ha_spec,
+        'log10_ha_transform_params': log10_ha_transform_params,
         'gamma_a_spec': gamma_a_spec,
         'log10_gamma_p_spec': log10_gamma_p_spec,
         'log10_sigma_p_spec': log10_sigma_p_spec,
@@ -301,10 +328,23 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
     """
     # Sample/determine parameters based on prior specifications
     # GW parameters
-    if isinstance(prior_specs['log10_ha_spec'], tfpd.Distribution):
-        log10_ha = numpyro.sample("log10_ha", 
-            dist.Uniform(prior_specs['log10_ha_spec'].low, prior_specs['log10_ha_spec'].high))
+    # Handle reparameterization for log10_ha if needed
+    if prior_specs['log10_ha_transform_params'] is not None:
+        # Sample log10_ha_prime ~ N(0,1) and transform to log10_ha
+        transform_params = prior_specs['log10_ha_transform_params']
+        log10_ha_prime = numpyro.sample("log10_ha_prime", dist.Normal(0.0, 1.0))
+        log10_ha = numpyro.deterministic("log10_ha", 
+            transform_params['mean'] + log10_ha_prime * transform_params['std'])
+    elif isinstance(prior_specs['log10_ha_spec'], tfpd.Distribution):
+        # Check if it's a uniform distribution (backward compatibility)
+        if hasattr(prior_specs['log10_ha_spec'], 'low'):
+            log10_ha = numpyro.sample("log10_ha", 
+                dist.Uniform(prior_specs['log10_ha_spec'].low, prior_specs['log10_ha_spec'].high))
+        else:
+            # Other distribution types
+            raise NotImplementedError(f"Distribution type {type(prior_specs['log10_ha_spec'])} not implemented")
     else:
+        # Fixed value
         log10_ha = numpyro.deterministic("log10_ha", prior_specs['log10_ha_spec'])
     
     if isinstance(prior_specs['gamma_a_spec'], tfpd.Distribution):
@@ -414,6 +454,108 @@ def run_numpyro_inference(kalman_filter, config, n_pulsars, sigma_p_array, gamma
     inf_data = az.from_numpyro(sampler)
     
     return inf_data
+
+
+def display_prior_summary(prior_specs, n_pulsars, logger=None):
+    """Display a readable summary of all prior specifications.
+    
+    Parameters
+    ----------
+    prior_specs : dict
+        Dictionary containing prior specifications from get_prior_model_specs()
+    n_pulsars : int
+        Number of pulsars (for vector parameter information)
+    logger : logging.Logger, optional
+        Logger object for output. If None, gets the centralized argus logger.
+    """
+    if logger is None:
+        from argus.io_manager import get_argus_logger
+        logger = get_argus_logger()
+    
+    def log_or_print(message):
+        logger.info(message)
+    
+    log_or_print("\n" + "="*60)
+    log_or_print("PRIOR SPECIFICATIONS SUMMARY")
+    log_or_print("="*60)
+    
+    # GW background parameters
+    log_or_print("\n--- Gravitational Wave Background Parameters ---")
+    
+    # log10_ha parameter
+    ha_spec = prior_specs['log10_ha_spec']
+    ha_transform = prior_specs['log10_ha_transform_params']
+    
+    if ha_transform is not None:
+        # Reparameterized case
+        log_or_print(f"log10(h_a): REPARAMETERIZED for better NUTS sampling")
+        log_or_print(f"  - Sampling: log10_ha_prime ~ N(0, 1)")
+        log_or_print(f"  - Transform: log10_ha = {ha_transform['mean']:.2f} + log10_ha_prime * {ha_transform['std']:.3f}")
+        log_or_print(f"  - Equivalent to: Uniform({ha_transform['min']:.1f}, {ha_transform['max']:.1f})")
+    elif isinstance(ha_spec, tfpd.Distribution):
+        # Direct distribution case (backward compatibility)
+        if hasattr(ha_spec, 'low'):
+            log_or_print(f"log10(h_a): Uniform({float(ha_spec.low):.1f}, {float(ha_spec.high):.1f})")
+        else:
+            log_or_print(f"log10(h_a): {type(ha_spec).__name__} distribution")
+    else:
+        # Fixed value case
+        log_or_print(f"log10(h_a): FIXED at {float(ha_spec):.1f}")
+    
+    # gamma_a parameter
+    gamma_spec = prior_specs['gamma_a_spec']
+    if isinstance(gamma_spec, tfpd.Distribution):
+        log_or_print(f"γ_a: Uniform({float(gamma_spec.low):.2e}, {float(gamma_spec.high):.2e})")
+    else:
+        log_or_print(f"γ_a: FIXED at {float(gamma_spec):.2e}")
+    
+    # Pulsar red noise parameters
+    log_or_print(f"\n--- Pulsar Red Noise Parameters ({n_pulsars} pulsars) ---")
+    
+    # log10_gamma_p parameter
+    gamma_p_spec = prior_specs['log10_gamma_p_spec']
+    if isinstance(gamma_p_spec, tfpd.Distribution):
+        log_or_print(f"log10(γ_p): Uniform({float(gamma_p_spec.low[0]):.1f}, {float(gamma_p_spec.high[0]):.1f}) for each pulsar")
+    else:
+        if hasattr(gamma_p_spec, '__len__') and len(gamma_p_spec) > 1:
+            log_or_print(f"log10(γ_p): FIXED at individual values (range: {float(jnp.min(gamma_p_spec)):.2f} to {float(jnp.max(gamma_p_spec)):.2f})")
+        else:
+            log_or_print(f"log10(γ_p): FIXED at {float(gamma_p_spec):.2f}")
+    
+    # log10_sigma_p parameter
+    sigma_p_spec = prior_specs['log10_sigma_p_spec']
+    if isinstance(sigma_p_spec, tfpd.Distribution):
+        log_or_print(f"log10(σ_p): Uniform({float(sigma_p_spec.low[0]):.1f}, {float(sigma_p_spec.high[0]):.1f}) for each pulsar")
+    else:
+        if hasattr(sigma_p_spec, '__len__') and len(sigma_p_spec) > 1:
+            log_or_print(f"log10(σ_p): FIXED at individual values (range: {float(jnp.min(sigma_p_spec)):.2f} to {float(jnp.max(sigma_p_spec)):.2f})")
+        else:
+            log_or_print(f"log10(σ_p): FIXED at {float(sigma_p_spec):.2f}")
+    
+    # Measurement noise parameters
+    log_or_print(f"\n--- Measurement Noise Parameters ({n_pulsars} pulsars) ---")
+    
+    # EFAC parameter
+    efac_spec = prior_specs['efac_spec']
+    if isinstance(efac_spec, tfpd.Distribution):
+        log_or_print(f"EFAC: Uniform({float(efac_spec.low[0]):.2f}, {float(efac_spec.high[0]):.2f}) for each pulsar")
+    else:
+        if hasattr(efac_spec, '__len__') and len(efac_spec) > 1:
+            log_or_print(f"EFAC: FIXED at individual values (range: {float(jnp.min(efac_spec)):.3f} to {float(jnp.max(efac_spec)):.3f})")
+        else:
+            log_or_print(f"EFAC: FIXED at {float(efac_spec):.3f}")
+    
+    # EQUAD parameter
+    equad_spec = prior_specs['equad_spec']
+    if isinstance(equad_spec, tfpd.Distribution):
+        log_or_print(f"EQUAD: Uniform({float(equad_spec.low[0]):.2e}, {float(equad_spec.high[0]):.2e}) for each pulsar")
+    else:
+        if hasattr(equad_spec, '__len__') and len(equad_spec) > 1:
+            log_or_print(f"EQUAD: FIXED at individual values (range: {float(jnp.min(equad_spec)):.2e} to {float(jnp.max(equad_spec)):.2e})")
+        else:
+            log_or_print(f"EQUAD: FIXED at {float(equad_spec):.2e}")
+    
+    log_or_print("="*60)
 
 
 def run_inference(kalman_filter, config, n_pulsars, sigma_p_array=None, 
