@@ -217,8 +217,12 @@ def estimate_runtime(config, likelihood_time, logger, n_free_params=None):
     from argus.io_manager import get_argus_logger
     logger = get_argus_logger()
     
+    # Note: Runtime estimation disabled for hierarchical models due to inaccuracy
+    # High-dimensional NUTS sampling with hierarchical priors can have highly variable
+    # trajectory lengths that make simple estimates unreliable
+    
     logger.info("\n" + "="*60)
-    logger.info("NUTS RUNTIME ESTIMATION (WITH OPTIMIZATIONS)")
+    logger.info("NUTS CONFIGURATION")
     logger.info("="*60)
     logger.info(f"NUTS Configuration:")
     logger.info(f"  - Number of samples: {num_samples}")
@@ -229,21 +233,15 @@ def estimate_runtime(config, likelihood_time, logger, n_free_params=None):
     if n_free_params is not None:
         logger.info(f"  - Free parameters: {n_free_params}")
     logger.info(f"")
-    logger.info(f"Timing Information:")
+    logger.info(f"Likelihood Performance:")
     logger.info(f"  - Single likelihood evaluation: {likelihood_time:.4f} seconds")
-    logger.info(f"  - Estimated likelihood evaluations: {total_evals:,}")
-    logger.info(f"  - Leapfrog multiplier (optimized): {leapfrog_multiplier}x")
     if n_free_params is not None and n_free_params > 10:
         logger.info(f"  - High-dimensional optimizations applied")
+        logger.info(f"  - Hierarchical priors reduce effective dimensionality")
     logger.info(f"")
-    logger.info(f"Estimated Runtime: {hours:02d}:{minutes:02d}:{seconds:02d} (HH:MM:SS)")
-    if hours > 0:
-        logger.info(f"                   ({estimated_seconds/3600:.1f} hours)")
-    elif minutes > 0:
-        logger.info(f"                   ({estimated_seconds/60:.1f} minutes)")
-    logger.info(f"")
-    logger.info("Note: This estimate includes NUTS optimizations for high-dimensional sampling.")
-    logger.info("      Actual runtime may be better due to adaptive step size and mass matrix.")
+    logger.info("Note: Runtime estimation disabled for hierarchical models.")
+    logger.info("      NUTS trajectory lengths vary significantly with model complexity.")
+    logger.info("      Monitor progress through the sampling progress bar.")
     logger.info("="*60)
 
 

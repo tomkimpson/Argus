@@ -1,0 +1,117 @@
+2025-06-12 13:22:16,822 - INFO - Logging to file: /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_015/logfiles/nested_sampling_test_output_20250612_132216.txt
+2025-06-12 13:22:16,823 - INFO - Centralized logging initialized
+2025-06-12 13:22:16,848 - INFO - Copied config file to /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_015/config_numpyro_test_015.ini
+2025-06-12 13:22:16,848 - INFO - Loading and processing data...
+2025-06-12 13:22:28,923 - INFO - Initializing Kalman filter...
+2025-06-12 13:22:28,924 - INFO - Initializing JaxKalmanFilter...
+2025-06-12 13:22:29,794 - INFO - Number of pulsars: 32
+2025-06-12 13:22:29,795 - INFO - Pulsar frequencies: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
+  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
+  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
+  67.37658113 317.37893707 216.37333714 218.81184042 123.11028715
+ 245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
+ 192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
+ 335.8162082  290.25460366]
+2025-06-12 13:22:29,795 - INFO - Total number of observations: 183
+2025-06-12 13:22:29,795 - INFO - Starting dt (days): 29.875630165338517
+2025-06-12 13:22:29,795 - INFO - Ending dt (days): 30.060462559770656
+2025-06-12 13:22:29,795 - INFO - The errors at t=1 are: [2.697680e-06 9.700560e-06 1.613116e-05 3.307200e-07 4.558820e-06
+ 2.141629e-05 5.225050e-06 4.722880e-06 4.797490e-06 5.783810e-06
+ 2.626620e-06 5.090810e-06 6.527710e-06 1.173289e-05 8.300700e-07
+ 3.826940e-06 2.880370e-06 2.054900e-06 1.612610e-06 3.759770e-06
+ 1.103370e-06 2.220800e-06 4.024300e-07 5.434910e-06 1.372800e-07
+ 7.031630e-06 4.653570e-06 5.474680e-06 3.388130e-06 4.303360e-06
+ 1.993229e-05 2.291670e-06]
+2025-06-12 13:22:29,872 - INFO - === Likelihood Performance Test ===
+2025-06-12 13:22:29,872 - INFO - Testing likelihood evaluation with known parameter values...
+2025-06-12 13:22:29,892 - INFO - Test parameters: γa=1e-09, ha=1e-15
+2025-06-12 13:22:29,892 - INFO - Number of pulsars: 32
+2025-06-12 13:22:29,892 - INFO - Performing for the first time a likelihood evaluation...
+2025-06-12 13:22:38,546 - INFO - Performing timed for the second time a likelihood evaluation...
+2025-06-12 13:22:38,624 - INFO - Likelihood evaluation completed in 8.6536 seconds the first time
+2025-06-12 13:22:38,625 - INFO - Likelihood evaluation completed in 0.0780 seconds the second time
+2025-06-12 13:22:38,651 - INFO - Log likelihood value: 55963.87289660473
+2025-06-12 13:22:38,652 - INFO - === End Likelihood Performance Test ===
+2025-06-12 13:22:38,697 - INFO - 
+============================================================
+2025-06-12 13:22:38,697 - INFO - PRIOR SPECIFICATIONS SUMMARY
+2025-06-12 13:22:38,697 - INFO - ============================================================
+2025-06-12 13:22:38,697 - INFO - 
+--- Gravitational Wave Background Parameters ---
+2025-06-12 13:22:38,697 - INFO - log10(h_a): REPARAMETERIZED for better NUTS sampling
+2025-06-12 13:22:38,697 - INFO -   - Sampling: log10_ha_prime ~ N(0, 1)
+2025-06-12 13:22:38,697 - INFO -   - Transform: log10_ha = -15.00 + log10_ha_prime * 0.333
+2025-06-12 13:22:38,697 - INFO -   - Equivalent to: Uniform(-16.0, -14.0)
+2025-06-12 13:22:38,698 - INFO - γ_a: FIXED at 1.00e-09
+2025-06-12 13:22:38,699 - INFO - 
+--- Pulsar Red Noise Parameters (32 pulsars) ---
+2025-06-12 13:22:38,699 - INFO - log10(γ_p): HIERARCHICAL modeling
+2025-06-12 13:22:38,699 - INFO -   - Population mean: Uniform(-9.0, -7.0)
+2025-06-12 13:22:38,708 - INFO -   - Population std: Uniform(0.1, 1.0)
+2025-06-12 13:22:38,708 - INFO -   - Individual pulsars: Normal(population_mean, population_std)
+2025-06-12 13:22:38,794 - INFO - log10(σ_p): FIXED at individual values (range: -17.90 to -12.60)
+2025-06-12 13:22:38,794 - INFO - 
+--- Measurement Noise Parameters (32 pulsars) ---
+2025-06-12 13:22:38,795 - INFO - EFAC: FIXED at individual values (range: 0.903 to 2.206)
+2025-06-12 13:22:38,795 - INFO - EQUAD: FIXED at individual values (range: 2.78e-08 to 5.69e-07)
+2025-06-12 13:22:38,795 - INFO - ============================================================
+2025-06-12 13:22:38,795 - INFO - Performing likelihood performance test for runtime estimation...
+2025-06-12 13:22:38,795 - INFO - === Likelihood Performance Test ===
+2025-06-12 13:22:38,795 - INFO - Testing likelihood evaluation with known parameter values...
+2025-06-12 13:22:38,799 - INFO - Test parameters: γa=1e-09, ha=1e-15
+2025-06-12 13:22:38,799 - INFO - Number of pulsars: 32
+2025-06-12 13:22:38,799 - INFO - Performing for the first time a likelihood evaluation...
+2025-06-12 13:22:38,869 - INFO - Performing timed for the second time a likelihood evaluation...
+2025-06-12 13:22:38,940 - INFO - Likelihood evaluation completed in 0.0701 seconds the first time
+2025-06-12 13:22:38,940 - INFO - Likelihood evaluation completed in 0.0702 seconds the second time
+2025-06-12 13:22:38,941 - INFO - Log likelihood value: 55963.87289660473
+2025-06-12 13:22:38,941 - INFO - === End Likelihood Performance Test ===
+2025-06-12 13:22:39,011 - INFO - 
+============================================================
+2025-06-12 13:22:39,012 - INFO - NUTS CONFIGURATION
+2025-06-12 13:22:39,012 - INFO - ============================================================
+2025-06-12 13:22:39,012 - INFO - NUTS Configuration:
+2025-06-12 13:22:39,012 - INFO -   - Number of samples: 500
+2025-06-12 13:22:39,012 - INFO -   - Warmup samples: 500
+2025-06-12 13:22:39,012 - INFO -   - Number of chains: 2
+2025-06-12 13:22:39,012 - INFO -   - Target accept prob: 0.85
+2025-06-12 13:22:39,012 - INFO -   - Max tree depth: 10
+2025-06-12 13:22:39,012 - INFO -   - Free parameters: 35
+2025-06-12 13:22:39,012 - INFO - 
+2025-06-12 13:22:39,012 - INFO - Likelihood Performance:
+2025-06-12 13:22:39,012 - INFO -   - Single likelihood evaluation: 0.0702 seconds
+2025-06-12 13:22:39,012 - INFO -   - High-dimensional optimizations applied
+2025-06-12 13:22:39,012 - INFO -   - Hierarchical priors reduce effective dimensionality
+2025-06-12 13:22:39,013 - INFO - 
+2025-06-12 13:22:39,013 - INFO - Note: Runtime estimation disabled for hierarchical models.
+2025-06-12 13:22:39,013 - INFO -       NUTS trajectory lengths vary significantly with model complexity.
+2025-06-12 13:22:39,013 - INFO -       Monitor progress through the sampling progress bar.
+2025-06-12 13:22:39,013 - INFO - ============================================================
+2025-06-12 13:22:39,013 - INFO - 
+============================================================
+2025-06-12 13:22:39,013 - INFO - LIKELIHOOD GRADIENT ANALYSIS
+2025-06-12 13:22:39,013 - INFO - ============================================================
+2025-06-12 13:22:39,057 - INFO - Computing gradients at test parameter values...
+2025-06-12 13:22:39,057 - INFO - Test values:
+2025-06-12 13:22:39,057 - INFO -   - log10(h_a): -15.00
+2025-06-12 13:22:39,058 - INFO -   - γ_a: 1.00e-09
+2025-06-12 13:22:39,058 - INFO -   - log10(γ_p): [-10.93, -6.00] (min, max)
+2025-06-12 13:22:39,059 - INFO -   - log10(σ_p): [-17.90, -12.60] (min, max)
+2025-06-12 13:22:39,059 - INFO - 
+2025-06-12 13:22:47,119 - INFO - Gradient Results (Non-Fixed Parameters Only):
+2025-06-12 13:22:47,119 - INFO - --- Scalar Parameters ---
+2025-06-12 13:22:47,164 - INFO - ∂ℒ/∂log10_ha_prime: -1.27e+02 (reparameterized)
+2025-06-12 13:22:47,164 - INFO - ∂ℒ/∂log10(h_a): -3.80e+02 (transformed)
+2025-06-12 13:22:47,305 - INFO - 
+Total gradient L2 norm (sampled parameters only): 1.27e+02
+2025-06-12 13:22:47,305 - INFO - 
+Interpretation:
+2025-06-12 13:22:47,305 - INFO -   - Moderate gradients: Normal range for MCMC sampling
+2025-06-12 13:22:47,305 - INFO - ============================================================
+2025-06-12 13:22:47,306 - INFO - Running NUMPYRO inference...
+2025-06-12 19:09:39,624 - INFO - Saving NumPyro results...
+2025-06-12 19:09:45,492 - INFO - NumPyro results saved to /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_015/numpyro_test_015_results.nc
+2025-06-12 19:09:45,493 - INFO - Creating corner plot and diagnostics for NUTS results...
+2025-06-12 19:09:50,991 - INFO - Corner plot saved to /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_015/plots/corner_plot_numpyro_test_015.png
+2025-06-12 19:09:50,992 - INFO - Running MCMC diagnostics...
+2025-06-12 19:09:51,691 - INFO - MCMC diagnostics completed
