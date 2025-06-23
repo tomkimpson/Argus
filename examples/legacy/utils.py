@@ -15,9 +15,17 @@ from argus import gravitational_waves
 def _get_processed_residuals(directory):
     """Get the processed residuals from the data."""
 
+    print("Welcome to the processed residuals function")
+    print(directory)
+
+
+
     # Get all .par and .tim files in the directory
     par_files = sorted(glob.glob(directory + "*.par"))
     tim_files = sorted(glob.glob(directory + "*.tim"))
+
+    print(par_files)
+    print(tim_files)
 
     assert len(par_files) == len(tim_files), "Mismatch between .par and .tim file counts."
 

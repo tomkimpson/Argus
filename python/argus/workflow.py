@@ -81,7 +81,8 @@ def setup_jaxns_model(config, KF, pulsar_data):
     print("Setting up the prior model...")
     prior_model = lambda: bayesian_inference.configurable_prior_model(
         Npsr=Npsr,
-        **prior_specs
+        **{k: v for k, v in prior_specs.items() if k != 'hierarchical_specs'},
+        hierarchical_specs=prior_specs.get('hierarchical_specs')
     )
 
     # Set up the log likelihood function

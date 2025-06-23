@@ -1,0 +1,58 @@
+LIKELIHOOD CURVE ANALYSIS REPORT
+==================================================
+
+Generated: 2025-06-23 16:44:53
+Analyzed pulsar index: 5
+Total number of pulsars: 32
+
+BASELINE PARAMETER VALUES
+-------------------------
+GW amplitude (ha): 3.09e-16
+GW spectral index (γa): 1.00e-09
+γ_p[5]: 1.00e-06
+σ_p[5]: 1.17e-13
+EFAC[5]: 1.116
+EQUAD[5]: 1.51e-07
+
+MAXIMUM LIKELIHOOD ESTIMATES
+------------------------------
+GW amplitude (ha): 2.95e-16 (LL: 56035.07)
+γ_p[5]: 1.00e-04 (LL: 56839.24)
+σ_p[5]: 9.10e-17 (LL: 56841.95)
+EFAC[5]: 1.339 (LL: 56035.19)
+EQUAD[5]: 1.51e-05 (LL: 56035.19)
+
+PULSAR INFORMATION
+------------------
+Index  0: J0030+0451
+Index  1: J0034-0534
+Index  2: J0218+4232
+Index  3: J0437-4715
+Index  4: J0613-0200
+Index  5: J0621+1002
+Index  6: J0711-6830
+Index  7: J0751+1807
+Index  8: J0900-3144
+Index  9: J1012+5307
+Index 10: J1022+1001
+Index 11: J1024-0719
+Index 12: J1045-4509
+Index 13: J1455-3330
+Index 14: J1600-3053
+Index 15: J1603-7202
+Index 16: J1614-2230
+Index 17: J1643-1224
+Index 18: J1713+0747
+Index 19: J1730-2304
+Index 20: J1744-1134
+Index 21: J1857+0943
+Index 22: J1909-3744
+Index 23: J1918-0642
+Index 24: J1939+2134
+Index 25: J1944+0907
+Index 26: J2010-1323
+Index 27: J2124-3358
+Index 28: J2129-5721
+Index 29: J2145-0750
+Index 30: J2229+2643
+Index 31: J2317+1439

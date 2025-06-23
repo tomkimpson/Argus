@@ -40,8 +40,6 @@ from argus import workflow, bayesian_inference, utils
 def fix_config_paths(config, config_path):
     """Fix relative paths in config to be relative to the project root, not config file location."""
     import configparser
-
-    print("YOU ARE INSIDE FIX_CONFIG_PATHS")
     
     # The config paths are designed to work from python/argus/, so we need to find the project root
     # From config file at python/argus/configs/file.ini, go up to project root
@@ -102,15 +100,7 @@ def fix_config_paths(config, config_path):
 
 def setup_kalman_filter_from_config(config_path):
     """Set up Kalman filter using the same workflow as the main inference code."""
-    import logging
-    
-    # Create a simple logger for the setup
-    logger = logging.getLogger('likelihood_curves')
-    logger.setLevel(logging.INFO)
-    if not logger.handlers:
-        handler = logging.StreamHandler()
-        handler.setFormatter(logging.Formatter('%(levelname)s: %(message)s'))
-        logger.addHandler(handler)
+    from argus.io_manager import setup_single_logger
     
     # Load configuration and fix paths
     config = utils.load_config(config_path)
@@ -118,6 +108,9 @@ def setup_kalman_filter_from_config(config_path):
     config = fix_config_paths(config, config_path)
 
     print(config)
+    
+    # Initialize the centralized Argus logger system
+    logger=setup_single_logger(config, 'likelihood_curves')
     
     # Use the actual workflow function
     pulsar_data, KF = workflow.setup_data_and_kalman_filter(config, logger=logger, use_gw=True)
@@ -132,7 +125,7 @@ def create_baseline_parameters(gamma_p_array, sigma_p_array, efac_array, equad_a
     """Create baseline parameter values for likelihood curves."""
     return bayesian_inference.Parameters(
         γa=1e-9,  # Fixed GW spectral index
-        ha=1e-15,  # GW amplitude baseline
+        ha=10**(-15.51),  # GW amplitude baseline
         γp=gamma_p_array,  # Pulsar red noise gamma
         σp=sigma_p_array,  # Pulsar red noise sigma  
         EFAC=efac_array,   # Error factors
@@ -143,12 +136,15 @@ def create_baseline_parameters(gamma_p_array, sigma_p_array, efac_array, equad_a
 def likelihood_curve_ha(KF, baseline_params, ha_values, progress_callback=None):
     """Create likelihood curve for GW amplitude ha."""
     log_likelihoods = []
-    
+
+    print("Baseline params before modification:")
+    print(baseline_params)
+
     for i, ha in enumerate(ha_values):
         if progress_callback and i % 10 == 0:
             progress_callback(f"ha curve: {i+1}/{len(ha_values)}")
             
-        params = baseline_params._replace(ha=ha)
+        params = baseline_params.replace(ha=ha)
         ll = KF.get_likelihood(params)
         log_likelihoods.append(float(ll))
     
@@ -158,14 +154,17 @@ def likelihood_curve_ha(KF, baseline_params, ha_values, progress_callback=None):
 def likelihood_curve_gamma_p(KF, baseline_params, gamma_p_values, pulsar_index, progress_callback=None):
     """Create likelihood curve for pulsar red noise gamma_p for a specific pulsar."""
     log_likelihoods = []
-    
+
+    print("Baseline params before modification:")
+    print(baseline_params)
+
     for i, gamma_p in enumerate(gamma_p_values):
         if progress_callback and i % 10 == 0:
             progress_callback(f"γ_p[{pulsar_index}] curve: {i+1}/{len(gamma_p_values)}")
             
         # Modify only the specified pulsar's gamma_p
         gamma_p_modified = baseline_params.γp.at[pulsar_index].set(gamma_p)
-        params = baseline_params._replace(γp=gamma_p_modified)
+        params = baseline_params.replace(γp=gamma_p_modified)
         ll = KF.get_likelihood(params)
         log_likelihoods.append(float(ll))
     
@@ -175,14 +174,20 @@ def likelihood_curve_gamma_p(KF, baseline_params, gamma_p_values, pulsar_index, 
 def likelihood_curve_sigma_p(KF, baseline_params, sigma_p_values, pulsar_index, progress_callback=None):
     """Create likelihood curve for pulsar red noise sigma_p for a specific pulsar."""
     log_likelihoods = []
-    
+
+    print("Baseline params before modification:")
+    print(baseline_params)
+
     for i, sigma_p in enumerate(sigma_p_values):
         if progress_callback and i % 10 == 0:
             progress_callback(f"σ_p[{pulsar_index}] curve: {i+1}/{len(sigma_p_values)}")
             
         # Modify only the specified pulsar's sigma_p
+        gamma_p_modified = baseline_params.γp.at[pulsar_index].set(7.51e-8)
+
         sigma_p_modified = baseline_params.σp.at[pulsar_index].set(sigma_p)
-        params = baseline_params._replace(σp=sigma_p_modified)
+
+        params = baseline_params.replace(σp=sigma_p_modified, γp=gamma_p_modified)
         ll = KF.get_likelihood(params)
         log_likelihoods.append(float(ll))
     
@@ -192,14 +197,17 @@ def likelihood_curve_sigma_p(KF, baseline_params, sigma_p_values, pulsar_index, 
 def likelihood_curve_efac(KF, baseline_params, efac_values, pulsar_index, progress_callback=None):
     """Create likelihood curve for EFAC for a specific pulsar."""
     log_likelihoods = []
-    
+
+    print("Baseline params before modification:")
+    print(baseline_params)
+
     for i, efac in enumerate(efac_values):
         if progress_callback and i % 10 == 0:
             progress_callback(f"EFAC[{pulsar_index}] curve: {i+1}/{len(efac_values)}")
             
         # Modify only the specified pulsar's EFAC
         efac_modified = baseline_params.EFAC.at[pulsar_index].set(efac)
-        params = baseline_params._replace(EFAC=efac_modified)
+        params = baseline_params.replace(EFAC=efac_modified)
         ll = KF.get_likelihood(params)
         log_likelihoods.append(float(ll))
     
@@ -210,13 +218,17 @@ def likelihood_curve_equad(KF, baseline_params, equad_values, pulsar_index, prog
     """Create likelihood curve for EQUAD for a specific pulsar."""
     log_likelihoods = []
     
+
+    print("Baseline params before modification:")
+    print(baseline_params)
+
     for i, equad in enumerate(equad_values):
         if progress_callback and i % 10 == 0:
             progress_callback(f"EQUAD[{pulsar_index}] curve: {i+1}/{len(equad_values)}")
             
         # Modify only the specified pulsar's EQUAD
         equad_modified = baseline_params.EQUAD.at[pulsar_index].set(equad)
-        params = baseline_params._replace(EQUAD=equad_modified)
+        params = baseline_params.replace(EQUAD=equad_modified)
         ll = KF.get_likelihood(params)
         log_likelihoods.append(float(ll))
     
@@ -281,7 +293,7 @@ def plot_likelihood_curve(param_values, log_likelihoods, param_name, param_label
     return plt.gcf()
 
 
-def create_summary_plot(results, pulsar_index):
+def create_summary_plot(results, pulsar_index, baseline_params):
     """Create a summary figure with all likelihood curves."""
     
     fig, axes = plt.subplots(2, 3, figsize=(18, 12))
@@ -295,6 +307,7 @@ def create_summary_plot(results, pulsar_index):
     axes[0,0].grid(True, alpha=0.3)
     max_idx = jnp.argmax(results['ha']['likelihoods'])
     axes[0,0].axvline(results['ha']['values'][max_idx], color='r', linestyle='--', alpha=0.7)
+    axes[0,0].axvline(baseline_params.ha, color='orange', linestyle=':', alpha=0.7)
     
     # Gamma_p
     axes[0,1].semilogx(results['gamma_p']['values'], results['gamma_p']['likelihoods'], 'g-', linewidth=2)
@@ -304,6 +317,7 @@ def create_summary_plot(results, pulsar_index):
     axes[0,1].grid(True, alpha=0.3)
     max_idx = jnp.argmax(results['gamma_p']['likelihoods'])
     axes[0,1].axvline(results['gamma_p']['values'][max_idx], color='r', linestyle='--', alpha=0.7)
+    axes[0,1].axvline(baseline_params.γp[pulsar_index], color='orange', linestyle=':', alpha=0.7)
     
     # Sigma_p
     axes[0,2].semilogx(results['sigma_p']['values'], results['sigma_p']['likelihoods'], 'm-', linewidth=2)
@@ -313,6 +327,7 @@ def create_summary_plot(results, pulsar_index):
     axes[0,2].grid(True, alpha=0.3)
     max_idx = jnp.argmax(results['sigma_p']['likelihoods'])
     axes[0,2].axvline(results['sigma_p']['values'][max_idx], color='r', linestyle='--', alpha=0.7)
+    axes[0,2].axvline(baseline_params.σp[pulsar_index], color='orange', linestyle=':', alpha=0.7)
     
     # EFAC
     axes[1,0].plot(results['efac']['values'], results['efac']['likelihoods'], 'c-', linewidth=2)
@@ -322,6 +337,7 @@ def create_summary_plot(results, pulsar_index):
     axes[1,0].grid(True, alpha=0.3)
     max_idx = jnp.argmax(results['efac']['likelihoods'])
     axes[1,0].axvline(results['efac']['values'][max_idx], color='r', linestyle='--', alpha=0.7)
+    axes[1,0].axvline(baseline_params.EFAC[pulsar_index], color='orange', linestyle=':', alpha=0.7)
     
     # EQUAD
     axes[1,1].semilogx(results['equad']['values'], results['equad']['likelihoods'], 'y-', linewidth=2)
@@ -331,12 +347,14 @@ def create_summary_plot(results, pulsar_index):
     axes[1,1].grid(True, alpha=0.3)
     max_idx = jnp.argmax(results['equad']['likelihoods'])
     axes[1,1].axvline(results['equad']['values'][max_idx], color='r', linestyle='--', alpha=0.7)
+    axes[1,1].axvline(baseline_params.EQUAD[pulsar_index], color='orange', linestyle=':', alpha=0.7)
     
     # Analysis notes
     axes[1,2].text(0.1, 0.5, 
                    f'Analysis for Pulsar Index: {pulsar_index}\n\n'
                    f'Total Pulsars: {len(results["pulsar_names"])}\n\n'
                    'Red dashed lines show\nmaximum likelihood values\n\n'
+                   'Orange dotted lines show\nbaseline injection values\n\n'
                    'Individual plots and data\nsaved to output directory',
                    transform=axes[1,2].transAxes, fontsize=12,
                    verticalalignment='center')
@@ -402,7 +420,7 @@ def generate_analysis_report(results, pulsar_index, baseline_params, output_file
 def main():
     parser = argparse.ArgumentParser(description='Generate likelihood curves for parameter estimation')
     parser.add_argument('--config', '-c', 
-                       default='../python/argus/configs/config_numpyro_test_010.ini',
+                       default='../python/argus/configs/config_likelihoods.ini',
                        help='Path to configuration file')
     parser.add_argument('--pulsar-index', '-p', type=int, default=5,
                        help='Pulsar index to analyze (default: 5)')
@@ -443,7 +461,7 @@ def main():
         return
     
     # Get pulsar names
-    pulsar_names = [row['PSR'] for _, row in pulsar_data['metadata'].iterrows()]
+    pulsar_names = [row['name'] for _, row in pulsar_data['metadata'].iterrows()]
     print(f"Selected pulsar: {pulsar_names[args.pulsar_index]}")
     
     # Create baseline parameters
@@ -462,6 +480,7 @@ def main():
     
     # 1. GW amplitude
     print("1. GW amplitude (ha)")
+    print(f"   Baseline ha: {baseline_params.ha:.2e}")
     ha_min, ha_max = 1e-17, 1e-14
     ha_values = jnp.logspace(jnp.log10(ha_min), jnp.log10(ha_max), args.n_points)
     ll_ha = likelihood_curve_ha(KF, baseline_params, ha_values, progress_callback)
@@ -476,6 +495,7 @@ def main():
     
     # 2. Pulsar red noise gamma_p
     print(f"2. Pulsar {args.pulsar_index} gamma_p")
+    print(f"   Baseline γ_p[{args.pulsar_index}]: {baseline_params.γp[args.pulsar_index]:.2e}")
     gamma_p_baseline = gamma_p_array[args.pulsar_index]
     gamma_p_min = gamma_p_baseline * 0.01
     gamma_p_max = gamma_p_baseline * 100
@@ -493,9 +513,11 @@ def main():
     
     # 3. Pulsar red noise sigma_p
     print(f"3. Pulsar {args.pulsar_index} sigma_p")
+    print(f"   Baseline σ_p[{args.pulsar_index}]: {baseline_params.σp[args.pulsar_index]:.2e}")
+    # Use the same range as the prior: 1e-18 to 1e-12
+    sigma_p_min = 1e-18
+    sigma_p_max = 1e-12
     sigma_p_baseline = sigma_p_array[args.pulsar_index]
-    sigma_p_min = sigma_p_baseline * 0.01
-    sigma_p_max = sigma_p_baseline * 100
     sigma_p_values = jnp.logspace(jnp.log10(sigma_p_min), jnp.log10(sigma_p_max), args.n_points)
     ll_sigma_p = likelihood_curve_sigma_p(KF, baseline_params, sigma_p_values, args.pulsar_index, progress_callback)
     results['sigma_p'] = {'values': sigma_p_values, 'likelihoods': ll_sigma_p}
@@ -510,6 +532,7 @@ def main():
     
     # 4. EFAC
     print(f"4. Pulsar {args.pulsar_index} EFAC")
+    print(f"   Baseline EFAC[{args.pulsar_index}]: {baseline_params.EFAC[args.pulsar_index]:.3f}")
     efac_baseline = efac_array[args.pulsar_index]
     efac_min = max(0.1, efac_baseline * 0.1)
     efac_max = efac_baseline * 5.0
@@ -527,6 +550,7 @@ def main():
     
     # 5. EQUAD
     print(f"5. Pulsar {args.pulsar_index} EQUAD")
+    print(f"   Baseline EQUAD[{args.pulsar_index}]: {baseline_params.EQUAD[args.pulsar_index]:.2e}")
     equad_baseline = equad_array[args.pulsar_index]
     equad_min = equad_baseline * 0.01
     equad_max = equad_baseline * 100
@@ -544,7 +568,7 @@ def main():
     
     # 6. Create summary plot
     print("6. Creating summary plot...")
-    fig = create_summary_plot(results, args.pulsar_index)
+    fig = create_summary_plot(results, args.pulsar_index, baseline_params)
     fig.savefig(os.path.join(output_dir, 'likelihood_curves_summary.png'), dpi=300, bbox_inches='tight')
     plt.close(fig)
     

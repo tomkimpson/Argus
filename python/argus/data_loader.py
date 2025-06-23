@@ -166,8 +166,8 @@ class LoadWidebandPulsarData:
             - 'hd_correlation': matrix of Hellings-Downs correlations
         """
         # Get all .par and .tim files in the directory
-        par_files = sorted(glob.glob(directory + "*.par"))
-        tim_files = sorted(glob.glob(directory + "*.tim"))
+        par_files = sorted(glob.glob(directory + "/*.par"))
+        tim_files = sorted(glob.glob(directory + "/*.tim"))
 
         assert len(par_files) == len(tim_files), "Mismatch between .par and .tim file counts."
 

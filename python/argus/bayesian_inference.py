@@ -65,7 +65,8 @@ def configurable_prior_model(
     log10_gamma_p_spec = None,
     log10_sigma_p_spec = None,
     efac_spec = None,
-    equad_spec = None
+    equad_spec = None,
+    hierarchical_specs = None  # New parameter for hierarchical modeling specifications
 ):
     """Define prior distributions for the parameters.
     
@@ -104,6 +105,14 @@ def configurable_prior_model(
         log10_sigma_p_std = yield Prior(hierarchical_specs['log10_sigma_p_std_spec'], name='log10_sigma_p_std')
         log10_σp = yield Prior(tfpd.Normal(loc=jnp.full(Npsr, log10_sigma_p_mean), 
                                           scale=jnp.full(Npsr, log10_sigma_p_std)), name='log10_σp')
+    elif hierarchical_specs and hierarchical_specs.get('log_ratio_parameterization', False):
+        # Log-ratio parameterization: σp derived from γp + ratio
+        log10_ratio_mean = yield Prior(hierarchical_specs['log10_ratio_mean_spec'], name='log10_ratio_mean')
+        log10_ratio_std = yield Prior(hierarchical_specs['log10_ratio_std_spec'], name='log10_ratio_std')
+        log10_ratio = yield Prior(tfpd.Normal(loc=jnp.full(Npsr, log10_ratio_mean), 
+                                             scale=jnp.full(Npsr, log10_ratio_std)), name='log10_ratio')
+        # Derive log10_σp deterministically
+        log10_σp = log10_γp + log10_ratio
     else:
         log10_σp = yield Prior(log10_sigma_p_spec, name='log10_σp')
     
@@ -210,42 +219,100 @@ def get_prior_model_specs(config, Npsr, sigma_p_array, gamma_p_array, efac_array
 
 
     #Pulsar red noise parameters
-    psr_noise_fixed = config.getboolean('PriorModel', 'psr_noise_fixed')
-    print("The psr_noise_fixed is:")
-    print(psr_noise_fixed)
+    # Check for individual parameter control (new approach) vs legacy master switch
+    log10_gamma_p_fixed = config.getboolean('PriorModel', 'log10_gamma_p_fixed', fallback=None)
+    log10_sigma_p_fixed = config.getboolean('PriorModel', 'log10_sigma_p_fixed', fallback=None)
     
-    # Check for hierarchical modeling
+    # Backwards compatibility: if individual controls not set, use legacy psr_noise_fixed
+    if log10_gamma_p_fixed is None and log10_sigma_p_fixed is None:
+        psr_noise_fixed = config.getboolean('PriorModel', 'psr_noise_fixed')
+        log10_gamma_p_fixed = psr_noise_fixed
+        log10_sigma_p_fixed = psr_noise_fixed
+        print(f"Using legacy psr_noise_fixed: {psr_noise_fixed}")
+    else:
+        # Use individual controls, defaulting to False if not specified
+        if log10_gamma_p_fixed is None:
+            log10_gamma_p_fixed = False
+        if log10_sigma_p_fixed is None:
+            log10_sigma_p_fixed = False
+        print(f"Using individual controls - gamma_p_fixed: {log10_gamma_p_fixed}, sigma_p_fixed: {log10_sigma_p_fixed}")
+    
+    # Check for hierarchical modeling and log-ratio parameterization
     hierarchical_noise = config.getboolean('PriorModel', 'hierarchical_noise', fallback=False)
     hierarchical_sigma_p = config.getboolean('PriorModel', 'hierarchical_sigma_p', fallback=False)
+    log_ratio_parameterization = config.getboolean('PriorModel', 'log_ratio_parameterization', fallback=False)
     hierarchical_specs = None
     
-    if psr_noise_fixed:
-        log10_gamma_p_spec = jnp.log10(gamma_p_array)
-        log10_sigma_p_spec = jnp.log10(sigma_p_array)
-    elif hierarchical_noise or hierarchical_sigma_p:
+    # Handle gamma_p specification
+    if log10_gamma_p_fixed:
+        if config.has_option('PriorModel', 'log10_gamma_p_value'):
+            # Check if value is a string (for 'injected'/'default') or a number
+            gamma_p_value_str = config.get('PriorModel', 'log10_gamma_p_value')
+            if gamma_p_value_str.lower() in ['injected', 'default']:
+                # Use injected values
+                log10_gamma_p_spec = jnp.log10(gamma_p_array)
+                print(f"Using injected gamma_p values: {gamma_p_value_str}")
+            else:
+                # Use explicit fixed value from config
+                gamma_p_fixed_value = config.getfloat('PriorModel', 'log10_gamma_p_value')
+                log10_gamma_p_spec = jnp.full(Npsr, gamma_p_fixed_value)
+                print(f"Using fixed gamma_p value: {gamma_p_fixed_value}")
+        else:
+            # Use injected values (legacy approach)
+            log10_gamma_p_spec = jnp.log10(gamma_p_array)
+            print("Using injected gamma_p values (legacy mode)")
+    elif hierarchical_noise:
         # Set up hierarchical prior specifications
         hierarchical_specs = {
             'hierarchical_noise': hierarchical_noise,
-            'hierarchical_sigma_p': hierarchical_sigma_p
+            'hierarchical_sigma_p': hierarchical_sigma_p,
+            'log_ratio_parameterization': log_ratio_parameterization
         }
         
-        if hierarchical_noise:
-            hierarchical_specs.update({
-                'log10_gamma_p_mean_spec': tfpd.Uniform(
-                    config.getfloat('PriorModel', 'log10_gamma_p_mean_min'),
-                    config.getfloat('PriorModel', 'log10_gamma_p_mean_max')
-                ),
-                'log10_gamma_p_std_spec': tfpd.Uniform(
-                    config.getfloat('PriorModel', 'log10_gamma_p_std_min'),
-                    config.getfloat('PriorModel', 'log10_gamma_p_std_max')
-                )
-            })
-            log10_gamma_p_spec = None  # Will be handled hierarchically
-        else:
-            log10_gamma_p_spec = tfpd.Uniform(
-                low=jnp.full(Npsr, config.getfloat('PriorModel', 'log10_gamma_p_min')),
-                high=jnp.full(Npsr, config.getfloat('PriorModel', 'log10_gamma_p_max'))
+        hierarchical_specs.update({
+            'log10_gamma_p_mean_spec': tfpd.Uniform(
+                config.getfloat('PriorModel', 'log10_gamma_p_mean_min'),
+                config.getfloat('PriorModel', 'log10_gamma_p_mean_max')
+            ),
+            'log10_gamma_p_std_spec': tfpd.Uniform(
+                config.getfloat('PriorModel', 'log10_gamma_p_std_min'),
+                config.getfloat('PriorModel', 'log10_gamma_p_std_max')
             )
+        })
+        log10_gamma_p_spec = None  # Will be handled hierarchically
+    else:
+        # Free gamma_p with uniform prior
+        log10_gamma_p_spec = tfpd.Uniform(
+            low=jnp.full(Npsr, config.getfloat('PriorModel', 'log10_gamma_p_min')),
+            high=jnp.full(Npsr, config.getfloat('PriorModel', 'log10_gamma_p_max'))
+        )
+    
+    # Handle sigma_p specification  
+    if log10_sigma_p_fixed:
+        if config.has_option('PriorModel', 'log10_sigma_p_value'):
+            # Check if value is a string (for 'injected'/'default') or a number
+            sigma_p_value_str = config.get('PriorModel', 'log10_sigma_p_value')
+            if sigma_p_value_str.lower() in ['injected', 'default']:
+                # Use injected values
+                log10_sigma_p_spec = jnp.log10(sigma_p_array)
+                print(f"Using injected sigma_p values: {sigma_p_value_str}")
+            else:
+                # Use explicit fixed value from config
+                sigma_p_fixed_value = config.getfloat('PriorModel', 'log10_sigma_p_value')
+                log10_sigma_p_spec = jnp.full(Npsr, sigma_p_fixed_value)
+                print(f"Using fixed sigma_p value: {sigma_p_fixed_value}")
+        else:
+            # Use injected values (legacy approach)
+            log10_sigma_p_spec = jnp.log10(sigma_p_array)
+            print("Using injected sigma_p values (legacy mode)")
+    elif hierarchical_noise or hierarchical_sigma_p or log_ratio_parameterization:
+        # Initialize hierarchical_specs if not already done
+        if hierarchical_specs is None:
+            hierarchical_specs = {
+                'hierarchical_noise': hierarchical_noise,
+                'hierarchical_sigma_p': hierarchical_sigma_p,
+                'log_ratio_parameterization': log_ratio_parameterization
+            }
         
         if hierarchical_sigma_p:
             hierarchical_specs.update({
@@ -259,13 +326,26 @@ def get_prior_model_specs(config, Npsr, sigma_p_array, gamma_p_array, efac_array
                 )
             })
             log10_sigma_p_spec = None  # Will be handled hierarchically
+        elif log_ratio_parameterization:
+            hierarchical_specs.update({
+                'log10_ratio_mean_spec': tfpd.Uniform(
+                    config.getfloat('PriorModel', 'log10_ratio_mean_min'),
+                    config.getfloat('PriorModel', 'log10_ratio_mean_max')
+                ),
+                'log10_ratio_std_spec': tfpd.Uniform(
+                    config.getfloat('PriorModel', 'log10_ratio_std_min'),
+                    config.getfloat('PriorModel', 'log10_ratio_std_max')
+                )
+            })
+            log10_sigma_p_spec = None  # Will be derived from log-ratio
         else:
-            log10_sigma_p_spec = jnp.log10(sigma_p_array)
+            # Free sigma_p with uniform prior
+            log10_sigma_p_spec = tfpd.Uniform(
+                low=jnp.full(Npsr, config.getfloat('PriorModel', 'log10_sigma_p_min')),
+                high=jnp.full(Npsr, config.getfloat('PriorModel', 'log10_sigma_p_max'))
+            )
     else:
-        log10_gamma_p_spec = tfpd.Uniform(
-            low=jnp.full(Npsr, config.getfloat('PriorModel', 'log10_gamma_p_min')),
-            high=jnp.full(Npsr, config.getfloat('PriorModel', 'log10_gamma_p_max'))
-        )
+        # Free sigma_p with uniform prior
         log10_sigma_p_spec = tfpd.Uniform(
             low=jnp.full(Npsr, config.getfloat('PriorModel', 'log10_sigma_p_min')),
             high=jnp.full(Npsr, config.getfloat('PriorModel', 'log10_sigma_p_max'))
@@ -480,6 +560,31 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
             dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars)))
         log10_σp = numpyro.deterministic("log10_σp", 
             log10_sigma_p_mean + log10_σp_raw * log10_sigma_p_std / jnp.sqrt(n_pulsars))
+    elif hierarchical_specs and hierarchical_specs.get('log_ratio_parameterization', False):
+        # Log-ratio parameterization: σp derived from γp + ratio with gradient balancing
+        log10_ratio_mean_raw = numpyro.sample("log10_ratio_mean_raw", dist.Normal(0.0, 1.0))
+        log10_ratio_std_raw = numpyro.sample("log10_ratio_std_raw", dist.Normal(0.0, 1.0))
+        
+        # Transform to appropriate ranges with balanced gradients
+        mean_low = hierarchical_specs['log10_ratio_mean_spec'].low
+        mean_high = hierarchical_specs['log10_ratio_mean_spec'].high
+        std_low = hierarchical_specs['log10_ratio_std_spec'].low
+        std_high = hierarchical_specs['log10_ratio_std_spec'].high
+        
+        # Apply gradient-balanced transforms
+        log10_ratio_mean = numpyro.deterministic("log10_ratio_mean", 
+            (mean_low + mean_high) / 2.0 + log10_ratio_mean_raw * (mean_high - mean_low) / 6.0)
+        log10_ratio_std = numpyro.deterministic("log10_ratio_std", 
+            (std_low + std_high) / 2.0 + log10_ratio_std_raw * (std_high - std_low) / 6.0)
+        
+        # Sample individual ratio parameters with scaled gradients
+        log10_ratio_raw = numpyro.sample("log10_ratio_raw", 
+            dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars)))
+        log10_ratio = numpyro.deterministic("log10_ratio", 
+            log10_ratio_mean + log10_ratio_raw * log10_ratio_std / jnp.sqrt(n_pulsars))
+        
+        # Derive log10_σp deterministically from γp + ratio
+        log10_σp = numpyro.deterministic("log10_σp", log10_γp + log10_ratio)
     elif isinstance(prior_specs['log10_sigma_p_spec'], tfpd.Distribution):
         # Use improved standardized parameterization with gradient balancing
         low = prior_specs['log10_sigma_p_spec'].low
@@ -579,6 +684,10 @@ def count_free_parameters(prior_specs, n_pulsars):
         # Hierarchical modeling: 2 hyperparameters + n_pulsars individual parameters
         count += 2  # log10_sigma_p_mean and log10_sigma_p_std
         count += n_pulsars  # Individual pulsar sigma parameters
+    elif hierarchical_specs and hierarchical_specs.get('log_ratio_parameterization', False):
+        # Log-ratio parameterization: 2 hyperparameters + n_pulsars ratio parameters
+        count += 2  # log10_ratio_mean and log10_ratio_std
+        count += n_pulsars  # Individual pulsar ratio parameters (σp derived deterministically)
     elif isinstance(prior_specs['log10_sigma_p_spec'], tfpd.Distribution):
         count += n_pulsars  # One per pulsar
     
@@ -664,17 +773,25 @@ def run_numpyro_inference(kalman_filter, config, n_pulsars, sigma_p_array, gamma
     if hierarchical_specs:
         hier_gamma = hierarchical_specs.get('hierarchical_noise', False)
         hier_sigma = hierarchical_specs.get('hierarchical_sigma_p', False)
-        if hier_gamma or hier_sigma:
-            print("Hierarchical modeling enabled for pulsar noise parameters")
+        log_ratio = hierarchical_specs.get('log_ratio_parameterization', False)
+        if hier_gamma or hier_sigma or log_ratio:
+            print("Advanced modeling enabled for pulsar noise parameters")
             if hier_gamma and hier_sigma:
                 print(f"Both γp and σp use hierarchical priors")
                 print(f"Effective dimensionality: 4 hyperparameters + {2*n_pulsars} constrained parameters")
+            elif hier_gamma and log_ratio:
+                print(f"γp hierarchical + σp via log-ratio parameterization")
+                print(f"Effective dimensionality: 4 hyperparameters + {2*n_pulsars} constrained parameters")
+                print(f"σp = γp + ratio (reduces parameter correlations)")
             elif hier_gamma:
                 print(f"γp uses hierarchical priors, σp fixed")
                 print(f"Effective dimensionality: 2 hyperparameters + {n_pulsars} constrained parameters")
             elif hier_sigma:
                 print(f"σp uses hierarchical priors, γp independent")
                 print(f"Effective dimensionality: 2 hyperparameters + {n_pulsars} constrained + {n_pulsars} independent parameters")
+            elif log_ratio:
+                print(f"σp via log-ratio parameterization, γp independent")
+                print(f"Effective dimensionality: 2 hyperparameters + {2*n_pulsars} parameters")
     
     if total_params > 10:
         print("High-dimensional parameter space detected - using aggressive NUTS tuning")
@@ -795,6 +912,15 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
         log_or_print(f"  - Population mean: Uniform({float(mean_spec.low):.1f}, {float(mean_spec.high):.1f})")
         log_or_print(f"  - Population std: Uniform({float(std_spec.low):.1f}, {float(std_spec.high):.1f})")
         log_or_print(f"  - Individual pulsars: Normal(population_mean, population_std)")
+    elif hierarchical_specs and hierarchical_specs.get('log_ratio_parameterization', False):
+        # Log-ratio parameterization case
+        mean_spec = hierarchical_specs['log10_ratio_mean_spec']
+        std_spec = hierarchical_specs['log10_ratio_std_spec']
+        log_or_print(f"log10(σ_p): LOG-RATIO parameterization")
+        log_or_print(f"  - log10(σ_p) = log10(γ_p) + log10(ratio)")
+        log_or_print(f"  - Ratio mean: Uniform({float(mean_spec.low):.1f}, {float(mean_spec.high):.1f})")
+        log_or_print(f"  - Ratio std: Uniform({float(std_spec.low):.1f}, {float(std_spec.high):.1f})")
+        log_or_print(f"  - Individual ratios: Normal(ratio_mean, ratio_std)")
     elif isinstance(sigma_p_spec, tfpd.Distribution):
         log_or_print(f"log10(σ_p): Uniform({float(sigma_p_spec.low[0]):.1f}, {float(sigma_p_spec.high[0]):.1f}) for each pulsar")
     elif sigma_p_spec is not None:
