@@ -60,15 +60,16 @@ For 32 pulsars, this results in 65-70 parameters when using hierarchical priors.
   - Validated that gradient balancing improvements work effectively
 - **Limitation**: σp parameters still fixed, not learned from data
 
-### Run 016: Log-Ratio Parameterization (In Progress)
+### Run 016: Log-Ratio Parameterization (Completed)
 - **Configuration**: Hierarchical `log10_γp` + log-ratio parameterization for σp
 - **Parameters**: 68 free parameters
 - **Innovation**: `log10_σp = log10_γp + log10_ratio`
   - Sample γp and ratio hierarchically
   - Derive σp deterministically
-  - Potentially reduces parameter correlations vs direct σp sampling
-- **Goal**: Achieve 68-parameter sampling with better geometry than Run 014
-- **Status**: Currently running
+  - Reduces parameter correlations vs direct σp sampling
+- **Result**: ✅ SUCCESS - Completed in reasonable time
+- **Analysis**: Good convergence (R-hat ≤ 1.01), no divergent transitions
+- **Limitation**: Some low ESS warnings, suggesting room for improvement
 
 ## Key Technical Improvements Implemented
 
@@ -116,7 +117,9 @@ log10_σp[i] = log10_γp[i] + log10_ratio[i]  # Deterministic
 | 013 | 35 | ✅ Success | ~1.4 hours | Hierarchical γp | Good baseline |
 | 014 | 69 | ❌ Failed | 2+ hours (incomplete) | Full hierarchical | Exponential degradation |
 | 015 | 35 | ✅ Success | 5h 51m | Gradient balancing | Validated improvements |
-| 016 | 68 | 🔄 Running | TBD | Log-ratio parameterization | Testing new approach |
+| 016 | 68 | ✅ Success | ~6 hours | Log-ratio parameterization | Breakthrough for high-dim |
+| 017 | 68 | ✅ Success | TBD | Reproduction of 016 | Posterior railing observed |
+| 020 | 69 | 🔄 Running | TBD | Widened priors | Testing railing hypothesis |
 
 ## Key Findings
 
@@ -150,11 +153,41 @@ log10_σp[i] = log10_γp[i] + log10_ratio[i]  # Deterministic
 - **Statistical requirement**: Need to infer σp from data for unbiased GW detection
 - **Computational challenge**: Adding σp as free parameters doubles parameter count (35 → 68+)
 
+## Recent Developments (2025-06-30)
+
+### Run 017: Posterior Railing Investigation
+- **Configuration**: Reproduction of Run 016 for validation
+- **Discovery**: `log10_ha` posterior railing against prior lower bound (-16.0)
+- **Hypothesis**: Prior bounds may be too restrictive for the data
+- **Diagnostic**: Corner plot shows concentration at -16.01, suggesting true value below -16.0
+
+### Run 020: Widened Prior Testing
+- **Innovation**: Widened prior bounds to test railing hypothesis
+  - `log10_ha_min`: -16.0 → -18.0 (2 orders of magnitude expansion)
+  - `log10_sigma_p_min`: -18.0 → -20.0 (additional margin for noise parameters)
+- **Goal**: Determine if posterior moves away from boundary with expanded priors
+- **Status**: Currently running (job #1902445)
+- **Expected outcome**: If railing was due to restrictive priors, posterior should center away from -18.0
+
+### Technical Understanding: Reparameterization Behavior
+- **Investigation**: Samples in Run 016 appeared outside config bounds (e.g., -16.2 when bounds were [-16.0, -14.0])
+- **Resolution**: This is **expected and correct** behavior due to Normal(0,1) reparameterization
+- **Explanation**: 3-sigma rule captures ~99.7% of samples; tail samples beyond bounds are statistically valid
+- **Transform**: `log10_ha = mean + log10_ha_prime × std` where `log10_ha_prime ~ N(0,1)`
+- **Benefit**: Preserves proper statistical properties while giving NUTS smooth parameter space
+
+### Tool Development
+- **Corner plot enhancement**: Added `--smooth` argument to plotting script
+  - Without `--smooth`: No smoothing, axes fit to sample range
+  - With `--smooth`: Smoothing enabled, axes span full prior range
+  - Automatic filename differentiation (`_smooth` suffix)
+
 ## Future Directions
 
-### Immediate Testing
-1. **Analyze Run 016 results** to assess log-ratio parameterization effectiveness
-2. **Compare Run 016 vs Run 014** to isolate impact of parameterization choice
+### Immediate Analysis (Pending Run 020 Completion)
+1. **Evaluate railing hypothesis**: Does widened prior resolve posterior concentration?
+2. **Compare convergence**: Are sampling diagnostics improved with wider bounds?
+3. **Scientific interpretation**: What do results suggest about GW signal strength?
 
 ### Alternative Approaches if Log-Ratio Fails
 1. **Principal component parameterization**: Reduce (γp, σp) to dominant modes
@@ -207,5 +240,5 @@ log10_σp[i] = log10_γp[i] + log10_ratio[i]  # Deterministic
 
 ---
 
-*Last updated: 2025-06-23*  
-*Status: Run 016 (log-ratio parameterization) in progress*
+*Last updated: 2025-06-30*  
+*Status: Run 020 (widened priors) in progress, investigating posterior railing hypothesis*
