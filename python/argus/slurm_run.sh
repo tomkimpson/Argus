@@ -1,7 +1,7 @@
 #!/bin/bash 
  
-#SBATCH --job-name=numpyro_test_019
-#SBATCH --output=outputs/logfiles/numpyro_test_019_output.txt
+#SBATCH --job-name=numpyro_test_020
+#SBATCH --output=outputs/logfiles/numpyro_test_020_output.txt
 #SBATCH --export=ALL 
 #SBATCH --gres=gpu:2
 #SBATCH --time=48:00:00 
@@ -10,4 +10,4 @@
 
 source ~/.bashrc
 conda activate Argus
-time python -u main.py configs/config_numpyro_test_019.ini
+time python -u main.py configs/config_numpyro_test_020.ini
