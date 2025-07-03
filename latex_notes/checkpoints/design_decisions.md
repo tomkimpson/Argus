@@ -222,5 +222,54 @@ The log-ratio parameterization represents an attempt to thread this needle by re
 
 ---
 
-**Last updated**: 2025-06-30  
-**Context**: Runs 016-020 testing log-ratio parameterization with widened priors
+## Corner Plot Visualization and Parameter Ranges
+
+### The Reparameterization Plotting Challenge
+
+When using Normal(0,1) reparameterization, **samples naturally extend beyond the config "prior bounds"** due to the 3-sigma rule. This creates a visualization dilemma when creating corner plots.
+
+### Sample Range vs Prior Range Trade-offs
+
+**Using sample-based ranges** (`smooth_sigma=None`):
+- **Pros**: Shows true posterior width and uncertainty
+- **Cons**: May truncate valid tail samples from reparameterization
+- **Behavior**: Axes fit tightly to actual sample ranges
+
+**Using prior-based ranges** (`smooth_sigma>0`):
+- **Pros**: Shows full parameter support including reparameterization tails
+- **Cons**: Can make posteriors look artificially narrow and "spike-like"
+- **Behavior**: Axes span config bounds (or extended ranges)
+
+### The "Pointy Posterior" Problem
+
+Setting plot ranges too wide creates misleading visualizations:
+- Posterior appears overly constrained relative to the prior
+- True parameter uncertainty is visually minimized
+- Can give false impression of strong constraints
+
+### Current Implementation
+
+The corner plot script provides two modes:
+
+1. **No smoothing**: Uses data-driven ranges showing realistic posterior width
+2. **With smoothing**: Uses extended prior ranges that may make posteriors appear artificially narrow
+
+**Extended ranges** (used when smoothing):
+- `log10_ha`: [-18.5, -13.5] (extended from config [-18.0, -14.0])
+- `log10_sigma_p`: [-20.5, -11.5] (extended from config [-20.0, -12.0]) 
+- `log10_gamma_p`: [-11.5, -5.5] (extended from config [-11.0, -6.0])
+
+### Interpretation Guidelines
+
+When viewing smoothed corner plots:
+1. **Remember the scale**: Wide plot ranges can make posteriors look artificially constrained
+2. **Compare modes**: Check both smoothed and unsmoothed versions
+3. **Focus on shape**: The posterior shape matters more than its apparent width relative to plot boundaries
+4. **Tail behavior**: Samples beyond config bounds are expected and statistically valid
+
+**Key insight**: The "true" posterior width is better represented by the unsmoothed plots, while smoothed plots are useful for visualizing posterior shape and correlations.
+
+---
+
+**Last updated**: 2025-07-03  
+**Context**: Runs 021-022 with enhanced sampling; corner plot smoothing improvements implemented

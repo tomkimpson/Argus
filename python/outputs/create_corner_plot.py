@@ -3,9 +3,10 @@
 Create corner plot from NUMPYRO results showing log10_ha and 
 sigma_p, gamma_p parameters for selected pulsars.
 
-Usage: python create_corner_plot.py <run_index> <num_pulsars> [--smooth]
+Usage: python create_corner_plot.py <run_index> <num_pulsars> [smooth_sigma]
 Example: python create_corner_plot.py 016 2
-Example: python create_corner_plot.py 016 2 --smooth
+Example: python create_corner_plot.py 016 2 1.0
+Example: python create_corner_plot.py 016 2 0.5
 """
 
 import sys
@@ -17,14 +18,15 @@ import os
 
 # Parse command line arguments
 if len(sys.argv) < 3 or len(sys.argv) > 4:
-    print("Usage: python create_corner_plot.py <run_index> <num_pulsars> [--smooth]")
+    print("Usage: python create_corner_plot.py <run_index> <num_pulsars> [smooth_sigma]")
     print("Example: python create_corner_plot.py 016 2")
-    print("Example: python create_corner_plot.py 016 2 --smooth")
+    print("Example: python create_corner_plot.py 016 2 1.0")
+    print("Example: python create_corner_plot.py 016 2 0.5")
     sys.exit(1)
 
 run_index = sys.argv[1]
 num_pulsars = int(sys.argv[2])
-use_smooth = len(sys.argv) == 4 and sys.argv[3] == "--smooth"
+smooth_sigma = float(sys.argv[3]) if len(sys.argv) == 4 else None
 
 # Load the results
 results_file = f"numpyro_test_{run_index}/numpyro_test_{run_index}_results.nc"
@@ -75,21 +77,23 @@ for i in range(num_pulsars):
     prior_ranges.append([-20.5, -11.5])  # log10_sigma_p - extended from [-18.0, -12.0]
     prior_ranges.append([-11.5, -5.5])   # log10_gamma_p - extended from [-11.0, -6.0]
 
-# Configure plot range and smoothing based on --smooth flag
-if use_smooth:
+# Configure plot range and smoothing based on smooth_sigma parameter
+if smooth_sigma is not None:
     # Use smoothing and prior ranges
     plot_range = prior_ranges
-    smooth_option = True
-    smooth1d_option = True
+    smooth_option = smooth_sigma
+    smooth1d_option = smooth_sigma
     range_desc = "prior bounds"
+    smooth_desc = f"sigma={smooth_sigma}"
 else:
     # No smoothing, use sample ranges
     plot_range = None  # Let corner.corner determine from data
-    smooth_option = False
-    smooth1d_option = False
+    smooth_option = None
+    smooth1d_option = None
     range_desc = "sample range"
+    smooth_desc = "no smoothing"
 
-print(f"Plot configuration: smooth={smooth_option}, range={range_desc}")
+print(f"Plot configuration: {smooth_desc}, range={range_desc}")
 
 # Create corner plot
 fig = corner.corner(
@@ -120,7 +124,7 @@ plots_dir = f"numpyro_test_{run_index}/plots"
 os.makedirs(plots_dir, exist_ok=True)
 
 # Save the plot with appropriate suffix
-smooth_suffix = "_smooth" if use_smooth else ""
+smooth_suffix = f"_smooth{smooth_sigma}" if smooth_sigma is not None else ""
 output_file = f"{plots_dir}/corner_plot_run_{run_index}_{num_pulsars}pulsars{smooth_suffix}.png"
 plt.savefig(output_file, dpi=300, bbox_inches='tight')
 print(f"Corner plot saved to: {output_file}")
