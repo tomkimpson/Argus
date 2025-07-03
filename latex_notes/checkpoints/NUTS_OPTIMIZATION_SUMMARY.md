@@ -118,8 +118,11 @@ log10_σp[i] = log10_γp[i] + log10_ratio[i]  # Deterministic
 | 014 | 69 | ❌ Failed | 2+ hours (incomplete) | Full hierarchical | Exponential degradation |
 | 015 | 35 | ✅ Success | 5h 51m | Gradient balancing | Validated improvements |
 | 016 | 68 | ✅ Success | ~6 hours | Log-ratio parameterization | Breakthrough for high-dim |
-| 017 | 68 | ✅ Success | TBD | Reproduction of 016 | Posterior railing observed |
-| 020 | 69 | 🔄 Running | TBD | Widened priors | Testing railing hypothesis |
+| 017 | 68 | ✅ Success | ~6 hours | Reproduction of 016 | Posterior railing observed |
+| 019 | 68 | ✅ Success | TBD | Baseline for comparison | Run 017 reproduction |
+| 020 | 68 | ✅ Success | TBD | Widened priors | Testing railing hypothesis |
+| 021 | 68 | 🔄 Planned | TBD | Increased sampling | 2000 samples, 2 chains |
+| 022 | 68 | 🔄 Planned | TBD | Enhanced sampling | 2000 samples, 4 chains |
 
 ## Key Findings
 
@@ -240,5 +243,58 @@ log10_σp[i] = log10_γp[i] + log10_ratio[i]  # Deterministic
 
 ---
 
-*Last updated: 2025-06-30*  
-*Status: Run 020 (widened priors) in progress, investigating posterior railing hypothesis*
+## Recent Developments (2025-07-03)
+
+### Runs 019-020: Posterior Analysis Completed
+- **Run 019**: Completed successfully, reproducing Run 017 results
+- **Run 020**: Completed with widened priors, posterior railing persists
+- **Finding**: Railing appears in both smoothed and unsmoothed corner plots
+- **Hypothesis**: May be genuine signal constraint rather than prior artifact
+
+### Runs 021-022: Enhanced Sampling Strategy
+Based on rough posterior appearance in initial runs, implemented enhanced sampling:
+
+#### Run 021: Increased Sample Count
+- **Configuration**: 2000 samples (4x increase from 500), 1000 warmup (2x increase)
+- **Chains**: 2 chains maintained from previous runs
+- **Goal**: Improve posterior resolution and reduce Monte Carlo noise
+- **Resources**: 2 GPUs, standard memory allocation
+
+#### Run 022: Multi-Chain Scaling
+- **Configuration**: 2000 samples, 1000 warmup, **4 chains** (doubled)
+- **Innovation**: First run with 4-chain parallel sampling
+- **Goal**: Improve chain mixing and convergence diagnostics
+- **Resources**: 4 GPUs, 16GB memory (doubled), 8 CPUs (doubled)
+- **SLURM**: New resource allocation for multi-GPU parallel chains
+
+### Diagnostic Improvements
+#### Corner Plot Enhancement
+- **Plot range expansion**: Extended beyond config priors to detect boundary effects
+  - `log10_ha`: [-16.0, -14.0] → [-18.5, -13.5]  
+  - `log10_sigma_p`: [-18.0, -12.0] → [-20.5, -11.5]
+  - `log10_gamma_p`: [-11.0, -6.0] → [-11.5, -5.5]
+- **Purpose**: Distinguish genuine railing from plotting artifacts
+- **Implementation**: Modified `/python/outputs/create_corner_plot.py:73-76`
+
+### Technical Implementation
+#### Configuration Files
+- **config_numpyro_test_021.ini**: Standard 2-chain high-sampling run
+- **config_numpyro_test_022.ini**: 4-chain high-sampling run with same parameters
+- **Key differences from 019/020**: 
+  - `num_samples`: 500 → 2000
+  - `num_warmup`: 500 → 1000  
+  - `num_chains`: 2 → 4 (Run 022 only)
+
+#### SLURM Scaling
+- **slurm_run_021.sh**: Standard 2-GPU allocation
+- **slurm_run_022.sh**: 4-GPU allocation with proportional memory/CPU scaling
+- **Resource strategy**: Linear scaling with chain count for optimal performance
+
+### Analysis Strategy
+The enhanced sampling approach addresses three potential issues:
+1. **Monte Carlo noise**: Higher sample count reduces stochastic fluctuations
+2. **Convergence artifacts**: More chains improve mixing diagnostics  
+3. **Plotting boundaries**: Extended ranges reveal true parameter support
+
+*Last updated: 2025-07-03*  
+*Status: Runs 021-022 configured and ready for submission. Enhanced sampling strategy implemented to resolve posterior railing investigation.*

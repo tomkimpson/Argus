@@ -69,11 +69,11 @@ print(f"Parameter ranges:")
 for i, label in enumerate(labels):
     print(f"  {label}: [{samples[:, i].min():.3f}, {samples[:, i].max():.3f}]")
 
-# Define prior ranges from config file
-prior_ranges = [[-16.0, -14.0]]  # log10_ha
+# Define prior ranges from config file - extended to check for railing
+prior_ranges = [[-18.5, -13.5]]  # log10_ha - extended from [-16.0, -14.0]
 for i in range(num_pulsars):
-    prior_ranges.append([-18.0, -12.0])  # log10_sigma_p
-    prior_ranges.append([-11.0, -6.0])   # log10_gamma_p
+    prior_ranges.append([-20.5, -11.5])  # log10_sigma_p - extended from [-18.0, -12.0]
+    prior_ranges.append([-11.5, -5.5])   # log10_gamma_p - extended from [-11.0, -6.0]
 
 # Configure plot range and smoothing based on --smooth flag
 if use_smooth:
