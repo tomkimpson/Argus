@@ -287,3 +287,158 @@ High-dimensional parameter space detected - using aggressive NUTS tuning
   0%|          | 0/3000 [00:00<?, ?it/s][A
 Compiling.. :   0%|          | 0/3000 [00:00<?, ?it/s][ARunning chain 0:   0%|          | 0/3000 [00:20<?, ?it/s]
 Running chain 1:   0%|          | 0/3000 [00:20<?, ?it/s][A
+Running chain 1:   5%|▌         | 150/3000 [2:46:46<52:42:15, 66.57s/it][ARunning chain 0:   5%|▌         | 150/3000 [2:57:06<55:58:34, 70.71s/it]
+Running chain 1:  10%|█         | 300/3000 [7:20:08<68:48:08, 91.74s/it][A
+Running chain 1:  15%|█▌        | 450/3000 [7:36:48<37:27:51, 52.89s/it][ARunning chain 0:  10%|█         | 300/3000 [7:40:11<71:47:30, 95.72s/it]
+Running chain 1:  20%|██        | 600/3000 [7:45:44<22:16:47, 33.42s/it][A
+Running chain 1:  25%|██▌       | 750/3000 [7:53:52<14:05:22, 22.54s/it][ARunning chain 0:  15%|█▌        | 450/3000 [7:59:25<39:19:51, 55.53s/it]
+Running chain 1:  30%|███       | 900/3000 [8:01:51<9:18:45, 15.96s/it] [ARunning chain 0:  20%|██        | 600/3000 [8:07:53<23:17:45, 34.94s/it]
+Running chain 1:  35%|███▌      | 1050/3000 [8:10:02<6:24:00, 11.82s/it][ARunning chain 0:  25%|██▌       | 750/3000 [8:15:34<14:39:25, 23.45s/it]
+Running chain 1:  40%|████      | 1200/3000 [8:16:25<4:25:59,  8.87s/it][A
+Running chain 1:  45%|████▌     | 1350/3000 [8:22:50<3:09:41,  6.90s/it][ARunning chain 0:  30%|███       | 900/3000 [8:23:00<9:37:02, 16.49s/it] 
+Running chain 1:  50%|█████     | 1500/3000 [8:29:13<2:18:53,  5.56s/it][ARunning chain 0:  35%|███▌      | 1050/3000 [8:30:14<6:31:27, 12.04s/it]
+Running chain 1:  55%|█████▌    | 1650/3000 [8:35:39<1:44:26,  4.64s/it][ARunning chain 0:  40%|████      | 1200/3000 [8:36:36<4:30:36,  9.02s/it]
+Running chain 1:  60%|██████    | 1800/3000 [8:42:01<1:20:07,  4.01s/it][ARunning chain 0:  45%|████▌     | 1350/3000 [8:42:58<3:12:24,  7.00s/it]
+Running chain 1:  65%|██████▌   | 1950/3000 [8:48:29<1:02:35,  3.58s/it][ARunning chain 0:  50%|█████     | 1500/3000 [8:49:19<2:20:32,  5.62s/it]
+Running chain 1:  70%|███████   | 2100/3000 [8:54:52<49:00,  3.27s/it]  [ARunning chain 0:  55%|█████▌    | 1650/3000 [8:55:41<1:45:16,  4.68s/it]
+Running chain 1:  75%|███████▌  | 2250/3000 [9:01:15<38:08,  3.05s/it][ARunning chain 0:  60%|██████    | 1800/3000 [9:02:02<1:20:34,  4.03s/it]
+Running chain 1:  80%|████████  | 2400/3000 [9:07:40<29:03,  2.91s/it][ARunning chain 0:  65%|██████▌   | 1950/3000 [9:08:23<1:02:37,  3.58s/it]
+Running chain 1:  85%|████████▌ | 2550/3000 [9:14:03<20:59,  2.80s/it][ARunning chain 0:  70%|███████   | 2100/3000 [9:14:45<48:58,  3.27s/it]  
+Running chain 1:  90%|█████████ | 2700/3000 [9:20:26<13:37,  2.73s/it][ARunning chain 0:  75%|███████▌  | 2250/3000 [9:21:06<38:05,  3.05s/it]
+Running chain 1:  95%|█████████▌| 2850/3000 [9:26:56<06:43,  2.69s/it][ARunning chain 0:  80%|████████  | 2400/3000 [9:27:29<28:59,  2.90s/it]
+Running chain 1: 100%|██████████| 3000/3000 [9:33:19<00:00,  2.65s/it][ARunning chain 1: 100%|██████████| 3000/3000 [9:33:19<00:00, 11.47s/it]
+Running chain 0:  85%|████████▌ | 2550/3000 [9:33:50<20:56,  2.79s/it]Running chain 0:  90%|█████████ | 2700/3000 [9:40:12<13:34,  2.72s/it]Running chain 0:  95%|█████████▌| 2850/3000 [9:46:33<06:39,  2.66s/it]Running chain 0: 100%|██████████| 3000/3000 [9:52:54<00:00,  2.63s/it]Running chain 0: 100%|██████████| 3000/3000 [9:52:54<00:00, 11.86s/it]
+
+                              mean       std    median      5.0%     95.0%     n_eff     r_hat
+  log10_gamma_p_mean_raw     -1.31      0.97     -1.29     -2.88      0.35   5495.74      1.00
+   log10_gamma_p_std_raw      0.04      1.00      0.02     -1.61      1.64   2925.58      1.00
+          log10_ha_prime     -0.92      0.62     -0.84     -1.85      0.04   2149.08      1.00
+    log10_ratio_mean_raw     -5.21      0.27     -5.22     -5.64     -4.78   6094.76      1.00
+      log10_ratio_raw[0]     -0.72      0.70     -0.64     -1.86      0.42   4067.38      1.00
+      log10_ratio_raw[1]      1.92      0.77      2.04      0.94      3.12   1946.37      1.00
+      log10_ratio_raw[2]     -0.22      0.90     -0.21     -1.67      1.27   5411.47      1.00
+      log10_ratio_raw[3]     -1.02      0.33     -1.01     -1.54     -0.48   3583.46      1.00
+      log10_ratio_raw[4]      1.27      0.37      1.25      0.64      1.88   4529.16      1.00
+      log10_ratio_raw[5]      0.75      0.36      0.74      0.16      1.33   4410.67      1.00
+      log10_ratio_raw[6]      0.37      0.53      0.38     -0.52      1.22   4739.61      1.00
+      log10_ratio_raw[7]     -0.42      0.84     -0.38     -1.82      0.89   4928.82      1.00
+      log10_ratio_raw[8]      0.99      0.34      0.98      0.42      1.52   3709.40      1.00
+      log10_ratio_raw[9]      0.68      0.64      0.75     -0.32      1.72   3424.44      1.00
+     log10_ratio_raw[10]     -1.34      0.52     -1.30     -2.10     -0.40   6227.99      1.00
+     log10_ratio_raw[11]      0.04      0.60      0.10     -0.98      0.92   3588.59      1.00
+     log10_ratio_raw[12]     -0.36      0.59     -0.31     -1.24      0.60   5178.04      1.00
+     log10_ratio_raw[13]     -0.71      0.74     -0.68     -1.92      0.47   4503.49      1.00
+     log10_ratio_raw[14]     -0.35      0.41     -0.34     -0.97      0.37   4010.40      1.00
+     log10_ratio_raw[15]     -0.32      0.36     -0.31     -0.91      0.27   5048.00      1.00
+     log10_ratio_raw[16]      0.89      0.39      0.89      0.25      1.52   4141.70      1.00
+     log10_ratio_raw[17]      2.00      0.35      1.99      1.45      2.58   2425.93      1.00
+     log10_ratio_raw[18]     -1.33      0.67     -1.28     -2.40     -0.23   5826.97      1.00
+     log10_ratio_raw[19]      0.35      0.40      0.36     -0.26      1.07   4736.85      1.00
+     log10_ratio_raw[20]     -0.82      0.50     -0.81     -1.67     -0.07   4592.32      1.00
+     log10_ratio_raw[21]      0.42      0.37      0.42     -0.17      1.04   4707.86      1.00
+     log10_ratio_raw[22]     -0.76      0.42     -0.72     -1.40     -0.11   1649.40      1.00
+     log10_ratio_raw[23]     -0.51      0.62     -0.47     -1.46      0.57   4365.03      1.00
+     log10_ratio_raw[24]      1.45      0.30      1.44      0.95      1.96   2607.22      1.00
+     log10_ratio_raw[25]     -0.74      0.79     -0.71     -2.04      0.51   5455.43      1.00
+     log10_ratio_raw[26]     -0.36      0.63     -0.30     -1.38      0.63   4714.90      1.00
+     log10_ratio_raw[27]     -0.96      0.75     -0.93     -2.17      0.27   6335.78      1.00
+     log10_ratio_raw[28]     -1.01      0.75     -0.98     -2.13      0.32   5569.08      1.00
+     log10_ratio_raw[29]     -0.98      0.56     -0.96     -1.81     -0.02   4358.07      1.00
+     log10_ratio_raw[30]     -0.23      0.89     -0.19     -1.60      1.32   5477.08      1.00
+     log10_ratio_raw[31]     -1.13      0.72     -1.10     -2.31      0.05   5017.81      1.00
+     log10_ratio_std_raw      1.30      0.66      1.28      0.19      2.35   2046.42      1.00
+         log10_γp_raw[0]     -0.08      0.98     -0.06     -1.65      1.53   5858.21      1.00
+         log10_γp_raw[1]      0.23      0.99      0.24     -1.42      1.85   5108.87      1.00
+         log10_γp_raw[2]     -0.02      0.99      0.01     -1.61      1.64   6432.38      1.00
+         log10_γp_raw[3]     -0.11      1.02     -0.13     -1.78      1.54   4738.76      1.00
+         log10_γp_raw[4]      0.15      0.97      0.14     -1.39      1.81   6823.27      1.00
+         log10_γp_raw[5]      0.10      0.97      0.09     -1.48      1.69   4944.40      1.00
+         log10_γp_raw[6]      0.05      0.99      0.05     -1.60      1.67   6350.76      1.00
+         log10_γp_raw[7]     -0.05      0.99     -0.04     -1.61      1.56   6562.45      1.00
+         log10_γp_raw[8]      0.11      0.98      0.13     -1.50      1.70   5098.59      1.00
+         log10_γp_raw[9]      0.08      1.02      0.09     -1.73      1.65   6245.08      1.00
+        log10_γp_raw[10]     -0.18      1.02     -0.16     -1.77      1.59   5933.85      1.00
+        log10_γp_raw[11]     -0.01      0.99     -0.02     -1.57      1.65   5961.87      1.00
+        log10_γp_raw[12]     -0.04      1.01     -0.04     -1.68      1.59   5994.95      1.00
+        log10_γp_raw[13]     -0.09      0.99     -0.07     -1.63      1.61   5636.87      1.00
+        log10_γp_raw[14]     -0.04      1.00     -0.04     -1.66      1.59   5598.16      1.00
+        log10_γp_raw[15]     -0.04      1.00     -0.05     -1.68      1.58   6562.17      1.00
+        log10_γp_raw[16]      0.09      1.01      0.08     -1.48      1.84   5629.26      1.00
+        log10_γp_raw[17]      0.24      0.99      0.24     -1.36      1.88   4901.11      1.00
+        log10_γp_raw[18]     -0.18      0.98     -0.17     -1.70      1.48   6273.09      1.00
+        log10_γp_raw[19]      0.04      0.97      0.05     -1.49      1.67   5595.81      1.00
+        log10_γp_raw[20]     -0.10      1.01     -0.09     -1.77      1.53   4591.22      1.00
+        log10_γp_raw[21]      0.05      0.97      0.06     -1.46      1.71   4923.89      1.00
+        log10_γp_raw[22]     -0.08      1.00     -0.07     -1.76      1.49   6715.20      1.00
+        log10_γp_raw[23]     -0.09      1.02     -0.11     -1.81      1.52   5354.16      1.00
+        log10_γp_raw[24]      0.17      0.98      0.18     -1.42      1.83   5072.58      1.00
+        log10_γp_raw[25]     -0.09      1.01     -0.08     -1.81      1.52   5850.83      1.00
+        log10_γp_raw[26]     -0.06      1.00     -0.05     -1.64      1.63   5069.86      1.00
+        log10_γp_raw[27]     -0.13      0.99     -0.12     -1.69      1.54   5377.47      1.00
+        log10_γp_raw[28]     -0.13      0.97     -0.12     -1.61      1.50   5300.95      1.00
+        log10_γp_raw[29]     -0.13      1.01     -0.15     -1.72      1.55   6019.89      1.00
+        log10_γp_raw[30]     -0.04      0.98     -0.04     -1.66      1.54   6377.91      1.00
+        log10_γp_raw[31]     -0.13      1.00     -0.13     -1.70      1.53   6169.40      1.00
+
+Number of divergences: 0
+2025-07-03 20:21:47,359 - INFO - Saving NumPyro results...
+2025-07-03 20:21:54,198 - INFO - NumPyro results saved to /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_021/numpyro_test_021_results.nc
+2025-07-03 20:21:54,198 - INFO - Creating corner plot and diagnostics for NUTS results...
+2025-07-03 20:22:00,093 - INFO - Corner plot saved to /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_021/plots/corner_plot_numpyro_test_021.png
+2025-07-03 20:22:00,093 - INFO - Running MCMC diagnostics...
+Successfully loaded InferenceData from: /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_021/numpyro_test_021_results.nc
+
+--- Calculating Full MCMC Summary ---
+/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/arviz/stats/diagnostics.py:596: RuntimeWarning: invalid value encountered in scalar divide
+  (between_chain_variance / within_chain_variance + num_samples - 1) / (num_samples)
+/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/arviz/stats/diagnostics.py:596: RuntimeWarning: invalid value encountered in scalar divide
+  (between_chain_variance / within_chain_variance + num_samples - 1) / (num_samples)
+
+--- Filtered MCMC Summary (Excluding Constant Deterministics) ---
+                          mean     sd  hdi_3%  ...  ess_bulk  ess_tail  r_hat
+log10_gamma_p_mean      -8.438  0.324  -9.047  ...  5292.751  3043.348  1.000
+log10_gamma_p_mean_raw  -1.314  0.972  -3.142  ...  5292.751  3043.348  1.000
+log10_gamma_p_std        0.556  0.150   0.283  ...  2985.158  3169.862  1.000
+log10_gamma_p_std_raw    0.040  0.998  -1.778  ...  2985.158  3169.862  1.000
+log10_ha               -16.611  0.411 -17.348  ...  2080.310  2101.407  1.001
+...                        ...    ...     ...  ...       ...       ...    ...
+log10_σp[27]           -18.316  0.360 -18.968  ...  6329.580  2975.340  1.000
+log10_σp[28]           -18.335  0.355 -18.991  ...  5533.300  2936.573  1.001
+log10_σp[29]           -18.324  0.281 -18.835  ...  5007.514  2768.826  1.000
+log10_σp[30]           -18.012  0.415 -18.828  ...  5585.440  3248.961  1.000
+log10_σp[31]           -18.382  0.343 -19.070  ...  4876.045  3314.558  1.000
+
+[170 rows x 9 columns]
+
+--- Interpretation Guidance (Filtered Parameters) ---
+Checking R-hat and ESS only for variables that showed variation:
+
+Maximum R-hat value (filtered): 1.002
+R-hat values look good (<= 1.01).
+Minimum Bulk ESS (filtered): 2028
+Minimum Tail ESS (filtered): 1172
+ESS values look sufficient (>= 400).
+
+--- Generating Trace Plots (Filtered Parameters) ---
+Could not generate trace plots: 'var names: "[\'log10_ratio[0]\' \'log10_ratio[1]\' \'log10_ratio[2]\' \'log10_ratio[3]\'\\n \'log10_ratio[4]\' \'log10_ratio[5]\' \'log10_ratio[6]\' \'log10_ratio[7]\'\\n \'log10_ratio[8]\' \'log10_ratio[9]\' \'log10_ratio[10]\' \'log10_ratio[11]\'\\n \'log10_ratio[12]\' \'log10_ratio[13]\' \'log10_ratio[14]\' \'log10_ratio[15]\'\\n \'log10_ratio[16]\' \'log10_ratio[17]\' \'log10_ratio[18]\' \'log10_ratio[19]\'\\n \'log10_ratio[20]\' \'log10_ratio[21]\' \'log10_ratio[22]\' \'log10_ratio[23]\'\\n \'log10_ratio[24]\' \'log10_ratio[25]\' \'log10_ratio[26]\' \'log10_ratio[27]\'\\n \'log10_ratio[28]\' \'log10_ratio[29]\' \'log10_ratio[30]\' \'log10_ratio[31]\'\\n \'log10_ratio_raw[0]\' \'log10_ratio_raw[1]\' \'log10_ratio_raw[2]\'\\n \'log10_ratio_raw[3]\' \'log10_ratio_raw[4]\' \'log10_ratio_raw[5]\'\\n \'log10_ratio_raw[6]\' \'log10_ratio_raw[7]\' \'log10_ratio_raw[8]\'\\n \'log10_ratio_raw[9]\' \'log10_ratio_raw[10]\' \'log10_ratio_raw[11]\'\\n \'log10_ratio_raw[12]\' \'log10_ratio_raw[13]\' \'log10_ratio_raw[14]\'\\n \'log10_ratio_raw[15]\' \'log10_ratio_raw[16]\' \'log10_ratio_raw[17]\'\\n \'log10_ratio_raw[18]\' \'log10_ratio_raw[19]\' \'log10_ratio_raw[20]\'\\n \'log10_ratio_raw[21]\' \'log10_ratio_raw[22]\' \'log10_ratio_raw[23]\'\\n \'log10_ratio_raw[24]\' \'log10_ratio_raw[25]\' \'log10_ratio_raw[26]\'\\n \'log10_ratio_raw[27]\' \'log10_ratio_raw[28]\' \'log10_ratio_raw[29]\'\\n \'log10_ratio_raw[30]\' \'log10_ratio_raw[31]\' \'log10_γp[0]\' \'log10_γp[1]\'\\n \'log10_γp[2]\' \'log10_γp[3]\' \'log10_γp[4]\' \'log10_γp[5]\' \'log10_γp[6]\'\\n \'log10_γp[7]\' \'log10_γp[8]\' \'log10_γp[9]\' \'log10_γp[10]\' \'log10_γp[11]\'\\n \'log10_γp[12]\' \'log10_γp[13]\' \'log10_γp[14]\' \'log10_γp[15]\'\\n \'log10_γp[16]\' \'log10_γp[17]\' \'log10_γp[18]\' \'log10_γp[19]\'\\n \'log10_γp[20]\' \'log10_γp[21]\' \'log10_γp[22]\' \'log10_γp[23]\'\\n \'log10_γp[24]\' \'log10_γp[25]\' \'log10_γp[26]\' \'log10_γp[27]\'\\n \'log10_γp[28]\' \'log10_γp[29]\' \'log10_γp[30]\' \'log10_γp[31]\'\\n \'log10_γp_raw[0]\' \'log10_γp_raw[1]\' \'log10_γp_raw[2]\' \'log10_γp_raw[3]\'\\n \'log10_γp_raw[4]\' \'log10_γp_raw[5]\' \'log10_γp_raw[6]\' \'log10_γp_raw[7]\'\\n \'log10_γp_raw[8]\' \'log10_γp_raw[9]\' \'log10_γp_raw[10]\' \'log10_γp_raw[11]\'\\n \'log10_γp_raw[12]\' \'log10_γp_raw[13]\' \'log10_γp_raw[14]\'\\n \'log10_γp_raw[15]\' \'log10_γp_raw[16]\' \'log10_γp_raw[17]\'\\n \'log10_γp_raw[18]\' \'log10_γp_raw[19]\' \'log10_γp_raw[20]\'\\n \'log10_γp_raw[21]\' \'log10_γp_raw[22]\' \'log10_γp_raw[23]\'\\n \'log10_γp_raw[24]\' \'log10_γp_raw[25]\' \'log10_γp_raw[26]\'\\n \'log10_γp_raw[27]\' \'log10_γp_raw[28]\' \'log10_γp_raw[29]\'\\n \'log10_γp_raw[30]\' \'log10_γp_raw[31]\' \'log10_σp[0]\' \'log10_σp[1]\'\\n \'log10_σp[2]\' \'log10_σp[3]\' \'log10_σp[4]\' \'log10_σp[5]\' \'log10_σp[6]\'\\n \'log10_σp[7]\' \'log10_σp[8]\' \'log10_σp[9]\' \'log10_σp[10]\' \'log10_σp[11]\'\\n \'log10_σp[12]\' \'log10_σp[13]\' \'log10_σp[14]\' \'log10_σp[15]\'\\n \'log10_σp[16]\' \'log10_σp[17]\' \'log10_σp[18]\' \'log10_σp[19]\'\\n \'log10_σp[20]\' \'log10_σp[21]\' \'log10_σp[22]\' \'log10_σp[23]\'\\n \'log10_σp[24]\' \'log10_σp[25]\' \'log10_σp[26]\' \'log10_σp[27]\'\\n \'log10_σp[28]\' \'log10_σp[29]\' \'log10_σp[30]\' \'log10_σp[31]\'] are not present" in dataset'
+
+--- Trace Plot Interpretation ---
+(Interpret as before, focusing on these non-constant variables)
+
+--- Checking for Divergent Transitions ---
+/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/utils.py:368: FutureWarning: The return type of `Dataset.dims` will be changed to return a set of dimension names in future, in order to be more consistent with `DataArray.dims`. To access a mapping from dimension names to lengths, please use `Dataset.sizes`.
+  total_samples = inf_data.posterior.dims["chain"] * inf_data.posterior.dims["draw"]
+Total number of divergent transitions: 0
+Total post-warmup samples: 4000
+No divergent transitions found. Good!
+
+--- Diagnostics Complete ---
+Diagnostics saved to: /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_021/numpyro_diagnostics/mcmc_diagnostics.txt
+2025-07-03 20:22:01,510 - INFO - MCMC diagnostics completed
+NUTS inference complete. Skipping no-GW run since NUTS doesn't provide model evidence.
+
+Inference complete! Results saved to: /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_021
+
+real	602m41.985s
+user	584m50.428s
+sys	580m39.029s
