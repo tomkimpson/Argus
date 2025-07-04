@@ -44,6 +44,9 @@ def load_config(config_path):
 def setup_logging(output_dir, config):
     """Set up logging configuration.
     
+    DEPRECATED: Use io_manager.setup_single_logger() instead for centralized logging.
+    This function is kept for backward compatibility.
+    
     Parameters
     ----------
     output_dir : str

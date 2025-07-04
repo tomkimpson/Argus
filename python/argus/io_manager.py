@@ -117,8 +117,102 @@ def save_jaxns_results(ns, termination_reason, state, output_dir, output_id, log
     return results_path
 
 
+def setup_single_logger(config, output_dir=None, enable_file_logging=True):
+    """Set up a single, properly configured logger for the entire application.
+    
+    This function creates a centralized logger that eliminates duplicate messages
+    and provides consistent logging throughout the application. It supports both
+    console and file logging.
+    
+    Args:
+        config: Configuration object
+        output_dir (str, optional): Directory for log files. Required if enable_file_logging=True
+        enable_file_logging (bool): Whether to enable file logging. Default True.
+        
+    Returns
+    -------
+        logging.Logger: Configured logger instance for the entire application
+        
+    Raises
+    ------
+        ValueError: If enable_file_logging=True but output_dir is None
+    """
+    # Clear any existing handlers from the root logger and all argus loggers
+    root_logger = logging.getLogger()
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+    
+    # Clear handlers from argus package loggers
+    argus_logger = logging.getLogger('argus')
+    for handler in argus_logger.handlers[:]:
+        argus_logger.removeHandler(handler)
+    
+    # Create the main application logger
+    logger = logging.getLogger('argus')
+    logger.setLevel(getattr(logging, config.get('Logging', 'level', fallback='INFO')))
+    
+    # Prevent propagation to avoid duplicate messages
+    logger.propagate = False
+    
+    # Create formatter
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    
+    # Add console handler
+    console_handler = logging.StreamHandler()
+    console_handler.setFormatter(formatter)
+    logger.addHandler(console_handler)
+    
+    # Add file handler if requested
+    if enable_file_logging:
+        if output_dir is None:
+            raise ValueError("output_dir must be provided when enable_file_logging=True")
+        
+        # Create timestamp for log file
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_file = os.path.join(output_dir, 'logfiles', f'nested_sampling_test_output_{timestamp}.txt')
+        
+        # Ensure log directory exists
+        os.makedirs(os.path.dirname(log_file), exist_ok=True)
+        
+        # Create file handler
+        file_handler = logging.FileHandler(log_file)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+        
+        logger.info(f"Logging to file: {log_file}")
+    
+    logger.info("Centralized logging initialized")
+    return logger
+
+
+def get_argus_logger():
+    """Get the centralized argus logger.
+    
+    This function provides consistent access to the main application logger
+    throughout the codebase. The logger should be initialized first using
+    setup_single_logger().
+    
+    Returns
+    -------
+        logging.Logger: The centralized argus logger
+        
+    Raises
+    ------
+        RuntimeError: If the logger hasn't been initialized with setup_single_logger()
+    """
+    logger = logging.getLogger('argus')
+    if not logger.handlers:
+        raise RuntimeError(
+            "Argus logger not initialized. Call setup_single_logger() first."
+        )
+    return logger
+
+
 def setup_console_logging(config):
     """Set up console-only logging.
+    
+    DEPRECATED: Use setup_single_logger() instead for centralized logging.
+    This function is kept for backward compatibility.
     
     Args:
         config: Configuration object

@@ -1,0 +1,122 @@
+2025-06-11 08:44:32,684 - INFO - Logging to file: /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_012/logfiles/nested_sampling_test_output_20250611_084432.txt
+2025-06-11 08:44:32,685 - INFO - Centralized logging initialized
+2025-06-11 08:44:32,689 - INFO - Copied config file to /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_012/config_numpyro_test_012.ini
+2025-06-11 08:44:32,689 - INFO - Loading and processing data...
+2025-06-11 08:44:40,336 - INFO - Initializing Kalman filter...
+2025-06-11 08:44:40,337 - INFO - Initializing JaxKalmanFilter...
+2025-06-11 08:44:40,744 - INFO - Number of pulsars: 32
+2025-06-11 08:44:40,745 - INFO - Pulsar frequencies: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
+  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
+  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
+  67.37658113 317.37893707 216.37333714 218.81184042 123.11028715
+ 245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
+ 192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
+ 335.8162082  290.25460366]
+2025-06-11 08:44:40,745 - INFO - Total number of observations: 183
+2025-06-11 08:44:40,745 - INFO - Starting dt (days): 29.875630165338517
+2025-06-11 08:44:40,745 - INFO - Ending dt (days): 30.060462559770656
+2025-06-11 08:44:40,746 - INFO - The errors at t=1 are: [2.697680e-06 9.700560e-06 1.613116e-05 3.307200e-07 4.558820e-06
+ 2.141629e-05 5.225050e-06 4.722880e-06 4.797490e-06 5.783810e-06
+ 2.626620e-06 5.090810e-06 6.527710e-06 1.173289e-05 8.300700e-07
+ 3.826940e-06 2.880370e-06 2.054900e-06 1.612610e-06 3.759770e-06
+ 1.103370e-06 2.220800e-06 4.024300e-07 5.434910e-06 1.372800e-07
+ 7.031630e-06 4.653570e-06 5.474680e-06 3.388130e-06 4.303360e-06
+ 1.993229e-05 2.291670e-06]
+2025-06-11 08:44:40,882 - INFO - === Likelihood Performance Test ===
+2025-06-11 08:44:40,883 - INFO - Testing likelihood evaluation with known parameter values...
+2025-06-11 08:44:40,910 - INFO - Test parameters: γa=1e-09, ha=1e-15
+2025-06-11 08:44:40,910 - INFO - Number of pulsars: 32
+2025-06-11 08:44:40,910 - INFO - Performing for the first time a likelihood evaluation...
+2025-06-11 08:44:45,127 - INFO - Performing timed for the second time a likelihood evaluation...
+2025-06-11 08:44:45,206 - INFO - Likelihood evaluation completed in 4.2166 seconds the first time
+2025-06-11 08:44:45,207 - INFO - Likelihood evaluation completed in 0.0785 seconds the second time
+2025-06-11 08:44:45,248 - INFO - Log likelihood value: 55963.87289660473
+2025-06-11 08:44:45,249 - INFO - === End Likelihood Performance Test ===
+2025-06-11 08:44:45,465 - INFO - 
+============================================================
+2025-06-11 08:44:45,466 - INFO - PRIOR SPECIFICATIONS SUMMARY
+2025-06-11 08:44:45,466 - INFO - ============================================================
+2025-06-11 08:44:45,466 - INFO - 
+--- Gravitational Wave Background Parameters ---
+2025-06-11 08:44:45,466 - INFO - log10(h_a): REPARAMETERIZED for better NUTS sampling
+2025-06-11 08:44:45,466 - INFO -   - Sampling: log10_ha_prime ~ N(0, 1)
+2025-06-11 08:44:45,466 - INFO -   - Transform: log10_ha = -15.00 + log10_ha_prime * 0.577
+2025-06-11 08:44:45,466 - INFO -   - Equivalent to: Uniform(-16.0, -14.0)
+2025-06-11 08:44:45,470 - INFO - γ_a: FIXED at 1.00e-09
+2025-06-11 08:44:45,470 - INFO - 
+--- Pulsar Red Noise Parameters (32 pulsars) ---
+2025-06-11 08:44:45,555 - INFO - log10(γ_p): Uniform(-11.0, -6.0) for each pulsar
+2025-06-11 08:44:45,567 - INFO - log10(σ_p): Uniform(-18.0, -12.0) for each pulsar
+2025-06-11 08:44:45,568 - INFO - 
+--- Measurement Noise Parameters (32 pulsars) ---
+2025-06-11 08:44:45,713 - INFO - EFAC: FIXED at individual values (range: 0.903 to 2.206)
+2025-06-11 08:44:45,714 - INFO - EQUAD: FIXED at individual values (range: 2.78e-08 to 5.69e-07)
+2025-06-11 08:44:45,714 - INFO - ============================================================
+2025-06-11 08:44:45,714 - INFO - Performing likelihood performance test for runtime estimation...
+2025-06-11 08:44:45,714 - INFO - === Likelihood Performance Test ===
+2025-06-11 08:44:45,714 - INFO - Testing likelihood evaluation with known parameter values...
+2025-06-11 08:44:45,722 - INFO - Test parameters: γa=1e-09, ha=1e-15
+2025-06-11 08:44:45,722 - INFO - Number of pulsars: 32
+2025-06-11 08:44:45,722 - INFO - Performing for the first time a likelihood evaluation...
+2025-06-11 08:44:45,793 - INFO - Performing timed for the second time a likelihood evaluation...
+2025-06-11 08:44:45,865 - INFO - Likelihood evaluation completed in 0.0710 seconds the first time
+2025-06-11 08:44:45,866 - INFO - Likelihood evaluation completed in 0.0711 seconds the second time
+2025-06-11 08:44:45,866 - INFO - Log likelihood value: 55963.87289660473
+2025-06-11 08:44:45,866 - INFO - === End Likelihood Performance Test ===
+2025-06-11 08:44:45,938 - INFO - 
+============================================================
+2025-06-11 08:44:45,938 - INFO - NUTS RUNTIME ESTIMATION (WITH OPTIMIZATIONS)
+2025-06-11 08:44:45,938 - INFO - ============================================================
+2025-06-11 08:44:45,938 - INFO - NUTS Configuration:
+2025-06-11 08:44:45,938 - INFO -   - Number of samples: 500
+2025-06-11 08:44:45,939 - INFO -   - Warmup samples: 500
+2025-06-11 08:44:45,939 - INFO -   - Number of chains: 2
+2025-06-11 08:44:45,939 - INFO -   - Target accept prob: 0.95
+2025-06-11 08:44:45,939 - INFO -   - Max tree depth: 8
+2025-06-11 08:44:45,939 - INFO -   - Free parameters: 65
+2025-06-11 08:44:45,939 - INFO - 
+2025-06-11 08:44:45,939 - INFO - Timing Information:
+2025-06-11 08:44:45,939 - INFO -   - Single likelihood evaluation: 0.0709 seconds
+2025-06-11 08:44:45,939 - INFO -   - Estimated likelihood evaluations: 32,000
+2025-06-11 08:44:45,939 - INFO -   - Leapfrog multiplier (optimized): 16x
+2025-06-11 08:44:45,939 - INFO -   - High-dimensional optimizations applied
+2025-06-11 08:44:45,939 - INFO - 
+2025-06-11 08:44:45,939 - INFO - Estimated Runtime: 00:37:49 (HH:MM:SS)
+2025-06-11 08:44:45,939 - INFO -                    (37.8 minutes)
+2025-06-11 08:44:45,939 - INFO - 
+2025-06-11 08:44:45,939 - INFO - Note: This estimate includes NUTS optimizations for high-dimensional sampling.
+2025-06-11 08:44:45,939 - INFO -       Actual runtime may be better due to adaptive step size and mass matrix.
+2025-06-11 08:44:45,940 - INFO - ============================================================
+2025-06-11 08:44:45,940 - INFO - 
+============================================================
+2025-06-11 08:44:45,940 - INFO - LIKELIHOOD GRADIENT ANALYSIS
+2025-06-11 08:44:45,940 - INFO - ============================================================
+2025-06-11 08:44:46,064 - INFO - Computing gradients at test parameter values...
+2025-06-11 08:44:46,064 - INFO - Test values:
+2025-06-11 08:44:46,065 - INFO -   - log10(h_a): -15.00
+2025-06-11 08:44:46,065 - INFO -   - γ_a: 1.00e-09
+2025-06-11 08:44:46,065 - INFO -   - log10(γ_p): [-10.93, -6.00] (min, max)
+2025-06-11 08:44:46,066 - INFO -   - log10(σ_p): [-17.90, -12.60] (min, max)
+2025-06-11 08:44:46,066 - INFO - 
+2025-06-11 08:45:00,235 - INFO - Gradient Results (Non-Fixed Parameters Only):
+2025-06-11 08:45:00,236 - INFO - --- Scalar Parameters ---
+2025-06-11 08:45:00,286 - INFO - ∂ℒ/∂log10_ha_prime: -2.19e+02 (reparameterized)
+2025-06-11 08:45:00,287 - INFO - ∂ℒ/∂log10(h_a): -3.80e+02 (transformed)
+2025-06-11 08:45:00,287 - INFO - 
+2025-06-11 08:45:00,287 - INFO - --- Vector Parameters ---
+2025-06-11 08:45:00,287 - INFO - ∂ℒ/∂log10(γ_p):
+2025-06-11 08:45:00,372 - INFO -   - L2 norm: 1.13e+03
+2025-06-11 08:45:00,373 - INFO -   - Range: [-1.04e+00, 4.63e+02]
+2025-06-11 08:45:00,455 - INFO -   - Mean: 1.14e+02
+2025-06-11 08:45:00,455 - INFO - ∂ℒ/∂log10(σ_p):
+2025-06-11 08:45:00,456 - INFO -   - L2 norm: 1.34e+03
+2025-06-11 08:45:00,456 - INFO -   - Range: [-4.19e+02, 1.80e+00]
+2025-06-11 08:45:00,457 - INFO -   - Mean: -1.42e+02
+2025-06-11 08:45:00,811 - INFO - 
+Total gradient L2 norm (sampled parameters only): 1.76e+03
+2025-06-11 08:45:00,812 - INFO - 
+Interpretation:
+2025-06-11 08:45:00,812 - INFO -   - Large gradients: Likelihood is changing rapidly
+2025-06-11 08:45:00,812 - INFO -     Consider parameter scaling or different test values
+2025-06-11 08:45:00,812 - INFO - ============================================================
+2025-06-11 08:45:00,812 - INFO - Running NUMPYRO inference...

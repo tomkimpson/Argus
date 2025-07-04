@@ -13,8 +13,10 @@ from jax.scipy.linalg import block_diag
 from typing import Tuple
 
 
-# Get a logger for this module
-logger = logging.getLogger(__name__)
+# Get the centralized logger (will be initialized by workflow)
+def get_logger():
+    from argus.io_manager import get_argus_logger
+    return get_argus_logger()
 
 
 @partial(jax.jit, static_argnums=(2,3))
@@ -338,7 +340,7 @@ class JaxKalmanFilter:
 
     def __init__(self, data: dict, use_gw: bool = True):
         """Initialize the class."""
-        logger.info("Initializing JaxKalmanFilter...")
+        get_logger().info("Initializing JaxKalmanFilter...")
 
 
         observations = data['processed_residuals']
@@ -364,11 +366,11 @@ class JaxKalmanFilter:
 
         # Initialize model parameters from df_psr
         self.Npsr = int(len(df_psr))
-        logger.info(f"Number of pulsars: {self.Npsr}")
+        get_logger().info(f"Number of pulsars: {self.Npsr}")
         self.use_gw = use_gw
         
         if not self.use_gw:
-            logger.info("Initializing null GW model - GW states present but not used in measurements")
+            get_logger().info("Initializing null GW model - GW states present but not used in measurements")
         
         # Calculate state dimensions
         self.M = df_psr["dim_M"].values.astype(int)  # array of integers
@@ -386,12 +388,12 @@ class JaxKalmanFilter:
 
         # Store pulsar frequencies
         self.f0 = df_psr["F0"].values
-        logger.info(f"Pulsar frequencies: {self.f0}")
+        get_logger().info(f"Pulsar frequencies: {self.f0}")
 
-        logger.info(f"Total number of observations: {len(self.data)}")
-        logger.info(f"Starting dt (days): {self.t_diffs[0]/86400}")
-        logger.info(f"Ending dt (days): {self.t_diffs[-1]/86400}")
-        logger.info(f"The errors at t=1 are: {self.data_errors[0,:]}")
+        get_logger().info(f"Total number of observations: {len(self.data)}")
+        get_logger().info(f"Starting dt (days): {self.t_diffs[0]/86400}")
+        get_logger().info(f"Ending dt (days): {self.t_diffs[-1]/86400}")
+        get_logger().info(f"The errors at t=1 are: {self.data_errors[0,:]}")
 
         # Precompute the observation matrices
         self.Hmat = precompute_H_matrix(self.Npsr, self.nx, self.M_start_indices, 

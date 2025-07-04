@@ -22,7 +22,8 @@ def calculate_and_save_bayes_factor(gw_output_dir, no_gw_output_dir, logger=None
         dict: Dictionary containing log evidences and Bayes factor, or None if calculation failed
     """
     if logger is None:
-        logger = logging.getLogger(__name__)
+        from argus.io_manager import get_argus_logger
+        logger = get_argus_logger()
         
     try:
         logger.info("=== Calculating Bayes Factor ===")
@@ -122,7 +123,8 @@ def interpret_bayes_factor(bayes_factor_results, logger=None):
         str: Interpretation string
     """
     if logger is None:
-        logger = logging.getLogger(__name__)
+        from argus.io_manager import get_argus_logger
+        logger = get_argus_logger()
         
     if bayes_factor_results is None:
         return "No Bayes factor results available"
@@ -161,7 +163,8 @@ def compare_inference_methods(results_paths, method_names, logger=None):
         dict: Comparison summary
     """
     if logger is None:
-        logger = logging.getLogger(__name__)
+        from argus.io_manager import get_argus_logger
+        logger = get_argus_logger()
         
     logger.info("=== Comparing Inference Methods ===")
     

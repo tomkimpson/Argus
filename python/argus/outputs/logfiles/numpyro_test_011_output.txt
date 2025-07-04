@@ -1,0 +1,25 @@
+Removed conflicting path: /fred/oz022/tkimpson/clean/Argus/python
+INFO:2025-06-11 08:11:38,140:jax._src.xla_bridge:925: Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
+INFO:jax._src.xla_bridge:Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
+INFO:2025-06-11 08:11:38,227:jax._src.xla_bridge:925: Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+INFO:jax._src.xla_bridge:Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+slurmstepd: error: *** JOB 1061397 ON gina1 CANCELLED AT 2025-06-11T08:11:48 ***
+
++------------------ Job Report: 1061397 (CANCELLED) -------------------+
+| Memory (RAM)  [#####               ] 25.4% (2 GB peak / 8 GB)        |
+| CPU           [                    ]  1.3% average                   |
+| Time          [>                   ]  3.2% (0-00:03:52 / 0-02:01:00) |
+|                                                                      |
+| Lustre Filesystem:                                                   |
+|   Path    Total Read    Total Write    Total IOPS                    |
+|   ------  ------------  -------------  ------------                  |
+|   /apps   716 KB        0 B            5                             |
+|   /fred   203.4 MB      66 B           7.7 K                         |
+|   /home   27.4 MB       0 B            8                             |
+|   OS      14.9 MB       0 B            14                            |
+|                                                                      |
+| Warnings:                                                            |
+|   - Too much memory requested                                        |
+|   - CPU usage is low                                                 |
+|   - Too much time requested                                          |
++----------------------------------------------------------------------+

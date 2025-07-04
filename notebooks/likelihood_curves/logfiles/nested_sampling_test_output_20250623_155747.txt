@@ -1,0 +1,2 @@
+2025-06-23 15:57:47,059 - INFO - Logging to file: likelihood_curves/logfiles/nested_sampling_test_output_20250623_155747.txt
+2025-06-23 15:57:47,059 - INFO - Centralized logging initialized

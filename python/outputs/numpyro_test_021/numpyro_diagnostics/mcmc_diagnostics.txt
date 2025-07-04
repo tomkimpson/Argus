@@ -1,0 +1,41 @@
+Successfully loaded InferenceData from: /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_021/numpyro_test_021_results.nc
+
+--- Calculating Full MCMC Summary ---
+
+--- Filtered MCMC Summary (Excluding Constant Deterministics) ---
+                          mean     sd  hdi_3%  ...  ess_bulk  ess_tail  r_hat
+log10_gamma_p_mean      -8.438  0.324  -9.047  ...  5292.751  3043.348  1.000
+log10_gamma_p_mean_raw  -1.314  0.972  -3.142  ...  5292.751  3043.348  1.000
+log10_gamma_p_std        0.556  0.150   0.283  ...  2985.158  3169.862  1.000
+log10_gamma_p_std_raw    0.040  0.998  -1.778  ...  2985.158  3169.862  1.000
+log10_ha               -16.611  0.411 -17.348  ...  2080.310  2101.407  1.001
+...                        ...    ...     ...  ...       ...       ...    ...
+log10_σp[27]           -18.316  0.360 -18.968  ...  6329.580  2975.340  1.000
+log10_σp[28]           -18.335  0.355 -18.991  ...  5533.300  2936.573  1.001
+log10_σp[29]           -18.324  0.281 -18.835  ...  5007.514  2768.826  1.000
+log10_σp[30]           -18.012  0.415 -18.828  ...  5585.440  3248.961  1.000
+log10_σp[31]           -18.382  0.343 -19.070  ...  4876.045  3314.558  1.000
+
+[170 rows x 9 columns]
+
+--- Interpretation Guidance (Filtered Parameters) ---
+Checking R-hat and ESS only for variables that showed variation:
+
+Maximum R-hat value (filtered): 1.002
+R-hat values look good (<= 1.01).
+Minimum Bulk ESS (filtered): 2028
+Minimum Tail ESS (filtered): 1172
+ESS values look sufficient (>= 400).
+
+--- Generating Trace Plots (Filtered Parameters) ---
+Could not generate trace plots: 'var names: "[\'log10_ratio[0]\' \'log10_ratio[1]\' \'log10_ratio[2]\' \'log10_ratio[3]\'\\n \'log10_ratio[4]\' \'log10_ratio[5]\' \'log10_ratio[6]\' \'log10_ratio[7]\'\\n \'log10_ratio[8]\' \'log10_ratio[9]\' \'log10_ratio[10]\' \'log10_ratio[11]\'\\n \'log10_ratio[12]\' \'log10_ratio[13]\' \'log10_ratio[14]\' \'log10_ratio[15]\'\\n \'log10_ratio[16]\' \'log10_ratio[17]\' \'log10_ratio[18]\' \'log10_ratio[19]\'\\n \'log10_ratio[20]\' \'log10_ratio[21]\' \'log10_ratio[22]\' \'log10_ratio[23]\'\\n \'log10_ratio[24]\' \'log10_ratio[25]\' \'log10_ratio[26]\' \'log10_ratio[27]\'\\n \'log10_ratio[28]\' \'log10_ratio[29]\' \'log10_ratio[30]\' \'log10_ratio[31]\'\\n \'log10_ratio_raw[0]\' \'log10_ratio_raw[1]\' \'log10_ratio_raw[2]\'\\n \'log10_ratio_raw[3]\' \'log10_ratio_raw[4]\' \'log10_ratio_raw[5]\'\\n \'log10_ratio_raw[6]\' \'log10_ratio_raw[7]\' \'log10_ratio_raw[8]\'\\n \'log10_ratio_raw[9]\' \'log10_ratio_raw[10]\' \'log10_ratio_raw[11]\'\\n \'log10_ratio_raw[12]\' \'log10_ratio_raw[13]\' \'log10_ratio_raw[14]\'\\n \'log10_ratio_raw[15]\' \'log10_ratio_raw[16]\' \'log10_ratio_raw[17]\'\\n \'log10_ratio_raw[18]\' \'log10_ratio_raw[19]\' \'log10_ratio_raw[20]\'\\n \'log10_ratio_raw[21]\' \'log10_ratio_raw[22]\' \'log10_ratio_raw[23]\'\\n \'log10_ratio_raw[24]\' \'log10_ratio_raw[25]\' \'log10_ratio_raw[26]\'\\n \'log10_ratio_raw[27]\' \'log10_ratio_raw[28]\' \'log10_ratio_raw[29]\'\\n \'log10_ratio_raw[30]\' \'log10_ratio_raw[31]\' \'log10_γp[0]\' \'log10_γp[1]\'\\n \'log10_γp[2]\' \'log10_γp[3]\' \'log10_γp[4]\' \'log10_γp[5]\' \'log10_γp[6]\'\\n \'log10_γp[7]\' \'log10_γp[8]\' \'log10_γp[9]\' \'log10_γp[10]\' \'log10_γp[11]\'\\n \'log10_γp[12]\' \'log10_γp[13]\' \'log10_γp[14]\' \'log10_γp[15]\'\\n \'log10_γp[16]\' \'log10_γp[17]\' \'log10_γp[18]\' \'log10_γp[19]\'\\n \'log10_γp[20]\' \'log10_γp[21]\' \'log10_γp[22]\' \'log10_γp[23]\'\\n \'log10_γp[24]\' \'log10_γp[25]\' \'log10_γp[26]\' \'log10_γp[27]\'\\n \'log10_γp[28]\' \'log10_γp[29]\' \'log10_γp[30]\' \'log10_γp[31]\'\\n \'log10_γp_raw[0]\' \'log10_γp_raw[1]\' \'log10_γp_raw[2]\' \'log10_γp_raw[3]\'\\n \'log10_γp_raw[4]\' \'log10_γp_raw[5]\' \'log10_γp_raw[6]\' \'log10_γp_raw[7]\'\\n \'log10_γp_raw[8]\' \'log10_γp_raw[9]\' \'log10_γp_raw[10]\' \'log10_γp_raw[11]\'\\n \'log10_γp_raw[12]\' \'log10_γp_raw[13]\' \'log10_γp_raw[14]\'\\n \'log10_γp_raw[15]\' \'log10_γp_raw[16]\' \'log10_γp_raw[17]\'\\n \'log10_γp_raw[18]\' \'log10_γp_raw[19]\' \'log10_γp_raw[20]\'\\n \'log10_γp_raw[21]\' \'log10_γp_raw[22]\' \'log10_γp_raw[23]\'\\n \'log10_γp_raw[24]\' \'log10_γp_raw[25]\' \'log10_γp_raw[26]\'\\n \'log10_γp_raw[27]\' \'log10_γp_raw[28]\' \'log10_γp_raw[29]\'\\n \'log10_γp_raw[30]\' \'log10_γp_raw[31]\' \'log10_σp[0]\' \'log10_σp[1]\'\\n \'log10_σp[2]\' \'log10_σp[3]\' \'log10_σp[4]\' \'log10_σp[5]\' \'log10_σp[6]\'\\n \'log10_σp[7]\' \'log10_σp[8]\' \'log10_σp[9]\' \'log10_σp[10]\' \'log10_σp[11]\'\\n \'log10_σp[12]\' \'log10_σp[13]\' \'log10_σp[14]\' \'log10_σp[15]\'\\n \'log10_σp[16]\' \'log10_σp[17]\' \'log10_σp[18]\' \'log10_σp[19]\'\\n \'log10_σp[20]\' \'log10_σp[21]\' \'log10_σp[22]\' \'log10_σp[23]\'\\n \'log10_σp[24]\' \'log10_σp[25]\' \'log10_σp[26]\' \'log10_σp[27]\'\\n \'log10_σp[28]\' \'log10_σp[29]\' \'log10_σp[30]\' \'log10_σp[31]\'] are not present" in dataset'
+
+--- Trace Plot Interpretation ---
+(Interpret as before, focusing on these non-constant variables)
+
+--- Checking for Divergent Transitions ---
+Total number of divergent transitions: 0
+Total post-warmup samples: 4000
+No divergent transitions found. Good!
+
+--- Diagnostics Complete ---
