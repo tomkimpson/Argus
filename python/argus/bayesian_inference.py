@@ -41,7 +41,8 @@ class Parameters:
     """Define a struct to store the parameters of the Kalman filter model."""
     
     #GW parameters
-    γa: float  # s⁻¹
+    log10_gamma_a: float  # log10(γa) - log10 of GW spectral index
+    γa: float  # s⁻¹ - GW spectral index (derived from log10_gamma_a)
     ha: float  # GWB amplitude
 
     #Pulsar parameters for the OU process
@@ -61,7 +62,7 @@ def configurable_prior_model(
     # If None, a default distribution will be used for some, or an error raised for others.
     log10_ha_spec = tfpd.Uniform(-17.0, -14.0),
     log10_ha_transform_params = None, # Transformation parameters for reparameterization
-    gamma_a_spec = 1e-9, # Typically fixed
+    log10_gamma_a_spec = tfpd.Uniform(-10.0, -8.0), # log10(γa) prior
     log10_gamma_p_spec = None,
     log10_sigma_p_spec = None,
     efac_spec = None,
@@ -87,7 +88,8 @@ def configurable_prior_model(
         # Standard sampling (fixed value or direct distribution)
         log10_ha = yield Prior(log10_ha_spec, name='log10_ha')
     
-    γa = yield Prior(gamma_a_spec, name='γa') 
+    log10_gamma_a = yield Prior(log10_gamma_a_spec, name='log10_gamma_a')
+    γa = 10.0 ** log10_gamma_a  # Transform from log10 space to linear space 
 
     # PSR vector parameters: γp and σp with optional hierarchical modeling
     if hierarchical_specs and hierarchical_specs.get('hierarchical_noise', False):
@@ -125,13 +127,15 @@ def configurable_prior_model(
 
 
 # JAXNS model
-def jaxns_log_likelihood(KF, log10_ha, γa, log10_γp, log10_σp, efac, equad):
+def jaxns_log_likelihood(KF, log10_ha, log10_gamma_a, log10_γp, log10_σp, efac, equad):
     """Calculate log likelihood for JAXNS nested sampling."""
     ha = 10.0 ** log10_ha
+    γa = 10.0 ** log10_gamma_a
     γp = 10.0 ** log10_γp
     σp = 10.0 ** log10_σp
 
     params = Parameters(
+        log10_gamma_a=log10_gamma_a,
         γa=γa,
         ha=ha,
         γp=γp,
@@ -166,7 +170,7 @@ def get_prior_model_specs(config, Npsr, sigma_p_array, gamma_p_array, efac_array
     -------
         dict: Dictionary containing all prior specifications with the following keys:
             - log10_ha_spec: Prior for log10 of GW amplitude (fixed value or Uniform)
-            - gamma_a_spec: Prior for GW spectral index (fixed value or Uniform)
+            - log10_gamma_a_spec: Prior for log10(GW spectral index) (fixed value or Uniform)
             - log10_gamma_p_spec: Prior for log10 of pulsar red noise gamma (Uniform)
             - log10_sigma_p_spec: Prior for log10 of pulsar red noise sigma (Uniform)
             - efac_spec: Prior for EFAC (fixed array or Uniform)
@@ -215,7 +219,7 @@ def get_prior_model_specs(config, Npsr, sigma_p_array, gamma_p_array, efac_array
         log10_ha_spec = tfpd.Normal(0.0, 1.0)  # log10_ha_prime ~ N(0,1)
         log10_ha_transform_params = {'mean': mean, 'std': std, 'min': min_val, 'max': max_val}
     
-    gamma_a_spec = get_prior_spec('gamma_a')
+    log10_gamma_a_spec = get_prior_spec('log10_gamma_a')
 
 
     #Pulsar red noise parameters
@@ -369,7 +373,7 @@ def get_prior_model_specs(config, Npsr, sigma_p_array, gamma_p_array, efac_array
     return {
         'log10_ha_spec': log10_ha_spec,
         'log10_ha_transform_params': log10_ha_transform_params,
-        'gamma_a_spec': gamma_a_spec,
+        'log10_gamma_a_spec': log10_gamma_a_spec,
         'log10_gamma_p_spec': log10_gamma_p_spec,
         'log10_sigma_p_spec': log10_sigma_p_spec,
         'efac_spec': efac_spec,
@@ -490,11 +494,13 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
         # Fixed value
         log10_ha = numpyro.deterministic("log10_ha", prior_specs['log10_ha_spec'])
     
-    if isinstance(prior_specs['gamma_a_spec'], tfpd.Distribution):
-        γa = numpyro.sample("γa", 
-            dist.Uniform(prior_specs['gamma_a_spec'].low, prior_specs['gamma_a_spec'].high))
+    if isinstance(prior_specs['log10_gamma_a_spec'], tfpd.Distribution):
+        log10_gamma_a = numpyro.sample("log10_gamma_a", 
+            dist.Uniform(prior_specs['log10_gamma_a_spec'].low, prior_specs['log10_gamma_a_spec'].high))
+        γa = numpyro.deterministic("γa", 10.0 ** log10_gamma_a)
     else:
-        γa = numpyro.deterministic("γa", prior_specs['gamma_a_spec'])
+        log10_gamma_a = numpyro.deterministic("log10_gamma_a", prior_specs['log10_gamma_a_spec'])
+        γa = numpyro.deterministic("γa", 10.0 ** log10_gamma_a)
     
     # Pulsar red noise parameters with hierarchical or standardization modeling
     hierarchical_specs = prior_specs.get('hierarchical_specs')
@@ -636,7 +642,7 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
         equad = numpyro.deterministic("equad", prior_specs['equad_spec'])
     
     # Calculate log likelihood using the same function as JAXNS
-    log_likelihood = jaxns_log_likelihood(kalman_filter, log10_ha, γa, log10_γp, log10_σp, efac, equad)
+    log_likelihood = jaxns_log_likelihood(kalman_filter, log10_ha, log10_gamma_a, log10_γp, log10_σp, efac, equad)
     
     # Add likelihood to the model
     numpyro.factor("likelihood", log_likelihood)
@@ -668,7 +674,7 @@ def count_free_parameters(prior_specs, n_pulsars):
         count += 1
     
     # GW spectral index parameter  
-    if isinstance(prior_specs['gamma_a_spec'], tfpd.Distribution):
+    if isinstance(prior_specs['log10_gamma_a_spec'], tfpd.Distribution):
         count += 1
     
     # Pulsar red noise parameters
@@ -870,12 +876,12 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
         # Fixed value case
         log_or_print(f"log10(h_a): FIXED at {float(ha_spec):.1f}")
     
-    # gamma_a parameter
-    gamma_spec = prior_specs['gamma_a_spec']
-    if isinstance(gamma_spec, tfpd.Distribution):
-        log_or_print(f"γ_a: Uniform({float(gamma_spec.low):.2e}, {float(gamma_spec.high):.2e})")
+    # log10_gamma_a parameter
+    log10_gamma_spec = prior_specs['log10_gamma_a_spec']
+    if isinstance(log10_gamma_spec, tfpd.Distribution):
+        log_or_print(f"log10(γ_a): Uniform({float(log10_gamma_spec.low):.1f}, {float(log10_gamma_spec.high):.1f})")
     else:
-        log_or_print(f"γ_a: FIXED at {float(gamma_spec):.2e}")
+        log_or_print(f"log10(γ_a): FIXED at {float(log10_gamma_spec):.1f}")
     
     # Pulsar red noise parameters
     log_or_print(f"\n--- Pulsar Red Noise Parameters ({n_pulsars} pulsars) ---")

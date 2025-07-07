@@ -4,25 +4,25 @@ Create corner plot from NUMPYRO results showing log10_ha and
 sigma_p, gamma_p parameters for selected pulsars.
 
 This script supports:
-- Optional inclusion of gamma_a parameter (when sampled)
+- Optional inclusion of log10_gamma_a parameter (when sampled)
 - Overlay of prior distributions on 1D posterior histograms
 - Handling of complex prior structures (hierarchical, log-ratio parameterization)
 - Various smoothing options for better visualization
 
-Usage: python create_corner_plot.py <run_index> <num_pulsars> [smooth_sigma] [--plot_gamma_a] [--plot_priors]
+Usage: python create_corner_plot.py <run_index> <num_pulsars> [smooth_sigma] [--plot_log10_gamma_a] [--plot_priors]
 
 Examples:
   python create_corner_plot.py 016 2                                # Basic plot
   python create_corner_plot.py 016 2 1.0                            # With smoothing
-  python create_corner_plot.py 016 2 0.5 --plot_gamma_a             # Include gamma_a
+  python create_corner_plot.py 016 2 0.5 --plot_log10_gamma_a      # Include log10_gamma_a
   python create_corner_plot.py 016 2 1.0 --plot_priors              # With prior overlays
-  python create_corner_plot.py 016 2 1.0 --plot_gamma_a --plot_priors # Full featured
+  python create_corner_plot.py 016 2 1.0 --plot_log10_gamma_a --plot_priors # Full featured
 
 Arguments:
   run_index     : Run index (e.g., 016, 022, 023) 
   num_pulsars   : Number of pulsars to include in the plot
   smooth_sigma  : Optional smoothing parameter for histograms
-  --plot_gamma_a: Include gamma_a parameter if available in posterior
+  --plot_log10_gamma_a: Include log10_gamma_a parameter if available in posterior
   --plot_priors : Overlay prior distributions on 1D histograms
 
 Features:
@@ -74,14 +74,14 @@ def get_log10_ha_prior_pdf(config, x):
     return stats.uniform(loc=min_val, scale=max_val - min_val).pdf(x)
 
 
-def get_gamma_a_prior_pdf(config, x):
-    """Get prior PDF for gamma_a parameter."""
-    if config.getboolean('PriorModel', 'gamma_a_fixed'):
+def get_log10_gamma_a_prior_pdf(config, x):
+    """Get prior PDF for log10_gamma_a parameter."""
+    if config.getboolean('PriorModel', 'log10_gamma_a_fixed'):
         return None  # Fixed parameter, no prior to plot
     
     # Get uniform range
-    min_val = config.getfloat('PriorModel', 'gamma_a_min')
-    max_val = config.getfloat('PriorModel', 'gamma_a_max')
+    min_val = config.getfloat('PriorModel', 'log10_gamma_a_min')
+    max_val = config.getfloat('PriorModel', 'log10_gamma_a_max')
     
     # Create uniform distribution
     return stats.uniform(loc=min_val, scale=max_val - min_val).pdf(x)
@@ -168,14 +168,14 @@ parser = argparse.ArgumentParser(description='Create corner plot from NUMPYRO re
 parser.add_argument('run_index', type=str, help='Run index (e.g., 016, 022, 023)')
 parser.add_argument('num_pulsars', type=int, help='Number of pulsars to include')
 parser.add_argument('smooth_sigma', type=float, nargs='?', default=None, help='Smoothing parameter for histograms')
-parser.add_argument('--plot_gamma_a', action='store_true', help='Include gamma_a parameter in the plot')
+parser.add_argument('--plot_log10_gamma_a', action='store_true', help='Include log10_gamma_a parameter in the plot')
 parser.add_argument('--plot_priors', action='store_true', help='Overlay prior distributions on 1D histograms')
 
 args = parser.parse_args()
 run_index = args.run_index
 num_pulsars = args.num_pulsars
 smooth_sigma = args.smooth_sigma
-plot_gamma_a = args.plot_gamma_a
+plot_log10_gamma_a = args.plot_log10_gamma_a
 plot_priors = args.plot_priors
 
 # Load config file for prior plotting
@@ -205,15 +205,15 @@ print(f"Creating corner plot for {num_pulsars} pulsars at indices: {pulsar_indic
 samples_list = [log10_ha]
 labels = [r'$\log_{10} h_a$']
 
-# Add gamma_a if requested and available
-if plot_gamma_a:
-    if 'γa' in posterior.data_vars:
-        gamma_a = posterior['γa'].values.flatten()
-        samples_list.append(gamma_a)
-        labels.append(r'$\gamma_a$')
-        print(f"Added gamma_a parameter to plot")
+# Add log10_gamma_a if requested and available
+if plot_log10_gamma_a:
+    if 'log10_gamma_a' in posterior.data_vars:
+        log10_gamma_a = posterior['log10_gamma_a'].values.flatten()
+        samples_list.append(log10_gamma_a)
+        labels.append(r'$\log_{10} \gamma_a$')
+        print(f"Added log10_gamma_a parameter to plot")
     else:
-        print(f"Warning: gamma_a requested but not found in posterior. Skipping gamma_a.")
+        print(f"Warning: log10_gamma_a requested but not found in posterior. Skipping log10_gamma_a.")
 
 # Extract sigma_p and gamma_p for selected pulsars
 for i, pulsar_idx in enumerate(pulsar_indices):
@@ -237,9 +237,9 @@ for i, label in enumerate(labels):
 # Define prior ranges from config file - extended to check for railing
 prior_ranges = [[-18.5, -13.5]]  # log10_ha - extended from [-16.0, -14.0]
 
-# Add gamma_a range if plotting
-if plot_gamma_a and 'γa' in posterior.data_vars:
-    prior_ranges.append([1e-10, 1e-8])  # gamma_a - typical range
+# Add log10_gamma_a range if plotting
+if plot_log10_gamma_a and 'log10_gamma_a' in posterior.data_vars:
+    prior_ranges.append([-10.0, -8.0])  # log10_gamma_a - typical range
 
 for i in range(num_pulsars):
     prior_ranges.append([-20.5, -11.5])  # log10_sigma_p - extended from [-18.0, -12.0]
@@ -302,10 +302,10 @@ if plot_priors and config is not None:
         prior_pdf = None
         if i == 0:  # log10_ha
             prior_pdf = get_log10_ha_prior_pdf(config, x_range)
-        elif plot_gamma_a and 'γa' in posterior.data_vars and i == 1:  # gamma_a
-            prior_pdf = get_gamma_a_prior_pdf(config, x_range)
+        elif plot_log10_gamma_a and 'log10_gamma_a' in posterior.data_vars and i == 1:  # log10_gamma_a
+            prior_pdf = get_log10_gamma_a_prior_pdf(config, x_range)
         else:  # sigma_p or gamma_p parameters
-            param_index = i - 1 if not plot_gamma_a or 'γa' not in posterior.data_vars else i - 2
+            param_index = i - 1 if not plot_log10_gamma_a or 'log10_gamma_a' not in posterior.data_vars else i - 2
             param_index = param_index if param_index >= 0 else 0
             
             if param_index % 2 == 0:  # sigma_p
@@ -327,8 +327,8 @@ if plot_priors and config is not None:
         axes[(ndim-1) * ndim + (ndim-1)].legend(loc='upper right', fontsize=10)
 
 # Add title
-gamma_a_text = " + gamma_a" if plot_gamma_a and 'γa' in posterior.data_vars else ""
-fig.suptitle(f'Run {run_index} Parameter Posterior Distributions\n(log10_ha{gamma_a_text} + {num_pulsars} Pulsars)', 
+log10_gamma_a_text = " + log10_gamma_a" if plot_log10_gamma_a and 'log10_gamma_a' in posterior.data_vars else ""
+fig.suptitle(f'Run {run_index} Parameter Posterior Distributions\n(log10_ha{log10_gamma_a_text} + {num_pulsars} Pulsars)', 
              fontsize=16, y=0.98)
 
 # Ensure plots directory exists
@@ -337,9 +337,9 @@ os.makedirs(plots_dir, exist_ok=True)
 
 # Save the plot with appropriate suffix
 smooth_suffix = f"_smooth{smooth_sigma}" if smooth_sigma is not None else ""
-gamma_a_suffix = "_gamma_a" if plot_gamma_a and 'γa' in posterior.data_vars else ""
+log10_gamma_a_suffix = "_log10_gamma_a" if plot_log10_gamma_a and 'log10_gamma_a' in posterior.data_vars else ""
 priors_suffix = "_priors" if plot_priors else ""
-output_file = f"{plots_dir}/corner_plot_run_{run_index}_{num_pulsars}pulsars{smooth_suffix}{gamma_a_suffix}{priors_suffix}.png"
+output_file = f"{plots_dir}/corner_plot_run_{run_index}_{num_pulsars}pulsars{smooth_suffix}{log10_gamma_a_suffix}{priors_suffix}.png"
 plt.savefig(output_file, dpi=300, bbox_inches='tight')
 print(f"Corner plot saved to: {output_file}")
 
