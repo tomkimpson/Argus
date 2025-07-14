@@ -33,6 +33,7 @@ from numpyro.infer import MCMC, NUTS
 
 jax.config.update("jax_enable_x64", True)
 tfpd = tfp.distributions
+tfpb = tfp.bijectors
 
 
 
@@ -365,10 +366,28 @@ def get_prior_model_specs(config, Npsr, sigma_p_array, gamma_p_array, efac_array
             low=jnp.full_like(efac_array, config.getfloat('PriorModel', 'efac_min')),
             high=jnp.full_like(efac_array, config.getfloat('PriorModel', 'efac_max'))
         )
-        equad_spec = tfpd.Uniform(
-            low=jnp.full_like(equad_array, config.getfloat('PriorModel', 'equad_min')),
-            high=jnp.full_like(equad_array, config.getfloat('PriorModel', 'equad_max'))
-        )
+        
+        # Check if we should use log10 parameterization for EQUAD
+        try:
+            equad_log10_prior = config.getboolean('PriorModel', 'equad_log10_prior')
+        except:
+            equad_log10_prior = False  # Default to direct EQUAD for backward compatibility
+            
+        if equad_log10_prior:
+            # Use log10(EQUAD) with uniform prior, then transform: EQUAD = 10^(log10_EQUAD)
+            equad_spec = tfpd.TransformedDistribution(
+                distribution=tfpd.Uniform(
+                    low=jnp.full_like(equad_array, config.getfloat('PriorModel', 'log10_equad_min')),
+                    high=jnp.full_like(equad_array, config.getfloat('PriorModel', 'log10_equad_max'))
+                ),
+                bijector=tfpb.Chain([tfpb.Exp(), tfpb.Scale(jnp.log(10.0))])  # Transform: 10^x = exp(log(10) * x)
+            )
+        else:
+            # Direct EQUAD uniform prior (backward compatibility)
+            equad_spec = tfpd.Uniform(
+                low=jnp.full_like(equad_array, config.getfloat('PriorModel', 'equad_min')),
+                high=jnp.full_like(equad_array, config.getfloat('PriorModel', 'equad_max'))
+            )
 
     return {
         'log10_ha_spec': log10_ha_spec,
