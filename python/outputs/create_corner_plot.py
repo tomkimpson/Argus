@@ -3,30 +3,183 @@
 Create corner plot from NUMPYRO results showing log10_ha and 
 sigma_p, gamma_p parameters for selected pulsars.
 
-Usage: python create_corner_plot.py <run_index> <num_pulsars> [smooth_sigma]
-Example: python create_corner_plot.py 016 2
-Example: python create_corner_plot.py 016 2 1.0
-Example: python create_corner_plot.py 016 2 0.5
+This script supports:
+- Optional inclusion of log10_gamma_a parameter (when sampled)
+- Overlay of prior distributions on 1D posterior histograms
+- Handling of complex prior structures (hierarchical, log-ratio parameterization)
+- Various smoothing options for better visualization
+
+Usage: python create_corner_plot.py <run_index> <num_pulsars> [smooth_sigma] [--plot_log10_gamma_a] [--plot_priors]
+
+Examples:
+  python create_corner_plot.py 016 2                                # Basic plot
+  python create_corner_plot.py 016 2 1.0                            # With smoothing
+  python create_corner_plot.py 016 2 0.5 --plot_log10_gamma_a      # Include log10_gamma_a
+  python create_corner_plot.py 016 2 1.0 --plot_priors              # With prior overlays
+  python create_corner_plot.py 016 2 1.0 --plot_log10_gamma_a --plot_priors # Full featured
+
+Arguments:
+  run_index     : Run index (e.g., 016, 022, 023) 
+  num_pulsars   : Number of pulsars to include in the plot
+  smooth_sigma  : Optional smoothing parameter for histograms
+  --plot_log10_gamma_a: Include log10_gamma_a parameter if available in posterior
+  --plot_priors : Overlay prior distributions on 1D histograms
+
+Features:
+- Automatically detects parameter types and applies appropriate priors
+- Handles reparameterized parameters (log10_ha with NUTS optimization)
+- Supports hierarchical Bayesian priors (gamma_p with population hyperpriors)
+- Approximates complex log-ratio parameterizations (sigma_p derived from gamma_p + ratio)
+- Scales prior overlays to match histogram heights for visual comparison
 """
 
 import sys
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import arviz as az
 import corner
 import os
+import configparser
+from scipy import stats
+from scipy.integrate import quad
+
+
+def load_config(run_index):
+    """Load configuration file for the given run index."""
+    config_file = f"../argus/configs/config_numpyro_test_{run_index}.ini"
+    if not os.path.exists(config_file):
+        print(f"Warning: Config file {config_file} not found. Prior plotting will be disabled.")
+        return None
+    
+    config = configparser.ConfigParser()
+    config.read(config_file)
+    return config
+
+
+def get_log10_ha_prior_pdf(config, x):
+    """Get prior PDF for log10_ha parameter.
+    
+    Note: The posterior samples are in the original log10_ha space (not reparameterized),
+    so we plot the original uniform prior regardless of whether reparameterization was used.
+    """
+    if config.getboolean('PriorModel', 'log10_ha_fixed'):
+        return None  # Fixed parameter, no prior to plot
+    
+    # Get original uniform range - this is the effective prior regardless of reparameterization
+    min_val = config.getfloat('PriorModel', 'log10_ha_min')
+    max_val = config.getfloat('PriorModel', 'log10_ha_max')
+    
+    # Create uniform distribution over original range
+    return stats.uniform(loc=min_val, scale=max_val - min_val).pdf(x)
+
+
+def get_log10_gamma_a_prior_pdf(config, x):
+    """Get prior PDF for log10_gamma_a parameter."""
+    if config.getboolean('PriorModel', 'log10_gamma_a_fixed'):
+        return None  # Fixed parameter, no prior to plot
+    
+    # Get uniform range
+    min_val = config.getfloat('PriorModel', 'log10_gamma_a_min')
+    max_val = config.getfloat('PriorModel', 'log10_gamma_a_max')
+    
+    # Create uniform distribution
+    return stats.uniform(loc=min_val, scale=max_val - min_val).pdf(x)
+
+
+def get_log10_gamma_p_prior_pdf(config, x):
+    """Get prior PDF for log10_gamma_p parameter."""
+    if config.getboolean('PriorModel', 'hierarchical_noise'):
+        # Hierarchical case: Use Monte Carlo approximation for efficiency
+        # Sample from hyperpriors and approximate the marginal distribution
+        mean_min = config.getfloat('PriorModel', 'log10_gamma_p_mean_min')
+        mean_max = config.getfloat('PriorModel', 'log10_gamma_p_mean_max')
+        std_min = config.getfloat('PriorModel', 'log10_gamma_p_std_min')
+        std_max = config.getfloat('PriorModel', 'log10_gamma_p_std_max')
+        
+        # Monte Carlo approximation
+        n_samples = 1000
+        np.random.seed(42)  # For reproducibility
+        means = np.random.uniform(mean_min, mean_max, n_samples)
+        stds = np.random.uniform(std_min, std_max, n_samples)
+        
+        # Approximate marginal PDF
+        pdf_values = np.zeros_like(x)
+        for i, x_val in enumerate(x):
+            pdf_samples = stats.norm(loc=means, scale=stds).pdf(x_val)
+            pdf_values[i] = np.mean(pdf_samples)
+        
+        return pdf_values
+    else:
+        # Simple uniform case
+        min_val = config.getfloat('PriorModel', 'log10_gamma_p_min')
+        max_val = config.getfloat('PriorModel', 'log10_gamma_p_max')
+        return stats.uniform(loc=min_val, scale=max_val - min_val).pdf(x)
+
+
+def get_log10_sigma_p_prior_pdf(config, x):
+    """Get prior PDF for log10_sigma_p parameter."""
+    if config.getboolean('PriorModel', 'log_ratio_parameterization'):
+        # Log-ratio case: log10(σp) = log10(γp) + log10(ratio)
+        # Use Monte Carlo sampling to approximate the true hierarchical prior
+        print("Log-ratio parameterization detected for sigma_p. Using Monte Carlo approximation of hierarchical prior.")
+        
+        # Get hyperprior ranges
+        gamma_p_mean_min = config.getfloat('PriorModel', 'log10_gamma_p_mean_min', fallback=-9.0)
+        gamma_p_mean_max = config.getfloat('PriorModel', 'log10_gamma_p_mean_max', fallback=-7.0)
+        gamma_p_std_min = config.getfloat('PriorModel', 'log10_gamma_p_std_min', fallback=0.1)
+        gamma_p_std_max = config.getfloat('PriorModel', 'log10_gamma_p_std_max', fallback=1.0)
+        
+        ratio_mean_min = config.getfloat('PriorModel', 'log10_ratio_mean_min', fallback=-8.0)
+        ratio_mean_max = config.getfloat('PriorModel', 'log10_ratio_mean_max', fallback=-4.0)
+        ratio_std_min = config.getfloat('PriorModel', 'log10_ratio_std_min', fallback=0.5)
+        ratio_std_max = config.getfloat('PriorModel', 'log10_ratio_std_max', fallback=3.0)
+        
+        # Monte Carlo sampling to approximate prior
+        n_samples = 10000
+        np.random.seed(42)  # For reproducibility
+        
+        # Sample hyperparameters
+        gamma_p_means = np.random.uniform(gamma_p_mean_min, gamma_p_mean_max, n_samples)
+        gamma_p_stds = np.random.uniform(gamma_p_std_min, gamma_p_std_max, n_samples)
+        ratio_means = np.random.uniform(ratio_mean_min, ratio_mean_max, n_samples)
+        ratio_stds = np.random.uniform(ratio_std_min, ratio_std_max, n_samples)
+        
+        # Sample individual parameters
+        log10_gamma_p_samples = np.random.normal(gamma_p_means, gamma_p_stds)
+        log10_ratio_samples = np.random.normal(ratio_means, ratio_stds)
+        
+        # Compute σp = γp + ratio
+        log10_sigma_p_samples = log10_gamma_p_samples + log10_ratio_samples
+        
+        # Estimate PDF using kernel density estimation
+        from scipy.stats import gaussian_kde
+        kde = gaussian_kde(log10_sigma_p_samples)
+        return kde(x)
+    else:
+        # Simple uniform case
+        min_val = config.getfloat('PriorModel', 'log10_sigma_p_min')
+        max_val = config.getfloat('PriorModel', 'log10_sigma_p_max')
+        return stats.uniform(loc=min_val, scale=max_val - min_val).pdf(x)
+
 
 # Parse command line arguments
-if len(sys.argv) < 3 or len(sys.argv) > 4:
-    print("Usage: python create_corner_plot.py <run_index> <num_pulsars> [smooth_sigma]")
-    print("Example: python create_corner_plot.py 016 2")
-    print("Example: python create_corner_plot.py 016 2 1.0")
-    print("Example: python create_corner_plot.py 016 2 0.5")
-    sys.exit(1)
+parser = argparse.ArgumentParser(description='Create corner plot from NUMPYRO results')
+parser.add_argument('run_index', type=str, help='Run index (e.g., 016, 022, 023)')
+parser.add_argument('num_pulsars', type=int, help='Number of pulsars to include')
+parser.add_argument('smooth_sigma', type=float, nargs='?', default=None, help='Smoothing parameter for histograms')
+parser.add_argument('--plot_log10_gamma_a', action='store_true', help='Include log10_gamma_a parameter in the plot')
+parser.add_argument('--plot_priors', action='store_true', help='Overlay prior distributions on 1D histograms')
 
-run_index = sys.argv[1]
-num_pulsars = int(sys.argv[2])
-smooth_sigma = float(sys.argv[3]) if len(sys.argv) == 4 else None
+args = parser.parse_args()
+run_index = args.run_index
+num_pulsars = args.num_pulsars
+smooth_sigma = args.smooth_sigma
+plot_log10_gamma_a = args.plot_log10_gamma_a
+plot_priors = args.plot_priors
+
+# Load config file for prior plotting
+config = load_config(run_index) if plot_priors else None
 
 # Load the results
 results_file = f"numpyro_test_{run_index}/numpyro_test_{run_index}_results.nc"
@@ -52,6 +205,16 @@ print(f"Creating corner plot for {num_pulsars} pulsars at indices: {pulsar_indic
 samples_list = [log10_ha]
 labels = [r'$\log_{10} h_a$']
 
+# Add log10_gamma_a if requested and available
+if plot_log10_gamma_a:
+    if 'log10_gamma_a' in posterior.data_vars:
+        log10_gamma_a = posterior['log10_gamma_a'].values.flatten()
+        samples_list.append(log10_gamma_a)
+        labels.append(r'$\log_{10} \gamma_a$')
+        print(f"Added log10_gamma_a parameter to plot")
+    else:
+        print(f"Warning: log10_gamma_a requested but not found in posterior. Skipping log10_gamma_a.")
+
 # Extract sigma_p and gamma_p for selected pulsars
 for i, pulsar_idx in enumerate(pulsar_indices):
     sigma_p = posterior['log10_σp'].isel(log10_σp_dim_0=pulsar_idx).values.flatten()
@@ -73,6 +236,11 @@ for i, label in enumerate(labels):
 
 # Define prior ranges from config file - extended to check for railing
 prior_ranges = [[-18.5, -13.5]]  # log10_ha - extended from [-16.0, -14.0]
+
+# Add log10_gamma_a range if plotting
+if plot_log10_gamma_a and 'log10_gamma_a' in posterior.data_vars:
+    prior_ranges.append([-10.0, -8.0])  # log10_gamma_a - typical range
+
 for i in range(num_pulsars):
     prior_ranges.append([-20.5, -11.5])  # log10_sigma_p - extended from [-18.0, -12.0]
     prior_ranges.append([-11.5, -5.5])   # log10_gamma_p - extended from [-11.0, -6.0]
@@ -115,8 +283,52 @@ fig = corner.corner(
     smooth1d=smooth1d_option
 )
 
+# Add prior overlays if requested
+if plot_priors and config is not None:
+    # Get axes from corner plot
+    axes = fig.get_axes()
+    ndim = len(labels)
+    
+    # Prior overlay for each parameter (diagonal elements)
+    for i in range(ndim):
+        ax = axes[i * ndim + i]  # Diagonal axis
+        
+        # Get parameter name and x-range for prior
+        param_name = labels[i]
+        x_min, x_max = ax.get_xlim()
+        x_range = np.linspace(x_min, x_max, 100)
+        
+        # Get prior PDF based on parameter type
+        prior_pdf = None
+        if i == 0:  # log10_ha
+            prior_pdf = get_log10_ha_prior_pdf(config, x_range)
+        elif plot_log10_gamma_a and 'log10_gamma_a' in posterior.data_vars and i == 1:  # log10_gamma_a
+            prior_pdf = get_log10_gamma_a_prior_pdf(config, x_range)
+        else:  # sigma_p or gamma_p parameters
+            param_index = i - 1 if not plot_log10_gamma_a or 'log10_gamma_a' not in posterior.data_vars else i - 2
+            param_index = param_index if param_index >= 0 else 0
+            
+            if param_index % 2 == 0:  # sigma_p
+                prior_pdf = get_log10_sigma_p_prior_pdf(config, x_range)
+            else:  # gamma_p
+                prior_pdf = get_log10_gamma_p_prior_pdf(config, x_range)
+        
+        # Plot prior if available
+        if prior_pdf is not None and np.any(prior_pdf > 0) and np.all(np.isfinite(prior_pdf)):
+            # Scale prior to match histogram
+            y_max = ax.get_ylim()[1]
+            prior_max = np.max(prior_pdf)
+            if prior_max > 0:
+                prior_pdf_scaled = prior_pdf * y_max / prior_max * 0.8  # Scale to 80% of max
+                ax.plot(x_range, prior_pdf_scaled, 'r--', linewidth=2, alpha=0.7, label='Prior')
+    
+    # Add legend to the last diagonal plot
+    if ndim > 0:
+        axes[(ndim-1) * ndim + (ndim-1)].legend(loc='upper right', fontsize=10)
+
 # Add title
-fig.suptitle(f'Run {run_index} Parameter Posterior Distributions\n(log10_ha + {num_pulsars} Pulsars)', 
+log10_gamma_a_text = " + log10_gamma_a" if plot_log10_gamma_a and 'log10_gamma_a' in posterior.data_vars else ""
+fig.suptitle(f'Run {run_index} Parameter Posterior Distributions\n(log10_ha{log10_gamma_a_text} + {num_pulsars} Pulsars)', 
              fontsize=16, y=0.98)
 
 # Ensure plots directory exists
@@ -125,7 +337,9 @@ os.makedirs(plots_dir, exist_ok=True)
 
 # Save the plot with appropriate suffix
 smooth_suffix = f"_smooth{smooth_sigma}" if smooth_sigma is not None else ""
-output_file = f"{plots_dir}/corner_plot_run_{run_index}_{num_pulsars}pulsars{smooth_suffix}.png"
+log10_gamma_a_suffix = "_log10_gamma_a" if plot_log10_gamma_a and 'log10_gamma_a' in posterior.data_vars else ""
+priors_suffix = "_priors" if plot_priors else ""
+output_file = f"{plots_dir}/corner_plot_run_{run_index}_{num_pulsars}pulsars{smooth_suffix}{log10_gamma_a_suffix}{priors_suffix}.png"
 plt.savefig(output_file, dpi=300, bbox_inches='tight')
 print(f"Corner plot saved to: {output_file}")
 

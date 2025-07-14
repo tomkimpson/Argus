@@ -1,0 +1,5 @@
+python: can't open file '/fred/oz022/tkimpson/tmp/argus_dev/Argus/main.py': [Errno 2] No such file or directory
+
+real	0m1.142s
+user	0m0.012s
+sys	0m0.036s
