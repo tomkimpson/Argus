@@ -38,6 +38,7 @@ def test_likelihood_performance(KF, config, logger):
 
     # Create parameter object
     test_params = bayesian_inference.Parameters(
+        log10_gamma_a=jax.numpy.log10(γa_test),
         γa=γa_test,
         ha=ha_test,
         γp=gamma_p_array,
@@ -265,9 +266,9 @@ def calculate_and_display_gradients(KF, test_params, prior_specs, logger):
     logger.info("="*60)
     
     # Create gradient function for the likelihood
-    def likelihood_fn(log10_ha, gamma_a, log10_gamma_p, log10_sigma_p, efac, equad):
+    def likelihood_fn(log10_ha, log10_gamma_a, log10_gamma_p, log10_sigma_p, efac, equad):
         return bayesian_inference.jaxns_log_likelihood(
-            KF, log10_ha, gamma_a, log10_gamma_p, log10_sigma_p, efac, equad
+            KF, log10_ha, log10_gamma_a, log10_gamma_p, log10_sigma_p, efac, equad
         )
     
     # Calculate gradients
@@ -275,7 +276,7 @@ def calculate_and_display_gradients(KF, test_params, prior_specs, logger):
     
     # Extract test parameter values
     log10_ha_test = jax.numpy.log10(test_params.ha)
-    gamma_a_test = test_params.γa
+    log10_gamma_a_test = jax.numpy.log10(test_params.γa)
     log10_gamma_p_test = jax.numpy.log10(test_params.γp)
     log10_sigma_p_test = jax.numpy.log10(test_params.σp)
     efac_test = test_params.EFAC
@@ -284,16 +285,16 @@ def calculate_and_display_gradients(KF, test_params, prior_specs, logger):
     logger.info("Computing gradients at test parameter values...")
     logger.info(f"Test values:")
     logger.info(f"  - log10(h_a): {float(log10_ha_test):.2f}")
-    logger.info(f"  - γ_a: {float(gamma_a_test):.2e}")
+    logger.info(f"  - log10(γ_a): {float(log10_gamma_a_test):.2e}")
     logger.info(f"  - log10(γ_p): [{float(jax.numpy.min(log10_gamma_p_test)):.2f}, {float(jax.numpy.max(log10_gamma_p_test)):.2f}] (min, max)")
     logger.info(f"  - log10(σ_p): [{float(jax.numpy.min(log10_sigma_p_test)):.2f}, {float(jax.numpy.max(log10_sigma_p_test)):.2f}] (min, max)")
     logger.info("")
     
     # Compute gradients
-    grads = grad_fn(log10_ha_test, gamma_a_test, log10_gamma_p_test, 
+    grads = grad_fn(log10_ha_test, log10_gamma_a_test, log10_gamma_p_test, 
                    log10_sigma_p_test, efac_test, equad_test)
     
-    grad_log10_ha, grad_gamma_a, grad_log10_gamma_p, grad_log10_sigma_p, grad_efac, grad_equad = grads
+    grad_log10_ha, grad_log10_gamma_a, grad_log10_gamma_p, grad_log10_sigma_p, grad_efac, grad_equad = grads
     
     # Determine which parameters are not fixed (i.e., being sampled)
     import tensorflow_probability.substrates.jax as tfp
@@ -302,7 +303,7 @@ def calculate_and_display_gradients(KF, test_params, prior_specs, logger):
     # Check if each parameter is being sampled (not fixed)
     log10_ha_sampled = (prior_specs['log10_ha_transform_params'] is not None or 
                        isinstance(prior_specs['log10_ha_spec'], tfpd.Distribution))
-    gamma_a_sampled = isinstance(prior_specs['gamma_a_spec'], tfpd.Distribution)
+    log10_gamma_a_sampled = isinstance(prior_specs['log10_gamma_a_spec'], tfpd.Distribution)
     psr_noise_sampled = isinstance(prior_specs['log10_gamma_p_spec'], tfpd.Distribution)
     efac_equad_sampled = isinstance(prior_specs['efac_spec'], tfpd.Distribution)
     
@@ -313,7 +314,7 @@ def calculate_and_display_gradients(KF, test_params, prior_specs, logger):
     has_vector_params = False
     
     # Scalar parameters section
-    if log10_ha_sampled or gamma_a_sampled:
+    if log10_ha_sampled or log10_gamma_a_sampled:
         has_scalar_params = True
         logger.info("--- Scalar Parameters ---")
         
@@ -327,8 +328,8 @@ def calculate_and_display_gradients(KF, test_params, prior_specs, logger):
             else:
                 logger.info(f"∂ℒ/∂log10(h_a): {float(grad_log10_ha):.2e}")
         
-        if gamma_a_sampled:
-            logger.info(f"∂ℒ/∂γ_a: {float(grad_gamma_a):.2e}")
+        if log10_gamma_a_sampled:
+            logger.info(f"∂ℒ/∂log10(γ_a): {float(grad_log10_gamma_a):.2e}")
     
     # Vector parameters section  
     if psr_noise_sampled or efac_equad_sampled:
@@ -360,7 +361,7 @@ def calculate_and_display_gradients(KF, test_params, prior_specs, logger):
             logger.info(f"  - Mean: {float(jax.numpy.mean(grad_equad)):.2e}")
     
     # Special message if no parameters are being sampled
-    if not (log10_ha_sampled or gamma_a_sampled or psr_noise_sampled or efac_equad_sampled):
+    if not (log10_ha_sampled or log10_gamma_a_sampled or psr_noise_sampled or efac_equad_sampled):
         logger.info("All parameters are FIXED - no gradients to display for NUTS sampling")
         logger.info("(Gradients are only relevant for parameters being sampled)")
     
@@ -376,8 +377,8 @@ def calculate_and_display_gradients(KF, test_params, prior_specs, logger):
         else:
             total_grad_terms.append(grad_log10_ha**2)
     
-    if gamma_a_sampled:
-        total_grad_terms.append(grad_gamma_a**2)
+    if log10_gamma_a_sampled:
+        total_grad_terms.append(grad_log10_gamma_a**2)
     
     if psr_noise_sampled:
         total_grad_terms.append(jax.numpy.sum(grad_log10_gamma_p**2))
@@ -447,6 +448,7 @@ def run_numpyro_inference(config, KF, pulsar_data, output_dir, output_id, logger
     γa_test = 1e-9 
     ha_test = 1e-15
     test_params = bayesian_inference.Parameters(
+        log10_gamma_a=jax.numpy.log10(γa_test),
         γa=γa_test,
         ha=ha_test,
         γp=gamma_p_array,
