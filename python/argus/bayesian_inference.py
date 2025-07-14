@@ -974,7 +974,17 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
     # EQUAD parameter
     equad_spec = prior_specs['equad_spec']
     if isinstance(equad_spec, tfpd.Distribution):
-        log_or_print(f"EQUAD: Uniform({float(equad_spec.low[0]):.2e}, {float(equad_spec.high[0]):.2e}) for each pulsar")
+        if isinstance(equad_spec, tfpd.TransformedDistribution):
+            # For log10(EQUAD) transformed distribution, get the base distribution
+            base_dist = equad_spec.distribution
+            log10_low = float(base_dist.low[0])
+            log10_high = float(base_dist.high[0])
+            log_or_print(f"EQUAD: log10(EQUAD) ~ Uniform({log10_low:.1f}, {log10_high:.1f}) for each pulsar")
+        elif hasattr(equad_spec, 'low') and hasattr(equad_spec, 'high'):
+            # Regular uniform distribution
+            log_or_print(f"EQUAD: Uniform({float(equad_spec.low[0]):.2e}, {float(equad_spec.high[0]):.2e}) for each pulsar")
+        else:
+            log_or_print(f"EQUAD: Free parameter with unknown distribution type")
     elif equad_spec is not None:
         if hasattr(equad_spec, '__len__') and len(equad_spec) > 1:
             log_or_print(f"EQUAD: FIXED at individual values (range: {float(jnp.min(equad_spec)):.2e} to {float(jnp.max(equad_spec)):.2e})")
