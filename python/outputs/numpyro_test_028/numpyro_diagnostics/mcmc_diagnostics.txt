@@ -1,0 +1,46 @@
+Successfully loaded InferenceData from: /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_028/numpyro_test_028_results.nc
+
+--- Calculating Full MCMC Summary ---
+
+--- Filtered MCMC Summary (Excluding Constant Deterministics) ---
+                mean     sd  hdi_3%  ...   ess_bulk  ess_tail  r_hat
+efac[0]        1.150  0.074   1.028  ...   7323.754  3700.346  1.000
+efac[1]        1.190  0.090   1.018  ...   6247.580  3244.831  1.000
+efac[2]        1.416  0.079   1.268  ...   8356.295  5705.823  1.000
+efac[3]        0.924  0.081   0.791  ...   5647.084  2418.836  1.001
+efac[4]        1.062  0.103   0.900  ...   4343.599  1903.199  1.000
+...              ...    ...     ...  ...        ...       ...    ...
+log10_σp[27] -18.308  0.352 -18.980  ...   9377.321  6663.473  1.000
+log10_σp[28] -18.331  0.355 -19.009  ...   8653.212  5837.430  1.001
+log10_σp[29] -18.326  0.282 -18.860  ...   9059.440  5885.113  1.000
+log10_σp[30] -18.000  0.419 -18.793  ...  10077.987  6218.020  1.000
+log10_σp[31] -18.377  0.348 -19.013  ...   8556.782  6347.148  1.001
+
+[267 rows x 9 columns]
+
+--- Interpretation Guidance (Filtered Parameters) ---
+Checking R-hat and ESS only for variables that showed variation:
+
+Maximum R-hat value (filtered): 1.003
+R-hat values look good (<= 1.01).
+Minimum Bulk ESS (filtered): 2245
+Minimum Tail ESS (filtered): 1630
+ESS values look sufficient (>= 400).
+
+--- Generating Trace Plots (Filtered Parameters) ---
+Could not generate trace plots: 'var names: "[\'efac[0]\' \'efac[1]\' \'efac[2]\' \'efac[3]\' \'efac[4]\' \'efac[5]\' \'efac[6]\'\\n \'efac[7]\' \'efac[8]\' \'efac[9]\' \'efac[10]\' \'efac[11]\' \'efac[12]\' \'efac[13]\'\\n \'efac[14]\' \'efac[15]\' \'efac[16]\' \'efac[17]\' \'efac[18]\' \'efac[19]\'\\n \'efac[20]\' \'efac[21]\' \'efac[22]\' \'efac[23]\' \'efac[24]\' \'efac[25]\'\\n \'efac[26]\' \'efac[27]\' \'efac[28]\' \'efac[29]\' \'efac[30]\' \'efac[31]\'\\n \'efac_standardized[0]\' \'efac_standardized[1]\' \'efac_standardized[2]\'\\n \'efac_standardized[3]\' \'efac_standardized[4]\' \'efac_standardized[5]\'\\n \'efac_standardized[6]\' \'efac_standardized[7]\' \'efac_standardized[8]\'\\n \'efac_standardized[9]\' \'efac_standardized[10]\' \'efac_standardized[11]\'\\n \'efac_standardized[12]\' \'efac_standardized[13]\' \'efac_standardized[14]\'\\n \'efac_standardized[15]\' \'efac_standardized[16]\' \'efac_standardized[17]\'\\n \'efac_standardized[18]\' \'efac_standardized[19]\' \'efac_standardized[20]\'\\n \'efac_standardized[21]\' \'efac_standardized[22]\' \'efac_standardized[23]\'\\n \'efac_standardized[24]\' \'efac_standardized[25]\' \'efac_standardized[26]\'\\n \'efac_standardized[27]\' \'efac_standardized[28]\' \'efac_standardized[29]\'\\n \'efac_standardized[30]\' \'efac_standardized[31]\' \'log10_equad[0]\'\\n \'log10_equad[1]\' \'log10_equad[2]\' \'log10_equad[3]\' \'log10_equad[4]\'\\n \'log10_equad[5]\' \'log10_equad[6]\' \'log10_equad[7]\' \'log10_equad[8]\'\\n \'log10_equad[9]\' \'log10_equad[10]\' \'log10_equad[11]\' \'log10_equad[12]\'\\n \'log10_equad[13]\' \'log10_equad[14]\' \'log10_equad[15]\' \'log10_equad[16]\'\\n \'log10_equad[17]\' \'log10_equad[18]\' \'log10_equad[19]\' \'log10_equad[20]\'\\n \'log10_equad[21]\' \'log10_equad[22]\' \'log10_equad[23]\' \'log10_equad[24]\'\\n \'log10_equad[25]\' \'log10_equad[26]\' \'log10_equad[27]\' \'log10_equad[28]\'\\n \'log10_equad[29]\' \'log10_equad[30]\' \'log10_equad[31]\' \'log10_ratio[0]\'\\n \'log10_ratio[1]\' \'log10_ratio[2]\' \'log10_ratio[3]\' \'log10_ratio[4]\'\\n \'log10_ratio[5]\' \'log10_ratio[6]\' \'log10_ratio[7]\' \'log10_ratio[8]\'\\n \'log10_ratio[9]\' \'log10_ratio[10]\' \'log10_ratio[11]\' \'log10_ratio[12]\'\\n \'log10_ratio[13]\' \'log10_ratio[14]\' \'log10_ratio[15]\' \'log10_ratio[16]\'\\n \'log10_ratio[17]\' \'log10_ratio[18]\' \'log10_ratio[19]\' \'log10_ratio[20]\'\\n \'log10_ratio[21]\' \'log10_ratio[22]\' \'log10_ratio[23]\' \'log10_ratio[24]\'\\n \'log10_ratio[25]\' \'log10_ratio[26]\' \'log10_ratio[27]\' \'log10_ratio[28]\'\\n \'log10_ratio[29]\' \'log10_ratio[30]\' \'log10_ratio[31]\'\\n \'log10_ratio_raw[0]\' \'log10_ratio_raw[1]\' \'log10_ratio_raw[2]\'\\n \'log10_ratio_raw[3]\' \'log10_ratio_raw[4]\' \'log10_ratio_raw[5]\'\\n \'log10_ratio_raw[6]\' \'log10_ratio_raw[7]\' \'log10_ratio_raw[8]\'\\n \'log10_ratio_raw[9]\' \'log10_ratio_raw[10]\' \'log10_ratio_raw[11]\'\\n \'log10_ratio_raw[12]\' \'log10_ratio_raw[13]\' \'log10_ratio_raw[14]\'\\n \'log10_ratio_raw[15]\' \'log10_ratio_raw[16]\' \'log10_ratio_raw[17]\'\\n \'log10_ratio_raw[18]\' \'log10_ratio_raw[19]\' \'log10_ratio_raw[20]\'\\n \'log10_ratio_raw[21]\' \'log10_ratio_raw[22]\' \'log10_ratio_raw[23]\'\\n \'log10_ratio_raw[24]\' \'log10_ratio_raw[25]\' \'log10_ratio_raw[26]\'\\n \'log10_ratio_raw[27]\' \'log10_ratio_raw[28]\' \'log10_ratio_raw[29]\'\\n \'log10_ratio_raw[30]\' \'log10_ratio_raw[31]\' \'log10_γp[0]\' \'log10_γp[1]\'\\n \'log10_γp[2]\' \'log10_γp[3]\' \'log10_γp[4]\' \'log10_γp[5]\' \'log10_γp[6]\'\\n \'log10_γp[7]\' \'log10_γp[8]\' \'log10_γp[9]\' \'log10_γp[10]\' \'log10_γp[11]\'\\n \'log10_γp[12]\' \'log10_γp[13]\' \'log10_γp[14]\' \'log10_γp[15]\'\\n \'log10_γp[16]\' \'log10_γp[17]\' \'log10_γp[18]\' \'log10_γp[19]\'\\n \'log10_γp[20]\' \'log10_γp[21]\' \'log10_γp[22]\' \'log10_γp[23]\'\\n \'log10_γp[24]\' \'log10_γp[25]\' \'log10_γp[26]\' \'log10_γp[27]\'\\n \'log10_γp[28]\' \'log10_γp[29]\' \'log10_γp[30]\' \'log10_γp[31]\'\\n \'log10_γp_raw[0]\' \'log10_γp_raw[1]\' \'log10_γp_raw[2]\' \'log10_γp_raw[3]\'\\n \'log10_γp_raw[4]\' \'log10_γp_raw[5]\' \'log10_γp_raw[6]\' \'log10_γp_raw[7]\'\\n \'log10_γp_raw[8]\' \'log10_γp_raw[9]\' \'log10_γp_raw[10]\' \'log10_γp_raw[11]\'\\n \'log10_γp_raw[12]\' \'log10_γp_raw[13]\' \'log10_γp_raw[14]\'\\n \'log10_γp_raw[15]\' \'log10_γp_raw[16]\' \'log10_γp_raw[17]\'\\n \'log10_γp_raw[18]\' \'log10_γp_raw[19]\' \'log10_γp_raw[20]\'\\n \'log10_γp_raw[21]\' \'log10_γp_raw[22]\' \'log10_γp_raw[23]\'\\n \'log10_γp_raw[24]\' \'log10_γp_raw[25]\' \'log10_γp_raw[26]\'\\n \'log10_γp_raw[27]\' \'log10_γp_raw[28]\' \'log10_γp_raw[29]\'\\n \'log10_γp_raw[30]\' \'log10_γp_raw[31]\' \'log10_σp[0]\' \'log10_σp[1]\'\\n \'log10_σp[2]\' \'log10_σp[3]\' \'log10_σp[4]\' \'log10_σp[5]\' \'log10_σp[6]\'\\n \'log10_σp[7]\' \'log10_σp[8]\' \'log10_σp[9]\' \'log10_σp[10]\' \'log10_σp[11]\'\\n \'log10_σp[12]\' \'log10_σp[13]\' \'log10_σp[14]\' \'log10_σp[15]\'\\n \'log10_σp[16]\' \'log10_σp[17]\' \'log10_σp[18]\' \'log10_σp[19]\'\\n \'log10_σp[20]\' \'log10_σp[21]\' \'log10_σp[22]\' \'log10_σp[23]\'\\n \'log10_σp[24]\' \'log10_σp[25]\' \'log10_σp[26]\' \'log10_σp[27]\'\\n \'log10_σp[28]\' \'log10_σp[29]\' \'log10_σp[30]\' \'log10_σp[31]\'] are not present" in dataset'
+
+--- Trace Plot Interpretation ---
+(Interpret as before, focusing on these non-constant variables)
+
+--- Checking for Divergent Transitions ---
+Total number of divergent transitions: 1
+Total post-warmup samples: 8000
+Divergence rate: 0.01%
+WARNING: Divergences indicate potential issues exploring the posterior.
+Consider:
+  1. Model Reparameterization (e.g., non-centered parameterization).
+  2. Increasing 'target_accept_prob' in the NUTS kernel (e.g., kernel = NUTS(model, target_accept_prob=0.90 or 0.95)).
+  3. Using stronger priors if appropriate.
+
+--- Diagnostics Complete ---
