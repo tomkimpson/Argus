@@ -9,13 +9,15 @@ This script supports:
 - Handling of complex prior structures (hierarchical, log-ratio parameterization)
 - Various smoothing options for better visualization
 
-Usage: python create_corner_plot.py <run_index> <num_pulsars> [smooth_sigma] [--plot_log10_gamma_a] [--plot_priors]
+Usage: python create_corner_plot.py <run_index> <num_pulsars> [smooth_sigma] [--plot_log10_gamma_a] [--plot_priors] [--efac] [--equad]
 
 Examples:
   python create_corner_plot.py 016 2                                # Basic plot
   python create_corner_plot.py 016 2 1.0                            # With smoothing
   python create_corner_plot.py 016 2 0.5 --plot_log10_gamma_a      # Include log10_gamma_a
   python create_corner_plot.py 016 2 1.0 --plot_priors              # With prior overlays
+  python create_corner_plot.py 028 2 --efac --equad                 # Include EFAC and EQUAD
+  python create_corner_plot.py 028 2 --efac --equad --plot_priors   # EFAC/EQUAD with priors
   python create_corner_plot.py 016 2 1.0 --plot_log10_gamma_a --plot_priors # Full featured
 
 Arguments:
@@ -24,6 +26,8 @@ Arguments:
   smooth_sigma  : Optional smoothing parameter for histograms
   --plot_log10_gamma_a: Include log10_gamma_a parameter if available in posterior
   --plot_priors : Overlay prior distributions on 1D histograms
+  --efac        : Include EFAC parameters for each pulsar
+  --equad       : Include EQUAD parameters for each pulsar
 
 Features:
 - Automatically detects parameter types and applies appropriate priors
@@ -163,6 +167,37 @@ def get_log10_sigma_p_prior_pdf(config, x):
         return stats.uniform(loc=min_val, scale=max_val - min_val).pdf(x)
 
 
+def get_efac_prior_pdf(config, x):
+    """Get prior PDF for EFAC parameter."""
+    if config.getboolean('MeasurementErrorModel', 'efac_equad_fixed', fallback=True):
+        return None  # Fixed parameter, no prior to plot
+    
+    # Get uniform range
+    min_val = config.getfloat('MeasurementErrorModel', 'efac_min', fallback=0.1)
+    max_val = config.getfloat('MeasurementErrorModel', 'efac_max', fallback=3.0)
+    
+    # Create uniform distribution
+    return stats.uniform(loc=min_val, scale=max_val - min_val).pdf(x)
+
+
+def get_equad_prior_pdf(config, x):
+    """Get prior PDF for EQUAD parameter."""
+    if config.getboolean('MeasurementErrorModel', 'efac_equad_fixed', fallback=True):
+        return None  # Fixed parameter, no prior to plot
+    
+    # Check if log10 parameterization is used
+    if config.getboolean('MeasurementErrorModel', 'equad_log10_prior', fallback=False):
+        # log10(EQUAD) ~ Uniform(min, max)
+        min_val = config.getfloat('MeasurementErrorModel', 'log10_equad_min', fallback=-9.0)
+        max_val = config.getfloat('MeasurementErrorModel', 'log10_equad_max', fallback=-5.0)
+        return stats.uniform(loc=min_val, scale=max_val - min_val).pdf(x)
+    else:
+        # Direct EQUAD ~ Uniform(min, max)
+        min_val = config.getfloat('MeasurementErrorModel', 'equad_min', fallback=1e-9)
+        max_val = config.getfloat('MeasurementErrorModel', 'equad_max', fallback=1e-5)
+        return stats.uniform(loc=min_val, scale=max_val - min_val).pdf(x)
+
+
 # Parse command line arguments
 parser = argparse.ArgumentParser(description='Create corner plot from NUMPYRO results')
 parser.add_argument('run_index', type=str, help='Run index (e.g., 016, 022, 023)')
@@ -170,6 +205,8 @@ parser.add_argument('num_pulsars', type=int, help='Number of pulsars to include'
 parser.add_argument('smooth_sigma', type=float, nargs='?', default=None, help='Smoothing parameter for histograms')
 parser.add_argument('--plot_log10_gamma_a', action='store_true', help='Include log10_gamma_a parameter in the plot')
 parser.add_argument('--plot_priors', action='store_true', help='Overlay prior distributions on 1D histograms')
+parser.add_argument('--efac', action='store_true', help='Include EFAC parameters for each pulsar')
+parser.add_argument('--equad', action='store_true', help='Include EQUAD parameters for each pulsar')
 
 args = parser.parse_args()
 run_index = args.run_index
@@ -177,6 +214,8 @@ num_pulsars = args.num_pulsars
 smooth_sigma = args.smooth_sigma
 plot_log10_gamma_a = args.plot_log10_gamma_a
 plot_priors = args.plot_priors
+plot_efac = args.efac
+plot_equad = args.equad
 
 # Load config file for prior plotting
 config = load_config(run_index) if plot_priors else None
@@ -226,6 +265,35 @@ for i, pulsar_idx in enumerate(pulsar_indices):
     labels.append(rf'$\log_{{10}} \sigma_{{p,{i}}}$')
     labels.append(rf'$\log_{{10}} \gamma_{{p,{i}}}$')
 
+# Extract EFAC parameters for selected pulsars if requested
+if plot_efac:
+    if 'efac' in posterior.data_vars:
+        for i, pulsar_idx in enumerate(pulsar_indices):
+            efac = posterior['efac'].isel(efac_dim_0=pulsar_idx).values.flatten()
+            samples_list.append(efac)
+            labels.append(rf'$\mathrm{{EFAC}}_{{p,{i}}}$')
+        print(f"Added EFAC parameters for {num_pulsars} pulsars")
+    else:
+        print(f"Warning: EFAC requested but not found in posterior. Skipping EFAC.")
+
+# Extract EQUAD parameters for selected pulsars if requested  
+if plot_equad:
+    # Prefer log10_equad if available, otherwise use equad
+    if 'log10_equad' in posterior.data_vars:
+        for i, pulsar_idx in enumerate(pulsar_indices):
+            log10_equad = posterior['log10_equad'].isel(log10_equad_dim_0=pulsar_idx).values.flatten()
+            samples_list.append(log10_equad)
+            labels.append(rf'$\log_{{10}} \mathrm{{EQUAD}}_{{p,{i}}}$')
+        print(f"Added log10_EQUAD parameters for {num_pulsars} pulsars")
+    elif 'equad' in posterior.data_vars:
+        for i, pulsar_idx in enumerate(pulsar_indices):
+            equad = posterior['equad'].isel(equad_dim_0=pulsar_idx).values.flatten()
+            samples_list.append(equad)
+            labels.append(rf'$\mathrm{{EQUAD}}_{{p,{i}}}$')
+        print(f"Added EQUAD parameters for {num_pulsars} pulsars")
+    else:
+        print(f"Warning: EQUAD requested but neither 'log10_equad' nor 'equad' found in posterior. Skipping EQUAD.")
+
 # Combine all parameters
 samples = np.column_stack(samples_list)
 
@@ -244,6 +312,19 @@ if plot_log10_gamma_a and 'log10_gamma_a' in posterior.data_vars:
 for i in range(num_pulsars):
     prior_ranges.append([-20.5, -11.5])  # log10_sigma_p - extended from [-18.0, -12.0]
     prior_ranges.append([-11.5, -5.5])   # log10_gamma_p - extended from [-11.0, -6.0]
+
+# Add EFAC ranges if plotting
+if plot_efac:
+    for i in range(num_pulsars):
+        prior_ranges.append([0.05, 3.5])  # EFAC - extended from [0.1, 3.0]
+
+# Add EQUAD ranges if plotting
+if plot_equad:
+    for i in range(num_pulsars):
+        if 'log10_equad' in posterior.data_vars:
+            prior_ranges.append([-9.5, -4.5])  # log10_EQUAD - extended from [-9.0, -5.0]
+        else:
+            prior_ranges.append([5e-10, 2e-5])  # EQUAD - extended from [1e-9, 1e-5]
 
 # Configure plot range and smoothing based on smooth_sigma parameter
 if smooth_sigma is not None:
@@ -298,20 +379,20 @@ if plot_priors and config is not None:
         x_min, x_max = ax.get_xlim()
         x_range = np.linspace(x_min, x_max, 100)
         
-        # Get prior PDF based on parameter type
+        # Get prior PDF based on parameter label
         prior_pdf = None
-        if i == 0:  # log10_ha
+        if 'log_{10} h_a' in param_name:  # log10_ha
             prior_pdf = get_log10_ha_prior_pdf(config, x_range)
-        elif plot_log10_gamma_a and 'log10_gamma_a' in posterior.data_vars and i == 1:  # log10_gamma_a
+        elif 'log_{10} \\gamma_a' in param_name:  # log10_gamma_a
             prior_pdf = get_log10_gamma_a_prior_pdf(config, x_range)
-        else:  # sigma_p or gamma_p parameters
-            param_index = i - 1 if not plot_log10_gamma_a or 'log10_gamma_a' not in posterior.data_vars else i - 2
-            param_index = param_index if param_index >= 0 else 0
-            
-            if param_index % 2 == 0:  # sigma_p
-                prior_pdf = get_log10_sigma_p_prior_pdf(config, x_range)
-            else:  # gamma_p
-                prior_pdf = get_log10_gamma_p_prior_pdf(config, x_range)
+        elif 'log_{10} \\sigma_' in param_name:  # log10_sigma_p
+            prior_pdf = get_log10_sigma_p_prior_pdf(config, x_range)
+        elif 'log_{10} \\gamma_' in param_name:  # log10_gamma_p
+            prior_pdf = get_log10_gamma_p_prior_pdf(config, x_range)
+        elif 'EFAC' in param_name and 'log_{10}' not in param_name:  # EFAC
+            prior_pdf = get_efac_prior_pdf(config, x_range)
+        elif 'EQUAD' in param_name:  # EQUAD or log10_EQUAD
+            prior_pdf = get_equad_prior_pdf(config, x_range)
         
         # Plot prior if available
         if prior_pdf is not None and np.any(prior_pdf > 0) and np.all(np.isfinite(prior_pdf)):
@@ -328,7 +409,9 @@ if plot_priors and config is not None:
 
 # Add title
 log10_gamma_a_text = " + log10_gamma_a" if plot_log10_gamma_a and 'log10_gamma_a' in posterior.data_vars else ""
-fig.suptitle(f'Run {run_index} Parameter Posterior Distributions\n(log10_ha{log10_gamma_a_text} + {num_pulsars} Pulsars)', 
+efac_text = " + EFAC" if plot_efac and 'efac' in posterior.data_vars else ""
+equad_text = " + EQUAD" if plot_equad and ('log10_equad' in posterior.data_vars or 'equad' in posterior.data_vars) else ""
+fig.suptitle(f'Run {run_index} Parameter Posterior Distributions\n(log10_ha{log10_gamma_a_text}{efac_text}{equad_text} + {num_pulsars} Pulsars)', 
              fontsize=16, y=0.98)
 
 # Ensure plots directory exists
@@ -338,8 +421,10 @@ os.makedirs(plots_dir, exist_ok=True)
 # Save the plot with appropriate suffix
 smooth_suffix = f"_smooth{smooth_sigma}" if smooth_sigma is not None else ""
 log10_gamma_a_suffix = "_log10_gamma_a" if plot_log10_gamma_a and 'log10_gamma_a' in posterior.data_vars else ""
+efac_suffix = "_efac" if plot_efac and 'efac' in posterior.data_vars else ""
+equad_suffix = "_equad" if plot_equad and ('log10_equad' in posterior.data_vars or 'equad' in posterior.data_vars) else ""
 priors_suffix = "_priors" if plot_priors else ""
-output_file = f"{plots_dir}/corner_plot_run_{run_index}_{num_pulsars}pulsars{smooth_suffix}{log10_gamma_a_suffix}{priors_suffix}.png"
+output_file = f"{plots_dir}/corner_plot_run_{run_index}_{num_pulsars}pulsars{smooth_suffix}{log10_gamma_a_suffix}{efac_suffix}{equad_suffix}{priors_suffix}.png"
 plt.savefig(output_file, dpi=300, bbox_inches='tight')
 print(f"Corner plot saved to: {output_file}")
 
