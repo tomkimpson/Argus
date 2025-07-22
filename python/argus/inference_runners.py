@@ -472,7 +472,11 @@ def run_numpyro_inference(config, KF, pulsar_data, output_dir, output_id, logger
     estimate_runtime(config, likelihood_time, logger, n_free_params)
     
     # Calculate and display gradients
-    calculate_and_display_gradients(KF, test_params, prior_specs, logger)
+    # Skip gradient analysis for spike-and-slab models to avoid JAXNS dependency issues
+    if prior_specs.get('savage_dickey_specs') is not None:
+        logger.info("Skipping gradient analysis for spike-and-slab model (uses NumPyro model directly)")
+    else:
+        calculate_and_display_gradients(KF, test_params, prior_specs, logger)
     
     # Run inference using the dispatcher function
     logger.info("Running NUMPYRO inference...")

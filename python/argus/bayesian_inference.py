@@ -67,7 +67,8 @@ def configurable_prior_model(
     log10_sigma_p_spec = None,
     efac_spec = None,
     equad_spec = None,
-    hierarchical_specs = None  # New parameter for hierarchical modeling specifications
+    hierarchical_specs = None,  # New parameter for hierarchical modeling specifications
+    savage_dickey_specs = None  # New parameter for Savage-Dickey spike-and-slab prior
 ):
     """Define prior distributions for the parameters.
     
@@ -79,14 +80,33 @@ def configurable_prior_model(
     If (e.g.) tfpd.Uniform(...), Prior will sample from it.
     """
     # GW parameters
-    # Handle reparameterization for log10_ha if needed
-    if log10_ha_transform_params is not None:
-        # Sample log10_ha_prime ~ N(0,1) and transform to log10_ha
-        log10_ha_prime = yield Prior(log10_ha_spec, name='log10_ha_prime')
-        log10_ha = log10_ha_transform_params['mean'] + log10_ha_prime * log10_ha_transform_params['std']
+    # Handle Savage-Dickey spike-and-slab prior for ha parameter
+    if savage_dickey_specs is not None:
+        # Spike-and-slab prior in linear ha space
+        spike_indicator = yield Prior(tfpd.Bernoulli(probs=savage_dickey_specs['spike_prob']), name='ha_spike_indicator')
+        
+        # Conditional sampling based on spike indicator
+        if spike_indicator == 1:
+            # Spike component: ha = 0 exactly
+            ha = 0.0
+            log10_ha = jnp.log10(jnp.maximum(ha, 1e-20))  # Avoid log(0), though ha=0 here
+        else:
+            # Slab component: use existing reparameterization for continuous part
+            if log10_ha_transform_params is not None:
+                log10_ha_prime = yield Prior(log10_ha_spec, name='log10_ha_prime')
+                log10_ha = log10_ha_transform_params['mean'] + log10_ha_prime * log10_ha_transform_params['std']
+            else:
+                log10_ha = yield Prior(log10_ha_spec, name='log10_ha')
+            ha = 10.0 ** log10_ha
     else:
-        # Standard sampling (fixed value or direct distribution)
-        log10_ha = yield Prior(log10_ha_spec, name='log10_ha')
+        # Original behavior: Handle reparameterization for log10_ha if needed
+        if log10_ha_transform_params is not None:
+            # Sample log10_ha_prime ~ N(0,1) and transform to log10_ha
+            log10_ha_prime = yield Prior(log10_ha_spec, name='log10_ha_prime')
+            log10_ha = log10_ha_transform_params['mean'] + log10_ha_prime * log10_ha_transform_params['std']
+        else:
+            # Standard sampling (fixed value or direct distribution)
+            log10_ha = yield Prior(log10_ha_spec, name='log10_ha')
     
     log10_gamma_a = yield Prior(log10_gamma_a_spec, name='log10_gamma_a')
     γa = 10.0 ** log10_gamma_a  # Transform from log10 space to linear space 
@@ -122,14 +142,20 @@ def configurable_prior_model(
     efac = yield Prior(efac_spec, name='efac')
     equad = yield Prior(equad_spec, name='equad')
 
-    return log10_ha, γa, log10_γp, log10_σp, efac, equad    
+    # For backward compatibility, compute ha if not already computed in spike-and-slab case
+    if savage_dickey_specs is None:
+        ha = 10.0 ** log10_ha
+    
+    return log10_ha, ha, γa, log10_γp, log10_σp, efac, equad    
 
 
 
 # JAXNS model
-def jaxns_log_likelihood(KF, log10_ha, log10_gamma_a, log10_γp, log10_σp, efac, equad):
+def jaxns_log_likelihood(KF, log10_ha, ha, log10_gamma_a, log10_γp, log10_σp, efac, equad):
     """Calculate log likelihood for JAXNS nested sampling."""
-    ha = 10.0 ** log10_ha
+    # ha is already provided, but compute from log10_ha for backward compatibility if needed
+    if ha is None:
+        ha = 10.0 ** log10_ha
     γa = 10.0 ** log10_gamma_a
     γp = 10.0 ** log10_γp
     σp = 10.0 ** log10_σp
@@ -185,6 +211,19 @@ def get_prior_model_specs(config, Npsr, sigma_p_array, gamma_p_array, efac_array
         The same logic applies to the pulsar red noise parameters.
     """
     print("Getting prior model specs...")
+    
+    # Check for spike-and-slab method (backward compatibility: also accept savage_dickey_method)
+    spike_slab_method = config.getboolean('PriorModel', 'spike_slab_method', fallback=False) or \
+                       config.getboolean('PriorModel', 'savage_dickey_method', fallback=False)
+    savage_dickey_specs = None
+    
+    if spike_slab_method:
+        print("Spike-and-slab method enabled - using spike-and-slab prior for ha")
+        savage_dickey_specs = {
+            'spike_prob': config.getfloat('PriorModel', 'spike_prob', fallback=0.5)
+        }
+        print(f"Spike probability (ha=0): {savage_dickey_specs['spike_prob']}")
+    
     # Helper function to create prior spec based on fixed/sampled setting
     def get_prior_spec(param_name):
         is_fixed = config.getboolean('PriorModel', f'{param_name}_fixed')
@@ -394,7 +433,8 @@ def get_prior_model_specs(config, Npsr, sigma_p_array, gamma_p_array, efac_array
         'log10_sigma_p_spec': log10_sigma_p_spec,
         'efac_spec': efac_spec,
         'equad_spec': equad_spec,
-        'hierarchical_specs': hierarchical_specs
+        'hierarchical_specs': hierarchical_specs,
+        'savage_dickey_specs': savage_dickey_specs
     }
 
 
@@ -479,6 +519,7 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
     
     This function defines the NumPyro probabilistic model using standardized
     parameter transformations for better NUTS sampling in high-dimensional spaces.
+    Supports Savage-Dickey spike-and-slab priors for ha parameter.
     
     Parameters
     ----------
@@ -491,24 +532,56 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
     """
     # Sample/determine parameters based on prior specifications
     # GW parameters
-    # Handle reparameterization for log10_ha if needed
-    if prior_specs['log10_ha_transform_params'] is not None:
-        # Sample log10_ha_prime ~ N(0,1) and transform to log10_ha
-        transform_params = prior_specs['log10_ha_transform_params']
-        log10_ha_prime = numpyro.sample("log10_ha_prime", dist.Normal(0.0, 1.0))
-        log10_ha = numpyro.deterministic("log10_ha", 
-            transform_params['mean'] + log10_ha_prime * transform_params['std'])
-    elif isinstance(prior_specs['log10_ha_spec'], tfpd.Distribution):
-        # Check if it's a uniform distribution (backward compatibility)
-        if hasattr(prior_specs['log10_ha_spec'], 'low'):
-            log10_ha = numpyro.sample("log10_ha", 
-                dist.Uniform(prior_specs['log10_ha_spec'].low, prior_specs['log10_ha_spec'].high))
+    
+    # Handle Savage-Dickey spike-and-slab prior for ha parameter
+    savage_dickey_specs = prior_specs.get('savage_dickey_specs')
+    if savage_dickey_specs is not None:
+        # Spike-and-slab prior in linear ha space
+        # With funsor installed, NumPyro will automatically handle discrete variables optimally
+        spike_indicator = numpyro.sample("ha_spike_indicator", 
+                                        dist.Bernoulli(probs=savage_dickey_specs['spike_prob']))
+        
+        # Sample continuous component regardless (NUTS needs continuous variables)
+        if prior_specs['log10_ha_transform_params'] is not None:
+            transform_params = prior_specs['log10_ha_transform_params']
+            log10_ha_prime = numpyro.sample("log10_ha_prime", dist.Normal(0.0, 1.0))
+            log10_ha_continuous = transform_params['mean'] + log10_ha_prime * transform_params['std']
+        elif isinstance(prior_specs['log10_ha_spec'], tfpd.Distribution):
+            if hasattr(prior_specs['log10_ha_spec'], 'low'):
+                log10_ha_continuous = numpyro.sample("log10_ha_continuous", 
+                    dist.Uniform(prior_specs['log10_ha_spec'].low, prior_specs['log10_ha_spec'].high))
+            else:
+                raise NotImplementedError(f"Distribution type {type(prior_specs['log10_ha_spec'])} not implemented")
         else:
-            # Other distribution types
-            raise NotImplementedError(f"Distribution type {type(prior_specs['log10_ha_spec'])} not implemented")
+            log10_ha_continuous = prior_specs['log10_ha_spec']
+        
+        # Select between spike (ha=0) and slab (ha from continuous component) 
+        ha = numpyro.deterministic("ha", 
+                                  jnp.where(spike_indicator == 1, 0.0, 10.0 ** log10_ha_continuous))
+        log10_ha = numpyro.deterministic("log10_ha", 
+                                        jnp.where(spike_indicator == 1, jnp.log10(1e-20), log10_ha_continuous))
     else:
-        # Fixed value
-        log10_ha = numpyro.deterministic("log10_ha", prior_specs['log10_ha_spec'])
+        # Original behavior: Handle reparameterization for log10_ha if needed
+        if prior_specs['log10_ha_transform_params'] is not None:
+            # Sample log10_ha_prime ~ N(0,1) and transform to log10_ha
+            transform_params = prior_specs['log10_ha_transform_params']
+            log10_ha_prime = numpyro.sample("log10_ha_prime", dist.Normal(0.0, 1.0))
+            log10_ha = numpyro.deterministic("log10_ha", 
+                transform_params['mean'] + log10_ha_prime * transform_params['std'])
+            ha = numpyro.deterministic("ha", 10.0 ** log10_ha)
+        elif isinstance(prior_specs['log10_ha_spec'], tfpd.Distribution):
+            # Check if it's a uniform distribution (backward compatibility)
+            if hasattr(prior_specs['log10_ha_spec'], 'low'):
+                log10_ha = numpyro.sample("log10_ha", 
+                    dist.Uniform(prior_specs['log10_ha_spec'].low, prior_specs['log10_ha_spec'].high))
+                ha = numpyro.deterministic("ha", 10.0 ** log10_ha)
+            else:
+                # Other distribution types
+                raise NotImplementedError(f"Distribution type {type(prior_specs['log10_ha_spec'])} not implemented")
+        else:
+            # Fixed value
+            log10_ha = numpyro.deterministic("log10_ha", prior_specs['log10_ha_spec'])
+            ha = numpyro.deterministic("ha", 10.0 ** log10_ha)
     
     if isinstance(prior_specs['log10_gamma_a_spec'], tfpd.Distribution):
         log10_gamma_a = numpyro.sample("log10_gamma_a", 
@@ -664,7 +737,7 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
         equad = numpyro.deterministic("equad", prior_specs['equad_spec'])
     
     # Calculate log likelihood using the same function as JAXNS
-    log_likelihood = jaxns_log_likelihood(kalman_filter, log10_ha, log10_gamma_a, log10_γp, log10_σp, efac, equad)
+    log_likelihood = jaxns_log_likelihood(kalman_filter, log10_ha, ha, log10_gamma_a, log10_γp, log10_σp, efac, equad)
     
     # Add likelihood to the model
     numpyro.factor("likelihood", log_likelihood)

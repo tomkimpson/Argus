@@ -1,5 +1,7 @@
 """Workflow orchestration and high-level functions for the argus package."""
 
+import os
+import json
 import logging
 
 from argus import data_loader, jax_kalman_filter, bayesian_inference, utils
@@ -81,14 +83,15 @@ def setup_jaxns_model(config, KF, pulsar_data):
     print("Setting up the prior model...")
     prior_model = lambda: bayesian_inference.configurable_prior_model(
         Npsr=Npsr,
-        **{k: v for k, v in prior_specs.items() if k != 'hierarchical_specs'},
-        hierarchical_specs=prior_specs.get('hierarchical_specs')
+        **{k: v for k, v in prior_specs.items() if k not in ['hierarchical_specs', 'savage_dickey_specs']},
+        hierarchical_specs=prior_specs.get('hierarchical_specs'),
+        savage_dickey_specs=prior_specs.get('savage_dickey_specs')
     )
 
     # Set up the log likelihood function
     print("Setting up the log likelihood function...")
-    loglik_fn = lambda log10_ha, γa, log10_γp, log10_σp, efac, equad: \
-        bayesian_inference.jaxns_log_likelihood(KF, log10_ha, γa, log10_γp, log10_σp, efac, equad)
+    loglik_fn = lambda log10_ha, ha, γa, log10_γp, log10_σp, efac, equad: \
+        bayesian_inference.jaxns_log_likelihood(KF, log10_ha, ha, γa, log10_γp, log10_σp, efac, equad)
     
     print("Setting up the jax model...")
     print("The prior model is:")
@@ -161,6 +164,90 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     return output_dir
 
 
+def run_spike_slab_inference(config_path, timestamp=None):
+    """Run spike-and-slab Bayes factor analysis using NUTS with spike-and-slab prior.
+    
+    Args:
+        config_path (str): Path to configuration file
+        timestamp (str): Optional timestamp to use for output directory
+        
+    Returns
+    -------
+        dict: Savage-Dickey Bayes factor results
+    """
+    # Load configuration
+    config = utils.load_config(config_path)
+    
+    # Verify this is configured for spike-and-slab (backward compatibility: also accept savage_dickey_method)
+    spike_slab_method = config.getboolean('PriorModel', 'spike_slab_method', fallback=False) or \
+                       config.getboolean('PriorModel', 'savage_dickey_method', fallback=False)
+    if not spike_slab_method:
+        raise ValueError("Configuration must have spike_slab_method=true (or savage_dickey_method=true) for spike-and-slab analysis")
+    
+    # Verify using NumPyro/NUTS
+    method = config.get('Inference', 'method', fallback='jaxns').lower()
+    if method != 'numpyro':
+        raise ValueError("Spike-and-slab method requires NUTS inference (method=numpyro)")
+    
+    # Run inference with spike-and-slab prior
+    print("\nRunning spike-and-slab inference with NUTS...")
+    output_dir = run_inference(config_path=config_path, use_gw=True, timestamp=timestamp)
+    
+    # Load MCMC results
+    logger = io_manager.get_argus_logger()
+    print("\nCalculating spike-and-slab Bayes factor...")
+    
+    # Find and load MCMC results file
+    import glob
+    mcmc_files = glob.glob(os.path.join(output_dir, '*_inference_data.pkl'))
+    if not mcmc_files:
+        logger.error(f"No MCMC results found in {output_dir}")
+        return None
+    
+    mcmc_file = mcmc_files[0]
+    logger.info(f"Loading MCMC results from: {mcmc_file}")
+    
+    import pickle
+    with open(mcmc_file, 'rb') as f:
+        inference_data = pickle.load(f)
+    
+    # Extract samples
+    mcmc_samples = {}
+    posterior_samples = inference_data.posterior
+    
+    # Get samples for each chain and flatten
+    for var_name in ['ha', 'ha_spike_indicator', 'log10_ha']:
+        if var_name in posterior_samples.data_vars:
+            samples = posterior_samples[var_name].values
+            # Flatten across chains and samples
+            mcmc_samples[var_name] = samples.flatten()
+        else:
+            logger.warning(f"Variable {var_name} not found in posterior samples")
+    
+    # Get prior configuration
+    prior_config = {
+        'spike_prob': config.getfloat('PriorModel', 'spike_prob', fallback=0.5)
+    }
+    
+    # Calculate spike-and-slab Bayes factor
+    from argus.analysis import calculate_spike_slab_bayes_factor
+    bf_results = calculate_spike_slab_bayes_factor(mcmc_samples, prior_config, logger)
+    
+    if bf_results is not None:
+        # Save results
+        bf_file = os.path.join(output_dir, 'spike_slab_bayes_factor_results.json')
+        with open(bf_file, 'w') as f:
+            json.dump(bf_results, f, indent=2)
+        
+        logger.info(f"Spike-and-slab Bayes factor results saved to: {bf_file}")
+        
+        # Interpret results
+        from argus.analysis import interpret_bayes_factor
+        interpretation = interpret_bayes_factor(bf_results, logger)
+        
+    return bf_results
+
+
 def run_model_comparison(config_path, timestamp=None):
     """Run both GW and no-GW models and compare them.
     
@@ -175,7 +262,16 @@ def run_model_comparison(config_path, timestamp=None):
     # Load config to check if comparison is appropriate
     config = utils.load_config(config_path)
     method = config.get('Inference', 'method', fallback='jaxns').lower()
+    spike_slab_method = config.getboolean('PriorModel', 'spike_slab_method', fallback=False) or \
+                       config.getboolean('PriorModel', 'savage_dickey_method', fallback=False)
     
+    # Check if spike-and-slab method is requested
+    if spike_slab_method:
+        print("Spike-and-slab method detected - using spike-and-slab prior approach")
+        bf_results = run_spike_slab_inference(config_path, timestamp)
+        return None, None, bf_results  # Different return format for Savage-Dickey
+    
+    # Original nested sampling approach
     # Run inference with GW
     print("\nRunning inference with GW model...")
     gw_output_dir = run_inference(config_path=config_path, use_gw=True, timestamp=timestamp)

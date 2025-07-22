@@ -1,0 +1,417 @@
+Removed conflicting path: /fred/oz022/tkimpson/clean/Argus/python
+INFO:2025-07-22 18:14:21,654:jax._src.xla_bridge:925: Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
+INFO:jax._src.xla_bridge:Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
+INFO:2025-07-22 18:14:21,655:jax._src.xla_bridge:925: Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+INFO:jax._src.xla_bridge:Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
+=== JAX VERSION INFO ===
+JAX version: 0.5.3
+
+=== DEVICE INFO ===
+Default device: gpu
+You are working with the development version of the code. Good job.
+INFO:root:Found GPU devices: [CudaDevice(id=0), CudaDevice(id=1)]
+Spike-and-slab method detected - using spike-and-slab prior approach
+
+Running spike-and-slab inference with NUTS...
+Starting Bayesian inference with GW model...
+2025-07-22 18:14:24,822 - INFO - Logging to file: /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/spike_slab_test_001/logfiles/nested_sampling_test_output_20250722_181424.txt
+2025-07-22 18:14:24,823 - INFO - Centralized logging initialized
+2025-07-22 18:14:24,845 - INFO - Copied config file to /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/spike_slab_test_001/savage_dickey_test_001.ini
+2025-07-22 18:14:24,845 - INFO - Loading and processing data...
+Getting the data. Loading 32 pulsars from ../../data/IPTA_MockDataChallenge2/dataset_2b/
+[tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
+[preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J0030+0451, F0: 205.53069593846152, # TOAs: 183
+[tempo2Util.C:401] Warning: [DUP1] duplicated warnings have been suppressed.
+[preProcess.C:158] Warning: PSR J0034-0534 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0034-0534. Setting value to 1 with 20% uncertainty.
+PSR: J0034-0534, F0: 532.7134293952242, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0218+4232 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0218+4232. Setting value to 1 with 20% uncertainty.
+PSR: J0218+4232, F0: 430.46105454575843, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0437-4715 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J0437-4715, F0: 173.6879457375193, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0613-0200 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J0613-0200, F0: 326.60056202349193, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0621+1002 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0621+1002. Setting value to 1 with 20% uncertainty.
+PSR: J0621+1002, F0: 34.65740662142043, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0711-6830 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J0711-6830, F0: 182.1172346472276, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0751+1807 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0751+1807. Setting value to 1 with 20% uncertainty.
+PSR: J0751+1807, F0: 287.4578539950941, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0900-3144 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0900-3144. Setting value to 1 with 20% uncertainty.
+PSR: J0900-3144, F0: 90.0118419193632, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1012+5307 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1012+5307, F0: 190.26783444155498, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1022+1001 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1022+1001, F0: 60.779447956696714, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1024-0719 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1024-0719, F0: 193.71568344854623, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1045-4509 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1045-4509, F0: 133.79314954119278, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1455-3330 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1455-3330, F0: 125.20024324499536, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1600-3053 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1600-3053, F0: 277.9377069896204, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1603-7202 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1603-7202, F0: 67.37658112877924, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1614-2230 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J1614-2230. Setting value to 1 with 20% uncertainty.
+PSR: J1614-2230, F0: 317.37893706872126, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1643-1224 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1643-1224, F0: 216.37333714263485, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1713+0747 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1713+0747, F0: 218.81184041715784, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1730-2304 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1730-2304, F0: 123.1102871473812, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1744-1134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1744-1134, F0: 245.42611968980754, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1857+0943 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1857+0943, F0: 186.4940783779791, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1909-3744 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1909-3744, F0: 339.31568721848686, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1918-0642 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1918-0642, F0: 130.78951412337267, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1939+2134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1939+2134, F0: 641.9282245822469, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1944+0907 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J1944+0907. Setting value to 1 with 20% uncertainty.
+PSR: J1944+0907, F0: 192.85651792018598, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2010-1323 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J2010-1323. Setting value to 1 with 20% uncertainty.
+PSR: J2010-1323, F0: 191.45090909263828, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2124-3358 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J2124-3358, F0: 202.7938937460303, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2129-5721 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J2129-5721, F0: 268.3592272938787, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2145-0750 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J2145-0750, F0: 62.29588783738885, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2229+2643 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J2229+2643. Setting value to 1 with 20% uncertainty.
+PSR: J2229+2643, F0: 335.81620819685526, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2317+1439 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J2317+1439, F0: 290.2546036648635, # TOAs: 183
+2025-07-22 18:14:30,815 - INFO - Initializing Kalman filter...
+2025-07-22 18:14:30,815 - INFO - Initializing JaxKalmanFilter...
+2025-07-22 18:14:31,113 - INFO - Number of pulsars: 32
+2025-07-22 18:14:31,114 - INFO - Pulsar frequencies: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
+  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
+  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
+  67.37658113 317.37893707 216.37333714 218.81184042 123.11028715
+ 245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
+ 192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
+ 335.8162082  290.25460366]
+2025-07-22 18:14:31,114 - INFO - Total number of observations: 183
+2025-07-22 18:14:31,114 - INFO - Starting dt (days): 29.875630165338517
+2025-07-22 18:14:31,114 - INFO - Ending dt (days): 30.060462559770656
+2025-07-22 18:14:31,114 - INFO - The errors at t=1 are: [2.697680e-06 9.700560e-06 1.613116e-05 3.307200e-07 4.558820e-06
+ 2.141629e-05 5.225050e-06 4.722880e-06 4.797490e-06 5.783810e-06
+ 2.626620e-06 5.090810e-06 6.527710e-06 1.173289e-05 8.300700e-07
+ 3.826940e-06 2.880370e-06 2.054900e-06 1.612610e-06 3.759770e-06
+ 1.103370e-06 2.220800e-06 4.024300e-07 5.434910e-06 1.372800e-07
+ 7.031630e-06 4.653570e-06 5.474680e-06 3.388130e-06 4.303360e-06
+ 1.993229e-05 2.291670e-06]
+2025-07-22 18:14:31,192 - INFO - === Likelihood Performance Test ===
+2025-07-22 18:14:31,192 - INFO - Testing likelihood evaluation with known parameter values...
+2025-07-22 18:14:31,243 - INFO - Test parameters: γa=1e-09, ha=1e-15
+2025-07-22 18:14:31,243 - INFO - Number of pulsars: 32
+2025-07-22 18:14:31,243 - INFO - Performing for the first time a likelihood evaluation...
+2025-07-22 18:14:33,817 - INFO - Performing timed for the second time a likelihood evaluation...
+2025-07-22 18:14:33,893 - INFO - Likelihood evaluation completed in 2.5738 seconds the first time
+2025-07-22 18:14:33,893 - INFO - Likelihood evaluation completed in 0.0755 seconds the second time
+2025-07-22 18:14:33,911 - INFO - Log likelihood value: 55963.87289660473
+2025-07-22 18:14:33,911 - INFO - === End Likelihood Performance Test ===
+Getting prior model specs...
+Spike-and-slab method enabled - using spike-and-slab prior for ha
+Spike probability (ha=0): 0.5
+Using legacy psr_noise_fixed: True
+Using injected gamma_p values (legacy mode)
+Using injected sigma_p values (legacy mode)
+2025-07-22 18:14:33,959 - INFO - 
+============================================================
+2025-07-22 18:14:33,959 - INFO - PRIOR SPECIFICATIONS SUMMARY
+2025-07-22 18:14:33,959 - INFO - ============================================================
+2025-07-22 18:14:33,959 - INFO - 
+--- Gravitational Wave Background Parameters ---
+2025-07-22 18:14:33,959 - INFO - log10(h_a): REPARAMETERIZED for better NUTS sampling
+2025-07-22 18:14:33,959 - INFO -   - Sampling: log10_ha_prime ~ N(0, 1)
+2025-07-22 18:14:33,960 - INFO -   - Transform: log10_ha = -16.00 + log10_ha_prime * 0.667
+2025-07-22 18:14:33,960 - INFO -   - Equivalent to: Uniform(-18.0, -14.0)
+2025-07-22 18:14:33,961 - INFO - log10(γ_a): FIXED at -9.0
+2025-07-22 18:14:33,961 - INFO - 
+--- Pulsar Red Noise Parameters (32 pulsars) ---
+2025-07-22 18:14:34,043 - INFO - log10(γ_p): FIXED at individual values (range: -10.93 to -6.00)
+2025-07-22 18:14:34,043 - INFO - log10(σ_p): FIXED at individual values (range: -17.90 to -12.60)
+2025-07-22 18:14:34,043 - INFO - 
+--- Measurement Noise Parameters (32 pulsars) ---
+2025-07-22 18:14:34,044 - INFO - EFAC: FIXED at individual values (range: 0.903 to 2.206)
+2025-07-22 18:14:34,044 - INFO - EQUAD: FIXED at individual values (range: 2.78e-08 to 5.69e-07)
+2025-07-22 18:14:34,044 - INFO - ============================================================
+2025-07-22 18:14:34,044 - INFO - Performing likelihood performance test for runtime estimation...
+2025-07-22 18:14:34,045 - INFO - === Likelihood Performance Test ===
+2025-07-22 18:14:34,045 - INFO - Testing likelihood evaluation with known parameter values...
+2025-07-22 18:14:34,049 - INFO - Test parameters: γa=1e-09, ha=1e-15
+2025-07-22 18:14:34,049 - INFO - Number of pulsars: 32
+2025-07-22 18:14:34,049 - INFO - Performing for the first time a likelihood evaluation...
+2025-07-22 18:14:34,119 - INFO - Performing timed for the second time a likelihood evaluation...
+2025-07-22 18:14:34,189 - INFO - Likelihood evaluation completed in 0.0702 seconds the first time
+2025-07-22 18:14:34,189 - INFO - Likelihood evaluation completed in 0.0700 seconds the second time
+2025-07-22 18:14:34,189 - INFO - Log likelihood value: 55963.87289660473
+2025-07-22 18:14:34,190 - INFO - === End Likelihood Performance Test ===
+2025-07-22 18:14:34,260 - INFO - 
+============================================================
+2025-07-22 18:14:34,260 - INFO - NUTS CONFIGURATION
+2025-07-22 18:14:34,260 - INFO - ============================================================
+2025-07-22 18:14:34,260 - INFO - NUTS Configuration:
+2025-07-22 18:14:34,260 - INFO -   - Number of samples: 4000
+2025-07-22 18:14:34,260 - INFO -   - Warmup samples: 2000
+2025-07-22 18:14:34,260 - INFO -   - Number of chains: 2
+2025-07-22 18:14:34,260 - INFO -   - Target accept prob: 0.8
+2025-07-22 18:14:34,260 - INFO -   - Max tree depth: 10
+2025-07-22 18:14:34,260 - INFO -   - Free parameters: 1
+2025-07-22 18:14:34,260 - INFO - 
+2025-07-22 18:14:34,261 - INFO - Likelihood Performance:
+2025-07-22 18:14:34,261 - INFO -   - Single likelihood evaluation: 0.0699 seconds
+2025-07-22 18:14:34,261 - INFO - 
+2025-07-22 18:14:34,261 - INFO - Note: Runtime estimation disabled for hierarchical models.
+2025-07-22 18:14:34,261 - INFO -       NUTS trajectory lengths vary significantly with model complexity.
+2025-07-22 18:14:34,261 - INFO -       Monitor progress through the sampling progress bar.
+2025-07-22 18:14:34,261 - INFO - ============================================================
+2025-07-22 18:14:34,261 - INFO - Skipping gradient analysis for spike-and-slab model (uses NumPyro model directly)
+2025-07-22 18:14:34,261 - INFO - Running NUMPYRO inference...
+Getting prior model specs...
+Spike-and-slab method enabled - using spike-and-slab prior for ha
+Spike probability (ha=0): 0.5
+Using legacy psr_noise_fixed: True
+Using injected gamma_p values (legacy mode)
+Using injected sigma_p values (legacy mode)
+Running NumPyro NUTS inference with 32 pulsars...
+NUTS parameters: 4000 samples, 2000 warmup, 2 chains
+Target accept prob: 0.8 (optimized for high-dimensional sampling)
+Dense mass matrix: True
+Max tree depth: 10
+Total free parameters: 1
+/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/jax/_src/linear_util.py:388: FutureWarning: Some algorithms will automatically enumerate the discrete latent site ha_spike_indicator of your model. In the future, enumerated sites need to be marked with `infer={'enumerate': 'parallel'}`.
+  ans = _fun(*args, **kwargs)
+Traceback (most recent call last):
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/jax/_src/lax/lax.py", line 218, in _broadcast_shapes_uncached
+    return _try_broadcast_shapes(*rank_promoted_shapes, name='broadcast_shapes')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/jax/_src/lax/lax.py", line 135, in _try_broadcast_shapes
+    raise TypeError(f'{name} got incompatible shapes for broadcasting: '
+TypeError: broadcast_shapes got incompatible shapes for broadcasting: (1, 2), (32, 32).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/jax/_src/lax/lax.py", line 196, in broadcast_shapes
+    return _broadcast_shapes_cached(*shapes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/jax/_src/util.py", line 337, in wrapper
+    return cached(config.trace_context() if trace_context_in_key else _ignore(),
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/jax/_src/util.py", line 331, in cached
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/jax/_src/lax/lax.py", line 202, in _broadcast_shapes_cached
+    return _broadcast_shapes_uncached(*shapes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/jax/_src/lax/lax.py", line 221, in _broadcast_shapes_uncached
+    raise ValueError(f"Incompatible shapes for broadcasting: shapes={list(shapes)}") from err
+ValueError: Incompatible shapes for broadcasting: shapes=[(2,), (32, 32)]
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/jax/_src/lax/lax.py", line 218, in _broadcast_shapes_uncached
+    return _try_broadcast_shapes(*rank_promoted_shapes, name='broadcast_shapes')
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/jax/_src/lax/lax.py", line 135, in _try_broadcast_shapes
+    raise TypeError(f'{name} got incompatible shapes for broadcasting: '
+TypeError: broadcast_shapes got incompatible shapes for broadcasting: (1, 2), (32, 32).
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/main.py", line 60, in <module>
+    main()
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/main.py", line 47, in main
+    gw_output_dir, no_gw_output_dir, bayes_factor_results = workflow.run_model_comparison(
+                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/workflow.py", line 271, in run_model_comparison
+    bf_results = run_spike_slab_inference(config_path, timestamp)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/workflow.py", line 194, in run_spike_slab_inference
+    output_dir = run_inference(config_path=config_path, use_gw=True, timestamp=timestamp)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/workflow.py", line 157, in run_inference
+    inference_runners.run_numpyro_inference(
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/inference_runners.py", line 483, in run_numpyro_inference
+    results = bayesian_inference.run_inference(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/bayesian_inference.py", line 1108, in run_inference
+    return run_numpyro_inference(
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/bayesian_inference.py", line 917, in run_numpyro_inference
+    sampler.run(rng_key)
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/mcmc.py", line 708, in run
+    states, last_state = pmap(partial_map_fn)(map_args)
+                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/mcmc.py", line 465, in _single_chain_mcmc
+    new_init_state = self.sampler.init(
+                     ^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/hmc.py", line 751, in init
+    init_params = self._init_state(
+                  ^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/hmc.py", line 695, in _init_state
+    ) = initialize_model(
+        ^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/util.py", line 750, in initialize_model
+    (init_params, pe, grad), is_valid = find_valid_initial_params(
+                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/util.py", line 472, in find_valid_initial_params
+    (init_params, pe, z_grad), is_valid = _find_valid_params(
+                                          ^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/util.py", line 465, in _find_valid_params
+    _, _, (init_params, pe, z_grad), is_valid = while_loop(
+                                                ^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/util.py", line 141, in while_loop
+    return lax.while_loop(cond_fun, body_fun, init_val)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/util.py", line 442, in body_fn
+    pe, z_grad = value_and_grad(potential_fn)(params)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/infer/util.py", line 324, in potential_energy
+    log_joint, model_trace = log_density_(
+                             ^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/contrib/funsor/infer_util.py", line 322, in log_density
+    result, model_trace, _ = _enum_log_density(
+                             ^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/contrib/funsor/infer_util.py", line 201, in _enum_log_density
+    model_trace = packed_trace(model).get_trace(*model_args, **model_kwargs)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/handlers.py", line 191, in get_trace
+    self(*args, **kwargs)
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/primitives.py", line 121, in __call__
+    return self.fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/primitives.py", line 121, in __call__
+    return self.fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/numpyro/primitives.py", line 121, in __call__
+    return self.fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  [Previous line repeated 5 more times]
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/bayesian_inference.py", line 902, in <lambda>
+    lambda: numpyro_model(kalman_filter, prior_specs, n_pulsars),
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/bayesian_inference.py", line 740, in numpyro_model
+    log_likelihood = jaxns_log_likelihood(kalman_filter, log10_ha, ha, log10_gamma_a, log10_γp, log10_σp, efac, equad)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/bayesian_inference.py", line 173, in jaxns_log_likelihood
+    return KF.get_likelihood(params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/jax_kalman_filter.py", line 438, in get_likelihood
+    return _run_kalman_filter_scan(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/contextlib.py", line 81, in inner
+    return func(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/jax_kalman_filter.py", line 273, in _run_kalman_filter_scan
+    σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/jax_kalman_filter.py", line 171, in _compute_sigma_matrix
+    return (h2 / 12) * γa * Γ
+           ~~~~~~~~~~~~~~~^~~
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/jax/_src/numpy/array_methods.py", line 1060, in op
+    return getattr(self.aval, f"_{name}")(self, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/jax/_src/numpy/array_methods.py", line 579, in deferring_binary_op
+    return binary_op(*args)
+           ^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/jax/_src/numpy/ufunc_api.py", line 180, in __call__
+    return call(*args)
+           ^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/jax/_src/numpy/ufuncs.py", line 1255, in multiply
+    x, y = promote_args("multiply", x, y)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/jax/_src/numpy/util.py", line 227, in promote_args
+    return promote_shapes(fun_name, *promote_dtypes(*args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/jax/_src/numpy/util.py", line 63, in promote_shapes
+    result_rank = len(lax.broadcast_shapes(*shapes))
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Incompatible shapes for broadcasting: shapes=[(2,), (32, 32)]
+--------------------
+For simplicity, JAX has removed its internal frames from the traceback of the following exception. Set JAX_TRACEBACK_FILTERING=off to include these.
+
+real	0m19.311s
+user	0m11.745s
+sys	0m4.258s
