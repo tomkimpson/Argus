@@ -365,10 +365,26 @@ def get_prior_model_specs(config, Npsr, sigma_p_array, gamma_p_array, efac_array
             low=jnp.full_like(efac_array, config.getfloat('PriorModel', 'efac_min')),
             high=jnp.full_like(efac_array, config.getfloat('PriorModel', 'efac_max'))
         )
-        equad_spec = tfpd.Uniform(
-            low=jnp.full_like(equad_array, config.getfloat('PriorModel', 'equad_min')),
-            high=jnp.full_like(equad_array, config.getfloat('PriorModel', 'equad_max'))
-        )
+        
+        # Check if we should use log10 parameterization for EQUAD
+        try:
+            equad_log10_prior = config.getboolean('PriorModel', 'equad_log10_prior')
+        except:
+            equad_log10_prior = False  # Default to direct EQUAD for backward compatibility
+            
+        if equad_log10_prior:
+            # Use log10(EQUAD) uniform prior - transformation handled in numpyro model
+            log10_equad_spec = tfpd.Uniform(
+                low=jnp.full_like(equad_array, config.getfloat('PriorModel', 'log10_equad_min')),
+                high=jnp.full_like(equad_array, config.getfloat('PriorModel', 'log10_equad_max'))
+            )
+            equad_spec = {'log10_equad_spec': log10_equad_spec, 'use_log10': True}
+        else:
+            # Direct EQUAD uniform prior (backward compatibility)
+            equad_spec = tfpd.Uniform(
+                low=jnp.full_like(equad_array, config.getfloat('PriorModel', 'equad_min')),
+                high=jnp.full_like(equad_array, config.getfloat('PriorModel', 'equad_max'))
+            )
 
     return {
         'log10_ha_spec': log10_ha_spec,
@@ -624,8 +640,14 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
     else:
         efac = numpyro.deterministic("efac", prior_specs['efac_spec'])
     
-    if isinstance(prior_specs['equad_spec'], tfpd.Distribution):
-        # Use improved standardized parameterization: sample z ~ N(0,1) and transform
+    if isinstance(prior_specs['equad_spec'], dict) and prior_specs['equad_spec'].get('use_log10', False):
+        # log10(EQUAD) parameterization - follow same pattern as log10_gamma_a
+        log10_equad_spec = prior_specs['equad_spec']['log10_equad_spec']
+        log10_equad = numpyro.sample("log10_equad", 
+            dist.Uniform(log10_equad_spec.low, log10_equad_spec.high))
+        equad = numpyro.deterministic("equad", 10.0 ** log10_equad)
+    elif isinstance(prior_specs['equad_spec'], tfpd.Distribution):
+        # Regular uniform distribution - use improved standardized parameterization
         low = prior_specs['equad_spec'].low
         high = prior_specs['equad_spec'].high
         
@@ -954,7 +976,14 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
     
     # EQUAD parameter
     equad_spec = prior_specs['equad_spec']
-    if isinstance(equad_spec, tfpd.Distribution):
+    if isinstance(equad_spec, dict) and equad_spec.get('use_log10', False):
+        # log10(EQUAD) parameterization
+        log10_equad_spec = equad_spec['log10_equad_spec']
+        log10_low = float(log10_equad_spec.low[0])
+        log10_high = float(log10_equad_spec.high[0])
+        log_or_print(f"EQUAD: log10(EQUAD) ~ Uniform({log10_low:.1f}, {log10_high:.1f}) for each pulsar")
+    elif isinstance(equad_spec, tfpd.Distribution):
+        # Regular uniform distribution
         log_or_print(f"EQUAD: Uniform({float(equad_spec.low[0]):.2e}, {float(equad_spec.high[0]):.2e}) for each pulsar")
     elif equad_spec is not None:
         if hasattr(equad_spec, '__len__') and len(equad_spec) > 1:
