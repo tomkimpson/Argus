@@ -9,7 +9,7 @@ This script supports:
 - Handling of complex prior structures (hierarchical, log-ratio parameterization)
 - Various smoothing options for better visualization
 
-Usage: python create_corner_plot.py <run_index> <num_pulsars> [smooth_sigma] [--plot_log10_gamma_a] [--plot_priors] [--efac] [--equad]
+Usage: python create_corner_plot.py <run_index> <num_pulsars> [smooth_sigma] [--plot_log10_gamma_a] [--plot_priors] [--efac] [--equad] [--plot_injections]
 
 Examples:
   python create_corner_plot.py 016 2                                # Basic plot
@@ -18,6 +18,7 @@ Examples:
   python create_corner_plot.py 016 2 1.0 --plot_priors              # With prior overlays
   python create_corner_plot.py 028 2 --efac --equad                 # Include EFAC and EQUAD
   python create_corner_plot.py 028 2 --efac --equad --plot_priors   # EFAC/EQUAD with priors
+  python create_corner_plot.py 028 2 --efac --equad --plot_injections # EFAC/EQUAD with injections
   python create_corner_plot.py 016 2 1.0 --plot_log10_gamma_a --plot_priors # Full featured
 
 Arguments:
@@ -28,6 +29,7 @@ Arguments:
   --plot_priors : Overlay prior distributions on 1D histograms
   --efac        : Include EFAC parameters for each pulsar
   --equad       : Include EQUAD parameters for each pulsar
+  --plot_injections : Overlay injection values for EFAC/EQUAD parameters
 
 Features:
 - Automatically detects parameter types and applies appropriate priors
@@ -45,6 +47,9 @@ import arviz as az
 import corner
 import os
 import configparser
+import json
+import glob
+import re
 from scipy import stats
 from scipy.integrate import quad
 
@@ -169,12 +174,12 @@ def get_log10_sigma_p_prior_pdf(config, x):
 
 def get_efac_prior_pdf(config, x):
     """Get prior PDF for EFAC parameter."""
-    if config.getboolean('MeasurementErrorModel', 'efac_equad_fixed', fallback=True):
+    if config.getboolean('PriorModel', 'efac_equad_fixed', fallback=True):
         return None  # Fixed parameter, no prior to plot
     
     # Get uniform range
-    min_val = config.getfloat('MeasurementErrorModel', 'efac_min', fallback=0.1)
-    max_val = config.getfloat('MeasurementErrorModel', 'efac_max', fallback=3.0)
+    min_val = config.getfloat('PriorModel', 'efac_min', fallback=0.1)
+    max_val = config.getfloat('PriorModel', 'efac_max', fallback=3.0)
     
     # Create uniform distribution
     return stats.uniform(loc=min_val, scale=max_val - min_val).pdf(x)
@@ -182,20 +187,161 @@ def get_efac_prior_pdf(config, x):
 
 def get_equad_prior_pdf(config, x):
     """Get prior PDF for EQUAD parameter."""
-    if config.getboolean('MeasurementErrorModel', 'efac_equad_fixed', fallback=True):
+    if config.getboolean('PriorModel', 'efac_equad_fixed', fallback=True):
         return None  # Fixed parameter, no prior to plot
     
     # Check if log10 parameterization is used
-    if config.getboolean('MeasurementErrorModel', 'equad_log10_prior', fallback=False):
+    if config.getboolean('PriorModel', 'equad_log10_prior', fallback=False):
         # log10(EQUAD) ~ Uniform(min, max)
-        min_val = config.getfloat('MeasurementErrorModel', 'log10_equad_min', fallback=-9.0)
-        max_val = config.getfloat('MeasurementErrorModel', 'log10_equad_max', fallback=-5.0)
+        min_val = config.getfloat('PriorModel', 'log10_equad_min', fallback=-9.0)
+        max_val = config.getfloat('PriorModel', 'log10_equad_max', fallback=-5.0)
         return stats.uniform(loc=min_val, scale=max_val - min_val).pdf(x)
     else:
         # Direct EQUAD ~ Uniform(min, max)
-        min_val = config.getfloat('MeasurementErrorModel', 'equad_min', fallback=1e-9)
-        max_val = config.getfloat('MeasurementErrorModel', 'equad_max', fallback=1e-5)
+        min_val = config.getfloat('PriorModel', 'equad_min', fallback=1e-9)
+        max_val = config.getfloat('PriorModel', 'equad_max', fallback=1e-5)
         return stats.uniform(loc=min_val, scale=max_val - min_val).pdf(x)
+
+
+def print_prior_ranges(config, labels, plot_log10_gamma_a, plot_efac, plot_equad, num_pulsars):
+    """Print prior ranges for all parameters to command line."""
+    if config is None:
+        print("Prior ranges: Config file not available, cannot display prior information.")
+        return
+    
+    print("\nPrior ranges:")
+    print("=" * 50)
+    
+    param_idx = 0
+    
+    # log10_ha
+    if param_idx < len(labels):
+        if not config.getboolean('PriorModel', 'log10_ha_fixed', fallback=False):
+            min_val = config.getfloat('PriorModel', 'log10_ha_min', fallback=-16.0)
+            max_val = config.getfloat('PriorModel', 'log10_ha_max', fallback=-14.0)
+            print(f"  {labels[param_idx]}: U({min_val}, {max_val})")
+        else:
+            fixed_val = config.getfloat('PriorModel', 'log10_ha_value', fallback=-15.0)
+            print(f"  {labels[param_idx]}: Fixed at {fixed_val}")
+        param_idx += 1
+    
+    # log10_gamma_a
+    if plot_log10_gamma_a and param_idx < len(labels):
+        if not config.getboolean('PriorModel', 'log10_gamma_a_fixed', fallback=False):
+            min_val = config.getfloat('PriorModel', 'log10_gamma_a_min', fallback=-10.0)
+            max_val = config.getfloat('PriorModel', 'log10_gamma_a_max', fallback=-8.0)
+            print(f"  {labels[param_idx]}: U({min_val}, {max_val})")
+        else:
+            fixed_val = config.getfloat('PriorModel', 'log10_gamma_a_value', fallback=-9.0)
+            print(f"  {labels[param_idx]}: Fixed at {fixed_val}")
+        param_idx += 1
+    
+    # sigma_p and gamma_p for each pulsar
+    for i in range(num_pulsars):
+        # sigma_p
+        if param_idx < len(labels):
+            if config.getboolean('PriorModel', 'log_ratio_parameterization', fallback=False):
+                print(f"  {labels[param_idx]}: Hierarchical (log-ratio parameterization)")
+            else:
+                min_val = config.getfloat('PriorModel', 'log10_sigma_p_min', fallback=-18.0)
+                max_val = config.getfloat('PriorModel', 'log10_sigma_p_max', fallback=-12.0)
+                print(f"  {labels[param_idx]}: U({min_val}, {max_val})")
+            param_idx += 1
+        
+        # gamma_p
+        if param_idx < len(labels):
+            if config.getboolean('PriorModel', 'hierarchical_noise', fallback=False):
+                mean_min = config.getfloat('PriorModel', 'log10_gamma_p_mean_min', fallback=-9.0)
+                mean_max = config.getfloat('PriorModel', 'log10_gamma_p_mean_max', fallback=-7.0)
+                std_min = config.getfloat('PriorModel', 'log10_gamma_p_std_min', fallback=0.1)
+                std_max = config.getfloat('PriorModel', 'log10_gamma_p_std_max', fallback=1.0)
+                print(f"  {labels[param_idx]}: Hierarchical (μ~U({mean_min},{mean_max}), σ~U({std_min},{std_max}))")
+            else:
+                min_val = config.getfloat('PriorModel', 'log10_gamma_p_min', fallback=-11.0)
+                max_val = config.getfloat('PriorModel', 'log10_gamma_p_max', fallback=-6.0)
+                print(f"  {labels[param_idx]}: U({min_val}, {max_val})")
+            param_idx += 1
+    
+    # EFAC for each pulsar
+    if plot_efac:
+        for i in range(num_pulsars):
+            if param_idx < len(labels):
+                if not config.getboolean('PriorModel', 'efac_equad_fixed', fallback=True):
+                    min_val = config.getfloat('PriorModel', 'efac_min', fallback=0.1)
+                    max_val = config.getfloat('PriorModel', 'efac_max', fallback=3.0)
+                    print(f"  {labels[param_idx]}: U({min_val}, {max_val})")
+                else:
+                    print(f"  {labels[param_idx]}: Fixed at 1.0")
+                param_idx += 1
+    
+    # EQUAD for each pulsar
+    if plot_equad:
+        for i in range(num_pulsars):
+            if param_idx < len(labels):
+                if not config.getboolean('PriorModel', 'efac_equad_fixed', fallback=True):
+                    if config.getboolean('PriorModel', 'equad_log10_prior', fallback=False):
+                        min_val = config.getfloat('PriorModel', 'log10_equad_min', fallback=-9.0)
+                        max_val = config.getfloat('PriorModel', 'log10_equad_max', fallback=-5.0)
+                        print(f"  {labels[param_idx]}: U({min_val}, {max_val}) [log10 space]")
+                    else:
+                        min_val = config.getfloat('PriorModel', 'equad_min', fallback=1e-9)
+                        max_val = config.getfloat('PriorModel', 'equad_max', fallback=1e-5)
+                        print(f"  {labels[param_idx]}: U({min_val:.0e}, {max_val:.0e})")
+                else:
+                    print(f"  {labels[param_idx]}: Fixed at 0.0")
+                param_idx += 1
+    
+    print("=" * 50)
+
+
+def create_pulsar_name_to_index_mapping(config):
+    """Create mapping from pulsar name to index based on data loading order."""
+    if config is None:
+        return {}
+    
+    try:
+        # Get data path from config
+        data_path = config.get('DataModel', 'data_path', fallback='../data/IPTA_MockDataChallenge2/')
+        if not data_path.endswith('/'):
+            data_path += '/'
+        
+        # Get excluded pulsars
+        excluded_pulsars = config.get('DataModel', 'excluded_pulsars', fallback='').split(',')
+        excluded_pulsars = [p.strip() for p in excluded_pulsars if p.strip()]
+        
+        # Find all .par files and sort them (same logic as data loader)
+        par_files = sorted(glob.glob(os.path.join(data_path, '*.par')))
+        
+        # Extract pulsar names and apply exclusions
+        pulsar_names = []
+        for par_file in par_files:
+            pulsar_name = os.path.basename(par_file).replace('.par', '')
+            if pulsar_name not in excluded_pulsars:
+                pulsar_names.append(pulsar_name)
+        
+        # Create mapping
+        name_to_index = {name: idx for idx, name in enumerate(pulsar_names)}
+        
+        print(f"Created pulsar mapping for {len(pulsar_names)} pulsars (excluded: {excluded_pulsars})")
+        return name_to_index
+        
+    except Exception as e:
+        print(f"Warning: Could not create pulsar mapping: {e}")
+        return {}
+
+
+def load_injection_data():
+    """Load injection data from JSON file."""
+    injection_file = "../data/IPTA_MockDataChallenge2/group1_psr_noise.json"
+    
+    try:
+        with open(injection_file, 'r') as f:
+            injection_data = json.load(f)
+        print(f"Loaded injection data for {len(injection_data)} pulsars")
+        return injection_data
+    except Exception as e:
+        print(f"Warning: Could not load injection data from {injection_file}: {e}")
+        return {}
 
 
 # Parse command line arguments
@@ -207,6 +353,7 @@ parser.add_argument('--plot_log10_gamma_a', action='store_true', help='Include l
 parser.add_argument('--plot_priors', action='store_true', help='Overlay prior distributions on 1D histograms')
 parser.add_argument('--efac', action='store_true', help='Include EFAC parameters for each pulsar')
 parser.add_argument('--equad', action='store_true', help='Include EQUAD parameters for each pulsar')
+parser.add_argument('--plot_injections', action='store_true', help='Overlay injection values for EFAC/EQUAD parameters')
 
 args = parser.parse_args()
 run_index = args.run_index
@@ -216,9 +363,17 @@ plot_log10_gamma_a = args.plot_log10_gamma_a
 plot_priors = args.plot_priors
 plot_efac = args.efac
 plot_equad = args.equad
+plot_injections = args.plot_injections
 
-# Load config file for prior plotting
-config = load_config(run_index) if plot_priors else None
+# Load config file for prior printing and plotting
+config = load_config(run_index)
+
+# Load injection data if requested
+injection_data = {}
+pulsar_name_to_index = {}
+if plot_injections:
+    injection_data = load_injection_data()
+    pulsar_name_to_index = create_pulsar_name_to_index_mapping(config)
 
 # Load the results
 results_file = f"numpyro_test_{run_index}/numpyro_test_{run_index}_results.nc"
@@ -301,6 +456,9 @@ print(f"Sample shape: {samples.shape}")
 print(f"Parameter ranges:")
 for i, label in enumerate(labels):
     print(f"  {label}: [{samples[:, i].min():.3f}, {samples[:, i].max():.3f}]")
+
+# Print prior ranges from config file
+print_prior_ranges(config, labels, plot_log10_gamma_a, plot_efac, plot_equad, num_pulsars)
 
 # Define prior ranges from config file - extended to check for railing
 prior_ranges = [[-18.5, -13.5]]  # log10_ha - extended from [-16.0, -14.0]
@@ -402,10 +560,77 @@ if plot_priors and config is not None:
             if prior_max > 0:
                 prior_pdf_scaled = prior_pdf * y_max / prior_max * 0.8  # Scale to 80% of max
                 ax.plot(x_range, prior_pdf_scaled, 'r--', linewidth=2, alpha=0.7, label='Prior')
+
+# Add injection overlays if requested
+print("TESTING")
+print(plot_injections)
+print(injection_data)
+print(pulsar_name_to_index)
+if plot_injections and injection_data and pulsar_name_to_index:
+    # Get axes from corner plot
+    axes = fig.get_axes()
+    ndim = len(labels)
     
-    # Add legend to the last diagonal plot
-    if ndim > 0:
-        axes[(ndim-1) * ndim + (ndim-1)].legend(loc='upper right', fontsize=10)
+    # Add injection overlays for each parameter (diagonal elements)
+    for i in range(ndim):
+        ax = axes[i * ndim + i]  # Diagonal axis
+        param_name = labels[i]
+        print(f"Processing parameter {i}: {param_name}")
+        
+        # Determine which pulsar this parameter belongs to and parameter type
+        injection_value = None
+        
+        # Extract pulsar index from parameter name 
+        if 'EFAC' in param_name:
+            print(f"Found EFAC parameter: {param_name}")
+            # Extract pulsar index from label like "$\mathrm{EFAC}_{p,0}$"
+            match = re.search(r'p,(\d+)', param_name)
+            print(f"Regex match: {match}")
+            if match:
+                pulsar_idx = int(match.group(1))
+                print(f"Pulsar index: {pulsar_idx}")
+                # Find pulsar name by index
+                pulsar_name = None
+                for name, idx in pulsar_name_to_index.items():
+                    if idx == pulsar_idx:
+                        pulsar_name = name
+                        break
+                print(f"Pulsar name: {pulsar_name}")
+                
+                if pulsar_name and pulsar_name in injection_data:
+                    injection_value = injection_data[pulsar_name]['efac']
+                    print(f"EFAC injection value: {injection_value}")
+                    
+        elif 'EQUAD' in param_name:
+            print(f"Found EQUAD parameter: {param_name}")
+            # Extract pulsar index from label like "$\log_{10} \mathrm{EQUAD}_{p,0}$"
+            match = re.search(r'p,(\d+)', param_name)
+            print(f"Regex match: {match}")
+            if match:
+                pulsar_idx = int(match.group(1))
+                print(f"Pulsar index: {pulsar_idx}")
+                # Find pulsar name by index
+                pulsar_name = None
+                for name, idx in pulsar_name_to_index.items():
+                    if idx == pulsar_idx:
+                        pulsar_name = name
+                        break
+                print(f"Pulsar name: {pulsar_name}")
+                
+                if pulsar_name and pulsar_name in injection_data:
+                    # Injection EQUAD values are already in log10 space
+                    injection_value = injection_data[pulsar_name]['equad']
+                    print(f"EQUAD injection value: {injection_value}")
+        
+        # Plot injection value if available
+        if injection_value is not None:
+            print(f"Plotting injection value: {injection_value}")
+            y_max = ax.get_ylim()[1]
+            ax.axvline(injection_value, color='green', linestyle='-', linewidth=2, 
+                      alpha=0.8, label='Injection')
+        else:
+            print(f"No injection value for parameter: {param_name}")
+    
 
 # Add title
 log10_gamma_a_text = " + log10_gamma_a" if plot_log10_gamma_a and 'log10_gamma_a' in posterior.data_vars else ""
@@ -424,7 +649,8 @@ log10_gamma_a_suffix = "_log10_gamma_a" if plot_log10_gamma_a and 'log10_gamma_a
 efac_suffix = "_efac" if plot_efac and 'efac' in posterior.data_vars else ""
 equad_suffix = "_equad" if plot_equad and ('log10_equad' in posterior.data_vars or 'equad' in posterior.data_vars) else ""
 priors_suffix = "_priors" if plot_priors else ""
-output_file = f"{plots_dir}/corner_plot_run_{run_index}_{num_pulsars}pulsars{smooth_suffix}{log10_gamma_a_suffix}{efac_suffix}{equad_suffix}{priors_suffix}.png"
+injections_suffix = "_injections" if plot_injections else ""
+output_file = f"{plots_dir}/corner_plot_run_{run_index}_{num_pulsars}pulsars{smooth_suffix}{log10_gamma_a_suffix}{efac_suffix}{equad_suffix}{priors_suffix}{injections_suffix}.png"
 plt.savefig(output_file, dpi=300, bbox_inches='tight')
 print(f"Corner plot saved to: {output_file}")
 
