@@ -166,79 +166,137 @@ def _update(xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Arr
     
     return x, P, y, S
 
-
 def _compute_sigma_matrix(h2, γa, Γ):
-    return (h2 / 12) * γa * Γ
+    """Compute the sigma matrix, handling potential batch dimensions from enumeration."""
+    # Reshape h2 to be broadcastable with the (Npsr, Npsr) matrix Γ.
+    h2_reshaped = jnp.reshape(h2, (-1, 1, 1))
+    return (h2_reshaped / 12) * γa * Γ
+
+# def _initialize_kalman_filter(nx,Npsr,P_eps,σa2,γa,σp2,γp):
+#     """Initialize the state vector (x0) and covariance matrix (P0).
+
+#     This function sets up the initial conditions for the Kalman filter based on
+#     the assumed structure of the state vector and prior knowledge about the
+#     system noise properties (GW, spin noise, measurement noise).
+
+#     The state vector `x` is assumed to be structured block-wise:
+#     `x = [GW states (2*Npsr), Spin states (2*Npsr), Epsilon states (approx. 10*Npsr)]`
+
+#     Args:
+#         nx: Total dimension of the state vector.
+#         Npsr: Number of pulsars in the array.
+#         P_eps: Initial covariance matrix for the epsilon (measurement white noise)
+#                states block. Shape depends on epsilon state definition, e.g., (Npsr, Npsr).
+#                Represents initial uncertainty associated with terms like EFAC/EQUAD.
+#         h2: Squared characteristic strain amplitude (h_c^2) of the expected GW background.
+#             Used to calculate the stationary variance of the GW 'a' state component.
+#         γa: Damping constant (1 / correlation time) for the Ornstein-Uhlenbeck (OU)
+#             process modeling the GW 'a' state component.
+
+#     Returns
+#     -------
+#         tuple[jax.Array, jax.Array]: A tuple containing:
+#             - x0: Initial state vector, shape (nx, 1). Initialized to zeros, assuming
+#                   states represent perturbations around a known mean (or zero).
+#             - P0: Initial state covariance matrix, shape (nx, nx). Constructed by
+#                   combining covariance blocks for GW, Spin, and Epsilon states.
+#     """
+#     # Initialize the states
+#     x0 = jnp.zeros((nx, 1)) # Initialize as column vector. jnp.zeros(nx) # Initial state vector. δφ=0,δf=0, etc. As all the states are effecitvely perturbations, this is a reasonable guess.
+
+
+#     # Initialize the covariance matrices
+
+#     ## 1. The GW block "r/a"
+#     P_GW = jnp.zeros((Npsr * 2, Npsr * 2))
+
+
+#     #1.1 Set diagonal variances for 'r' states (indices 0, 2, 4, ...)
+#     #Set P[2n, 2n] = 1e-40 (very small initial variance)
+#     r_indices = jnp.arange(0, Npsr * 2, 2)
+#     P_GW = P_GW.at[r_indices, r_indices].set(1e-40)
+
+
+#     # 1.2 Set the P_aa block (indices 1, 3, 5, ...)
+#     # Sets P[2n+1, 2m+1] = P_aa_init[n, m]
+#     P_aa_init = σa2 / (2.0 * γa)
+#     P_GW = P_GW.at[1::2, 1::2].set(P_aa_init)
+
+#     ## 2. The spin block "phi / f "
+#     P_spin = jnp.zeros((Npsr * 2, Npsr * 2))
+
+#     #2.1 Set diagonal variances for 'phi' states (indices 0, 2, 4, ...)
+#     # Set P[2n, 2n] = 1e-40
+#     phi_indices = jnp.arange(0, Npsr * 2, 2)
+#     P_spin = P_spin.at[phi_indices, phi_indices].set(1e-40)
+
+#     # 2.2 Set diagonal variances for 'f' states (indices 1, 3, 5, ...)
+#     # Eq: Var(f) = sigma2_spin[n] / (2 * gamma_spin[n])
+#     # This is element-wise calculation resulting in a vector of length Npsr
+#     spin_variance_values = σp2 / (2.0 * γp)
+#     f_indices = jnp.arange(1, Npsr * 2, 2)
+#     P_spin = P_spin.at[f_indices, f_indices].set(spin_variance_values)
+
+#     P0 = block_diag(P_GW, P_spin, P_eps)
+
+#     return x0, P0
+
+
 
 
 def _initialize_kalman_filter(nx,Npsr,P_eps,σa2,γa,σp2,γp):
-    """Initialize the state vector (x0) and covariance matrix (P0).
-
-    This function sets up the initial conditions for the Kalman filter based on
-    the assumed structure of the state vector and prior knowledge about the
-    system noise properties (GW, spin noise, measurement noise).
-
-    The state vector `x` is assumed to be structured block-wise:
-    `x = [GW states (2*Npsr), Spin states (2*Npsr), Epsilon states (approx. 10*Npsr)]`
-
-    Args:
-        nx: Total dimension of the state vector.
-        Npsr: Number of pulsars in the array.
-        P_eps: Initial covariance matrix for the epsilon (measurement white noise)
-               states block. Shape depends on epsilon state definition, e.g., (Npsr, Npsr).
-               Represents initial uncertainty associated with terms like EFAC/EQUAD.
-        h2: Squared characteristic strain amplitude (h_c^2) of the expected GW background.
-            Used to calculate the stationary variance of the GW 'a' state component.
-        γa: Damping constant (1 / correlation time) for the Ornstein-Uhlenbeck (OU)
-            process modeling the GW 'a' state component.
-
-    Returns
-    -------
-        tuple[jax.Array, jax.Array]: A tuple containing:
-            - x0: Initial state vector, shape (nx, 1). Initialized to zeros, assuming
-                  states represent perturbations around a known mean (or zero).
-            - P0: Initial state covariance matrix, shape (nx, nx). Constructed by
-                  combining covariance blocks for GW, Spin, and Epsilon states.
-    """
-    # Initialize the states
-    x0 = jnp.zeros((nx, 1)) # Initialize as column vector. jnp.zeros(nx) # Initial state vector. δφ=0,δf=0, etc. As all the states are effecitvely perturbations, this is a reasonable guess.
-
-
-    # Initialize the covariance matrices
-
-    ## 1. The GW block "r/a"
-    P_GW = jnp.zeros((Npsr * 2, Npsr * 2))
-
-
-    #1.1 Set diagonal variances for 'r' states (indices 0, 2, 4, ...)
-    #Set P[2n, 2n] = 1e-40 (very small initial variance)
-    r_indices = jnp.arange(0, Npsr * 2, 2)
-    P_GW = P_GW.at[r_indices, r_indices].set(1e-40)
-
-
-    # 1.2 Set the P_aa block (indices 1, 3, 5, ...)
-    # Sets P[2n+1, 2m+1] = P_aa_init[n, m]
+    """Initialize the state vector (x0) and covariance matrix (P0), handling potential batch dimensions."""
+    
+    # 1. Calculate P_aa_init. This will have a batch dimension if σa2 does.
     P_aa_init = σa2 / (2.0 * γa)
-    P_GW = P_GW.at[1::2, 1::2].set(P_aa_init)
+    
+    # 2. Determine the batch shape from the input. Will be () for single eval, or (k,) for k enumerations.
+    batch_shape = P_aa_init.shape[:-2]
+    dtype = P_aa_init.dtype
 
-    ## 2. The spin block "phi / f "
-    P_spin = jnp.zeros((Npsr * 2, Npsr * 2))
+    # 3. Create batched initial state vector x0
+    x0_shape = batch_shape + (nx, 1)
+    x0 = jnp.zeros(x0_shape, dtype=dtype)
 
-    #2.1 Set diagonal variances for 'phi' states (indices 0, 2, 4, ...)
-    # Set P[2n, 2n] = 1e-40
+    # 4. Create and populate the batched GW covariance matrix
+    P_GW_shape = batch_shape + (Npsr * 2, Npsr * 2)
+    P_GW = jnp.zeros(P_GW_shape, dtype=dtype)
+    r_indices = jnp.arange(0, Npsr * 2, 2)
+    P_GW = P_GW.at[..., r_indices, r_indices].set(1e-40) # Use ellipsis for batching
+    P_GW = P_GW.at[..., 1::2, 1::2].set(P_aa_init) # Use ellipsis for batching
+
+    # 5. Create unbatched spin noise covariance matrix
+    P_spin = jnp.zeros((Npsr * 2, Npsr * 2), dtype=dtype)
     phi_indices = jnp.arange(0, Npsr * 2, 2)
     P_spin = P_spin.at[phi_indices, phi_indices].set(1e-40)
-
-    # 2.2 Set diagonal variances for 'f' states (indices 1, 3, 5, ...)
-    # Eq: Var(f) = sigma2_spin[n] / (2 * gamma_spin[n])
-    # This is element-wise calculation resulting in a vector of length Npsr
     spin_variance_values = σp2 / (2.0 * γp)
     f_indices = jnp.arange(1, Npsr * 2, 2)
     P_spin = P_spin.at[f_indices, f_indices].set(spin_variance_values)
 
-    P0 = block_diag(P_GW, P_spin, P_eps)
+    # 6. Manually construct the final batched covariance matrix P0
+    # This replaces `block_diag` which is not batch-aware.
+    P0_shape = batch_shape + (nx, nx)
+    P0 = jnp.zeros(P0_shape, dtype=dtype)
+    
+    gw_slice = slice(0, Npsr * 2)
+    spin_slice = slice(Npsr * 2, Npsr * 4)
+    eps_slice = slice(Npsr * 4, nx)
+
+    P0 = P0.at[..., gw_slice, gw_slice].set(P_GW)
+    # JAX will automatically broadcast the unbatched P_spin and P_eps over the batch dimension of P0
+    P0 = P0.at[..., spin_slice, spin_slice].set(P_spin)
+    P0 = P0.at[..., eps_slice, eps_slice].set(P_eps)
 
     return x0, P0
+
+
+
+
+
+
+
+
+
 
 @partial(jax.jit, static_argnames=('Npsr', 'M_sum'))
 def _precompute_transition_matrices(γa, γp, σa2, σp2, dt_array, Npsr, M_sum):

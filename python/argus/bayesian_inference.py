@@ -537,9 +537,10 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
     savage_dickey_specs = prior_specs.get('savage_dickey_specs')
     if savage_dickey_specs is not None:
         # Spike-and-slab prior in linear ha space
-        # With funsor installed, NumPyro will automatically handle discrete variables optimally
+        # Explicitly disable enumeration to avoid shape issues with Kalman filter
         spike_indicator = numpyro.sample("ha_spike_indicator", 
-                                        dist.Bernoulli(probs=savage_dickey_specs['spike_prob']))
+                                        dist.Bernoulli(probs=savage_dickey_specs['spike_prob']),
+                                        infer={'enumerate': 'parallel'})
         
         # Sample continuous component regardless (NUTS needs continuous variables)
         if prior_specs['log10_ha_transform_params'] is not None:
