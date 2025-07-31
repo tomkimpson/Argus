@@ -72,3 +72,6 @@ local
 htmlcov
 .coverage
 *.log
+
+# MkDocs build output
+site/
