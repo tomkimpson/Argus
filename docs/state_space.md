@@ -63,5 +63,5 @@ Argus can be extended to handle:
 
 ---
 
-For a deeper mathematical treatment, see the publications linked in the [main documentation](index.md).
+For a deeper mathematical treatment, see the [detailed Kalman filter mathematics](kalman_mathematics.md) and the publications linked in the [main documentation](index.md).
 
