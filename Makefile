@@ -56,10 +56,3 @@ docs-deploy:
 	@mkdocs gh-deploy
 	@echo "Documentation deployed successfully"
 
-# Legacy target names for compatibility
-mkdocs-serve: serve
-mkdocs-build: docs
-mkdocs-deploy: docs-deploy
-mkdocs-clean: clean-docs
-docs-new: docs
-serve-new: serve
