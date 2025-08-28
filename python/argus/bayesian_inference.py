@@ -1,11 +1,11 @@
 """Bayesian inference module for pulsar timing array analysis.
 
 This module provides functionality for performing Bayesian parameter estimation
-on pulsar timing array data using nested sampling. It includes:
+on pulsar timing array data using NumPyro NUTS sampling. It includes:
 
 - Prior definitions for gravitational wave background and pulsar noise parameters
 - Likelihood calculations using a Kalman filter implementation
-- Nested sampling routines using JAXNS
+- NUTS sampling routines using NumPyro
 
 The module is designed to work with the JAX framework for automatic differentiation
 and GPU acceleration. It handles parameters like:
@@ -18,7 +18,7 @@ The implementation uses the Hellings-Downs correlation pattern for the
 gravitational wave background and models pulsar red noise as an 
 Ornstein-Uhlenbeck process.
 
-Uses JAXNS for JAX-native nested sampling with automatic differentiation.
+Uses NumPyro for JAX-native NUTS sampling with automatic differentiation.
 """
 
 import jax
@@ -28,7 +28,6 @@ import numpyro.distributions as dist
 import arviz as az
 import tensorflow_probability.substrates.jax as tfp
 from flax import struct
-from jaxns import Prior, Model, NestedSampler, TerminationCondition
 from numpyro.infer import MCMC, NUTS
 
 jax.config.update("jax_enable_x64", True)
@@ -55,80 +54,12 @@ class Parameters:
 
 
 
-def configurable_prior_model(
-    Npsr: int, # Number of pulsars, needed for array shapes if defaults are used
-    # --- Specifications for each parameter ---
-    # Each *_spec can be a TFP distribution object or a fixed jnp.ndarray/float.
-    # If None, a default distribution will be used for some, or an error raised for others.
-    log10_ha_spec = tfpd.Uniform(-17.0, -14.0),
-    log10_ha_transform_params = None, # Transformation parameters for reparameterization
-    log10_gamma_a_spec = tfpd.Uniform(-10.0, -8.0), # log10(γa) prior
-    log10_gamma_p_spec = None,
-    log10_sigma_p_spec = None,
-    efac_spec = None,
-    equad_spec = None,
-    hierarchical_specs = None  # New parameter for hierarchical modeling specifications
-):
-    """Define prior distributions for the parameters.
     
-    Each parameter's specification (e.g., `log10_ha_spec`) can be:
-    - A TFP distribution object (e.g., tfpd.Uniform(...)) for sampling.
-    - A scalar or jnp.ndarray for a fixed value.
-
-    If a value (e.g. -15.0), Prior will use it as fixed.
-    If (e.g.) tfpd.Uniform(...), Prior will sample from it.
-    """
-    # GW parameters
-    # Handle reparameterization for log10_ha if needed
-    if log10_ha_transform_params is not None:
-        # Sample log10_ha_prime ~ N(0,1) and transform to log10_ha
-        log10_ha_prime = yield Prior(log10_ha_spec, name='log10_ha_prime')
-        log10_ha = log10_ha_transform_params['mean'] + log10_ha_prime * log10_ha_transform_params['std']
-    else:
-        # Standard sampling (fixed value or direct distribution)
-        log10_ha = yield Prior(log10_ha_spec, name='log10_ha')
-    
-    log10_gamma_a = yield Prior(log10_gamma_a_spec, name='log10_gamma_a')
-    γa = 10.0 ** log10_gamma_a  # Transform from log10 space to linear space 
-
-    # PSR vector parameters: γp and σp with optional hierarchical modeling
-    if hierarchical_specs and hierarchical_specs.get('hierarchical_noise', False):
-        # Hierarchical modeling for log10_gamma_p
-        log10_gamma_p_mean = yield Prior(hierarchical_specs['log10_gamma_p_mean_spec'], name='log10_gamma_p_mean')
-        log10_gamma_p_std = yield Prior(hierarchical_specs['log10_gamma_p_std_spec'], name='log10_gamma_p_std')
-        log10_γp = yield Prior(tfpd.Normal(loc=jnp.full(Npsr, log10_gamma_p_mean), 
-                                          scale=jnp.full(Npsr, log10_gamma_p_std)), name='log10_γp')
-    else:
-        log10_γp = yield Prior(log10_gamma_p_spec, name='log10_γp')
-    
-    if hierarchical_specs and hierarchical_specs.get('hierarchical_sigma_p', False):
-        # Hierarchical modeling for log10_sigma_p
-        log10_sigma_p_mean = yield Prior(hierarchical_specs['log10_sigma_p_mean_spec'], name='log10_sigma_p_mean')
-        log10_sigma_p_std = yield Prior(hierarchical_specs['log10_sigma_p_std_spec'], name='log10_sigma_p_std')
-        log10_σp = yield Prior(tfpd.Normal(loc=jnp.full(Npsr, log10_sigma_p_mean), 
-                                          scale=jnp.full(Npsr, log10_sigma_p_std)), name='log10_σp')
-    elif hierarchical_specs and hierarchical_specs.get('log_ratio_parameterization', False):
-        # Log-ratio parameterization: σp derived from γp + ratio
-        log10_ratio_mean = yield Prior(hierarchical_specs['log10_ratio_mean_spec'], name='log10_ratio_mean')
-        log10_ratio_std = yield Prior(hierarchical_specs['log10_ratio_std_spec'], name='log10_ratio_std')
-        log10_ratio = yield Prior(tfpd.Normal(loc=jnp.full(Npsr, log10_ratio_mean), 
-                                             scale=jnp.full(Npsr, log10_ratio_std)), name='log10_ratio')
-        # Derive log10_σp deterministically
-        log10_σp = log10_γp + log10_ratio
-    else:
-        log10_σp = yield Prior(log10_sigma_p_spec, name='log10_σp')
-    
-    # Measurement noise parameters: EFAC and EQUAD.
-    efac = yield Prior(efac_spec, name='efac')
-    equad = yield Prior(equad_spec, name='equad')
-
-    return log10_ha, γa, log10_γp, log10_σp, efac, equad    
 
 
 
-# JAXNS model
-def jaxns_log_likelihood(KF, log10_ha, log10_gamma_a, log10_γp, log10_σp, efac, equad):
-    """Calculate log likelihood for JAXNS nested sampling."""
+def log_likelihood_fn(KF, log10_ha, log10_gamma_a, log10_γp, log10_σp, efac, equad):
+    """Calculate log likelihood for NumPyro sampling."""
     ha = 10.0 ** log10_ha
     γa = 10.0 ** log10_gamma_a
     γp = 10.0 ** log10_γp
@@ -400,76 +331,6 @@ def get_prior_model_specs(config, Npsr, sigma_p_array, gamma_p_array, efac_array
 
 
 
-def run_jaxns_inference(kalman_filter, config, n_pulsars, sigma_p_array, gamma_p_array, 
-                       efac_array, equad_array):
-    """Run JAXNS nested sampling inference.
-    
-    Parameters
-    ----------
-    kalman_filter : object
-        JAX Kalman filter with get_likelihood method
-    config : configparser.ConfigParser
-        Configuration object
-    n_pulsars : int
-        Number of pulsars
-    sigma_p_array : jnp.ndarray
-        Pulsar red noise sigma values
-    gamma_p_array : jnp.ndarray
-        Pulsar red noise gamma values
-    efac_array : jnp.ndarray
-        EFAC values
-    equad_array : jnp.ndarray
-        EQUAD values
-        
-    Returns
-    -------
-    results : object
-        JAXNS results object
-    """
-    import jax.random as random
-    
-    # Get prior model specifications
-    prior_specs = get_prior_model_specs(
-        config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array
-    )
-    
-    # Create prior model
-    def prior_model():
-        return configurable_prior_model(
-            Npsr=n_pulsars,
-            **{k: v for k, v in prior_specs.items() if k != 'hierarchical_specs'},
-            hierarchical_specs=prior_specs.get('hierarchical_specs')
-        )
-    
-    # Create likelihood function
-    def log_likelihood(*args):
-        return jaxns_log_likelihood(kalman_filter, *args)
-    
-    # Create JAXNS model
-    jax_model = Model(prior_model=prior_model, log_likelihood=log_likelihood)
-    
-    # Get sampling parameters
-    num_live_points = config.getint('NestedSampling', 'num_live_points', fallback=1000)
-    dlogZ = config.getfloat('NestedSampling', 'dlogZ', fallback=0.1)
-    
-    # Initialize sampler
-    ns = NestedSampler(
-        model=jax_model,
-        num_live_points=num_live_points,
-        verbose=True
-    )
-    
-    # Run sampling
-    term_cond = TerminationCondition(dlogZ=dlogZ)
-    termination_reason, state = jax.jit(ns)(
-        key=random.PRNGKey(42),
-        term_cond=term_cond
-    )
-    
-    # Convert results
-    results = ns.to_results(termination_reason=termination_reason, state=state)
-    
-    return results
 
 
 
@@ -663,8 +524,8 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
     else:
         equad = numpyro.deterministic("equad", prior_specs['equad_spec'])
     
-    # Calculate log likelihood using the same function as JAXNS
-    log_likelihood = jaxns_log_likelihood(kalman_filter, log10_ha, log10_gamma_a, log10_γp, log10_σp, efac, equad)
+    # Calculate log likelihood
+    log_likelihood = log_likelihood_fn(kalman_filter, log10_ha, log10_gamma_a, log10_γp, log10_σp, efac, equad)
     
     # Add likelihood to the model
     numpyro.factor("likelihood", log_likelihood)
@@ -998,7 +859,7 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
 
 def run_inference(kalman_filter, config, n_pulsars, sigma_p_array=None, 
                  gamma_p_array=None, efac_array=None, equad_array=None):
-    """Run Bayesian inference using either JAXNS or NumPyro based on config.
+    """Run Bayesian inference using NumPyro NUTS sampling.
     
     Parameters
     ----------
@@ -1019,22 +880,18 @@ def run_inference(kalman_filter, config, n_pulsars, sigma_p_array=None,
         
     Returns
     -------
-    result : object
-        Either JAXNS results object or ArviZ InferenceData object
+    result : arviz.InferenceData
+        ArviZ InferenceData object containing MCMC results
     """
     # Get inference method from config
-    method = config.get('Inference', 'method', fallback='jaxns').lower()
+    method = config.get('Inference', 'method', fallback='numpyro').lower()
     
     if method == 'jaxns':
-        print(f"Running JAXNS inference with {n_pulsars} pulsars...")
-        return run_jaxns_inference(
-            kalman_filter, config, n_pulsars, 
-            sigma_p_array, gamma_p_array, efac_array, equad_array
-        )
+        raise ValueError("JAXNS nested sampling is no longer supported. Please use 'numpyro' for NUTS sampling.")
     elif method == 'numpyro':
         return run_numpyro_inference(
             kalman_filter, config, n_pulsars,
             sigma_p_array, gamma_p_array, efac_array, equad_array
         )
     else:
-        raise ValueError(f"Unknown inference method: {method}. Choose 'jaxns' or 'numpyro'.")
+        raise ValueError(f"Unknown inference method: {method}. Only 'numpyro' is supported.")

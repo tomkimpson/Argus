@@ -14,7 +14,6 @@ import numpy as np
 import arviz as az
 import corner
 import matplotlib.pyplot as plt
-from jaxns import load_results
 
 def load_config(config_path):
     """Load configuration from file.
@@ -177,36 +176,28 @@ def corner_plot(results, output_dir=None):
     if isinstance(results, str):
         # It's a file path - determine type and load
         if results.endswith('.json'):
-            # JAXNS results
-            results_obj = load_jaxns_results(results)
-            method = 'jaxns'
+            # JAXNS results no longer supported
+            raise ValueError("JAXNS JSON results are no longer supported. Use NumPyro NetCDF files.")
         elif results.endswith('.nc'):
             # NumPyro results
             results_obj = az.from_netcdf(results)
             method = 'numpyro'
         else:
-            raise ValueError("Results file must be .json (JAXNS) or .nc (NumPyro)")
+            raise ValueError("Results file must be .nc (NumPyro). JAXNS .json files are no longer supported.")
     else:
         # It's a loaded object - determine type
         if hasattr(results, 'log_Z_mean'):
-            # JAXNS results object
-            results_obj = results
-            method = 'jaxns'
+            # JAXNS results object no longer supported
+            raise ValueError("JAXNS results objects are no longer supported. Use NumPyro ArviZ InferenceData objects.")
         elif hasattr(results, 'posterior'):
             # ArviZ InferenceData object
             results_obj = results
             method = 'numpyro'
         else:
-            raise ValueError("Unknown results object type")
+            raise ValueError("Unknown results object type. Only NumPyro ArviZ InferenceData objects are supported.")
     
-    # Extract log10_ha samples (both methods use same parameterization)
-    if method == 'jaxns':
-        if 'log10_ha' not in results_obj.samples:
-            raise ValueError("Parameter 'log10_ha' not found in JAXNS results")
-        # Convert JAX array to numpy array for corner plotting
-        jax_samples = results_obj.samples['log10_ha']
-        samples = np.array(jax_samples).flatten()
-    else:  # numpyro
+    # Extract log10_ha samples (NumPyro only)
+    if method == 'numpyro':
         if 'log10_ha' not in results_obj.posterior:
             raise ValueError("Parameter 'log10_ha' not found in NumPyro results")
         samples = results_obj.posterior['log10_ha'].values.flatten()
@@ -431,20 +422,6 @@ def find_results_file(output_dir, file_pattern):
     return None
 
 
-def load_jaxns_results(results_file):
-    """Load JAXNS results from JSON file.
-    
-    Parameters
-    ----------
-    results_file : str
-        Path to JAXNS results JSON file
-    
-    Returns
-    -------
-    object
-        JAXNS results object
-    """
-    return load_results(results_file)
 
 
 def load_numpyro_results(results_file):
@@ -501,14 +478,11 @@ def get_inference_method_from_files(output_dir):
     Returns
     -------
     str or None
-        'jaxns' if JAXNS results found, 'numpyro' if NumPyro results found, None if neither
+        'numpyro' if NumPyro results found, None if not found
     """
-    jaxns_file = find_results_file(output_dir, '*_results.json')
     numpyro_file = find_results_file(output_dir, '*_results.nc')
     
-    if jaxns_file:
-        return 'jaxns'
-    elif numpyro_file:
+    if numpyro_file:
         return 'numpyro'
     else:
         return None

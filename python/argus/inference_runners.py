@@ -4,7 +4,6 @@ import time
 from jax import random
 import jax
 
-from jaxns import NestedSampler, TerminationCondition
 from argus import bayesian_inference, utils
 
 
@@ -85,79 +84,8 @@ def test_likelihood_performance(KF, config, logger):
     return float(log_likelihood)
 
 
-def run_nested_sampling(config, jax_model, logger):
-    """Run the nested sampling algorithm.
-    
-    Args:
-        config: Configuration object
-        jax_model: JAX model object
-        logger: Logger object
-    
-    Returns
-    -------
-        tuple: (termination_reason, state, ns)
-    """
-    logger.info("Initializing nested sampling...")
-    ns = NestedSampler(
-        model=jax_model,
-        num_live_points=config.getint('NestedSampling', 'num_live_points', fallback=100),
-        verbose=True
-    )
-
-    logger.info("Running nested sampling...")
-    term_cond = TerminationCondition(
-        dlogZ=config.getfloat('NestedSampling', 'dlogZ', fallback=0.1)
-    )
-    termination_reason, state = jax.jit(ns)(
-        key=random.PRNGKey(432345987),
-        term_cond=term_cond
-    )
-    
-    return termination_reason, state, ns
 
 
-def run_jaxns_inference(config, jax_model, param_names, output_dir, output_id, logger):
-    """Run JAXNS nested sampling inference pipeline.
-    
-    Args:
-        config: Configuration object
-        jax_model: JAX model object
-        param_names: List of parameter names
-        output_dir: Output directory path
-        output_id: Output identifier
-        logger: Logger object
-        
-    Returns
-    -------
-        dict: Results dictionary
-    """
-    # Sample from prior and evaluate likelihood for testing (JAXNS only)
-    u = jax_model.sample_U(key=random.PRNGKey(432345987))
-    θ = jax_model.transform(u)
-    
-    params = [θ[name] for name in param_names]
-    log_likelihood = jax_model.log_likelihood(*params)
-    logger.info("\nLog likelihood for parameters sampled from prior:")
-    logger.info(str(log_likelihood))
-    
-    # Run nested sampling
-    if config.getboolean('NestedSampling', 'run_sampling', fallback=True):
-        termination_reason, state, ns = run_nested_sampling(config, jax_model, logger)
-        
-        # Save results and create plots
-        from argus.io_manager import save_jaxns_results
-        results_path = save_jaxns_results(ns, termination_reason, state, output_dir, output_id, logger)
-        
-        # Create corner plot
-        logger.info("Loading results and creating corner plot...")
-        plot_path = utils.corner_plot(results_path, output_dir)
-        if plot_path:
-            logger.info(f"Corner plot saved to {plot_path}")
-        
-        return ns.to_results(termination_reason=termination_reason, state=state)
-    else:
-        logger.info("Nested sampling is not being run")
-        return None
 
 
 def estimate_runtime(config, likelihood_time, logger, n_free_params=None):
@@ -267,7 +195,7 @@ def calculate_and_display_gradients(KF, test_params, prior_specs, logger):
     
     # Create gradient function for the likelihood
     def likelihood_fn(log10_ha, log10_gamma_a, log10_gamma_p, log10_sigma_p, efac, equad):
-        return bayesian_inference.jaxns_log_likelihood(
+        return bayesian_inference.log_likelihood_fn(
             KF, log10_ha, log10_gamma_a, log10_gamma_p, log10_sigma_p, efac, equad
         )
     

@@ -1,579 +1,0 @@
-Removed conflicting path: /fred/oz022/tkimpson/clean/Argus/python
-INFO:2025-07-12 02:59:56,231:jax._src.xla_bridge:925: Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
-INFO:jax._src.xla_bridge:Unable to initialize backend 'rocm': module 'jaxlib.xla_extension' has no attribute 'GpuAllocatorConfig'
-INFO:2025-07-12 02:59:56,285:jax._src.xla_bridge:925: Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
-INFO:jax._src.xla_bridge:Unable to initialize backend 'tpu': INTERNAL: Failed to open libtpu.so: libtpu.so: cannot open shared object file: No such file or directory
-=== JAX VERSION INFO ===
-JAX version: 0.5.3
-
-=== DEVICE INFO ===
-Default device: gpu
-You are working with the development version of the code. Good job.
-INFO:root:Found GPU devices: [CudaDevice(id=0), CudaDevice(id=1), CudaDevice(id=2), CudaDevice(id=3)]
-
-Running inference with GW model...
-Starting Bayesian inference with GW model...
-2025-07-12 03:02:54,717 - INFO - Logging to file: /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_026/logfiles/nested_sampling_test_output_20250712_030254.txt
-2025-07-12 03:02:54,717 - INFO - Centralized logging initialized
-2025-07-12 03:02:54,723 - INFO - Copied config file to /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_026/config_numpyro_test_026.ini
-2025-07-12 03:02:54,723 - INFO - Loading and processing data...
-Getting the data. Loading 32 pulsars from ../../data/IPTA_MockDataChallenge2/dataset_2b/
-[tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
-[preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J0030+0451, F0: 205.53069593846152, # TOAs: 183
-[tempo2Util.C:401] Warning: [DUP1] duplicated warnings have been suppressed.
-[preProcess.C:158] Warning: PSR J0034-0534 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J0034-0534. Setting value to 1 with 20% uncertainty.
-PSR: J0034-0534, F0: 532.7134293952242, # TOAs: 183
-[preProcess.C:158] Warning: PSR J0218+4232 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J0218+4232. Setting value to 1 with 20% uncertainty.
-PSR: J0218+4232, F0: 430.46105454575843, # TOAs: 183
-[preProcess.C:158] Warning: PSR J0437-4715 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J0437-4715, F0: 173.6879457375193, # TOAs: 183
-[preProcess.C:158] Warning: PSR J0613-0200 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J0613-0200, F0: 326.60056202349193, # TOAs: 183
-[preProcess.C:158] Warning: PSR J0621+1002 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J0621+1002. Setting value to 1 with 20% uncertainty.
-PSR: J0621+1002, F0: 34.65740662142043, # TOAs: 183
-[preProcess.C:158] Warning: PSR J0711-6830 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J0711-6830, F0: 182.1172346472276, # TOAs: 183
-[preProcess.C:158] Warning: PSR J0751+1807 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J0751+1807. Setting value to 1 with 20% uncertainty.
-PSR: J0751+1807, F0: 287.4578539950941, # TOAs: 183
-[preProcess.C:158] Warning: PSR J0900-3144 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J0900-3144. Setting value to 1 with 20% uncertainty.
-PSR: J0900-3144, F0: 90.0118419193632, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1012+5307 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1012+5307, F0: 190.26783444155498, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1022+1001 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1022+1001, F0: 60.779447956696714, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1024-0719 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1024-0719, F0: 193.71568344854623, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1045-4509 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1045-4509, F0: 133.79314954119278, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1455-3330 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1455-3330, F0: 125.20024324499536, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1600-3053 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1600-3053, F0: 277.9377069896204, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1603-7202 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1603-7202, F0: 67.37658112877924, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1614-2230 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J1614-2230. Setting value to 1 with 20% uncertainty.
-PSR: J1614-2230, F0: 317.37893706872126, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1643-1224 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1643-1224, F0: 216.37333714263485, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1713+0747 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1713+0747, F0: 218.81184041715784, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1730-2304 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1730-2304, F0: 123.1102871473812, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1744-1134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1744-1134, F0: 245.42611968980754, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1857+0943 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1857+0943, F0: 186.4940783779791, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1909-3744 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1909-3744, F0: 339.31568721848686, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1918-0642 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1918-0642, F0: 130.78951412337267, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1939+2134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1939+2134, F0: 641.9282245822469, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1944+0907 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J1944+0907. Setting value to 1 with 20% uncertainty.
-PSR: J1944+0907, F0: 192.85651792018598, # TOAs: 183
-[preProcess.C:158] Warning: PSR J2010-1323 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J2010-1323. Setting value to 1 with 20% uncertainty.
-PSR: J2010-1323, F0: 191.45090909263828, # TOAs: 183
-[preProcess.C:158] Warning: PSR J2124-3358 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J2124-3358, F0: 202.7938937460303, # TOAs: 183
-[preProcess.C:158] Warning: PSR J2129-5721 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J2129-5721, F0: 268.3592272938787, # TOAs: 183
-[preProcess.C:158] Warning: PSR J2145-0750 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J2145-0750, F0: 62.29588783738885, # TOAs: 183
-[preProcess.C:158] Warning: PSR J2229+2643 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J2229+2643. Setting value to 1 with 20% uncertainty.
-PSR: J2229+2643, F0: 335.81620819685526, # TOAs: 183
-[preProcess.C:158] Warning: PSR J2317+1439 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J2317+1439, F0: 290.2546036648635, # TOAs: 183
-2025-07-12 03:03:11,763 - INFO - Initializing Kalman filter...
-2025-07-12 03:03:11,763 - INFO - Initializing JaxKalmanFilter...
-2025-07-12 03:03:12,599 - INFO - Number of pulsars: 32
-2025-07-12 03:03:12,599 - INFO - Pulsar frequencies: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
-  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
-  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
-  67.37658113 317.37893707 216.37333714 218.81184042 123.11028715
- 245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
- 192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
- 335.8162082  290.25460366]
-2025-07-12 03:03:12,600 - INFO - Total number of observations: 183
-2025-07-12 03:03:12,600 - INFO - Starting dt (days): 29.875630165338517
-2025-07-12 03:03:12,600 - INFO - Ending dt (days): 30.060462559770656
-2025-07-12 03:03:12,600 - INFO - The errors at t=1 are: [2.697680e-06 9.700560e-06 1.613116e-05 3.307200e-07 4.558820e-06
- 2.141629e-05 5.225050e-06 4.722880e-06 4.797490e-06 5.783810e-06
- 2.626620e-06 5.090810e-06 6.527710e-06 1.173289e-05 8.300700e-07
- 3.826940e-06 2.880370e-06 2.054900e-06 1.612610e-06 3.759770e-06
- 1.103370e-06 2.220800e-06 4.024300e-07 5.434910e-06 1.372800e-07
- 7.031630e-06 4.653570e-06 5.474680e-06 3.388130e-06 4.303360e-06
- 1.993229e-05 2.291670e-06]
-2025-07-12 03:03:12,669 - INFO - === Likelihood Performance Test ===
-2025-07-12 03:03:12,669 - INFO - Testing likelihood evaluation with known parameter values...
-2025-07-12 03:03:12,977 - INFO - Test parameters: γa=1e-09, ha=1e-15
-2025-07-12 03:03:12,977 - INFO - Number of pulsars: 32
-2025-07-12 03:03:12,977 - INFO - Performing for the first time a likelihood evaluation...
-2025-07-12 03:03:22,908 - INFO - Performing timed for the second time a likelihood evaluation...
-2025-07-12 03:03:22,985 - INFO - Likelihood evaluation completed in 9.9308 seconds the first time
-2025-07-12 03:03:22,986 - INFO - Likelihood evaluation completed in 0.0770 seconds the second time
-2025-07-12 03:03:23,020 - INFO - Log likelihood value: 55963.87289660473
-2025-07-12 03:03:23,020 - INFO - === End Likelihood Performance Test ===
-Getting prior model specs...
-Using individual controls - gamma_p_fixed: False, sigma_p_fixed: False
-2025-07-12 03:03:23,026 - INFO - 
-============================================================
-2025-07-12 03:03:23,026 - INFO - PRIOR SPECIFICATIONS SUMMARY
-2025-07-12 03:03:23,026 - INFO - ============================================================
-2025-07-12 03:03:23,026 - INFO - 
---- Gravitational Wave Background Parameters ---
-2025-07-12 03:03:23,026 - INFO - log10(h_a): REPARAMETERIZED for better NUTS sampling
-2025-07-12 03:03:23,026 - INFO -   - Sampling: log10_ha_prime ~ N(0, 1)
-2025-07-12 03:03:23,026 - INFO -   - Transform: log10_ha = -16.00 + log10_ha_prime * 0.667
-2025-07-12 03:03:23,027 - INFO -   - Equivalent to: Uniform(-18.0, -14.0)
-2025-07-12 03:03:23,027 - INFO - log10(γ_a): Uniform(-10.0, -8.0)
-2025-07-12 03:03:23,027 - INFO - 
---- Pulsar Red Noise Parameters (32 pulsars) ---
-2025-07-12 03:03:23,027 - INFO - log10(γ_p): HIERARCHICAL modeling
-2025-07-12 03:03:23,027 - INFO -   - Population mean: Uniform(-9.0, -7.0)
-2025-07-12 03:03:23,027 - INFO -   - Population std: Uniform(0.1, 1.0)
-2025-07-12 03:03:23,027 - INFO -   - Individual pulsars: Normal(population_mean, population_std)
-2025-07-12 03:03:23,027 - INFO - log10(σ_p): LOG-RATIO parameterization
-2025-07-12 03:03:23,027 - INFO -   - log10(σ_p) = log10(γ_p) + log10(ratio)
-2025-07-12 03:03:23,028 - INFO -   - Ratio mean: Uniform(-8.0, -4.0)
-2025-07-12 03:03:23,028 - INFO -   - Ratio std: Uniform(0.5, 3.0)
-2025-07-12 03:03:23,028 - INFO -   - Individual ratios: Normal(ratio_mean, ratio_std)
-2025-07-12 03:03:23,028 - INFO - 
---- Measurement Noise Parameters (32 pulsars) ---
-2025-07-12 03:03:23,109 - INFO - EFAC: FIXED at individual values (range: 0.903 to 2.206)
-2025-07-12 03:03:23,110 - INFO - EQUAD: FIXED at individual values (range: 2.78e-08 to 5.69e-07)
-2025-07-12 03:03:23,110 - INFO - ============================================================
-2025-07-12 03:03:23,110 - INFO - Performing likelihood performance test for runtime estimation...
-2025-07-12 03:03:23,110 - INFO - === Likelihood Performance Test ===
-2025-07-12 03:03:23,110 - INFO - Testing likelihood evaluation with known parameter values...
-2025-07-12 03:03:23,113 - INFO - Test parameters: γa=1e-09, ha=1e-15
-2025-07-12 03:03:23,113 - INFO - Number of pulsars: 32
-2025-07-12 03:03:23,113 - INFO - Performing for the first time a likelihood evaluation...
-2025-07-12 03:03:23,183 - INFO - Performing timed for the second time a likelihood evaluation...
-2025-07-12 03:03:23,253 - INFO - Likelihood evaluation completed in 0.0700 seconds the first time
-2025-07-12 03:03:23,253 - INFO - Likelihood evaluation completed in 0.0700 seconds the second time
-2025-07-12 03:03:23,254 - INFO - Log likelihood value: 55963.87289660473
-2025-07-12 03:03:23,254 - INFO - === End Likelihood Performance Test ===
-2025-07-12 03:03:23,324 - INFO - 
-============================================================
-2025-07-12 03:03:23,324 - INFO - NUTS CONFIGURATION
-2025-07-12 03:03:23,324 - INFO - ============================================================
-2025-07-12 03:03:23,324 - INFO - NUTS Configuration:
-2025-07-12 03:03:23,324 - INFO -   - Number of samples: 2000
-2025-07-12 03:03:23,324 - INFO -   - Warmup samples: 1000
-2025-07-12 03:03:23,324 - INFO -   - Number of chains: 4
-2025-07-12 03:03:23,324 - INFO -   - Target accept prob: 0.85
-2025-07-12 03:03:23,324 - INFO -   - Max tree depth: 10
-2025-07-12 03:03:23,325 - INFO -   - Free parameters: 70
-2025-07-12 03:03:23,325 - INFO - 
-2025-07-12 03:03:23,325 - INFO - Likelihood Performance:
-2025-07-12 03:03:23,325 - INFO -   - Single likelihood evaluation: 0.0693 seconds
-2025-07-12 03:03:23,325 - INFO -   - High-dimensional optimizations applied
-2025-07-12 03:03:23,325 - INFO -   - Hierarchical priors reduce effective dimensionality
-2025-07-12 03:03:23,325 - INFO - 
-2025-07-12 03:03:23,325 - INFO - Note: Runtime estimation disabled for hierarchical models.
-2025-07-12 03:03:23,325 - INFO -       NUTS trajectory lengths vary significantly with model complexity.
-2025-07-12 03:03:23,325 - INFO -       Monitor progress through the sampling progress bar.
-2025-07-12 03:03:23,325 - INFO - ============================================================
-2025-07-12 03:03:23,325 - INFO - 
-============================================================
-2025-07-12 03:03:23,325 - INFO - LIKELIHOOD GRADIENT ANALYSIS
-2025-07-12 03:03:23,325 - INFO - ============================================================
-2025-07-12 03:03:23,363 - INFO - Computing gradients at test parameter values...
-2025-07-12 03:03:23,363 - INFO - Test values:
-2025-07-12 03:03:23,363 - INFO -   - log10(h_a): -15.00
-2025-07-12 03:03:23,363 - INFO -   - log10(γ_a): -9.00e+00
-2025-07-12 03:03:23,364 - INFO -   - log10(γ_p): [-10.93, -6.00] (min, max)
-2025-07-12 03:03:23,364 - INFO -   - log10(σ_p): [-17.90, -12.60] (min, max)
-2025-07-12 03:03:23,364 - INFO - 
-2025-07-12 03:03:30,170 - INFO - Gradient Results (Non-Fixed Parameters Only):
-2025-07-12 03:03:30,171 - INFO - --- Scalar Parameters ---
-2025-07-12 03:03:30,200 - INFO - ∂ℒ/∂log10_ha_prime: -2.53e+02 (reparameterized)
-2025-07-12 03:03:30,201 - INFO - ∂ℒ/∂log10(h_a): -3.80e+02 (transformed)
-2025-07-12 03:03:30,201 - INFO - ∂ℒ/∂log10(γ_a): 3.69e-01
-2025-07-12 03:03:30,324 - INFO - 
-Total gradient L2 norm (sampled parameters only): 2.53e+02
-2025-07-12 03:03:30,324 - INFO - 
-Interpretation:
-2025-07-12 03:03:30,324 - INFO -   - Moderate gradients: Normal range for MCMC sampling
-2025-07-12 03:03:30,324 - INFO - ============================================================
-2025-07-12 03:03:30,324 - INFO - Running NUMPYRO inference...
-Getting prior model specs...
-Using individual controls - gamma_p_fixed: False, sigma_p_fixed: False
-Running NumPyro NUTS inference with 32 pulsars...
-NUTS parameters: 2000 samples, 1000 warmup, 4 chains
-Target accept prob: 0.85 (optimized for high-dimensional sampling)
-Dense mass matrix: True
-Max tree depth: 10
-Total free parameters: 70
-Advanced modeling enabled for pulsar noise parameters
-γp hierarchical + σp via log-ratio parameterization
-Effective dimensionality: 4 hyperparameters + 64 constrained parameters
-σp = γp + ratio (reduces parameter correlations)
-High-dimensional parameter space detected - using aggressive NUTS tuning
-  0%|          | 0/3000 [00:00<?, ?it/s]Compiling.. :   0%|          | 0/3000 [00:00<?, ?it/s]
-  0%|          | 0/3000 [00:00<?, ?it/s][A
-Compiling.. :   0%|          | 0/3000 [00:00<?, ?it/s][A
-
-  0%|          | 0/3000 [00:00<?, ?it/s][A[A
-
-Compiling.. :   0%|          | 0/3000 [00:00<?, ?it/s][A[A
-
-
-  0%|          | 0/3000 [00:00<?, ?it/s][A[A[A
-
-
-Compiling.. :   0%|          | 0/3000 [00:00<?, ?it/s][A[A[ARunning chain 0:   0%|          | 0/3000 [00:21<?, ?it/s]
-Running chain 1:   0%|          | 0/3000 [00:21<?, ?it/s][A
-
-Running chain 2:   0%|          | 0/3000 [00:21<?, ?it/s][A[A
-
-
-Running chain 3:   0%|          | 0/3000 [00:21<?, ?it/s][A[A[ARunning chain 0:   5%|▌         | 150/3000 [2:59:07<56:36:39, 71.51s/it]
-Running chain 1:   5%|▌         | 150/3000 [3:02:45<57:45:48, 72.96s/it][A
-
-Running chain 2:   5%|▌         | 150/3000 [3:05:53<58:45:16, 74.22s/it][A[A
-
-
-Running chain 3:   5%|▌         | 150/3000 [3:06:47<59:02:12, 74.57s/it][A[A[A
-Running chain 1:  10%|█         | 300/3000 [7:59:08<74:50:06, 99.78s/it][A
-
-Running chain 2:  10%|█         | 300/3000 [8:02:51<75:19:28, 100.43s/it][A[A
-
-
-Running chain 3:  10%|█         | 300/3000 [8:07:53<76:09:57, 101.55s/it][A[A[ARunning chain 0:  10%|█         | 300/3000 [8:08:06<76:36:35, 102.15s/it]
-Running chain 1:  15%|█▌        | 450/3000 [8:16:59<40:42:47, 57.48s/it][A
-
-Running chain 2:  15%|█▌        | 450/3000 [8:22:56<41:15:18, 58.24s/it] [A[ARunning chain 0:  15%|█▌        | 450/3000 [8:28:21<41:56:07, 59.20s/it] 
-Running chain 1:  20%|██        | 600/3000 [8:28:55<24:26:48, 36.67s/it][A
-
-
-Running chain 3:  15%|█▌        | 450/3000 [8:29:08<41:50:09, 59.06s/it] [A[A[A
-
-Running chain 2:  20%|██        | 600/3000 [8:35:56<24:52:01, 37.30s/it][A[A
-Running chain 1:  25%|██▌       | 750/3000 [8:36:46<15:21:45, 24.58s/it][ARunning chain 0:  20%|██        | 600/3000 [8:38:14<24:55:37, 37.39s/it]
-
-
-Running chain 3:  20%|██        | 600/3000 [8:39:42<24:56:34, 37.41s/it][A[A[A
-Running chain 1:  30%|███       | 900/3000 [8:44:18<10:03:36, 17.25s/it][A
-
-Running chain 2:  25%|██▌       | 750/3000 [8:44:22<15:39:58, 25.07s/it][A[ARunning chain 0:  25%|██▌       | 750/3000 [8:46:45<15:42:36, 25.14s/it]
-
-
-Running chain 3:  25%|██▌       | 750/3000 [8:48:39<15:45:33, 25.21s/it][A[A[A
-
-Running chain 2:  30%|███       | 900/3000 [8:52:16<10:16:40, 17.62s/it][A[A
-Running chain 1:  35%|███▌      | 1050/3000 [8:52:40<6:52:49, 12.70s/it][ARunning chain 0:  30%|███       | 900/3000 [8:55:03<10:20:10, 17.72s/it]
-
-
-Running chain 3:  30%|███       | 900/3000 [8:56:38<10:20:28, 17.73s/it][A[A[A
-Running chain 1:  40%|████      | 1200/3000 [8:59:24<4:45:28,  9.52s/it][A
-
-Running chain 2:  35%|███▌      | 1050/3000 [9:01:20<7:03:55, 13.04s/it][A[ARunning chain 0:  35%|███▌      | 1050/3000 [9:03:13<7:02:19, 12.99s/it]
-
-
-Running chain 3:  35%|███▌      | 1050/3000 [9:03:59<6:59:01, 12.89s/it][A[A[A
-Running chain 1:  45%|████▌     | 1350/3000 [9:06:08<3:23:03,  7.38s/it][A
-
-Running chain 2:  40%|████      | 1200/3000 [9:08:04<4:52:27,  9.75s/it][A[ARunning chain 0:  40%|████      | 1200/3000 [9:10:39<4:54:07,  9.80s/it]
-
-
-Running chain 3:  40%|████      | 1200/3000 [9:10:45<4:49:30,  9.65s/it][A[A[A
-Running chain 1:  50%|█████     | 1500/3000 [9:12:55<2:28:33,  5.94s/it][A
-
-Running chain 2:  45%|████▌     | 1350/3000 [9:15:05<3:28:25,  7.58s/it][A[A
-
-
-Running chain 3:  45%|████▌     | 1350/3000 [9:17:29<3:25:31,  7.47s/it][A[A[ARunning chain 0:  45%|████▌     | 1350/3000 [9:18:17<3:31:34,  7.69s/it]
-Running chain 1:  55%|█████▌    | 1650/3000 [9:19:45<1:51:36,  4.96s/it][A
-
-Running chain 2:  50%|█████     | 1500/3000 [9:21:58<2:32:13,  6.09s/it][A[A
-
-
-Running chain 3:  50%|█████     | 1500/3000 [9:24:13<2:29:58,  6.00s/it][A[A[ARunning chain 0:  50%|█████     | 1500/3000 [9:25:43<2:35:54,  6.24s/it]
-Running chain 1:  60%|██████    | 1800/3000 [9:26:29<1:25:24,  4.27s/it][A
-
-Running chain 2:  55%|█████▌    | 1650/3000 [9:29:08<1:54:48,  5.10s/it][A[A
-
-
-Running chain 3:  55%|█████▌    | 1650/3000 [9:30:58<1:52:14,  4.99s/it][A[A[A
-Running chain 1:  65%|██████▌   | 1950/3000 [9:33:13<1:06:22,  3.79s/it][ARunning chain 0:  55%|█████▌    | 1650/3000 [9:33:15<1:58:06,  5.25s/it]
-
-Running chain 2:  60%|██████    | 1800/3000 [9:35:58<1:27:37,  4.38s/it][A[A
-
-
-Running chain 3:  60%|██████    | 1800/3000 [9:37:43<1:25:52,  4.29s/it][A[A[A
-Running chain 1:  70%|███████   | 2100/3000 [9:40:03<52:04,  3.47s/it]  [ARunning chain 0:  60%|██████    | 1800/3000 [9:40:52<1:31:36,  4.58s/it]
-
-Running chain 2:  65%|██████▌   | 1950/3000 [9:42:45<1:07:49,  3.88s/it][A[A
-
-
-Running chain 3:  65%|██████▌   | 1950/3000 [9:44:29<1:06:43,  3.81s/it][A[A[A
-Running chain 1:  75%|███████▌  | 2250/3000 [9:46:47<40:28,  3.24s/it][ARunning chain 0:  65%|██████▌   | 1950/3000 [9:48:30<1:12:02,  4.12s/it]
-
-Running chain 2:  70%|███████   | 2100/3000 [9:49:35<52:57,  3.53s/it]  [A[A
-
-
-Running chain 3:  70%|███████   | 2100/3000 [9:51:15<52:10,  3.48s/it]  [A[A[A
-Running chain 1:  80%|████████  | 2400/3000 [9:53:31<30:44,  3.07s/it][ARunning chain 0:  70%|███████   | 2100/3000 [9:56:13<57:05,  3.81s/it]  
-
-Running chain 2:  75%|███████▌  | 2250/3000 [9:56:33<41:20,  3.31s/it][A[A
-
-
-Running chain 3:  75%|███████▌  | 2250/3000 [9:58:00<40:32,  3.24s/it][A[A[A
-Running chain 1:  85%|████████▌ | 2550/3000 [10:00:18<22:14,  2.97s/it][A
-
-Running chain 2:  80%|████████  | 2400/3000 [10:03:35<31:35,  3.16s/it][A[ARunning chain 0:  75%|███████▌  | 2250/3000 [10:03:37<44:22,  3.55s/it]
-
-
-Running chain 3:  80%|████████  | 2400/3000 [10:04:46<30:49,  3.08s/it][A[A[A
-Running chain 1:  90%|█████████ | 2700/3000 [10:07:02<14:25,  2.88s/it][A
-
-Running chain 2:  85%|████████▌ | 2550/3000 [10:10:22<22:41,  3.03s/it][A[ARunning chain 0:  80%|████████  | 2400/3000 [10:11:09<33:53,  3.39s/it]
-
-
-Running chain 3:  85%|████████▌ | 2550/3000 [10:11:33<22:16,  2.97s/it][A[A[A
-Running chain 1:  95%|█████████▌| 2850/3000 [10:13:47<07:04,  2.83s/it][A
-
-Running chain 2:  90%|█████████ | 2700/3000 [10:17:09<14:39,  2.93s/it][A[A
-
-
-Running chain 3:  90%|█████████ | 2700/3000 [10:18:19<14:27,  2.89s/it][A[A[ARunning chain 0:  85%|████████▌ | 2550/3000 [10:19:04<24:54,  3.32s/it]
-Running chain 1: 100%|██████████| 3000/3000 [10:20:34<00:00,  2.79s/it][ARunning chain 1: 100%|██████████| 3000/3000 [10:20:34<00:00, 12.41s/it]
-
-
-Running chain 2:  95%|█████████▌| 2850/3000 [10:24:08<07:13,  2.89s/it][A[A
-
-
-Running chain 3:  95%|█████████▌| 2850/3000 [10:25:05<07:05,  2.84s/it][A[A[ARunning chain 0:  90%|█████████ | 2700/3000 [10:26:24<16:01,  3.21s/it]
-
-Running chain 2: 100%|██████████| 3000/3000 [10:31:00<00:00,  2.85s/it][A[ARunning chain 2: 100%|██████████| 3000/3000 [10:31:00<00:00, 12.62s/it]
-
-
-
-Running chain 3: 100%|██████████| 3000/3000 [10:31:50<00:00,  2.79s/it][A[A[ARunning chain 3: 100%|██████████| 3000/3000 [10:31:50<00:00, 12.64s/it]
-Running chain 0:  95%|█████████▌| 2850/3000 [10:34:22<07:59,  3.20s/it]Running chain 0: 100%|██████████| 3000/3000 [10:42:03<00:00,  3.16s/it]Running chain 0: 100%|██████████| 3000/3000 [10:42:03<00:00, 12.84s/it]
-
-                              mean       std    median      5.0%     95.0%     n_eff     r_hat
-           log10_gamma_a     -9.00      0.58     -9.01     -9.82     -8.04  12528.92      1.00
-  log10_gamma_p_mean_raw     -1.28      0.98     -1.30     -2.85      0.36   9831.72      1.00
-   log10_gamma_p_std_raw      0.03      1.00      0.01     -1.69      1.60   6797.06      1.00
-          log10_ha_prime     -0.91      0.62     -0.83     -1.87      0.04   4238.14      1.00
-    log10_ratio_mean_raw     -5.22      0.27     -5.22     -5.66     -4.77   8779.89      1.00
-      log10_ratio_raw[0]     -0.69      0.69     -0.62     -1.77      0.42   8079.97      1.00
-      log10_ratio_raw[1]      1.94      0.75      2.03      0.92      3.14   4215.91      1.00
-      log10_ratio_raw[2]     -0.20      0.91     -0.17     -1.69      1.28  10033.88      1.00
-      log10_ratio_raw[3]     -1.02      0.34     -1.01     -1.59     -0.50   7422.56      1.00
-      log10_ratio_raw[4]      1.27      0.38      1.27      0.66      1.90   7851.09      1.00
-      log10_ratio_raw[5]      0.75      0.36      0.75      0.15      1.33   8309.38      1.00
-      log10_ratio_raw[6]      0.35      0.54      0.38     -0.50      1.26   9067.70      1.00
-      log10_ratio_raw[7]     -0.39      0.83     -0.35     -1.68      0.99   8474.06      1.00
-      log10_ratio_raw[8]      0.99      0.34      0.99      0.44      1.54   7774.38      1.00
-      log10_ratio_raw[9]      0.67      0.66      0.75     -0.38      1.69   6122.75      1.00
-     log10_ratio_raw[10]     -1.33      0.51     -1.31     -2.13     -0.48   8086.10      1.00
-     log10_ratio_raw[11]      0.04      0.59      0.08     -0.85      1.02   7189.00      1.00
-     log10_ratio_raw[12]     -0.37      0.58     -0.33     -1.28      0.63   8374.85      1.00
-     log10_ratio_raw[13]     -0.72      0.75     -0.68     -1.92      0.52  11536.27      1.00
-     log10_ratio_raw[14]     -0.35      0.43     -0.34     -1.04      0.31   6111.51      1.00
-     log10_ratio_raw[15]     -0.32      0.37     -0.32     -0.92      0.30   7446.49      1.00
-     log10_ratio_raw[16]      0.90      0.39      0.89      0.24      1.51   8432.99      1.00
-     log10_ratio_raw[17]      2.00      0.35      1.99      1.43      2.56   5379.60      1.00
-     log10_ratio_raw[18]     -1.33      0.66     -1.30     -2.36     -0.22   8179.08      1.00
-     log10_ratio_raw[19]      0.36      0.40      0.36     -0.31      0.98   9259.73      1.00
-     log10_ratio_raw[20]     -0.84      0.50     -0.81     -1.67     -0.05   7645.03      1.00
-     log10_ratio_raw[21]      0.42      0.38      0.42     -0.19      1.04   8910.39      1.00
-     log10_ratio_raw[22]     -0.75      0.41     -0.72     -1.41     -0.10   5712.11      1.00
-     log10_ratio_raw[23]     -0.53      0.63     -0.48     -1.59      0.45   9789.25      1.00
-     log10_ratio_raw[24]      1.45      0.30      1.43      0.99      1.98   5528.76      1.00
-     log10_ratio_raw[25]     -0.73      0.79     -0.70     -1.99      0.58   9727.42      1.00
-     log10_ratio_raw[26]     -0.38      0.66     -0.31     -1.39      0.73   8003.04      1.00
-     log10_ratio_raw[27]     -0.96      0.74     -0.92     -2.17      0.23  10747.59      1.00
-     log10_ratio_raw[28]     -1.02      0.74     -0.99     -2.24      0.20   9977.48      1.00
-     log10_ratio_raw[29]     -0.98      0.56     -0.95     -1.91     -0.08   7331.77      1.00
-     log10_ratio_raw[30]     -0.23      0.90     -0.20     -1.73      1.22   9875.85      1.00
-     log10_ratio_raw[31]     -1.13      0.73     -1.09     -2.35      0.04   9215.22      1.00
-     log10_ratio_std_raw      1.28      0.65      1.26      0.19      2.31   4524.72      1.00
-         log10_γp_raw[0]     -0.07      0.98     -0.07     -1.78      1.49  10146.75      1.00
-         log10_γp_raw[1]      0.24      1.00      0.24     -1.53      1.75   9378.67      1.00
-         log10_γp_raw[2]     -0.02      1.01     -0.01     -1.65      1.69   9160.70      1.00
-         log10_γp_raw[3]     -0.14      1.00     -0.15     -1.81      1.46   9789.09      1.00
-         log10_γp_raw[4]      0.16      1.00      0.15     -1.44      1.83   9098.00      1.00
-         log10_γp_raw[5]      0.09      1.00      0.09     -1.52      1.76  11276.55      1.00
-         log10_γp_raw[6]      0.04      1.01      0.04     -1.58      1.73  11148.26      1.00
-         log10_γp_raw[7]     -0.06      0.99     -0.06     -1.71      1.56   9976.45      1.00
-         log10_γp_raw[8]      0.13      1.00      0.14     -1.51      1.73   9805.54      1.00
-         log10_γp_raw[9]      0.09      1.00      0.09     -1.50      1.80   9914.06      1.00
-        log10_γp_raw[10]     -0.17      1.00     -0.17     -1.83      1.44  11879.15      1.00
-        log10_γp_raw[11]      0.01      0.99      0.00     -1.65      1.54  11044.07      1.00
-        log10_γp_raw[12]     -0.05      0.98     -0.05     -1.69      1.55  10885.49      1.00
-        log10_γp_raw[13]     -0.09      0.98     -0.09     -1.69      1.51  10400.11      1.00
-        log10_γp_raw[14]     -0.04      0.99     -0.05     -1.60      1.63   9059.40      1.00
-        log10_γp_raw[15]     -0.04      1.00     -0.05     -1.70      1.61  10371.06      1.00
-        log10_γp_raw[16]      0.13      1.00      0.13     -1.49      1.79  10635.03      1.00
-        log10_γp_raw[17]      0.25      1.00      0.25     -1.40      1.89  10883.27      1.00
-        log10_γp_raw[18]     -0.16      0.99     -0.17     -1.82      1.46  10167.76      1.00
-        log10_γp_raw[19]      0.03      1.00      0.02     -1.60      1.70   9826.48      1.00
-        log10_γp_raw[20]     -0.10      1.01     -0.09     -1.71      1.58   9207.83      1.00
-        log10_γp_raw[21]      0.07      0.98      0.07     -1.50      1.71  10460.86      1.00
-        log10_γp_raw[22]     -0.11      1.00     -0.11     -1.77      1.52   9239.19      1.00
-        log10_γp_raw[23]     -0.07      0.99     -0.07     -1.67      1.56  11171.43      1.00
-        log10_γp_raw[24]      0.16      0.99      0.15     -1.50      1.77   7677.78      1.00
-        log10_γp_raw[25]     -0.09      1.02     -0.09     -1.76      1.64  11104.23      1.00
-        log10_γp_raw[26]     -0.04      0.99     -0.05     -1.64      1.60   9333.31      1.00
-        log10_γp_raw[27]     -0.12      0.99     -0.12     -1.73      1.51   8564.83      1.00
-        log10_γp_raw[28]     -0.12      1.00     -0.12     -1.77      1.51  11367.86      1.00
-        log10_γp_raw[29]     -0.12      1.00     -0.12     -1.70      1.57  10361.37      1.00
-        log10_γp_raw[30]     -0.03      1.00     -0.03     -1.61      1.69  10738.13      1.00
-        log10_γp_raw[31]     -0.13      1.01     -0.12     -1.76      1.59  10865.83      1.00
-
-Number of divergences: 0
-2025-07-12 13:55:31,718 - INFO - Saving NumPyro results...
-2025-07-12 13:55:38,843 - INFO - NumPyro results saved to /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_026/numpyro_test_026_results.nc
-2025-07-12 13:55:38,843 - INFO - Creating corner plot and diagnostics for NUTS results...
-2025-07-12 13:55:44,738 - INFO - Corner plot saved to /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_026/plots/corner_plot_numpyro_test_026.png
-2025-07-12 13:55:44,738 - INFO - Running MCMC diagnostics...
-Successfully loaded InferenceData from: /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_026/numpyro_test_026_results.nc
-
---- Calculating Full MCMC Summary ---
-/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/arviz/stats/diagnostics.py:596: RuntimeWarning: invalid value encountered in scalar divide
-  (between_chain_variance / within_chain_variance + num_samples - 1) / (num_samples)
-
---- Filtered MCMC Summary (Excluding Constant Deterministics) ---
-                          mean     sd  hdi_3%  ...   ess_bulk  ess_tail  r_hat
-log10_gamma_a           -8.999  0.578  -9.871  ...  11484.229  5157.671  1.001
-log10_gamma_p_mean      -8.428  0.326  -9.041  ...   9906.136  6379.064  1.000
-log10_gamma_p_mean_raw  -1.283  0.978  -3.123  ...   9906.136  6379.064  1.000
-log10_gamma_p_std        0.554  0.150   0.282  ...   6826.600  6396.312  1.000
-log10_gamma_p_std_raw    0.028  0.999  -1.784  ...   6826.600  6396.312  1.000
-...                        ...    ...     ...  ...        ...       ...    ...
-log10_σp[27]           -18.307  0.351 -18.992  ...  10135.632  6432.608  1.000
-log10_σp[28]           -18.333  0.360 -19.027  ...  10203.741  6496.637  1.001
-log10_σp[29]           -18.312  0.280 -18.842  ...   8625.094  4977.915  1.000
-log10_σp[30]           -18.002  0.418 -18.776  ...  10063.601  6421.230  1.000
-log10_σp[31]           -18.377  0.357 -19.034  ...   9275.998  5529.013  1.000
-
-[171 rows x 9 columns]
-
---- Interpretation Guidance (Filtered Parameters) ---
-Checking R-hat and ESS only for variables that showed variation:
-
-Maximum R-hat value (filtered): 1.002
-R-hat values look good (<= 1.01).
-Minimum Bulk ESS (filtered): 4188
-Minimum Tail ESS (filtered): 2960
-ESS values look sufficient (>= 400).
-
---- Generating Trace Plots (Filtered Parameters) ---
-Could not generate trace plots: 'var names: "[\'log10_ratio[0]\' \'log10_ratio[1]\' \'log10_ratio[2]\' \'log10_ratio[3]\'\\n \'log10_ratio[4]\' \'log10_ratio[5]\' \'log10_ratio[6]\' \'log10_ratio[7]\'\\n \'log10_ratio[8]\' \'log10_ratio[9]\' \'log10_ratio[10]\' \'log10_ratio[11]\'\\n \'log10_ratio[12]\' \'log10_ratio[13]\' \'log10_ratio[14]\' \'log10_ratio[15]\'\\n \'log10_ratio[16]\' \'log10_ratio[17]\' \'log10_ratio[18]\' \'log10_ratio[19]\'\\n \'log10_ratio[20]\' \'log10_ratio[21]\' \'log10_ratio[22]\' \'log10_ratio[23]\'\\n \'log10_ratio[24]\' \'log10_ratio[25]\' \'log10_ratio[26]\' \'log10_ratio[27]\'\\n \'log10_ratio[28]\' \'log10_ratio[29]\' \'log10_ratio[30]\' \'log10_ratio[31]\'\\n \'log10_ratio_raw[0]\' \'log10_ratio_raw[1]\' \'log10_ratio_raw[2]\'\\n \'log10_ratio_raw[3]\' \'log10_ratio_raw[4]\' \'log10_ratio_raw[5]\'\\n \'log10_ratio_raw[6]\' \'log10_ratio_raw[7]\' \'log10_ratio_raw[8]\'\\n \'log10_ratio_raw[9]\' \'log10_ratio_raw[10]\' \'log10_ratio_raw[11]\'\\n \'log10_ratio_raw[12]\' \'log10_ratio_raw[13]\' \'log10_ratio_raw[14]\'\\n \'log10_ratio_raw[15]\' \'log10_ratio_raw[16]\' \'log10_ratio_raw[17]\'\\n \'log10_ratio_raw[18]\' \'log10_ratio_raw[19]\' \'log10_ratio_raw[20]\'\\n \'log10_ratio_raw[21]\' \'log10_ratio_raw[22]\' \'log10_ratio_raw[23]\'\\n \'log10_ratio_raw[24]\' \'log10_ratio_raw[25]\' \'log10_ratio_raw[26]\'\\n \'log10_ratio_raw[27]\' \'log10_ratio_raw[28]\' \'log10_ratio_raw[29]\'\\n \'log10_ratio_raw[30]\' \'log10_ratio_raw[31]\' \'log10_γp[0]\' \'log10_γp[1]\'\\n \'log10_γp[2]\' \'log10_γp[3]\' \'log10_γp[4]\' \'log10_γp[5]\' \'log10_γp[6]\'\\n \'log10_γp[7]\' \'log10_γp[8]\' \'log10_γp[9]\' \'log10_γp[10]\' \'log10_γp[11]\'\\n \'log10_γp[12]\' \'log10_γp[13]\' \'log10_γp[14]\' \'log10_γp[15]\'\\n \'log10_γp[16]\' \'log10_γp[17]\' \'log10_γp[18]\' \'log10_γp[19]\'\\n \'log10_γp[20]\' \'log10_γp[21]\' \'log10_γp[22]\' \'log10_γp[23]\'\\n \'log10_γp[24]\' \'log10_γp[25]\' \'log10_γp[26]\' \'log10_γp[27]\'\\n \'log10_γp[28]\' \'log10_γp[29]\' \'log10_γp[30]\' \'log10_γp[31]\'\\n \'log10_γp_raw[0]\' \'log10_γp_raw[1]\' \'log10_γp_raw[2]\' \'log10_γp_raw[3]\'\\n \'log10_γp_raw[4]\' \'log10_γp_raw[5]\' \'log10_γp_raw[6]\' \'log10_γp_raw[7]\'\\n \'log10_γp_raw[8]\' \'log10_γp_raw[9]\' \'log10_γp_raw[10]\' \'log10_γp_raw[11]\'\\n \'log10_γp_raw[12]\' \'log10_γp_raw[13]\' \'log10_γp_raw[14]\'\\n \'log10_γp_raw[15]\' \'log10_γp_raw[16]\' \'log10_γp_raw[17]\'\\n \'log10_γp_raw[18]\' \'log10_γp_raw[19]\' \'log10_γp_raw[20]\'\\n \'log10_γp_raw[21]\' \'log10_γp_raw[22]\' \'log10_γp_raw[23]\'\\n \'log10_γp_raw[24]\' \'log10_γp_raw[25]\' \'log10_γp_raw[26]\'\\n \'log10_γp_raw[27]\' \'log10_γp_raw[28]\' \'log10_γp_raw[29]\'\\n \'log10_γp_raw[30]\' \'log10_γp_raw[31]\' \'log10_σp[0]\' \'log10_σp[1]\'\\n \'log10_σp[2]\' \'log10_σp[3]\' \'log10_σp[4]\' \'log10_σp[5]\' \'log10_σp[6]\'\\n \'log10_σp[7]\' \'log10_σp[8]\' \'log10_σp[9]\' \'log10_σp[10]\' \'log10_σp[11]\'\\n \'log10_σp[12]\' \'log10_σp[13]\' \'log10_σp[14]\' \'log10_σp[15]\'\\n \'log10_σp[16]\' \'log10_σp[17]\' \'log10_σp[18]\' \'log10_σp[19]\'\\n \'log10_σp[20]\' \'log10_σp[21]\' \'log10_σp[22]\' \'log10_σp[23]\'\\n \'log10_σp[24]\' \'log10_σp[25]\' \'log10_σp[26]\' \'log10_σp[27]\'\\n \'log10_σp[28]\' \'log10_σp[29]\' \'log10_σp[30]\' \'log10_σp[31]\'] are not present" in dataset'
-
---- Trace Plot Interpretation ---
-(Interpret as before, focusing on these non-constant variables)
-
---- Checking for Divergent Transitions ---
-/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/utils.py:368: FutureWarning: The return type of `Dataset.dims` will be changed to return a set of dimension names in future, in order to be more consistent with `DataArray.dims`. To access a mapping from dimension names to lengths, please use `Dataset.sizes`.
-  total_samples = inf_data.posterior.dims["chain"] * inf_data.posterior.dims["draw"]
-Total number of divergent transitions: 0
-Total post-warmup samples: 8000
-No divergent transitions found. Good!
-
---- Diagnostics Complete ---
-Diagnostics saved to: /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_026/numpyro_diagnostics/mcmc_diagnostics.txt
-2025-07-12 13:55:46,670 - INFO - MCMC diagnostics completed
-NUTS inference complete. Skipping no-GW run since NUTS doesn't provide model evidence.
-
-Inference complete! Results saved to: /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/numpyro_test_026
-
-real	659m15.482s
-user	1249m56.769s
-sys	1273m56.705s
-
-+------------------ Job Report: 2193829 (COMPLETED) -------------------+
-| Memory (RAM)  [############        ] 61.6% (9.9 GB peak / 16 GB)     |
-| CPU           [####                ] 23.6% average                   |
-| GPU           [##################  ] 93.1% average                   |
-| Time          [------------------> ] 91.8% (0-11:00:45 / 0-12:00:00) |
-|                                                                      |
-| Lustre Filesystem:                                                   |
-|   Path    Total Read    Total Write    Total IOPS                    |
-|   ------  ------------  -------------  ------------                  |
-|   /apps   30.9 MB       0 B            14                            |
-|   /fred   857.1 MB      10.2 MB        17.8 K                        |
-|   /home   27.4 MB       0 B            50                            |
-|   OS      4 KB          0 B            20                            |
-|                                                                      |
-| Warnings:                                                            |
-|   - CPU usage is low                                                 |
-+----------------------------------------------------------------------+
