@@ -12,7 +12,7 @@ def test_likelihood_performance(KF, config, logger):
     
     This function runs a single likelihood evaluation using the same parameter
     values as in test_likelihood_value to provide users with timing and
-    likelihood value information before running the full nested sampling.
+    likelihood value information before running the full inference.
     
     Args:
         KF: Kalman filter object

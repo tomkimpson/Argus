@@ -45,8 +45,6 @@ def main():
     print(f"\nInference complete! Results saved to: {gw_output_dir}")
     if no_gw_output_dir:
         print(f"No-GW results saved to: {no_gw_output_dir}")
-    if bayes_factor_results:
-        print(f"Bayes factor: {bayes_factor_results['bayes_factor']:.2f}")
 
 
 if __name__ == "__main__":

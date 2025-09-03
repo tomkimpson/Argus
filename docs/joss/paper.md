@@ -11,7 +11,7 @@ tags:
   - high-performance computing
 authors:
   - name: Tom Kimpson
-    orcid: 0000-0000-0000-0000  # Update with actual ORCID
+    orcid: 0000-0000-0000-0000
     equal-contrib: true
     affiliation: "1, 2"
     corresponding: true
@@ -19,12 +19,12 @@ authors:
     equal-contrib: true
     affiliation: "1, 2"
 affiliations:
- - name: University of Melbourne, Australia
-   index: 1
-   ror: 01ej9dk98
- - name: OzGrav: Australian Research Council Centre of Excellence for Gravitational Wave Discovery, Australia
-   index: 2
-   ror: 05qajvd42
+  - name: University of Melbourne, Australia
+    index: 1
+    ror: 01ej9dk98
+  - name: "OzGrav: Australian Research Council Centre of Excellence for Gravitational Wave Discovery, Australia"
+    index: 2
+    ror: 05qajvd42
 date: 28 August 2025
 bibliography: paper.bib
 ---
