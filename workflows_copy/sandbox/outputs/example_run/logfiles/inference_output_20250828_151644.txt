@@ -1,0 +1,4 @@
+2025-08-28 15:16:44,079 - INFO - Logging to file: /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/example_run/logfiles/inference_output_20250828_151644.txt
+2025-08-28 15:16:44,079 - INFO - Centralized logging initialized
+2025-08-28 15:16:44,091 - INFO - Copied config file to /fred/oz022/tkimpson/tmp/argus_dev/Argus/python/outputs/example_run/example_config.ini
+2025-08-28 15:16:44,091 - INFO - Loading and processing data...

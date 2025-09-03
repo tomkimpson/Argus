@@ -67,8 +67,9 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     -------
         str: Output directory path
     """
-    # Load configuration
+    # Load configuration and resolve any relative paths
     config = utils.load_config(config_path)
+    config = utils.resolve_config_paths(config, config_path)
     
     # Get output_id from config
     output_id = io_manager.get_output_id_from_config(config, timestamp)
@@ -89,7 +90,7 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     inference_runners.test_likelihood_performance(KF, config, logger)
     
     # Get inference method
-    method = config.get('Inference', 'method', fallback='jaxns').lower()
+    method = config.get('Inference', 'method', fallback='numpyro').lower()
     
     if method == 'jaxns':
         raise ValueError("JAXNS nested sampling is no longer supported. Please use 'numpyro' for NUTS sampling.")
@@ -115,16 +116,17 @@ def run_model_comparison(config_path, timestamp=None):
         
     Returns
     -------
-        tuple: (gw_output_dir, no_gw_output_dir, bayes_factor_results)
+        tuple: (gw_output_dir, no_gw_output_dir, None)
     """
     # Load config to check if comparison is appropriate
     config = utils.load_config(config_path)
-    method = config.get('Inference', 'method', fallback='jaxns').lower()
+    config = utils.resolve_config_paths(config, config_path)
+    method = config.get('Inference', 'method', fallback='numpyro').lower()
     
     # Run inference with GW
     print("\nRunning inference with GW model...")
     gw_output_dir = run_inference(config_path=config_path, use_gw=True, timestamp=timestamp)
     
     print("NUTS inference complete. Model comparison not available with NUTS sampling.")
-    print("Note: Bayes factors require nested sampling methods, which are no longer supported.")
+    print("Note: Model evidence comparison requires nested sampling methods, which are no longer supported.")
     return gw_output_dir, None, None

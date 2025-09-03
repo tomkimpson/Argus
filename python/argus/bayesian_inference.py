@@ -701,7 +701,7 @@ def run_numpyro_inference(kalman_filter, config, n_pulsars, sigma_p_array, gamma
     )
     
     # Run sampling
-    rng_key = random.PRNGKey(42)  # Use same seed as JAXNS for reproducibility
+    rng_key = random.PRNGKey(42)  # Fixed seed for reproducibility
     sampler.run(rng_key)
     
     # Print summary
@@ -802,14 +802,19 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
         log_or_print(f"  - Population std: Uniform({float(std_spec.low):.1f}, {float(std_spec.high):.1f})")
         log_or_print(f"  - Individual pulsars: Normal(population_mean, population_std)")
     elif hierarchical_specs and hierarchical_specs.get('log_ratio_parameterization', False):
-        # Log-ratio parameterization case
-        mean_spec = hierarchical_specs['log10_ratio_mean_spec']
-        std_spec = hierarchical_specs['log10_ratio_std_spec']
-        log_or_print(f"log10(σ_p): LOG-RATIO parameterization")
-        log_or_print(f"  - log10(σ_p) = log10(γ_p) + log10(ratio)")
-        log_or_print(f"  - Ratio mean: Uniform({float(mean_spec.low):.1f}, {float(mean_spec.high):.1f})")
-        log_or_print(f"  - Ratio std: Uniform({float(std_spec.low):.1f}, {float(std_spec.high):.1f})")
-        log_or_print(f"  - Individual ratios: Normal(ratio_mean, ratio_std)")
+        # Check if the required specs exist before accessing them
+        if 'log10_ratio_mean_spec' in hierarchical_specs and 'log10_ratio_std_spec' in hierarchical_specs:
+            # Log-ratio parameterization case
+            mean_spec = hierarchical_specs['log10_ratio_mean_spec']
+            std_spec = hierarchical_specs['log10_ratio_std_spec']
+            log_or_print(f"log10(σ_p): LOG-RATIO parameterization")
+            log_or_print(f"  - log10(σ_p) = log10(γ_p) + log10(ratio)")
+            log_or_print(f"  - Ratio mean: Uniform({float(mean_spec.low):.1f}, {float(mean_spec.high):.1f})")
+            log_or_print(f"  - Ratio std: Uniform({float(std_spec.low):.1f}, {float(std_spec.high):.1f})")
+            log_or_print(f"  - Individual ratios: Normal(ratio_mean, ratio_std)")
+        else:
+            # Fallback: hierarchical settings enabled but specs not created (likely due to fixed params)
+            log_or_print(f"log10(σ_p): FIXED (hierarchical settings detected but overridden by fixed parameters)")
     elif isinstance(sigma_p_spec, tfpd.Distribution):
         log_or_print(f"log10(σ_p): Uniform({float(sigma_p_spec.low[0]):.1f}, {float(sigma_p_spec.high[0]):.1f}) for each pulsar")
     elif sigma_p_spec is not None:
