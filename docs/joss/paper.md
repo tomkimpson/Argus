@@ -65,9 +65,33 @@ The core computational engine leverages JAX [@jax2018github] for several critica
 
 The implementation uses JAX's functional programming paradigm, ensuring numerical stability and enabling advanced optimization techniques through the NumPyro [@phan2019composable] probabilistic programming framework.
 
-## Bayesian Inference
+## Advanced Bayesian Inference
 
-Posterior sampling is performed using the No-U-Turn Sampler (NUTS) [@hoffman2014no] implemented in NumPyro. The combination of efficient likelihood evaluation through Kalman filtering and gradient-based MCMC sampling enables robust parameter estimation even for high-dimensional problems involving dozens of pulsars and hundreds of parameters.
+`Argus` implements sophisticated Bayesian parameter estimation techniques specifically designed to address the computational challenges of high-dimensional pulsar timing array analysis. Beyond standard MCMC sampling, the package incorporates three key methodological innovations that enable robust inference in parameter spaces with hundreds of dimensions.
+
+### Parameter Reparameterization for Improved NUTS Sampling
+
+Traditional approaches to gravitational wave amplitude estimation use uniform priors that can lead to poor NUTS sampler performance due to boundary effects and gradient conditioning issues. `Argus` implements an automatic reparameterization scheme where uniform priors $U(a,b)$ are transformed to standardized normal distributions $\mathcal{N}(0,1)$ through the mapping:
+
+$$\log_{10} h_a = \frac{a+b}{2} + \frac{b-a}{6} \cdot \log_{10} h_a'$$
+
+where $\log_{10} h_a' \sim \mathcal{N}(0,1)$. The scaling factor uses the 3-sigma rule to ensure 99.7% of samples lie within the original bounds while providing superior gradient geometry for Hamiltonian Monte Carlo dynamics.
+
+### Hierarchical Modeling for Population-Level Inference
+
+For pulsar timing arrays with multiple pulsars, `Argus` employs hierarchical Bayesian modeling to share information across the pulsar population while maintaining individual pulsar flexibility. Rather than treating each pulsar's red noise parameters as independent, the hierarchical approach models:
+
+$$\log_{10} \gamma_p^{(i)} \sim \mathcal{N}(\log_{10} \gamma_{\text{pop}}, \sigma_{\gamma,\text{pop}})$$
+
+where population hyperparameters $\gamma_{\text{pop}}$ and $\sigma_{\gamma,\text{pop}}$ are themselves given hyperpriors. This approach reduces the effective dimensionality from $2N$ to $2+N$ parameters while enabling astrophysically meaningful population-level inference. To prevent gradient pathologies in high-dimensional spaces, individual parameters are rescaled by $1/\sqrt{N}$ to maintain well-conditioned gradients regardless of array size.
+
+### Log-Ratio Parameterization for Correlated Parameters
+
+Strong correlations between red noise amplitude ($\sigma_p$) and spectral index ($\gamma_p$) parameters can severely impact MCMC efficiency. `Argus` addresses this through a log-ratio parameterization that samples the decorrelated quantities $\log_{10} \gamma_p$ and $\log_{10}(\sigma_p/\gamma_p)$, with $\sigma_p$ computed deterministically. This transformation typically reduces parameter correlations and improves sampling efficiency while maintaining physical interpretability.
+
+### Computational Performance
+
+These methodological advances enable `Argus` to perform robust Bayesian inference on problems that would be computationally prohibitive with standard approaches. The combination of efficient Kalman filter likelihood evaluation and advanced MCMC parameterizations allows convergent sampling for PTAs with dozens of pulsars, with computational scaling that will support next-generation arrays such as the SKA with hundreds of pulsars.
 
 ## Software Quality and Testing
 
@@ -83,6 +107,8 @@ Posterior sampling is performed using the No-U-Turn Sampler (NUTS) [@hoffman2014
 - **Model comparison**: Bayesian evidence calculation for model selection
 
 The state-space approach implemented in `Argus` offers several advantages over traditional frequency-domain methods, particularly in handling non-stationary processes and incorporating physical prior information about signal evolution.
+
+![Corner plot showing posterior distributions from Bayesian parameter estimation using Argus on a 2-pulsar mock dataset. The plot displays marginal and joint posterior distributions for key noise model parameters including logarithmic amplitudes of various stochastic processes (log₁₀ ρ parameters), timing model error factors (EFAC), and additional white noise terms (EQUAD). The well-constrained posteriors demonstrate the effectiveness of the state-space Kalman filtering approach for robust parameter estimation in pulsar timing array analysis.](images/corner_plot_run_example_run_2pulsars_smooth0.1_efac_equad.png)
 
 # Future Directions
 
