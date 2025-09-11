@@ -25,7 +25,7 @@ import numpy as np
 import argus
 from argus.data_loader import DataLoader
 from argus.model import ArgusModel
-from argus.bayesian_inference import run_numpyro_inference
+from argus.inference_runners import run_numpyro_inference
 
 # Load mock data
 data_loader = DataLoader()

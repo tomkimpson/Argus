@@ -15,7 +15,10 @@ authors:
     equal-contrib: true
     affiliation: "1, 2"
     corresponding: true
-  - name: J. Hu
+  - name: Nicholas O'Neil
+    equal-contrib: true
+    affiliation: "1, 2"
+  - name: Andrew Melatos
     equal-contrib: true
     affiliation: "1, 2"
 affiliations:
