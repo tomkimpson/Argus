@@ -29,6 +29,7 @@ import arviz as az
 import tensorflow_probability.substrates.jax as tfp
 from flax import struct
 from numpyro.infer import MCMC, NUTS
+import time
 
 jax.config.update("jax_enable_x64", True)
 tfpd = tfp.distributions
@@ -53,11 +54,6 @@ class Parameters:
     EQUAD: jnp.ndarray # Extra quadrature noise
 
 
-
-    
-
-
-
 def log_likelihood_fn(KF, log10_ha, log10_gamma_a, log10_γp, log10_σp, efac, equad):
     """Calculate log likelihood for NumPyro sampling."""
     ha = 10.0 ** log10_ha
@@ -76,8 +72,6 @@ def log_likelihood_fn(KF, log10_ha, log10_gamma_a, log10_γp, log10_σp, efac, e
     )
 
     return KF.get_likelihood(params)
-
-
 
 def print_parameters(params: Parameters):
     """Print all entries of a Parameters struct."""
@@ -327,11 +321,6 @@ def get_prior_model_specs(config, Npsr, sigma_p_array, gamma_p_array, efac_array
         'equad_spec': equad_spec,
         'hierarchical_specs': hierarchical_specs
     }
-
-
-
-
-
 
 
 
@@ -589,8 +578,8 @@ def count_free_parameters(prior_specs, n_pulsars):
     return count
 
 
-def run_numpyro_inference(kalman_filter, config, n_pulsars, sigma_p_array, gamma_p_array, 
-                         efac_array, equad_array):
+def run_nuts_sampling(kalman_filter, config, n_pulsars, sigma_p_array, gamma_p_array, 
+                      efac_array, equad_array):
     """Run NumPyro NUTS inference with optimizations for high-dimensional sampling.
     
     Parameters
@@ -862,41 +851,83 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
     log_or_print("="*60)
 
 
-def run_inference(kalman_filter, config, n_pulsars, sigma_p_array=None, 
-                 gamma_p_array=None, efac_array=None, equad_array=None):
-    """Run Bayesian inference using NumPyro NUTS sampling.
+def test_likelihood_performance(KF, config, logger):
+    """Test likelihood evaluation performance using known parameter values.
     
-    Parameters
-    ----------
-    kalman_filter : object
-        JAX Kalman filter with get_likelihood method
-    config : configparser.ConfigParser
-        Configuration object
-    n_pulsars : int
-        Number of pulsars
-    sigma_p_array : jnp.ndarray, optional
-        Pulsar red noise sigma values
-    gamma_p_array : jnp.ndarray, optional
-        Pulsar red noise gamma values
-    efac_array : jnp.ndarray, optional
-        EFAC values
-    equad_array : jnp.ndarray, optional
-        EQUAD values
+    This function runs a single likelihood evaluation using the same parameter
+    values as in test_likelihood_value to provide users with timing and
+    likelihood value information before running the full inference.
+    
+    Args:
+        KF: Kalman filter object
+        config: Configuration object
+        logger: Logger object
         
     Returns
     -------
-    result : arviz.InferenceData
-        ArviZ InferenceData object containing MCMC results
+        float: The computed log likelihood value
     """
-    # Get inference method from config
-    method = config.get('Inference', 'method', fallback='numpyro').lower()
+    logger.info("=== Likelihood Performance Test ===")
+    logger.info("Testing likelihood evaluation with known parameter values...")
     
-    if method == 'jaxns':
-        raise ValueError("JAXNS nested sampling is no longer supported. Please use 'numpyro' for NUTS sampling.")
-    elif method == 'numpyro':
-        return run_numpyro_inference(
-            kalman_filter, config, n_pulsars,
-            sigma_p_array, gamma_p_array, efac_array, equad_array
-        )
-    else:
-        raise ValueError(f"Unknown inference method: {method}. Only 'numpyro' is supported.")
+    # Get noise parameters using the common function
+    from argus.workflow import get_noise_parameters
+    efac_array, equad_array, sigma_p_array, gamma_p_array = get_noise_parameters(config)
+    
+    # Set test parameter values (same as test_likelihood_value)
+    γa_test = 1e-9 
+    ha_test = 1e-15
+    
+
+    # Create parameter object
+    test_params = Parameters(
+        log10_gamma_a=jax.numpy.log10(γa_test),
+        γa=γa_test,
+        ha=ha_test,
+        γp=gamma_p_array,
+        σp=sigma_p_array,
+        EFAC=efac_array,
+        EQUAD=equad_array
+    )
+    
+    logger.info(f"Test parameters: γa={γa_test}, ha={ha_test}")
+    logger.info(f"Number of pulsars: {len(gamma_p_array)}")
+    
+    # Time the likelihood evaluation
+    logger.info("Performing for the first time a likelihood evaluation...")
+    start_time = time.perf_counter()
+    
+    log_likelihood = KF.get_likelihood(test_params)
+    # Ensure computation is complete before stopping timer
+    log_likelihood.block_until_ready()
+    
+    end_time = time.perf_counter()
+    duration1 = end_time - start_time
+
+
+    # Time the likelihood evaluation
+    logger.info("Performing timed for the second time a likelihood evaluation...")
+    start_time = time.perf_counter()
+    
+    log_likelihood = KF.get_likelihood(test_params)
+    # Ensure computation is complete before stopping timer
+    log_likelihood.block_until_ready()
+    
+    end_time = time.perf_counter()
+    duration2 = end_time - start_time
+
+
+
+    
+    # Log results
+    logger.info(f"Likelihood evaluation completed in {duration1:.4f} seconds the first time")
+    logger.info(f"Likelihood evaluation completed in {duration2:.4f} seconds the second time")
+    logger.info(f"Log likelihood value: {float(log_likelihood)}")
+    logger.info("=== End Likelihood Performance Test ===")
+    
+    return float(log_likelihood)
+
+
+
+
+

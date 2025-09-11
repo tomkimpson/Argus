@@ -87,7 +87,7 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     pulsar_data, KF = setup_data_and_kalman_filter(config, logger, use_gw)
     
     # Test likelihood performance with known parameters
-    inference_runners.test_likelihood_performance(KF, config, logger)
+    bayesian_inference.test_likelihood_performance(KF, config, logger)
     
     # Get inference method
     method = config.get('Inference', 'method', fallback='numpyro').lower()
