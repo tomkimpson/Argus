@@ -871,7 +871,7 @@ def test_likelihood_performance(KF, config, logger):
     logger.info("Testing likelihood evaluation with known parameter values...")
     
     # Get noise parameters using the common function
-    from argus.workflow import get_noise_parameters
+    from argus.utils import get_noise_parameters
     efac_array, equad_array, sigma_p_array, gamma_p_array = get_noise_parameters(config)
     
     # Set test parameter values (same as test_likelihood_value)

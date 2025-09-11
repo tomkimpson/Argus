@@ -38,15 +38,14 @@ def main():
     # Create a single timestamp for both runs
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     
-    # Run the full model comparison workflow
-    gw_output_dir, no_gw_output_dir, bayes_factor_results = workflow.run_model_comparison(
-        config_path=args.config, 
+    # Run the inference workflow
+    output_dir = workflow.run_inference(
+        config_path=args.config,
+        use_gw=True, 
         timestamp=timestamp
     )
     
-    print(f"\nInference complete! Results saved to: {gw_output_dir}")
-    if no_gw_output_dir:
-        print(f"No-GW results saved to: {no_gw_output_dir}")
+    print(f"\nInference complete! Results saved to: {output_dir}")
 
 
 if __name__ == "__main__":

@@ -43,15 +43,14 @@ def run_analysis(args):
     print(f"Starting Bayesian inference with config: {config_path}")
     
     # Run the analysis workflow
-    gw_output_dir, no_gw_output_dir, bayes_factor_results = workflow.run_model_comparison(
+    output_dir = workflow.run_inference(
         config_path=str(config_path),
+        use_gw=True,
         timestamp=timestamp
     )
     
     print(f"\n✓ Analysis complete!")
-    print(f"Results saved to: {gw_output_dir}")
-    if no_gw_output_dir:
-        print(f"No-GW results saved to: {no_gw_output_dir}")
+    print(f"Results saved to: {output_dir}")
 
 
 def create_config_template(args):

@@ -25,7 +25,7 @@ import numpy as np
 import argus
 from argus.data_loader import DataLoader
 from argus.model import ArgusModel
-from argus.inference_runners import run_numpyro_inference
+from argus.workflow import run_inference
 
 # Load mock data
 data_loader = DataLoader()
@@ -47,11 +47,9 @@ priors = {
 }
 
 # Run NUTS sampling
-results = run_numpyro_inference(
-    model=model,
-    priors=priors,
-    num_samples=2000,
-    num_warmup=1000
+output_dir = run_inference(
+    config_path="config.ini",
+    use_gw=True
 )
 
 # Analyze results

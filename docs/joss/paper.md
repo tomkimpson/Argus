@@ -117,13 +117,16 @@ The state-space approach implemented in `Argus` offers several advantages over t
 
 Several extensions are planned for `Argus` to expand its capabilities and applications:
 
+- **Model selection capabilities**: Implementation of Bayes factor calculations to enable robust model comparison and selection between different gravitational wave models, noise models, and signal hypotheses
+- **Dispersion measure corrections**: Integration of time-variable dispersion measure effects and solar wind corrections within the state-space framework for improved timing precision
+- **Modular model specification**: Development of a user-friendly interface allowing researchers to easily specify custom state-space models and noise components through configurable modules
 - **Real data applications**: Integration with production PTA datasets from NANOGrav, EPTA, PPTA, and other major collaborations
 - **Continuous gravitational waves**: Extension of the state-space framework to handle deterministic signals from individual binary systems and rotating neutron stars
 - **Advanced noise models**: Implementation of additional stochastic processes including chromatic noise, system-dependent effects, and non-Gaussian noise components
 - **Scalability improvements**: Optimization for next-generation PTAs such as the SKA pulsar timing array with hundreds of pulsars
 - **Community integration**: Development of interfaces with existing PTA analysis pipelines including ENTERPRISE [@enterprise2020] and libstempo [@vallisneri2020libstempo]
 
-The modular design of `Argus` facilitates these extensions while maintaining backward compatibility and computational efficiency.
+While these extensions represent exciting future directions, we release `Argus` in its current form because it successfully addresses the core challenge of Bayesian parameter estimation for pulsar timing array analysis. The package provides a robust, high-performance foundation for gravitational wave detection research and demonstrates significant computational advantages over traditional approaches. We encourage contributions from the broader PTA community to help implement these extensions and further advance the capabilities of state-space methods in gravitational wave astronomy. The modular design of `Argus` facilitates these extensions while maintaining backward compatibility and computational efficiency.
 
 # Acknowledgements
 

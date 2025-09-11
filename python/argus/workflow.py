@@ -3,27 +3,9 @@
 import logging
 
 from argus import data_loader, jax_kalman_filter, bayesian_inference, utils
-from argus import io_manager, inference_runners
+from argus import io_manager
 
 
-
-def get_noise_parameters(config):
-    """Get injected noise parameters from configuration and data files.
-    
-    Args:
-        config: Configuration object
-    
-    Returns
-    -------
-        tuple: (efac_array, equad_array, sigma_p_array, gamma_p_array)
-    """
-    noise_params_path = config.get('Data', 'noise_params_path')
-    spin_injections_path = config.get('Data', 'spin_injections_path')
-    excluded_psrs = config.get('Data', 'excluded_psrs').split(',')
-    efac_array, equad_array = utils.get_efac_equad_injections(noise_params_path, excluded_psrs)
-    sigma_p_array, gamma_p_array = utils.get_psr_noise_injections(spin_injections_path, excluded_psrs)
-    
-    return efac_array, equad_array, sigma_p_array, gamma_p_array
 
 
 def setup_data_and_kalman_filter(config, logger, use_gw):
@@ -86,7 +68,20 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     # Setup data and Kalman filter
     pulsar_data, KF = setup_data_and_kalman_filter(config, logger, use_gw)
     
+    # Get noise parameters
+    efac_array, equad_array, sigma_p_array, gamma_p_array = utils.get_noise_parameters(config)
+    
+    # Get prior model specifications and display them
+    n_pulsars = len(pulsar_data['metadata'])
+    prior_specs = bayesian_inference.get_prior_model_specs(
+        config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array
+    )
+    
+    # Display prior summary
+    bayesian_inference.display_prior_summary(prior_specs, n_pulsars, logger)
+    
     # Test likelihood performance with known parameters
+    logger.info("Performing likelihood performance test...")
     bayesian_inference.test_likelihood_performance(KF, config, logger)
     
     # Get inference method
@@ -96,10 +91,35 @@ def run_inference(config_path, use_gw=True, timestamp=None):
         raise ValueError("JAXNS nested sampling is no longer supported. Please use 'numpyro' for NUTS sampling.")
         
     elif method == 'numpyro':
-        # Run NumPyro inference
-        inference_runners.run_numpyro_inference(
-            config, KF, pulsar_data, output_dir, output_id, logger
+        # Run NumPyro NUTS inference
+        logger.info("Running NUMPYRO inference...")
+        results = bayesian_inference.run_nuts_sampling(
+            KF, config, len(pulsar_data['metadata']), 
+            sigma_p_array, gamma_p_array, efac_array, equad_array
         )
+        
+        # Save results
+        results_path = io_manager.save_numpyro_results(results, output_dir, output_id, logger)
+        
+        # Create plots and diagnostics for NUTS
+        logger.info("Creating corner plot and diagnostics for NUTS results...")
+        
+        # Create corner plot
+        try:
+            plot_path = utils.corner_plot(results_path, output_dir)
+            if plot_path:
+                logger.info(f"Corner plot saved to {plot_path}")
+            
+        except Exception as e:
+            logger.error(f"Error creating corner plot: {e}")
+        
+        # Run diagnostics
+        try:
+            logger.info("Running MCMC diagnostics...")
+            utils.diagnostics(results_path, output_dir)
+            logger.info("MCMC diagnostics completed")
+        except Exception as e:
+            logger.error(f"Error running diagnostics: {e}")
         
     else:
         raise ValueError(f"Unknown inference method: {method}")
@@ -107,26 +127,3 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     return output_dir
 
 
-def run_model_comparison(config_path, timestamp=None):
-    """Run both GW and no-GW models and compare them.
-    
-    Args:
-        config_path (str): Path to configuration file
-        timestamp (str): Optional timestamp to use for output directory
-        
-    Returns
-    -------
-        tuple: (gw_output_dir, no_gw_output_dir, None)
-    """
-    # Load config to check if comparison is appropriate
-    config = utils.load_config(config_path)
-    config = utils.resolve_config_paths(config, config_path)
-    method = config.get('Inference', 'method', fallback='numpyro').lower()
-    
-    # Run inference with GW
-    print("\nRunning inference with GW model...")
-    gw_output_dir = run_inference(config_path=config_path, use_gw=True, timestamp=timestamp)
-    
-    print("NUTS inference complete. Model comparison not available with NUTS sampling.")
-    print("Note: Model evidence comparison requires nested sampling methods, which are no longer supported.")
-    return gw_output_dir, None, None
