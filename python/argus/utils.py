@@ -79,6 +79,26 @@ def resolve_config_paths(config, config_path):
                 
     return config
 
+
+def get_noise_parameters(config):
+    """Get injected noise parameters from configuration and data files.
+    
+    Args:
+        config: Configuration object
+    
+    Returns
+    -------
+        tuple: (efac_array, equad_array, sigma_p_array, gamma_p_array)
+    """
+    noise_params_path = config.get('Data', 'noise_params_path')
+    spin_injections_path = config.get('Data', 'spin_injections_path')
+    excluded_psrs = config.get('Data', 'excluded_psrs').split(',')
+    efac_array, equad_array = get_efac_equad_injections(noise_params_path, excluded_psrs)
+    sigma_p_array, gamma_p_array = get_psr_noise_injections(spin_injections_path, excluded_psrs)
+    
+    return efac_array, equad_array, sigma_p_array, gamma_p_array
+
+
 def setup_logging(output_dir, config):
     """Set up logging configuration.
     
