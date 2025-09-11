@@ -1,15 +1,21 @@
 import pytest
-from argus import main
+from argus import cli
 
 
-class TestMain:
-    """Test suite for argus.main module."""
+class TestCLI:
+    """Test suite for argus.cli module."""
 
     def test_module_imports(self):
-        """Test that the main module can be imported."""
-        assert main is not None
+        """Test that the cli module can be imported."""
+        assert cli is not None
 
-    # TODO: Add specific tests for main functions
+    def test_main_function_exists(self):
+        """Test that main function exists in cli module."""
+        assert hasattr(cli, 'main')
+        assert callable(cli.main)
+
+    # TODO: Add specific tests for CLI functions
     # - Test command line argument parsing
     # - Test main workflow execution
     # - Test error handling
+    # - Test config template generation
