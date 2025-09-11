@@ -1,264 +1,0 @@
-=== DEV WORKFLOW - RAPID PROTOTYPING ===
-JAX version: 0.5.3
-Default device: gpu
-Note: This is a lightweight development workflow for rapid prototyping.
-Use the full example_workflow for production runs.
-
-
-Running inference with GW model...
-Starting Bayesian inference with GW model...
-2025-09-04 10:26:57,594 - INFO - Logging to file: /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/example_workflow/outputs/dev_run/logfiles/inference_output_20250904_102657.txt
-2025-09-04 10:26:57,595 - INFO - Centralized logging initialized
-2025-09-04 10:26:57,600 - INFO - Copied config file to /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/example_workflow/outputs/dev_run/dev_config.ini
-2025-09-04 10:26:57,600 - INFO - Loading and processing data...
-Getting the data. Loading 27 pulsars from /fred/oz022/tkimpson/tmp/argus_dev/Argus/data/IPTA_MockDataChallenge2/dataset_2b/
-[tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
-[preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J0030+0451, F0: 205.53069593846152, # TOAs: 183
-[tempo2Util.C:401] Warning: [DUP1] duplicated warnings have been suppressed.
-[preProcess.C:158] Warning: PSR J0034-0534 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J0034-0534. Setting value to 1 with 20% uncertainty.
-PSR: J0034-0534, F0: 532.7134293952242, # TOAs: 183
-[preProcess.C:158] Warning: PSR J0218+4232 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J0218+4232. Setting value to 1 with 20% uncertainty.
-PSR: J0218+4232, F0: 430.46105454575843, # TOAs: 183
-[preProcess.C:158] Warning: PSR J0437-4715 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J0437-4715, F0: 173.6879457375193, # TOAs: 183
-[preProcess.C:158] Warning: PSR J0613-0200 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J0613-0200, F0: 326.60056202349193, # TOAs: 183
-[preProcess.C:158] Warning: PSR J0621+1002 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J0621+1002. Setting value to 1 with 20% uncertainty.
-PSR: J0621+1002, F0: 34.65740662142043, # TOAs: 183
-[preProcess.C:158] Warning: PSR J0711-6830 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J0711-6830, F0: 182.1172346472276, # TOAs: 183
-[preProcess.C:158] Warning: PSR J0751+1807 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J0751+1807. Setting value to 1 with 20% uncertainty.
-PSR: J0751+1807, F0: 287.4578539950941, # TOAs: 183
-[preProcess.C:158] Warning: PSR J0900-3144 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J0900-3144. Setting value to 1 with 20% uncertainty.
-PSR: J0900-3144, F0: 90.0118419193632, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1012+5307 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1012+5307, F0: 190.26783444155498, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1022+1001 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1022+1001, F0: 60.779447956696714, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1024-0719 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1024-0719, F0: 193.71568344854623, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1045-4509 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1045-4509, F0: 133.79314954119278, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1455-3330 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1455-3330, F0: 125.20024324499536, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1600-3053 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1600-3053, F0: 277.9377069896204, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1603-7202 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1603-7202, F0: 67.37658112877924, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1614-2230 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J1614-2230. Setting value to 1 with 20% uncertainty.
-PSR: J1614-2230, F0: 317.37893706872126, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1643-1224 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1643-1224, F0: 216.37333714263485, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1730-2304 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1730-2304, F0: 123.1102871473812, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1918-0642 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J1918-0642, F0: 130.78951412337267, # TOAs: 183
-[preProcess.C:158] Warning: PSR J1944+0907 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J1944+0907. Setting value to 1 with 20% uncertainty.
-PSR: J1944+0907, F0: 192.85651792018598, # TOAs: 183
-[preProcess.C:158] Warning: PSR J2010-1323 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J2010-1323. Setting value to 1 with 20% uncertainty.
-PSR: J2010-1323, F0: 191.45090909263828, # TOAs: 183
-[preProcess.C:158] Warning: PSR J2124-3358 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J2124-3358, F0: 202.7938937460303, # TOAs: 183
-[preProcess.C:158] Warning: PSR J2129-5721 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J2129-5721, F0: 268.3592272938787, # TOAs: 183
-[preProcess.C:158] Warning: PSR J2145-0750 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J2145-0750, F0: 62.29588783738885, # TOAs: 183
-[preProcess.C:158] Warning: PSR J2229+2643 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-WARNING: Could not find pulsar distance for PSR J2229+2643. Setting value to 1 with 20% uncertainty.
-PSR: J2229+2643, F0: 335.81620819685526, # TOAs: 183
-[preProcess.C:158] Warning: PSR J2317+1439 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
-See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
-
-PSR: J2317+1439, F0: 290.2546036648635, # TOAs: 183
-2025-09-04 10:27:08,282 - INFO - Initializing Kalman filter...
-2025-09-04 10:27:08,282 - INFO - Initializing JaxKalmanFilter...
-2025-09-04 10:27:11,327 - INFO - Number of pulsars: 27
-2025-09-04 10:27:11,328 - INFO - Pulsar frequencies: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
-  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
-  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
-  67.37658113 317.37893707 216.37333714 123.11028715 130.78951412
- 192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
- 335.8162082  290.25460366]
-2025-09-04 10:27:11,328 - INFO - Total number of observations: 183
-2025-09-04 10:27:11,328 - INFO - Starting dt (days): 29.962082243594857
-2025-09-04 10:27:11,328 - INFO - Ending dt (days): 30.102786221493172
-2025-09-04 10:27:11,328 - INFO - The errors at t=1 are: [2.697680e-06 9.700560e-06 1.613116e-05 3.307200e-07 4.558820e-06
- 2.141629e-05 5.225050e-06 4.722880e-06 4.797490e-06 5.783810e-06
- 2.626620e-06 5.090810e-06 6.527710e-06 1.173289e-05 8.300700e-07
- 3.826940e-06 2.880370e-06 2.054900e-06 3.759770e-06 5.434910e-06
- 7.031630e-06 4.653570e-06 5.474680e-06 3.388130e-06 4.303360e-06
- 1.993229e-05 2.291670e-06]
-2025-09-04 10:27:11,398 - INFO - === Likelihood Performance Test ===
-2025-09-04 10:27:11,398 - INFO - Testing likelihood evaluation with known parameter values...
-2025-09-04 10:27:11,582 - INFO - Test parameters: γa=1e-09, ha=1e-15
-2025-09-04 10:27:11,582 - INFO - Number of pulsars: 27
-2025-09-04 10:27:11,582 - INFO - Performing for the first time a likelihood evaluation...
-2025-09-04 10:27:24,037 - INFO - Performing timed for the second time a likelihood evaluation...
-2025-09-04 10:27:24,110 - INFO - Likelihood evaluation completed in 12.4552 seconds the first time
-2025-09-04 10:27:24,110 - INFO - Likelihood evaluation completed in 0.0729 seconds the second time
-2025-09-04 10:27:24,126 - INFO - Log likelihood value: 46792.74022058124
-2025-09-04 10:27:24,126 - INFO - === End Likelihood Performance Test ===
-Getting prior model specs...
-Using individual controls - gamma_p_fixed: False, sigma_p_fixed: False
-2025-09-04 10:27:24,180 - INFO - 
-============================================================
-2025-09-04 10:27:24,180 - INFO - PRIOR SPECIFICATIONS SUMMARY
-2025-09-04 10:27:24,180 - INFO - ============================================================
-2025-09-04 10:27:24,180 - INFO - 
---- Gravitational Wave Background Parameters ---
-2025-09-04 10:27:24,181 - INFO - log10(h_a): FIXED at -15.0
-2025-09-04 10:27:24,181 - INFO - log10(γ_a): FIXED at -8.5
-2025-09-04 10:27:24,181 - INFO - 
---- Pulsar Red Noise Parameters (27 pulsars) ---
-2025-09-04 10:27:24,181 - INFO - log10(γ_p): HIERARCHICAL modeling
-2025-09-04 10:27:24,182 - INFO -   - Population mean: Uniform(-9.0, -7.0)
-2025-09-04 10:27:24,182 - INFO -   - Population std: Uniform(0.1, 1.0)
-2025-09-04 10:27:24,182 - INFO -   - Individual pulsars: Normal(population_mean, population_std)
-2025-09-04 10:27:24,182 - INFO - log10(σ_p): LOG-RATIO parameterization
-2025-09-04 10:27:24,182 - INFO -   - log10(σ_p) = log10(γ_p) + log10(ratio)
-2025-09-04 10:27:24,183 - INFO -   - Ratio mean: Uniform(-8.0, -4.0)
-2025-09-04 10:27:24,183 - INFO -   - Ratio std: Uniform(0.5, 3.0)
-2025-09-04 10:27:24,183 - INFO -   - Individual ratios: Normal(ratio_mean, ratio_std)
-2025-09-04 10:27:24,183 - INFO - 
---- Measurement Noise Parameters (27 pulsars) ---
-2025-09-04 10:27:24,224 - INFO - EFAC: Uniform(0.50, 2.00) for each pulsar
-2025-09-04 10:27:24,225 - INFO - EQUAD: log10(EQUAD) ~ Uniform(-8.0, -6.0) for each pulsar
-2025-09-04 10:27:24,225 - INFO - ============================================================
-2025-09-04 10:27:24,226 - INFO - Performing likelihood performance test for runtime estimation...
-2025-09-04 10:27:24,226 - INFO - === Likelihood Performance Test ===
-2025-09-04 10:27:24,226 - INFO - Testing likelihood evaluation with known parameter values...
-2025-09-04 10:27:24,229 - INFO - Test parameters: γa=1e-09, ha=1e-15
-2025-09-04 10:27:24,229 - INFO - Number of pulsars: 27
-2025-09-04 10:27:24,229 - INFO - Performing for the first time a likelihood evaluation...
-2025-09-04 10:27:24,296 - INFO - Performing timed for the second time a likelihood evaluation...
-2025-09-04 10:27:24,362 - INFO - Likelihood evaluation completed in 0.0665 seconds the first time
-2025-09-04 10:27:24,362 - INFO - Likelihood evaluation completed in 0.0661 seconds the second time
-2025-09-04 10:27:24,363 - INFO - Log likelihood value: 46792.74022058124
-2025-09-04 10:27:24,363 - INFO - === End Likelihood Performance Test ===
-2025-09-04 10:27:24,429 - INFO - 
-============================================================
-2025-09-04 10:27:24,429 - INFO - NUTS CONFIGURATION
-2025-09-04 10:27:24,429 - INFO - ============================================================
-2025-09-04 10:27:24,430 - INFO - NUTS Configuration:
-2025-09-04 10:27:24,430 - INFO -   - Number of samples: 200
-2025-09-04 10:27:24,430 - INFO -   - Warmup samples: 100
-2025-09-04 10:27:24,430 - INFO -   - Number of chains: 2
-2025-09-04 10:27:24,430 - INFO -   - Target accept prob: 0.8
-2025-09-04 10:27:24,430 - INFO -   - Max tree depth: 8
-2025-09-04 10:27:24,430 - INFO -   - Free parameters: 85
-2025-09-04 10:27:24,430 - INFO - 
-2025-09-04 10:27:24,430 - INFO - Likelihood Performance:
-2025-09-04 10:27:24,430 - INFO -   - Single likelihood evaluation: 0.0657 seconds
-2025-09-04 10:27:24,430 - INFO -   - High-dimensional optimizations applied
-2025-09-04 10:27:24,430 - INFO -   - Hierarchical priors reduce effective dimensionality
-2025-09-04 10:27:24,430 - INFO - 
-2025-09-04 10:27:24,430 - INFO - Note: Runtime estimation disabled for hierarchical models.
-2025-09-04 10:27:24,430 - INFO -       NUTS trajectory lengths vary significantly with model complexity.
-2025-09-04 10:27:24,430 - INFO -       Monitor progress through the sampling progress bar.
-2025-09-04 10:27:24,430 - INFO - ============================================================
-2025-09-04 10:27:24,430 - INFO - 
-============================================================
-2025-09-04 10:27:24,431 - INFO - LIKELIHOOD GRADIENT ANALYSIS
-2025-09-04 10:27:24,431 - INFO - ============================================================
-2025-09-04 10:27:24,467 - INFO - Computing gradients at test parameter values...
-2025-09-04 10:27:24,467 - INFO - Test values:
-2025-09-04 10:27:24,467 - INFO -   - log10(h_a): -15.00
-2025-09-04 10:27:24,468 - INFO -   - log10(γ_a): -9.00e+00
-2025-09-04 10:27:24,563 - INFO -   - log10(γ_p): [-10.93, -6.00] (min, max)
-2025-09-04 10:27:24,564 - INFO -   - log10(σ_p): [-17.90, -12.60] (min, max)
-2025-09-04 10:27:24,564 - INFO - 
-2025-09-04 10:27:31,392 - INFO - Gradient Results (Non-Fixed Parameters Only):
-2025-09-04 10:27:31,393 - INFO - --- Vector Parameters ---
-2025-09-04 10:27:31,393 - INFO - ∂ℒ/∂EFAC:
-2025-09-04 10:27:31,437 - INFO -   - L2 norm: 5.78e+01
-2025-09-04 10:27:31,437 - INFO -   - Range: [-2.54e+01, 1.68e+01]
-2025-09-04 10:27:31,473 - INFO -   - Mean: -4.13e+00
-2025-09-04 10:27:31,473 - INFO - ∂ℒ/∂EQUAD:
-2025-09-04 10:27:31,473 - INFO -   - L2 norm: 1.64e+06
-2025-09-04 10:27:31,474 - INFO -   - Range: [-1.31e+06, 1.55e+05]
-2025-09-04 10:27:31,474 - INFO -   - Mean: -1.04e+05
-2025-09-04 10:27:31,622 - INFO - 
-Total gradient L2 norm (sampled parameters only): 1.64e+06
-2025-09-04 10:27:31,622 - INFO - 
-Interpretation:
-2025-09-04 10:27:31,622 - INFO -   - Large gradients: Likelihood is changing rapidly
-2025-09-04 10:27:31,622 - INFO -     Consider parameter scaling or different test values
-2025-09-04 10:27:31,622 - INFO - ============================================================
-2025-09-04 10:27:31,622 - INFO - Running NUMPYRO inference...
-Getting prior model specs...
-Using individual controls - gamma_p_fixed: False, sigma_p_fixed: False
-Running NumPyro NUTS inference with 27 pulsars...
-NUTS parameters: 200 samples, 100 warmup, 2 chains
-Target accept prob: 0.8 (optimized for high-dimensional sampling)
-Dense mass matrix: False
-Max tree depth: 8
-Total free parameters: 85
-Advanced modeling enabled for pulsar noise parameters
-γp hierarchical + σp via log-ratio parameterization
-Effective dimensionality: 4 hyperparameters + 54 constrained parameters
-σp = γp + ratio (reduces parameter correlations)
-High-dimensional parameter space detected - using aggressive NUTS tuning
-/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/bayesian_inference.py:695: UserWarning: There are not enough devices to run parallel chains: expected 2 but got 1. Chains will be drawn sequentially. If you are running MCMC in CPU, consider using `numpyro.set_host_device_count(2)` at the beginning of your program. You can double-check how many devices are available in your system using `jax.local_device_count()`.
-  sampler = MCMC(
-  0%|          | 0/300 [00:00<?, ?it/s]warmup:   0%|          | 1/300 [00:09<48:23,  9.71s/it, 1 steps of size 2.34e+00. acc. prob=0.00]warmup:   1%|          | 2/300 [00:09<20:21,  4.10s/it, 1 steps of size 2.30e-01. acc. prob=0.00]warmup:   1%|          | 3/300 [00:10<11:23,  2.30s/it, 1 steps of size 1.67e-02. acc. prob=0.00]warmup:   1%|▏         | 4/300 [00:11<09:00,  1.83s/it, 7 steps of size 1.86e-02. acc. prob=0.25]warmup:   2%|▏         | 5/300 [00:15<14:16,  2.90s/it, 31 steps of size 2.57e-02. acc. prob=0.40]warmup:   2%|▏         | 6/300 [00:55<1:15:27, 15.40s/it, 255 steps of size 3.85e-02. acc. prob=0.50]warmup:   2%|▏         | 7/300 [01:16<1:23:18, 17.06s/it, 127 steps of size 6.49e-02. acc. prob=0.57]warmup:   3%|▎         | 8/300 [01:25<1:11:48, 14.76s/it, 63 steps of size 1.11e-01. acc. prob=0.62] warmup:   3%|▎         | 9/300 [01:30<56:29, 11.65s/it, 31 steps of size 1.94e-01. acc. prob=0.66]  warmup:   3%|▎         | 10/300 [01:33<43:05,  8.92s/it, 18 steps of size 1.53e-02. acc. prob=0.60]warmup:   4%|▎         | 11/300 [02:12<1:27:59, 18.27s/it, 255 steps of size 2.86e-02. acc. prob=0.63]warmup:   4%|▍         | 12/300 [02:32<1:29:49, 18.71s/it, 127 steps of size 5.31e-02. acc. prob=0.66]warmup:   4%|▍         | 13/300 [02:52<1:30:53, 19.00s/it, 127 steps of size 9.10e-02. acc. prob=0.68]warmup:   5%|▍         | 14/300 [03:02<1:17:18, 16.22s/it, 63 steps of size 1.34e-01. acc. prob=0.70] warmup:   5%|▌         | 15/300 [03:04<57:09, 12.03s/it, 15 steps of size 1.17e-02. acc. prob=0.65]  warmup:   5%|▌         | 16/300 [03:44<1:36:14, 20.33s/it, 255 steps of size 2.02e-02. acc. prob=0.67]warmup:   6%|▌         | 17/300 [04:23<2:03:10, 26.11s/it, 255 steps of size 3.84e-02. acc. prob=0.69]warmup:   6%|▌         | 18/300 [04:44<1:54:55, 24.45s/it, 127 steps of size 5.77e-02. acc. prob=0.71]warmup:   6%|▋         | 19/300 [05:04<1:47:53, 23.04s/it, 127 steps of size 1.09e-01. acc. prob=0.72]warmup:   7%|▋         | 20/300 [05:08<1:21:59, 17.57s/it, 31 steps of size 4.71e-02. acc. prob=0.71] warmup:   7%|▋         | 21/300 [05:28<1:24:40, 18.21s/it, 127 steps of size 8.80e-02. acc. prob=0.72]warmup:   7%|▋         | 22/300 [05:38<1:12:41, 15.69s/it, 63 steps of size 8.48e-02. acc. prob=0.73] warmup:   8%|▊         | 23/300 [05:48<1:04:14, 13.91s/it, 63 steps of size 1.50e-01. acc. prob=0.74]warmup:   8%|▊         | 24/300 [05:52<50:23, 10.95s/it, 26 steps of size 1.57e-02. acc. prob=0.71]  warmup:   8%|▊         | 25/300 [06:31<1:29:26, 19.52s/it, 255 steps of size 2.88e-02. acc. prob=0.72]warmup:   9%|▊         | 26/300 [06:51<1:29:27, 19.59s/it, 127 steps of size 5.19e-02. acc. prob=0.73]warmup:   9%|▉         | 27/300 [07:11<1:29:16, 19.62s/it, 127 steps of size 9.34e-02. acc. prob=0.74]warmup:   9%|▉         | 28/300 [07:20<1:15:33, 16.67s/it, 63 steps of size 1.55e-01. acc. prob=0.75] warmup:  10%|▉         | 29/300 [07:23<55:50, 12.36s/it, 15 steps of size 2.54e-02. acc. prob=0.73]  warmup:  10%|█         | 30/300 [08:02<1:32:32, 20.56s/it, 255 steps of size 4.10e-02. acc. prob=0.73]warmup:  10%|█         | 31/300 [08:22<1:31:03, 20.31s/it, 127 steps of size 7.26e-02. acc. prob=0.74]warmup:  11%|█         | 32/300 [08:32<1:16:39, 17.16s/it, 63 steps of size 1.08e-01. acc. prob=0.75] warmup:  11%|█         | 33/300 [08:42<1:06:30, 14.95s/it, 63 steps of size 2.54e-02. acc. prob=0.73]warmup:  11%|█▏        | 34/300 [09:21<1:39:11, 22.37s/it, 255 steps of size 3.87e-02. acc. prob=0.74]warmup:  12%|█▏        | 35/300 [09:41<1:35:16, 21.57s/it, 127 steps of size 5.98e-02. acc. prob=0.74]warmup:  12%|█▏        | 36/300 [09:51<1:19:23, 18.04s/it, 63 steps of size 8.69e-02. acc. prob=0.75] warmup:  12%|█▏        | 37/300 [10:01<1:08:11, 15.56s/it, 63 steps of size 1.12e-01. acc. prob=0.75]warmup:  13%|█▎        | 38/300 [10:15<1:06:49, 15.30s/it, 91 steps of size 1.74e-02. acc. prob=0.73]warmup:  13%|█▎        | 39/300 [10:55<1:38:12, 22.58s/it, 255 steps of size 3.04e-02. acc. prob=0.74]warmup:  13%|█▎        | 40/300 [11:15<1:34:09, 21.73s/it, 127 steps of size 5.11e-02. acc. prob=0.75]warmup:  14%|█▎        | 41/300 [11:34<1:31:09, 21.12s/it, 127 steps of size 8.66e-02. acc. prob=0.75]warmup:  14%|█▍        | 42/300 [11:44<1:16:12, 17.72s/it, 63 steps of size 1.46e-01. acc. prob=0.76] warmup:  14%|█▍        | 43/300 [11:49<59:19, 13.85s/it, 31 steps of size 2.91e-02. acc. prob=0.75]  warmup:  15%|█▍        | 44/300 [12:09<1:06:39, 15.62s/it, 127 steps of size 4.94e-02. acc. prob=0.75]warmup:  15%|█▌        | 45/300 [12:19<59:38, 14.03s/it, 63 steps of size 7.23e-02. acc. prob=0.76]   warmup:  15%|█▌        | 46/300 [12:29<54:07, 12.79s/it, 63 steps of size 7.79e-02. acc. prob=0.76]warmup:  16%|█▌        | 47/300 [12:39<50:08, 11.89s/it, 63 steps of size 1.22e-01. acc. prob=0.76]warmup:  16%|█▌        | 48/300 [12:44<41:02,  9.77s/it, 31 steps of size 1.01e-01. acc. prob=0.76]warmup:  16%|█▋        | 49/300 [12:53<40:53,  9.78s/it, 63 steps of size 4.62e-02. acc. prob=0.75]warmup:  17%|█▋        | 50/300 [13:13<53:14, 12.78s/it, 127 steps of size 7.29e-02. acc. prob=0.76]warmup:  17%|█▋        | 51/300 [13:23<49:18, 11.88s/it, 63 steps of size 8.39e-02. acc. prob=0.76] warmup:  17%|█▋        | 52/300 [13:33<46:32, 11.26s/it, 63 steps of size 1.06e-01. acc. prob=0.76]warmup:  18%|█▊        | 53/300 [13:43<44:29, 10.81s/it, 63 steps of size 1.51e-01. acc. prob=0.77]warmup:  18%|█▊        | 54/300 [13:43<32:09,  7.84s/it, 6 steps of size 3.05e-02. acc. prob=0.75] warmup:  18%|█▊        | 55/300 [14:03<46:29, 11.39s/it, 127 steps of size 4.78e-02. acc. prob=0.76]warmup:  19%|█▊        | 56/300 [14:13<44:22, 10.91s/it, 63 steps of size 7.74e-02. acc. prob=0.76] warmup:  19%|█▉        | 57/300 [14:23<42:49, 10.57s/it, 63 steps of size 1.07e-01. acc. prob=0.76]warmup:  19%|█▉        | 58/300 [14:33<41:43, 10.35s/it, 63 steps of size 1.11e-01. acc. prob=0.77]warmup:  20%|█▉        | 59/300 [14:42<40:51, 10.17s/it, 63 steps of size 9.44e-02. acc. prob=0.76]warmup:  20%|██        | 60/300 [14:52<40:13, 10.06s/it, 63 steps of size 1.50e-01. acc. prob=0.77]warmup:  20%|██        | 61/300 [14:54<30:49,  7.74s/it, 15 steps of size 2.65e-02. acc. prob=0.76]warmup:  21%|██        | 62/300 [15:14<45:00, 11.35s/it, 127 steps of size 4.11e-02. acc. prob=0.76]warmup:  21%|██        | 63/300 [15:34<54:44, 13.86s/it, 127 steps of size 6.34e-02. acc. prob=0.76]warmup:  21%|██▏       | 64/300 [15:44<49:43, 12.64s/it, 63 steps of size 8.85e-02. acc. prob=0.77] warmup:  22%|██▏       | 65/300 [15:53<46:09, 11.79s/it, 63 steps of size 9.43e-02. acc. prob=0.77]warmup:  22%|██▏       | 66/300 [16:03<43:40, 11.20s/it, 63 steps of size 1.48e-01. acc. prob=0.77]warmup:  22%|██▏       | 67/300 [16:08<36:03,  9.29s/it, 31 steps of size 2.78e-02. acc. prob=0.76]warmup:  23%|██▎       | 68/300 [16:28<48:07, 12.44s/it, 127 steps of size 4.12e-02. acc. prob=0.76]warmup:  23%|██▎       | 69/300 [16:48<56:20, 14.63s/it, 127 steps of size 6.30e-02. acc. prob=0.77]warmup:  23%|██▎       | 70/300 [16:57<50:33, 13.19s/it, 63 steps of size 8.20e-02. acc. prob=0.77] warmup:  24%|██▎       | 71/300 [17:07<46:26, 12.17s/it, 63 steps of size 9.40e-02. acc. prob=0.77]warmup:  24%|██▍       | 72/300 [17:17<43:33, 11.46s/it, 63 steps of size 1.18e-01. acc. prob=0.77]warmup:  24%|██▍       | 73/300 [17:22<35:49,  9.47s/it, 31 steps of size 1.68e-01. acc. prob=0.77]warmup:  25%|██▍       | 74/300 [17:23<25:40,  6.82s/it, 4 steps of size 5.55e-02. acc. prob=0.77] warmup:  25%|██▌       | 75/300 [17:42<40:04, 10.69s/it, 127 steps of size 7.12e-02. acc. prob=0.77]warmup:  25%|██▌       | 76/300 [18:02<50:07, 13.42s/it, 127 steps of size 4.98e-02. acc. prob=0.77]warmup:  26%|██▌       | 77/300 [18:22<56:56, 15.32s/it, 127 steps of size 7.64e-02. acc. prob=0.77]warmup:  26%|██▌       | 78/300 [18:32<50:33, 13.66s/it, 63 steps of size 8.84e-02. acc. prob=0.77] warmup:  26%|██▋       | 79/300 [18:41<46:01, 12.50s/it, 63 steps of size 1.28e-01. acc. prob=0.77]warmup:  27%|██▋       | 80/300 [18:46<37:23, 10.20s/it, 31 steps of size 2.74e-02. acc. prob=0.76]warmup:  27%|██▋       | 81/300 [19:26<1:09:22, 19.01s/it, 255 steps of size 3.82e-02. acc. prob=0.77]warmup:  27%|██▋       | 82/300 [19:46<1:10:14, 19.33s/it, 127 steps of size 5.81e-02. acc. prob=0.77]warmup:  28%|██▊       | 83/300 [19:56<59:34, 16.47s/it, 63 steps of size 7.17e-02. acc. prob=0.77]   warmup:  28%|██▊       | 84/300 [20:05<52:04, 14.47s/it, 63 steps of size 6.73e-02. acc. prob=0.77]warmup:  28%|██▊       | 85/300 [20:16<47:22, 13.22s/it, 63 steps of size 9.60e-02. acc. prob=0.77]warmup:  29%|██▊       | 86/300 [20:26<43:32, 12.21s/it, 63 steps of size 1.21e-01. acc. prob=0.77]warmup:  29%|██▉       | 87/300 [20:30<35:27,  9.99s/it, 31 steps of size 1.81e-01. acc. prob=0.78]warmup:  29%|██▉       | 88/300 [20:33<27:10,  7.69s/it, 15 steps of size 3.99e-02. acc. prob=0.77]warmup:  30%|██▉       | 89/300 [20:52<39:39, 11.28s/it, 127 steps of size 5.96e-02. acc. prob=0.77]warmup:  30%|███       | 90/300 [21:02<37:53, 10.83s/it, 63 steps of size 8.55e-02. acc. prob=0.77] warmup:  30%|███       | 91/300 [21:12<36:34, 10.50s/it, 63 steps of size 1.17e+00. acc. prob=0.77]warmup:  31%|███       | 92/300 [21:12<25:58,  7.49s/it, 3 steps of size 1.95e-01. acc. prob=0.77] warmup:  31%|███       | 93/300 [21:17<23:03,  6.69s/it, 31 steps of size 2.69e-01. acc. prob=0.77]warmup:  31%|███▏      | 94/300 [21:20<18:28,  5.38s/it, 15 steps of size 3.29e-01. acc. prob=0.77]warmup:  32%|███▏      | 95/300 [21:22<15:14,  4.46s/it, 15 steps of size 3.20e-02. acc. prob=0.76]warmup:  32%|███▏      | 96/300 [21:42<30:44,  9.04s/it, 127 steps of size 5.14e-02. acc. prob=0.76]warmup:  32%|███▏      | 97/300 [21:51<31:20,  9.26s/it, 63 steps of size 9.10e-02. acc. prob=0.77] warmup:  33%|███▎      | 98/300 [22:01<31:43,  9.42s/it, 63 steps of size 1.50e-01. acc. prob=0.77]warmup:  33%|███▎      | 99/300 [22:06<26:55,  8.04s/it, 31 steps of size 2.77e-01. acc. prob=0.77]warmup:  33%|███▎      | 100/300 [22:08<21:05,  6.33s/it, 15 steps of size 1.26e-01. acc. prob=0.77]sample:  34%|███▎      | 101/300 [22:13<19:30,  5.88s/it, 31 steps of size 1.26e-01. acc. prob=0.97]sample:  34%|███▍      | 102/300 [22:18<18:25,  5.58s/it, 31 steps of size 1.26e-01. acc. prob=0.97]
