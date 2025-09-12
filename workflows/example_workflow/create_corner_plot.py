@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""
-Create corner plot from NUMPYRO results showing log10_ha and 
+"""Create corner plot from NUMPYRO results showing log10_ha and
 sigma_p, gamma_p parameters for selected pulsars.
+
 
 This script supports:
 - Optional inclusion of log10_gamma_a parameter (when sampled)
@@ -11,7 +11,8 @@ This script supports:
 
 Usage: python create_corner_plot.py <run_index> <num_pulsars> [smooth_sigma] [--plot_log10_gamma_a] [--plot_priors] [--efac] [--equad] [--plot_injections]
 
-Examples:
+Examples
+--------
   python create_corner_plot.py 016 2                                # Basic plot
   python create_corner_plot.py 016 2 1.0                            # With smoothing
   python create_corner_plot.py 016 2 0.5 --plot_log10_gamma_a      # Include log10_gamma_a
@@ -51,7 +52,6 @@ import json
 import glob
 import re
 from scipy import stats
-from scipy.integrate import quad
 
 
 def load_config(run_index):
@@ -405,9 +405,9 @@ if plot_log10_gamma_a:
         log10_gamma_a = posterior['log10_gamma_a'].values.flatten()
         samples_list.append(log10_gamma_a)
         labels.append(r'$\log_{10} \gamma_a$')
-        print(f"Added log10_gamma_a parameter to plot")
+        print("Added log10_gamma_a parameter to plot")
     else:
-        print(f"Warning: log10_gamma_a requested but not found in posterior. Skipping log10_gamma_a.")
+        print("Warning: log10_gamma_a requested but not found in posterior. Skipping log10_gamma_a.")
 
 # Extract sigma_p and gamma_p for selected pulsars
 for i, pulsar_idx in enumerate(pulsar_indices):
@@ -429,7 +429,7 @@ if plot_efac:
             labels.append(rf'$\mathrm{{EFAC}}_{{p,{i}}}$')
         print(f"Added EFAC parameters for {num_pulsars} pulsars")
     else:
-        print(f"Warning: EFAC requested but not found in posterior. Skipping EFAC.")
+        print("Warning: EFAC requested but not found in posterior. Skipping EFAC.")
 
 # Extract EQUAD parameters for selected pulsars if requested  
 if plot_equad:
@@ -447,13 +447,13 @@ if plot_equad:
             labels.append(rf'$\mathrm{{EQUAD}}_{{p,{i}}}$')
         print(f"Added EQUAD parameters for {num_pulsars} pulsars")
     else:
-        print(f"Warning: EQUAD requested but neither 'log10_equad' nor 'equad' found in posterior. Skipping EQUAD.")
+        print("Warning: EQUAD requested but neither 'log10_equad' nor 'equad' found in posterior. Skipping EQUAD.")
 
 # Combine all parameters
 samples = np.column_stack(samples_list)
 
 print(f"Sample shape: {samples.shape}")
-print(f"Parameter ranges:")
+print("Parameter ranges:")
 for i, label in enumerate(labels):
     print(f"  {label}: [{samples[:, i].min():.3f}, {samples[:, i].max():.3f}]")
 

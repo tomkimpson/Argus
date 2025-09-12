@@ -147,7 +147,7 @@ def get_pulsar_noise_priors(config, n_pulsars, sigma_p_array, gamma_p_array):
         log10_gamma_p_fixed = bool(spin_injections_path.strip())
         log10_sigma_p_fixed = bool(spin_injections_path.strip())
         print(f"Red noise parameters fixed via spin_injections_path: {log10_gamma_p_fixed}")
-    except:
+    except Exception:
         # If no spin_injections_path, sample from priors
         log10_gamma_p_fixed = False
         log10_sigma_p_fixed = False
@@ -244,7 +244,7 @@ def get_measurement_noise_priors(config, efac_array, equad_array):
         # If path is provided and not empty, fix EFAC/EQUAD parameters
         efac_equad_fixed = bool(noise_params_path.strip())
         print(f"EFAC/EQUAD parameters fixed via noise_params_path: {efac_equad_fixed}")
-    except:
+    except Exception:
         # If no noise_params_path, sample from priors
         efac_equad_fixed = False
         print("No noise_params_path provided, sampling EFAC/EQUAD from priors")

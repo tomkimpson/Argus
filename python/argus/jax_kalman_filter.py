@@ -1,6 +1,5 @@
 """Module which implements JAX-based Kalman filter algorithm."""
 
-import logging # Added import
 
 import numpy as np
 
@@ -15,6 +14,7 @@ from typing import Tuple
 
 # Get the centralized logger (will be initialized by workflow)
 def get_logger():
+    """Get the centralized logger instance."""
     from argus.io_manager import get_argus_logger
     return get_argus_logger()
 

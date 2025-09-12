@@ -17,7 +17,7 @@ def setup_jax():
 
 def print_system_info():
     """Print system and JAX configuration info."""
-    print(f"=== ARGUS VERSION INFO ===")
+    print("=== ARGUS VERSION INFO ===")
     print(f"Argus version: {__version__}")
     print(f"JAX version: {jax.__version__}")
     print(f"Default device: {jax.default_backend()}")
@@ -49,7 +49,7 @@ def run_analysis(args):
         timestamp=timestamp
     )
     
-    print(f"\n✓ Analysis complete!")
+    print("\n✓ Analysis complete!")
     print(f"Results saved to: {output_dir}")
 
 
@@ -82,7 +82,7 @@ output_dir = ./outputs/
 
 
 def main():
-    """Main entry point for Argus CLI."""
+    """Provide the main entry point for Argus CLI."""
     parser = argparse.ArgumentParser(
         description='Argus: Bayesian inference for pulsar timing data analysis',
         prog='argus'

@@ -20,9 +20,6 @@ from flax import struct
 import tensorflow_probability.substrates.jax as tfp
 
 # Import from the new modular structure
-from .prior_models import get_prior_model_specs
-from .nuts_inference import run_nuts_sampling, test_likelihood_performance
-from .parameter_sampling import count_free_parameters
 
 jax.config.update("jax_enable_x64", True)
 tfpd = tfp.distributions
@@ -84,8 +81,8 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
     
     if ha_transform is not None:
         # Reparameterized case
-        log_or_print(f"log10(h_a): REPARAMETERIZED for better NUTS sampling")
-        log_or_print(f"  - Sampling: log10_ha_prime ~ N(0, 1)")
+        log_or_print("log10(h_a): REPARAMETERIZED for better NUTS sampling")
+        log_or_print("  - Sampling: log10_ha_prime ~ N(0, 1)")
         log_or_print(f"  - Transform: log10_ha = {ha_transform['mean']:.2f} + log10_ha_prime * {ha_transform['std']:.3f}")
         log_or_print(f"  - Equivalent to: Uniform({ha_transform['min']:.1f}, {ha_transform['max']:.1f})")
     elif isinstance(ha_spec, tfpd.Distribution):
@@ -116,10 +113,10 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
         # Hierarchical modeling case
         mean_spec = hierarchical_specs['log10_gamma_p_mean_spec']
         std_spec = hierarchical_specs['log10_gamma_p_std_spec']
-        log_or_print(f"log10(γ_p): HIERARCHICAL modeling")
+        log_or_print("log10(γ_p): HIERARCHICAL modeling")
         log_or_print(f"  - Population mean: Uniform({float(mean_spec.low):.1f}, {float(mean_spec.high):.1f})")
         log_or_print(f"  - Population std: Uniform({float(std_spec.low):.1f}, {float(std_spec.high):.1f})")
-        log_or_print(f"  - Individual pulsars: Normal(population_mean, population_std)")
+        log_or_print("  - Individual pulsars: Normal(population_mean, population_std)")
     elif isinstance(gamma_p_spec, tfpd.Distribution):
         log_or_print(f"log10(γ_p): Uniform({float(gamma_p_spec.low[0]):.1f}, {float(gamma_p_spec.high[0]):.1f}) for each pulsar")
     elif gamma_p_spec is not None:
@@ -128,7 +125,7 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
         else:
             log_or_print(f"log10(γ_p): FIXED at {float(gamma_p_spec):.2f}")
     else:
-        log_or_print(f"log10(γ_p): ERROR - None value encountered")
+        log_or_print("log10(γ_p): ERROR - None value encountered")
     
     # log10_sigma_p parameter - check for hierarchical modeling
     sigma_p_spec = prior_specs['log10_sigma_p_spec']
@@ -138,14 +135,14 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
             # Log-ratio parameterization case
             mean_spec = hierarchical_specs['log10_ratio_mean_spec']
             std_spec = hierarchical_specs['log10_ratio_std_spec']
-            log_or_print(f"log10(σ_p): LOG-RATIO parameterization")
-            log_or_print(f"  - log10(σ_p) = log10(γ_p) + log10(ratio)")
+            log_or_print("log10(σ_p): LOG-RATIO parameterization")
+            log_or_print("  - log10(σ_p) = log10(γ_p) + log10(ratio)")
             log_or_print(f"  - Ratio mean: Uniform({float(mean_spec.low):.1f}, {float(mean_spec.high):.1f})")
             log_or_print(f"  - Ratio std: Uniform({float(std_spec.low):.1f}, {float(std_spec.high):.1f})")
-            log_or_print(f"  - Individual ratios: Normal(ratio_mean, ratio_std)")
+            log_or_print("  - Individual ratios: Normal(ratio_mean, ratio_std)")
         else:
             # Fallback: hierarchical settings enabled but specs not created (likely due to fixed params)
-            log_or_print(f"log10(σ_p): FIXED (hierarchical settings detected but overridden by fixed parameters)")
+            log_or_print("log10(σ_p): FIXED (hierarchical settings detected but overridden by fixed parameters)")
     elif isinstance(sigma_p_spec, tfpd.Distribution):
         log_or_print(f"log10(σ_p): Uniform({float(sigma_p_spec.low[0]):.1f}, {float(sigma_p_spec.high[0]):.1f}) for each pulsar")
     elif sigma_p_spec is not None:
@@ -154,7 +151,7 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
         else:
             log_or_print(f"log10(σ_p): FIXED at {float(sigma_p_spec):.2f}")
     else:
-        log_or_print(f"log10(σ_p): ERROR - None value encountered")
+        log_or_print("log10(σ_p): ERROR - None value encountered")
     
     # Measurement noise parameters
     log_or_print(f"\n--- Measurement Noise Parameters ({n_pulsars} pulsars) ---")
@@ -169,7 +166,7 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
         else:
             log_or_print(f"EFAC: FIXED at {float(efac_spec):.3f}")
     else:
-        log_or_print(f"EFAC: ERROR - None value encountered")
+        log_or_print("EFAC: ERROR - None value encountered")
     
     # EQUAD parameter
     equad_spec = prior_specs['equad_spec']
@@ -188,7 +185,7 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
         else:
             log_or_print(f"EQUAD: FIXED at {float(equad_spec):.2e}")
     else:
-        log_or_print(f"EQUAD: ERROR - None value encountered")
+        log_or_print("EQUAD: ERROR - None value encountered")
     
     log_or_print("="*60)
 
