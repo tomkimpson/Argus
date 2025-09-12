@@ -11,7 +11,6 @@ MODULES = [
     "argus.bayesian_inference",
     "argus.jax_kalman_filter",
     "argus.gravitational_waves",
-    "argus.analysis",
     "argus.io_manager",
     "argus.utils",
     "argus.workflow"
@@ -50,7 +49,6 @@ with mkdocs_gen_files.open("api/index.md", "w") as f:
             "bayesian_inference": "Bayesian parameter estimation routines",
             "jax_kalman_filter": "JAX-based Kalman filtering for state-space analysis",
             "gravitational_waves": "Gravitational wave signal modeling",
-            "analysis": "Analysis utilities and result processing",
             "io_manager": "Input/output and configuration management", 
             "utils": "Utility functions and helpers",
             "workflow": "End-to-end analysis workflows"

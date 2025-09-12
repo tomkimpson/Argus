@@ -4,6 +4,8 @@ site_url: https://tomkimpson.github.io/Argus/
 repo_url: https://github.com/tomkimpson/Argus
 repo_name: tomkimpson/Argus
 
+docs_dir: docs/src
+
 nav:
   - 🏠 Home: index.md
   - Getting started:
