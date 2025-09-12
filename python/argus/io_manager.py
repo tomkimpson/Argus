@@ -6,13 +6,14 @@ import logging
 from datetime import datetime
 
 
-def setup_output_directory(config, use_gw, timestamp=None):
+def setup_output_directory(config, use_gw, timestamp=None, config_path=None):
     """Set up output directory for the inference run.
     
     Args:
         config: Configuration object
         use_gw (bool): Whether to include gravitational wave model
         timestamp (str): Optional timestamp to use for output directory
+        config_path (str): Optional path to the configuration file to determine workflow directory
     
     Returns
     -------
@@ -29,10 +30,21 @@ def setup_output_directory(config, use_gw, timestamp=None):
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         base_dir = config.get('Output', 'base_dir').format(timestamp=timestamp)
     
-    # Create base output directory in workflows/example_workflow/outputs/
+    # Determine which workflow directory to use based on config path
+    workflow_name = 'example_workflow'  # default fallback
+    if config_path:
+        # Extract workflow name from config path (e.g., "workflows/dev_workflow/configs/dev_config.ini")
+        config_path_normalized = os.path.normpath(config_path)
+        path_parts = config_path_normalized.split(os.sep)
+        if 'workflows' in path_parts:
+            workflows_index = path_parts.index('workflows')
+            if workflows_index + 1 < len(path_parts):
+                workflow_name = path_parts[workflows_index + 1]
+    
+    # Create base output directory in the appropriate workflow directory
     # Get to project root (3 levels up from argus/io_manager.py)
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    base_output_dir = os.path.join(project_root, 'workflows', 'example_workflow', 'outputs', base_dir)
+    base_output_dir = os.path.join(project_root, 'workflows', workflow_name, 'outputs', base_dir)
     
     if not use_gw:
         # For no-GW runs, nest under the GW directory

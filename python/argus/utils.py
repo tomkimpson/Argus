@@ -65,8 +65,8 @@ def resolve_config_paths(config, config_path):
     # List of config keys that should be treated as file paths
     path_keys = {
         ('Data', 'data_path'),
-        ('Data', 'noise_params_path'), 
-        ('Data', 'spin_injections_path')
+        ('PriorModel', 'noise_params_path'), 
+        ('PriorModel', 'spin_injections_path')
     }
     
     for section, key in path_keys:
@@ -90,8 +90,8 @@ def get_noise_parameters(config):
     -------
         tuple: (efac_array, equad_array, sigma_p_array, gamma_p_array)
     """
-    noise_params_path = config.get('Data', 'noise_params_path')
-    spin_injections_path = config.get('Data', 'spin_injections_path')
+    noise_params_path = config.get('PriorModel', 'noise_params_path')
+    spin_injections_path = config.get('PriorModel', 'spin_injections_path')
     excluded_psrs = config.get('Data', 'excluded_psrs').split(',')
     efac_array, equad_array = get_efac_equad_injections(noise_params_path, excluded_psrs)
     sigma_p_array, gamma_p_array = get_psr_noise_injections(spin_injections_path, excluded_psrs)
