@@ -1,9 +1,12 @@
-[tool.poetry]
+[project]
 name = "argus-pta"
 version = "0.0.0-dev" # Just a place holder; package version is managed by the dynamic-versioning plugin & git tags
 description = "Bayesian inference for pulsar timing array data analysis using JAX and Kalman filtering"
-authors = [ "Tom Kimpson <tom.kimpson@example.com>", "J. Hu <j.hu@example.com>" ]
-license = "MIT"
+authors = [
+    { name = "Tom Kimpson", email = "tom.kimpson@example.com" },
+    { name = "J. Hu", email = "j.hu@example.com" }
+]
+license = { text = "MIT" }
 readme = "README.md"
 keywords = ["pulsar", "timing", "bayesian", "inference", "jax", "kalman", "gravitational-waves"]
 classifiers = [
@@ -17,15 +20,22 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent",
 ]
-packages = [
-    { include = "argus", from = "python" } 
-]
+requires-python = ">=3.11,<3.13"
+dynamic = ["version"]
+
+[project.urls]
 homepage = "https://github.com/tomkimpson/Argus"
 documentation = "https://tomkimpson.github.io/Argus/"
 repository = "https://github.com/tomkimpson/Argus"
 
-[tool.poetry.scripts]
+[project.scripts]
 argus = "argus.cli:main"
+
+[tool.poetry]
+packages = [
+    { include = "argus", from = "python" } 
+]
+
 
 [tool.poetry.dependencies]
 python = " >=3.11, <3.13"
@@ -60,8 +70,6 @@ ruff = "^0"
 mypy = "^1"
 pre-commit = "^3"
 
-[tool.poetry.extras]
-dev = ["pytest", "pytest-mock", "pytest-cookies", "pytest-cov", "black", "ruff", "mypy", "pre-commit"]
 
 # This configures the Poetry plugin which enables dynamic versioning via the repo tags
 # Note the changes that are also needed to the [build-system] config below.
