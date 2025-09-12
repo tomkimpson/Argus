@@ -22,7 +22,7 @@ if ! command -v argus &> /dev/null; then
     echo "  pip install argus-pta"
     echo "  # OR from source:"
     echo "  pip install ."
-    echo
+    exit 1
 fi
 
 # Create output directory if it doesn't exist

@@ -3,10 +3,10 @@
 #SBATCH --job-name=argus_cli_run
 #SBATCH --output=outputs/logfiles/cli_run_output.txt
 #SBATCH --export=ALL 
-#SBATCH --gres=gpu:4
-#SBATCH --time=96:00:00 
-#SBATCH --mem=16G
-#SBATCH --cpus-per-task=4
+#SBATCH --gres=gpu:1
+#SBATCH --time=0:10:00 
+#SBATCH --mem=4G
+#SBATCH --cpus-per-task=1
 
 echo "=== Argus CLI Workflow Started ==="
 echo "Job ID: $SLURM_JOB_ID"
