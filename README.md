@@ -80,7 +80,7 @@ comparison = argus.compare_inference_methods(
 
 ## Documentation
 
-Full documentation is available at [https://argus-pta.readthedocs.io/](https://argus-pta.readthedocs.io/)
+Full documentation is available at [https://tomkimpson.github.io/Argus/](https://tomkimpson.github.io/Argus/)
 
 ## Requirements
 
@@ -117,6 +117,6 @@ If you use Argus in your research, please cite:
 
 ## Support
 
-- 📚 [Documentation](https://argus-pta.readthedocs.io/)
+- 📚 [Documentation](https://tomkimpson.github.io/Argus/)
 - 🐛 [Issue Tracker](https://github.com/tomkimpson/Argus/issues)
 - 💬 [Discussions](https://github.com/tomkimpson/Argus/discussions)
