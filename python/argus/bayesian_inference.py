@@ -75,9 +75,9 @@ def log_likelihood_fn(KF, log10_ha, log10_gamma_a, log10_γp, log10_σp, efac, e
 
 
 
-def _create_hierarchical_specs(config, hierarchical_noise, log_ratio_parameterization):
+def _create_hierarchical_priors(config, hierarchical_noise, log_ratio_parameterization):
     """
-    Create hierarchical modeling specifications if needed.
+    Create hierarchical modeling prior distributions if needed.
     
     Parameters
     ----------
@@ -91,7 +91,7 @@ def _create_hierarchical_specs(config, hierarchical_noise, log_ratio_parameteriz
     Returns
     -------
     dict or None
-        Hierarchical specifications dictionary or None if not needed
+        Hierarchical prior distributions dictionary or None if not needed
     """
     if not (hierarchical_noise or log_ratio_parameterization):
         return None
@@ -128,9 +128,9 @@ def _create_hierarchical_specs(config, hierarchical_noise, log_ratio_parameteriz
     return hierarchical_specs
 
 
-def _get_gw_parameter_specs(config):
+def _get_gw_parameter_priors(config):
     """
-    Extract gravitational wave parameter specifications from config.
+    Extract gravitational wave parameter prior distributions from config.
     
     Parameters
     ----------
@@ -140,10 +140,10 @@ def _get_gw_parameter_specs(config):
     Returns
     -------
     dict
-        Dictionary containing GW parameter specifications:
-        - log10_ha_spec: Prior specification for log10(ha)
+        Dictionary containing GW parameter prior distributions:
+        - log10_ha_spec: Prior distribution for log10(ha)
         - log10_ha_transform_params: Transformation parameters for reparameterization
-        - log10_gamma_a_spec: Prior specification for log10(γa)
+        - log10_gamma_a_spec: Prior distribution for log10(γa)
     """
     # Helper function to create prior spec based on fixed/sampled setting
     def get_prior_spec(param_name):
@@ -184,9 +184,9 @@ def _get_gw_parameter_specs(config):
     }
 
 
-def _get_pulsar_noise_specs(config, Npsr, sigma_p_array, gamma_p_array):
+def _get_pulsar_noise_priors(config, Npsr, sigma_p_array, gamma_p_array):
     """
-    Extract pulsar red noise parameter specifications from config.
+    Extract pulsar red noise parameter prior distributions from config.
     
     Parameters
     ----------
@@ -202,10 +202,10 @@ def _get_pulsar_noise_specs(config, Npsr, sigma_p_array, gamma_p_array):
     Returns
     -------
     dict
-        Dictionary containing pulsar noise parameter specifications:
-        - log10_gamma_p_spec: Prior specification for log10(γp)
-        - log10_sigma_p_spec: Prior specification for log10(σp) 
-        - hierarchical_specs: Hierarchical modeling specifications
+        Dictionary containing pulsar noise parameter prior distributions:
+        - log10_gamma_p_spec: Prior distribution for log10(γp)
+        - log10_sigma_p_spec: Prior distribution for log10(σp) 
+        - hierarchical_specs: Hierarchical modeling prior distributions
     """
     # Check if spin_injections_path is provided to determine if red noise parameters should be fixed
     try:
@@ -223,7 +223,7 @@ def _get_pulsar_noise_specs(config, Npsr, sigma_p_array, gamma_p_array):
     # Check for hierarchical modeling and log-ratio parameterization
     hierarchical_noise = config.getboolean('PriorModel', 'hierarchical_noise', fallback=False)
     log_ratio_parameterization = config.getboolean('PriorModel', 'log_ratio_parameterization', fallback=False)
-    hierarchical_specs = _create_hierarchical_specs(config, hierarchical_noise, log_ratio_parameterization)
+    hierarchical_specs = _create_hierarchical_priors(config, hierarchical_noise, log_ratio_parameterization)
     
     # Handle gamma_p specification
     if log10_gamma_p_fixed:
@@ -286,9 +286,9 @@ def _get_pulsar_noise_specs(config, Npsr, sigma_p_array, gamma_p_array):
     }
 
 
-def _get_measurement_noise_specs(config, efac_array, equad_array):
+def _get_measurement_noise_priors(config, efac_array, equad_array):
     """
-    Extract measurement noise parameter specifications from config.
+    Extract measurement noise parameter prior distributions from config.
     
     Parameters
     ----------
@@ -302,9 +302,9 @@ def _get_measurement_noise_specs(config, efac_array, equad_array):
     Returns
     -------
     dict
-        Dictionary containing measurement noise parameter specifications:
-        - efac_spec: Prior specification for EFAC
-        - equad_spec: Prior specification for EQUAD
+        Dictionary containing measurement noise parameter prior distributions:
+        - efac_spec: Prior distribution for EFAC
+        - equad_spec: Prior distribution for EQUAD
     """
     # Check if noise_params_path is provided to determine if EFAC/EQUAD should be fixed
     try:
@@ -341,7 +341,7 @@ def _get_measurement_noise_specs(config, efac_array, equad_array):
 
 def get_prior_model_specs(config, Npsr, sigma_p_array, gamma_p_array, efac_array, equad_array):
     """
-    Create prior model specifications based on config settings.
+    Create prior model distributions based on config settings.
     
     Args:
         config: ConfigParser object containing prior model settings
@@ -353,13 +353,13 @@ def get_prior_model_specs(config, Npsr, sigma_p_array, gamma_p_array, efac_array
         
     Returns
     -------
-        dict: Dictionary containing all prior specifications with the following keys:
-            - log10_ha_spec: Prior for log10 of GW amplitude (fixed value or Uniform)
-            - log10_gamma_a_spec: Prior for log10(GW spectral index) (fixed value or Uniform)
-            - log10_gamma_p_spec: Prior for log10 of pulsar red noise gamma (Uniform)
-            - log10_sigma_p_spec: Prior for log10 of pulsar red noise sigma (Uniform)
-            - efac_spec: Prior for EFAC (fixed array or Uniform)
-            - equad_spec: Prior for EQUAD (fixed array or Uniform)
+        dict: Dictionary containing all prior distributions with the following keys:
+            - log10_ha_spec: Prior distribution for log10 of GW amplitude (fixed value or Uniform)
+            - log10_gamma_a_spec: Prior distribution for log10(GW spectral index) (fixed value or Uniform)
+            - log10_gamma_p_spec: Prior distribution for log10 of pulsar red noise gamma (Uniform)
+            - log10_sigma_p_spec: Prior distribution for log10 of pulsar red noise sigma (Uniform)
+            - efac_spec: Prior distribution for EFAC (fixed array or Uniform)
+            - equad_spec: Prior distribution for EQUAD (fixed array or Uniform)
             
     Note:
         For each parameter, the prior type (fixed or Uniform) is determined by the
@@ -371,10 +371,10 @@ def get_prior_model_specs(config, Npsr, sigma_p_array, gamma_p_array, efac_array
     """
     print("Getting prior model specs...")
     
-    # Get parameter specifications from specialized functions
-    gw_specs = _get_gw_parameter_specs(config)
-    pulsar_noise_specs = _get_pulsar_noise_specs(config, Npsr, sigma_p_array, gamma_p_array)
-    measurement_noise_specs = _get_measurement_noise_specs(config, efac_array, equad_array)
+    # Get parameter prior distributions from specialized functions
+    gw_specs = _get_gw_parameter_priors(config)
+    pulsar_noise_specs = _get_pulsar_noise_priors(config, Npsr, sigma_p_array, gamma_p_array)
+    measurement_noise_specs = _get_measurement_noise_priors(config, efac_array, equad_array)
 
     return {
         'log10_ha_spec': gw_specs['log10_ha_spec'],
@@ -396,7 +396,7 @@ def _sample_gw_parameters(prior_specs):
     Parameters
     ----------
     prior_specs : dict
-        Prior specifications dictionary
+        Prior distributions dictionary
         
     Returns
     -------
@@ -440,7 +440,7 @@ def _sample_pulsar_noise_parameters(prior_specs, n_pulsars):
     Parameters
     ----------
     prior_specs : dict
-        Prior specifications dictionary
+        Prior distributions dictionary
     n_pulsars : int
         Number of pulsars
         
@@ -540,7 +540,7 @@ def _sample_measurement_noise_parameters(prior_specs, n_pulsars):
     Parameters
     ----------
     prior_specs : dict
-        Prior specifications dictionary
+        Prior distributions dictionary
     n_pulsars : int
         Number of pulsars
         
@@ -603,7 +603,7 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
     kalman_filter : object
         JAX Kalman filter with get_likelihood method
     prior_specs : dict
-        Dictionary containing prior specifications from get_prior_model_specs()
+        Dictionary containing prior distributions from get_prior_model_specs()
     n_pulsars : int
         Number of pulsars
     """
@@ -625,7 +625,7 @@ def count_free_parameters(prior_specs, n_pulsars):
     Parameters
     ----------
     prior_specs : dict
-        Prior specifications dictionary
+        Prior distributions dictionary
     n_pulsars : int
         Number of pulsars
         
@@ -701,7 +701,7 @@ def run_nuts_sampling(kalman_filter, config, n_pulsars, sigma_p_array, gamma_p_a
     """
     import jax.random as random
     
-    # Get prior model specifications
+    # Get prior model distributions
     prior_specs = get_prior_model_specs(
         config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array
     )
@@ -794,12 +794,12 @@ def run_nuts_sampling(kalman_filter, config, n_pulsars, sigma_p_array, gamma_p_a
 
 
 def display_prior_summary(prior_specs, n_pulsars, logger=None):
-    """Display a readable summary of all prior specifications.
+    """Display a readable summary of all prior distributions.
     
     Parameters
     ----------
     prior_specs : dict
-        Dictionary containing prior specifications from get_prior_model_specs()
+        Dictionary containing prior distributions from get_prior_model_specs()
     n_pulsars : int
         Number of pulsars (for vector parameter information)
     logger : logging.Logger, optional
