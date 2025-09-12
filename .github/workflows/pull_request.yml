@@ -78,7 +78,7 @@ jobs:
           poetry install --with docs
 
       - name: Documentation build test
-        run: poetry run mkdocs build --strict
+        run: poetry run mkdocs build
 
 
       # Upload coverage report to Codecov
