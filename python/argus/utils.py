@@ -10,7 +10,6 @@ import pandas as pd
 import configparser
 from datetime import datetime
 
-import numpy as np
 import arviz as az
 import corner
 import matplotlib.pyplot as plt

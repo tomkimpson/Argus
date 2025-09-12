@@ -4,7 +4,6 @@ This module provides NumPyro NUTS sampling routines and related functionality
 for performing Bayesian inference on pulsar timing array data.
 """
 
-import jax
 import jax.numpy as jnp
 import jax.random as random
 import numpyro
@@ -165,7 +164,7 @@ def print_nuts_diagnostics(prior_specs, nuts_info, config):
     num_warmup = config.getint('NUTS', 'num_warmup', fallback=2000)
     num_chains = config.getint('NUTS', 'num_chains', fallback=2)
     
-    print(f"Running NumPyro NUTS inference...")
+    print("Running NumPyro NUTS inference...")
     print(f"NUTS parameters: {num_samples} samples, {num_warmup} warmup, {num_chains} chains")
     print(f"Target accept prob: {nuts_info['target_accept_prob']} (optimized for high-dimensional sampling)")
     print(f"Dense mass matrix: {nuts_info['dense_mass']}")
@@ -180,14 +179,14 @@ def print_nuts_diagnostics(prior_specs, nuts_info, config):
         if hier_gamma or log_ratio:
             print("Advanced modeling enabled for pulsar noise parameters")
             if hier_gamma and log_ratio:
-                print(f"γp hierarchical + σp via log-ratio parameterization")
+                print("γp hierarchical + σp via log-ratio parameterization")
                 print(f"Effective dimensionality: 4 hyperparameters + {2*n_pulsars} constrained parameters")
-                print(f"σp = γp + ratio (reduces parameter correlations)")
+                print("σp = γp + ratio (reduces parameter correlations)")
             elif hier_gamma:
-                print(f"γp uses hierarchical priors, σp fixed")
+                print("γp uses hierarchical priors, σp fixed")
                 print(f"Effective dimensionality: 2 hyperparameters + {n_pulsars} constrained parameters")
             elif log_ratio:
-                print(f"σp via log-ratio parameterization, γp independent")
+                print("σp via log-ratio parameterization, γp independent")
                 print(f"Effective dimensionality: 2 hyperparameters + {2*n_pulsars} parameters")
     
     if nuts_info['total_params'] > 10:

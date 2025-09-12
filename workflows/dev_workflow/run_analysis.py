@@ -6,7 +6,6 @@ import argparse
 from datetime import datetime
 
 import jax
-jax.config.update("jax_enable_x64", True)
 
 # Add the python directory to path to import argus modules
 # Go up to project root and then to python directory
@@ -14,6 +13,8 @@ project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 sys.path.append(os.path.join(project_root, 'python'))
 
 from argus import utils, workflow
+
+jax.config.update("jax_enable_x64", True)
 
 
 def main():

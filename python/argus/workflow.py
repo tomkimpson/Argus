@@ -1,6 +1,5 @@
 """Workflow orchestration and high-level functions for the argus package."""
 
-import logging
 
 from argus import data_loader, jax_kalman_filter, bayesian_inference, utils
 from argus import io_manager
