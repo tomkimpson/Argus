@@ -104,8 +104,6 @@ def save_numpyro_results(inf_data, output_dir, output_id, logger):
     return results_path
 
 
-
-
 def setup_single_logger(config, output_dir=None, enable_file_logging=True):
     """Set up a single, properly configured logger for the entire application.
     
