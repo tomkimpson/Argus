@@ -1,6 +1,6 @@
 # Argus
 
-![Tests](https://github.com/tomkimpson/Argus/actions/workflows/run_test.yml/badge.svg) [![codecov](https://codecov.io/gh/tomkimpson/Argus/graph/badge.svg?token=2PEOHCFV1K)](https://codecov.io/gh/tomkimpson/Argus) [![PyPI version](https://badge.fury.io/py/argus-pta.svg)](https://badge.fury.io/py/argus-pta)
+![Tests](https://github.com/tomkimpson/Argus/actions/workflows/run_test.yml/badge.svg) [![codecov](https://codecov.io/gh/tomkimpson/Argus/graph/badge.svg?token=2PEOHCFV1K)](https://codecov.io/gh/tomkimpson/Argus) [![PyPI version](https://badge.fury.io/py/argus-pta.svg)](https://badge.fury.io/py/argus-pta) [![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://tomkimpson.github.io/Argus/)
 
 **Argus** is a Python package for Bayesian inference on pulsar timing array data using JAX and Kalman filtering techniques. It provides efficient, GPU-accelerated analysis tools for detecting gravitational waves and estimating astrophysical parameters from pulsar timing data.
 
@@ -59,23 +59,19 @@ pip install -e ".[dev]"
 import argus
 
 # Load pulsar timing data
-data = argus.load_pulsar_data("path/to/data.pkl")
-
-# Set up analysis configuration
-config = {
-    'nsamples': 2000,
-    'nwarmup': 1000, 
-    'nchains': 4
-}
-
-# Run Bayesian inference
-results = argus.run_bayesian_inference(data, config)
-
-# Compare different models
-comparison = argus.compare_inference_methods(
-    results_paths=["results1.pkl", "results2.pkl"],
-    method_names=["With GW", "No GW"]
+pulsar_data = argus.data_loader.LoadWidebandPulsarData.get_processed_residuals(
+    "path/to/data.pkl",
+    excluded_psrs=[]
 )
+
+# Run Bayesian inference using workflow
+output_dir = argus.workflow.run_inference(
+    config_path="my_analysis.ini",
+    use_gw=True,
+    timestamp="20250101_120000"
+)
+
+print(f"Results saved to: {output_dir}")
 ```
 
 ## Documentation
@@ -84,7 +80,7 @@ Full documentation is available at [https://tomkimpson.github.io/Argus/](https:/
 
 ## Requirements
 
-- Python ≥ 3.11
+- Python ≥ 3.11, < 3.13
 - JAX ≥ 0.4.0  
 - NumPyro ≥ 0.15.0
 - NumPy, Pandas, Matplotlib
@@ -102,18 +98,6 @@ We welcome contributions! Please see our [contributing guidelines](docs/src/cont
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Citation
-
-If you use Argus in your research, please cite:
-
-```bibtex
-@software{argus_pta,
-  title = {Argus: Bayesian inference for pulsar timing array data analysis},
-  author = {Kimpson, Tom and Hu, J.},
-  url = {https://github.com/tomkimpson/Argus},
-  year = {2025}
-}
-```
 
 ## Support
 
