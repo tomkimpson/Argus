@@ -21,7 +21,7 @@ packages = [
     { include = "argus", from = "python" } 
 ]
 homepage = "https://github.com/tomkimpson/Argus"
-documentation = "https://argus-pta.readthedocs.io/"
+documentation = "https://tomkimpson.github.io/Argus/"
 repository = "https://github.com/tomkimpson/Argus"
 
 [tool.poetry.scripts]
