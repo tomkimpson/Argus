@@ -16,6 +16,9 @@ from . import (
     io_manager,
     jax_kalman_filter,
     model,
+    nuts_inference,
+    parameter_sampling,
+    prior_models,
     utils,
     workflow
 )
@@ -32,6 +35,9 @@ __all__ = [
     "io_manager",
     "jax_kalman_filter",
     "model", 
+    "nuts_inference",
+    "parameter_sampling",
+    "prior_models",
     "utils",
     "workflow",
     # Key functions
