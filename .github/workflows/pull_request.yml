@@ -27,62 +27,46 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libsuitesparse-dev
 
-      - name: Setup miniconda
-        uses: conda-incubator/setup-miniconda@v3
-        with: 
-          activate-environment: Argus
-          environment-file: conda_env.yml
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
       - name: Verify Environment
-        shell: bash -l {0}
         run: |
-          conda info
-          conda list
-          which python
-
-      - name: Install pipx
-        shell: bash -l {0}
-        run: |
-          python -m pip install pipx 
-          python -m pipx ensurepath
+          python --version
+          pip --version
 
       - name: Install poetry
-        shell: bash -l {0}
         run: |
-          pipx install poetry==2.1.1
+          python -m pip install --upgrade pip
+          python -m pip install poetry==2.1.1
           poetry --version
 
       - name: Set project version
-        shell: bash -l {0}
         run: poetry version $(git describe --tags --abbrev=0)
 
       - name: Install the project
-        shell: bash -l {0}
         run: |
           poetry env info
           poetry install --no-interaction
 
       - name: Enforce linting
-        shell: bash -l {0}
         run: poetry run ruff check --config ruff.toml .
 
       - name: Enforce formating
-        shell: bash -l {0}
         run: poetry run black .
 
       - name: Enforce maintainance of Poetry project
-        shell: bash -l {0}
         run: |
           poetry check
 
       # run test
       - name: Generate build
-        shell: bash -l {0}
         run: poetry build
 
       # Run tests and generate coverage report
       - name: Code tests with Coverage
-        shell: bash -l {0}
         run: |
           # Generate coverage report in XML format for the 'python' directory
           # Uses pytest-cov, requires it in dev dependencies (pyproject.toml)
@@ -90,13 +74,11 @@ jobs:
           poetry run pytest -m "not gpu" --cov=python --cov-report=xml
 
       - name: Install MkDocs dependencies
-        shell: bash -l {0}
         run: |
-          pip install mkdocs-material "mkdocstrings[python]" mkdocs-gen-files mkdocs-literate-nav markdown-katex
+          poetry install --with docs
 
       - name: Documentation build test
-        shell: bash -l {0}
-        run: mkdocs build --strict
+        run: poetry run mkdocs build --strict
 
 
       # Upload coverage report to Codecov
