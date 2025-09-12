@@ -1,7 +1,7 @@
 === Argus CLI Workflow Started ===
-Job ID: 4428532
-Node: gina12
-Start time: Fri Sep 12 13:22:20 AEST 2025
+Job ID: 4428883
+Node: gina15
+Start time: Fri Sep 12 13:53:48 AEST 2025
 
 === Environment Information ===
 Python version: Python 3.12.8
@@ -13,12 +13,14 @@ Working directory: /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/cli_exampl
 === Starting Bayesian Inference Analysis ===
 Configuration file: configs/cli_config.ini
 
+slurmstepd: error: slurm_curl_request: curl_easy_perform failed to send data to influxdb:8086/write?db=ozstar_slurm&rp=ozstar_slurm_90d&precision=s. Reason: Failure when receiving data from the peer
+slurmstepd: error: send data failed
 /fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/enterprise/signals/utils.py:13: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import Requirement, resource_filename
-2025-09-12 13:26:57,734 - INFO - Logging to file: /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/example_workflow/outputs/20250912_132657/logfiles/inference_output_20250912_132657.txt
-2025-09-12 13:26:57,735 - INFO - Centralized logging initialized
-2025-09-12 13:26:57,755 - INFO - Copied config file to /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/example_workflow/outputs/20250912_132657/cli_config.ini
-2025-09-12 13:26:57,755 - INFO - Loading and processing data...
+2025-09-12 13:57:00,307 - INFO - Logging to file: /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/example_workflow/outputs/20250912_135700/logfiles/inference_output_20250912_135700.txt
+2025-09-12 13:57:00,308 - INFO - Centralized logging initialized
+2025-09-12 13:57:00,313 - INFO - Copied config file to /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/example_workflow/outputs/20250912_135700/cli_config.ini
+2025-09-12 13:57:00,313 - INFO - Loading and processing data...
 [tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
 [preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
@@ -126,66 +128,68 @@ See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a
 [preProcess.C:158] Warning: PSR J2317+1439 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-2025-09-12 13:27:11,443 - INFO - Initializing Kalman filter...
-2025-09-12 13:27:11,443 - INFO - Initializing JaxKalmanFilter...
-2025-09-12 13:27:15,206 - INFO - Number of pulsars: 32
-2025-09-12 13:27:15,206 - INFO - Pulsar frequencies: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
+2025-09-12 13:57:11,842 - INFO - Initializing Kalman filter...
+2025-09-12 13:57:11,844 - INFO - Initializing JaxKalmanFilter...
+2025-09-12 13:57:15,235 - INFO - Number of pulsars: 32
+2025-09-12 13:57:15,239 - INFO - Pulsar frequencies: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
   34.65740662 182.11723465 287.457854    90.01184192 190.26783444
   60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
   67.37658113 317.37893707 216.37333714 218.81184042 123.11028715
  245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
  192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
  335.8162082  290.25460366]
-2025-09-12 13:27:15,207 - INFO - Total number of observations: 183
-2025-09-12 13:27:15,207 - INFO - Starting dt (days): 29.875630165338517
-2025-09-12 13:27:15,207 - INFO - Ending dt (days): 30.060462559770656
-2025-09-12 13:27:15,207 - INFO - The errors at t=1 are: [2.697680e-06 9.700560e-06 1.613116e-05 3.307200e-07 4.558820e-06
+2025-09-12 13:57:15,239 - INFO - Total number of observations: 183
+2025-09-12 13:57:15,239 - INFO - Starting dt (days): 29.875630165338517
+2025-09-12 13:57:15,239 - INFO - Ending dt (days): 30.060462559770656
+2025-09-12 13:57:15,239 - INFO - The errors at t=1 are: [2.697680e-06 9.700560e-06 1.613116e-05 3.307200e-07 4.558820e-06
  2.141629e-05 5.225050e-06 4.722880e-06 4.797490e-06 5.783810e-06
  2.626620e-06 5.090810e-06 6.527710e-06 1.173289e-05 8.300700e-07
  3.826940e-06 2.880370e-06 2.054900e-06 1.612610e-06 3.759770e-06
  1.103370e-06 2.220800e-06 4.024300e-07 5.434910e-06 1.372800e-07
  7.031630e-06 4.653570e-06 5.474680e-06 3.388130e-06 4.303360e-06
  1.993229e-05 2.291670e-06]
-2025-09-12 13:27:15,532 - INFO - 
+2025-09-12 13:57:15,439 - INFO - 
 ============================================================
-2025-09-12 13:27:15,532 - INFO - PRIOR SPECIFICATIONS SUMMARY
-2025-09-12 13:27:15,532 - INFO - ============================================================
-2025-09-12 13:27:15,533 - INFO - 
+2025-09-12 13:57:15,439 - INFO - PRIOR SPECIFICATIONS SUMMARY
+2025-09-12 13:57:15,439 - INFO - ============================================================
+2025-09-12 13:57:15,439 - INFO - 
 --- Gravitational Wave Background Parameters ---
-2025-09-12 13:27:15,533 - INFO - log10(h_a): REPARAMETERIZED for better NUTS sampling
-2025-09-12 13:27:15,533 - INFO -   - Sampling: log10_ha_prime ~ N(0, 1)
-2025-09-12 13:27:15,533 - INFO -   - Transform: log10_ha = -16.00 + log10_ha_prime * 0.667
-2025-09-12 13:27:15,533 - INFO -   - Equivalent to: Uniform(-18.0, -14.0)
-2025-09-12 13:27:15,604 - INFO - log10(γ_a): Uniform(-10.0, -8.0)
-2025-09-12 13:27:15,604 - INFO - 
+2025-09-12 13:57:15,439 - INFO - log10(h_a): REPARAMETERIZED for better NUTS sampling
+2025-09-12 13:57:15,439 - INFO -   - Sampling: log10_ha_prime ~ N(0, 1)
+2025-09-12 13:57:15,440 - INFO -   - Transform: log10_ha = -16.00 + log10_ha_prime * 0.667
+2025-09-12 13:57:15,440 - INFO -   - Equivalent to: Uniform(-18.0, -14.0)
+2025-09-12 13:57:15,507 - INFO - log10(γ_a): Uniform(-10.0, -8.0)
+2025-09-12 13:57:15,509 - INFO - 
 --- Pulsar Red Noise Parameters (32 pulsars) ---
-2025-09-12 13:27:15,604 - INFO - log10(γ_p): HIERARCHICAL modeling
-2025-09-12 13:27:15,604 - INFO -   - Population mean: Uniform(-9.0, -7.0)
-2025-09-12 13:27:15,605 - INFO -   - Population std: Uniform(0.1, 1.0)
-2025-09-12 13:27:15,605 - INFO -   - Individual pulsars: Normal(population_mean, population_std)
-2025-09-12 13:27:15,605 - INFO - log10(σ_p): LOG-RATIO parameterization
-2025-09-12 13:27:15,605 - INFO -   - log10(σ_p) = log10(γ_p) + log10(ratio)
-2025-09-12 13:27:15,605 - INFO -   - Ratio mean: Uniform(-8.0, -4.0)
-2025-09-12 13:27:15,606 - INFO -   - Ratio std: Uniform(0.5, 3.0)
-2025-09-12 13:27:15,606 - INFO -   - Individual ratios: Normal(ratio_mean, ratio_std)
-2025-09-12 13:27:15,606 - INFO - 
+2025-09-12 13:57:15,509 - INFO - log10(γ_p): HIERARCHICAL modeling
+2025-09-12 13:57:15,509 - INFO -   - Population mean: Uniform(-9.0, -7.0)
+2025-09-12 13:57:15,509 - INFO -   - Population std: Uniform(0.1, 1.0)
+2025-09-12 13:57:15,510 - INFO -   - Individual pulsars: Normal(population_mean, population_std)
+2025-09-12 13:57:15,510 - INFO - log10(σ_p): LOG-RATIO parameterization
+2025-09-12 13:57:15,510 - INFO -   - log10(σ_p) = log10(γ_p) + log10(ratio)
+2025-09-12 13:57:15,510 - INFO -   - Ratio mean: Uniform(-8.0, -4.0)
+2025-09-12 13:57:15,510 - INFO -   - Ratio std: Uniform(0.5, 3.0)
+2025-09-12 13:57:15,510 - INFO -   - Individual ratios: Normal(ratio_mean, ratio_std)
+2025-09-12 13:57:15,510 - INFO - 
 --- Measurement Noise Parameters (32 pulsars) ---
-2025-09-12 13:27:15,710 - INFO - EFAC: FIXED at individual values (range: 0.903 to 2.206)
-2025-09-12 13:27:15,710 - INFO - EQUAD: FIXED at individual values (range: 2.78e-08 to 5.69e-07)
-2025-09-12 13:27:15,711 - INFO - ============================================================
-2025-09-12 13:27:15,711 - INFO - Performing likelihood performance test...
-2025-09-12 13:27:15,711 - INFO - === Likelihood Performance Test ===
-2025-09-12 13:27:15,711 - INFO - Testing likelihood evaluation with known parameter values...
-2025-09-12 13:27:15,751 - INFO - Test parameters: γa=1e-09, ha=1e-15
-2025-09-12 13:27:15,751 - INFO - Number of pulsars: 32
-2025-09-12 13:27:15,751 - INFO - Performing for the first time a likelihood evaluation...
-2025-09-12 13:27:25,324 - INFO - Performing timed for the second time a likelihood evaluation...
-2025-09-12 13:27:25,402 - INFO - Likelihood evaluation completed in 9.5726 seconds the first time
-2025-09-12 13:27:25,402 - INFO - Likelihood evaluation completed in 0.0776 seconds the second time
-2025-09-12 13:27:25,402 - INFO - Log likelihood value: 55963.87289660473
-2025-09-12 13:27:25,403 - INFO - === End Likelihood Performance Test ===
-2025-09-12 13:27:25,403 - INFO - Running NUMPYRO inference...
-/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/bayesian_inference.py:775: UserWarning: There are not enough devices to run parallel chains: expected 4 but got 1. Chains will be drawn sequentially. If you are running MCMC in CPU, consider using `numpyro.set_host_device_count(4)` at the beginning of your program. You can double-check how many devices are available in your system using `jax.local_device_count()`.
+2025-09-12 13:57:15,610 - INFO - EFAC: FIXED at individual values (range: 0.903 to 2.206)
+2025-09-12 13:57:15,611 - INFO - EQUAD: FIXED at individual values (range: 2.78e-08 to 5.69e-07)
+2025-09-12 13:57:15,611 - INFO - ============================================================
+2025-09-12 13:57:15,611 - INFO - Performing likelihood performance test...
+2025-09-12 13:57:15,611 - INFO - === Likelihood Performance Test ===
+2025-09-12 13:57:15,611 - INFO - Testing likelihood evaluation with known parameter values...
+2025-09-12 13:57:15,649 - INFO - Test parameters: γa=1e-09, ha=1e-15
+2025-09-12 13:57:15,649 - INFO - Number of pulsars: 32
+2025-09-12 13:57:15,649 - INFO - Performing for the first time a likelihood evaluation...
+slurmstepd: error: slurm_curl_request: curl_easy_perform failed to send data to influxdb:8086/write?db=ozstar_slurm&rp=ozstar_slurm_90d&precision=s. Reason: Couldn't connect to server
+slurmstepd: error: send data failed
+2025-09-12 13:57:23,031 - INFO - Performing timed for the second time a likelihood evaluation...
+2025-09-12 13:57:23,109 - INFO - Likelihood evaluation completed in 7.3818 seconds the first time
+2025-09-12 13:57:23,109 - INFO - Likelihood evaluation completed in 0.0774 seconds the second time
+2025-09-12 13:57:23,109 - INFO - Log likelihood value: 55963.87289660473
+2025-09-12 13:57:23,109 - INFO - === End Likelihood Performance Test ===
+2025-09-12 13:57:23,109 - INFO - Running NUMPYRO inference...
+/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/nuts_inference.py:255: UserWarning: There are not enough devices to run parallel chains: expected 4 but got 1. Chains will be drawn sequentially. If you are running MCMC in CPU, consider using `numpyro.set_host_device_count(4)` at the beginning of your program. You can double-check how many devices are available in your system using `jax.local_device_count()`.
   sampler = MCMC(
 === ARGUS VERSION INFO ===
 Argus version: 0.0.0-dev
@@ -237,7 +241,7 @@ Red noise parameters fixed via spin_injections_path: True
 Using injected gamma_p values (legacy mode)
 Using injected sigma_p values (legacy mode)
 EFAC/EQUAD parameters fixed via noise_params_path: True
-Running NumPyro NUTS inference with 32 pulsars...
+Running NumPyro NUTS inference...
 NUTS parameters: 2000 samples, 1000 warmup, 4 chains
 Target accept prob: 0.85 (optimized for high-dimensional sampling)
 Dense mass matrix: True
@@ -245,16 +249,16 @@ Max tree depth: 10
 Total free parameters: 70
 Advanced modeling enabled for pulsar noise parameters
 γp hierarchical + σp via log-ratio parameterization
-Effective dimensionality: 4 hyperparameters + 64 constrained parameters
+Effective dimensionality: 4 hyperparameters + 0 constrained parameters
 σp = γp + ratio (reduces parameter correlations)
 High-dimensional parameter space detected - using aggressive NUTS tuning
-  0%|          | 0/3000 [00:00<?, ?it/s]warmup:   0%|          | 1/3000 [00:11<9:18:35, 11.18s/it, 1 steps of size 2.13e+00. acc. prob=0.00]warmup:   0%|          | 2/3000 [00:11<3:55:23,  4.71s/it, 1 steps of size 1.82e-01. acc. prob=0.00]warmup:   0%|          | 3/3000 [00:11<2:11:59,  2.64s/it, 1 steps of size 1.12e-02. acc. prob=0.00]warmup:   0%|          | 4/3000 [00:14<2:12:46,  2.66s/it, 15 steps of size 3.94e-03. acc. prob=0.16]warmup:   0%|          | 5/3000 [00:15<1:47:29,  2.15s/it, 7 steps of size 4.38e-03. acc. prob=0.33] warmup:   0%|          | 6/3000 [00:16<1:32:13,  1.85s/it, 7 steps of size 5.63e-03. acc. prob=0.44]warmup:   0%|          | 7/3000 [00:17<1:22:34,  1.66s/it, 7 steps of size 7.94e-03. acc. prob=0.52]warmup:   0%|          | 8/3000 [00:20<1:38:53,  1.98s/it, 15 steps of size 1.19e-02. acc. prob=0.58]warmup:   0%|          | 9/3000 [00:23<1:49:49,  2.20s/it, 15 steps of size 1.85e-02. acc. prob=0.63]warmup:   0%|          | 10/3000 [00:28<2:41:12,  3.24s/it, 31 steps of size 2.94e-02. acc. prob=0.67]warmup:   0%|          | 11/3000 [00:51<7:38:14,  9.20s/it, 127 steps of size 4.47e-02. acc. prob=0.69]warmup:   0%|          | 12/3000 [01:02<8:09:24,  9.83s/it, 63 steps of size 5.07e-02. acc. prob=0.71] warmup:   0%|          | 13/3000 [01:14<8:30:58, 10.26s/it, 63 steps of size 6.29e-02. acc. prob=0.73]warmup:   0%|          | 14/3000 [01:19<7:14:32,  8.73s/it, 29 steps of size 7.97e-03. acc. prob=0.69]warmup:   0%|          | 15/3000 [02:50<27:53:22, 33.64s/it, 511 steps of size 1.11e-02. acc. prob=0.70]warmup:   1%|          | 16/3000 [03:36<30:51:57, 37.24s/it, 255 steps of size 1.72e-02. acc. prob=0.72]warmup:   1%|          | 17/3000 [04:21<32:56:19, 39.75s/it, 255 steps of size 2.68e-02. acc. prob=0.74]slurmstepd: error: *** JOB 4428532 ON gina12 CANCELLED AT 2025-09-12T13:32:06 DUE TO TIME LIMIT ***
+  0%|          | 0/3000 [00:00<?, ?it/s]warmup:   0%|          | 1/3000 [00:10<8:26:02, 10.12s/it, 1 steps of size 2.13e+00. acc. prob=0.00]warmup:   0%|          | 2/3000 [00:10<3:33:58,  4.28s/it, 1 steps of size 1.82e-01. acc. prob=0.00]warmup:   0%|          | 3/3000 [00:10<2:00:22,  2.41s/it, 1 steps of size 1.12e-02. acc. prob=0.00]warmup:   0%|          | 4/3000 [00:13<2:05:50,  2.52s/it, 15 steps of size 3.94e-03. acc. prob=0.16]warmup:   0%|          | 5/3000 [00:14<1:43:05,  2.07s/it, 7 steps of size 4.38e-03. acc. prob=0.33] warmup:   0%|          | 6/3000 [00:15<1:29:20,  1.79s/it, 7 steps of size 5.63e-03. acc. prob=0.44]warmup:   0%|          | 7/3000 [00:16<1:20:37,  1.62s/it, 7 steps of size 7.94e-03. acc. prob=0.52]warmup:   0%|          | 8/3000 [00:19<1:37:36,  1.96s/it, 15 steps of size 1.19e-02. acc. prob=0.58]warmup:   0%|          | 9/3000 [00:22<1:48:58,  2.19s/it, 15 steps of size 1.85e-02. acc. prob=0.63]warmup:   0%|          | 10/3000 [00:27<2:40:41,  3.22s/it, 31 steps of size 2.94e-02. acc. prob=0.67]warmup:   0%|          | 11/3000 [00:50<7:38:40,  9.21s/it, 127 steps of size 4.47e-02. acc. prob=0.69]warmup:   0%|          | 12/3000 [01:01<8:10:03,  9.84s/it, 63 steps of size 5.07e-02. acc. prob=0.71] warmup:   0%|          | 13/3000 [01:13<8:31:40, 10.28s/it, 63 steps of size 6.29e-02. acc. prob=0.73]warmup:   0%|          | 14/3000 [01:18<7:15:05,  8.74s/it, 29 steps of size 7.97e-03. acc. prob=0.69]warmup:   0%|          | 15/3000 [02:49<27:56:01, 33.69s/it, 511 steps of size 1.11e-02. acc. prob=0.70]warmup:   1%|          | 16/3000 [03:35<30:59:27, 37.39s/it, 255 steps of size 1.72e-02. acc. prob=0.72]warmup:   1%|          | 17/3000 [04:21<33:02:29, 39.88s/it, 255 steps of size 2.68e-02. acc. prob=0.74]warmup:   1%|          | 18/3000 [04:44<28:45:44, 34.72s/it, 127 steps of size 2.67e-02. acc. prob=0.74]warmup:   1%|          | 19/3000 [05:07<25:46:23, 31.12s/it, 127 steps of size 3.57e-02. acc. prob=0.75]warmup:   1%|          | 20/3000 [05:29<23:41:38, 28.62s/it, 127 steps of size 3.53e-02. acc. prob=0.76]warmup:   1%|          | 21/3000 [05:52<22:13:31, 26.86s/it, 127 steps of size 5.57e-02. acc. prob=0.77]slurmstepd: error: *** JOB 4428883 ON gina15 CANCELLED AT 2025-09-12T14:03:35 DUE TO TIME LIMIT ***
 
-+-------------------- Job Report: 4428532 (TIMEOUT) --------------------+
-| Memory (RAM)  [###############     ] 79.5% (3.2 GB peak / 4 GB)       |
-| CPU           [#####               ] 27.9% average                    |
-| GPU           [#######             ] 39.6% average                    |
-| Time          [------------------->] 100.5% (0-00:10:03 / 0-00:10:00) |
++-------------------- Job Report: 4428883 (TIMEOUT) --------------------+
+| Memory (RAM)  [###############     ] 78.6% (3.1 GB peak / 4 GB)       |
+| CPU           [######              ] 34.5% average                    |
+| GPU           [###########         ] 58.2% average                    |
+| Time          [------------------->] 104.0% (0-00:10:24 / 0-00:10:00) |
 |                                                                       |
 | Lustre Filesystem:                                                    |
 |   No data available                                                   |
