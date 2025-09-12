@@ -122,6 +122,6 @@ We acknowledge support from the Australian Research Council Centre of Excellence
 
 # Availability and Documentation
 
-`Argus` is open source software released under the MIT license. The source code is available on GitHub at https://github.com/tomkimpson/Argus, with comprehensive documentation hosted at https://argus-pta.readthedocs.io/. The package can be installed via PyPI and includes extensive examples, tutorials, and API documentation to facilitate adoption by the PTA community.
+`Argus` is open source software released under the MIT license. The source code is available on GitHub at https://github.com/tomkimpson/Argus, with comprehensive documentation hosted at https://tomkimpson.github.io/Argus/. The package can be installed via PyPI and includes extensive examples, tutorials, and API documentation to facilitate adoption by the PTA community.
 
 # References
