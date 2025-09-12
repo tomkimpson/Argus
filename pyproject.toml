@@ -55,7 +55,8 @@ enterprise-pulsar = "^3.3.0"
 [tool.poetry.group.docs.dependencies]
 # MkDocs Material documentation dependencies
 mkdocs-material = "^9.5"
-mkdocstrings = {extras = ["python"], version = "^0.25"}
+mkdocstrings = {extras = ["python"], version = "^0.26"}
+mkdocs-autorefs = "^1.0"
 mkdocs-gen-files = "^0.5"
 mkdocs-literate-nav = "^0.6"
 markdown-katex = "^202112.1034"
