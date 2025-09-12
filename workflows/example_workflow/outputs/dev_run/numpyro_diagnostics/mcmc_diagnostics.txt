@@ -1,0 +1,41 @@
+Successfully loaded InferenceData from: /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/example_workflow/outputs/dev_run/dev_run_results.nc
+
+--- Calculating Full MCMC Summary ---
+
+--- Filtered MCMC Summary (Excluding Constant Deterministics) ---
+                mean     sd  hdi_3%  ...  ess_bulk  ess_tail  r_hat
+efac[0]        1.140  0.061   1.030  ...   613.611   402.753  1.001
+efac[1]        1.211  0.069   1.088  ...   477.034   236.209  0.999
+efac[2]        1.406  0.074   1.284  ...   428.531   202.163  1.016
+efac[3]        0.411  0.131   0.136  ...   541.748   331.561  1.012
+efac[4]        1.085  0.062   0.969  ...   472.446   273.031  0.998
+...              ...    ...     ...  ...       ...       ...    ...
+log10_σp[22] -18.287  0.400 -19.051  ...   520.667   307.566  1.007
+log10_σp[23] -18.314  0.418 -19.107  ...   522.000   307.853  1.006
+log10_σp[24] -18.510  0.361 -19.269  ...   324.693   315.115  1.015
+log10_σp[25] -18.212  0.468 -19.175  ...   489.869   313.929  0.999
+log10_σp[26] -18.329  0.417 -19.234  ...   486.093   259.181  0.999
+
+[224 rows x 9 columns]
+
+--- Interpretation Guidance (Filtered Parameters) ---
+Checking R-hat and ESS only for variables that showed variation:
+
+Maximum R-hat value (filtered): 1.033
+NOTE: Maximum R-hat is slightly elevated (> 1.01). Check trace plots carefully.
+Minimum Bulk ESS (filtered): 226
+Minimum Tail ESS (filtered): 104
+WARNING: Minimum ESS is low (< 400). Consider increasing 'num_samples'.
+
+--- Generating Trace Plots (Filtered Parameters) ---
+Could not generate trace plots: 'var names: "[\'efac[0]\' \'efac[1]\' \'efac[2]\' \'efac[3]\' \'efac[4]\' \'efac[5]\' \'efac[6]\'\\n \'efac[7]\' \'efac[8]\' \'efac[9]\' \'efac[10]\' \'efac[11]\' \'efac[12]\' \'efac[13]\'\\n \'efac[14]\' \'efac[15]\' \'efac[16]\' \'efac[17]\' \'efac[18]\' \'efac[19]\'\\n \'efac[20]\' \'efac[21]\' \'efac[22]\' \'efac[23]\' \'efac[24]\' \'efac[25]\'\\n \'efac[26]\' \'efac_standardized[0]\' \'efac_standardized[1]\'\\n \'efac_standardized[2]\' \'efac_standardized[3]\' \'efac_standardized[4]\'\\n \'efac_standardized[5]\' \'efac_standardized[6]\' \'efac_standardized[7]\'\\n \'efac_standardized[8]\' \'efac_standardized[9]\' \'efac_standardized[10]\'\\n \'efac_standardized[11]\' \'efac_standardized[12]\' \'efac_standardized[13]\'\\n \'efac_standardized[14]\' \'efac_standardized[15]\' \'efac_standardized[16]\'\\n \'efac_standardized[17]\' \'efac_standardized[18]\' \'efac_standardized[19]\'\\n \'efac_standardized[20]\' \'efac_standardized[21]\' \'efac_standardized[22]\'\\n \'efac_standardized[23]\' \'efac_standardized[24]\' \'efac_standardized[25]\'\\n \'efac_standardized[26]\' \'log10_equad[0]\' \'log10_equad[1]\'\\n \'log10_equad[2]\' \'log10_equad[3]\' \'log10_equad[4]\' \'log10_equad[5]\'\\n \'log10_equad[6]\' \'log10_equad[7]\' \'log10_equad[8]\' \'log10_equad[9]\'\\n \'log10_equad[10]\' \'log10_equad[11]\' \'log10_equad[12]\' \'log10_equad[13]\'\\n \'log10_equad[14]\' \'log10_equad[15]\' \'log10_equad[16]\' \'log10_equad[17]\'\\n \'log10_equad[18]\' \'log10_equad[19]\' \'log10_equad[20]\' \'log10_equad[21]\'\\n \'log10_equad[22]\' \'log10_equad[23]\' \'log10_equad[24]\' \'log10_equad[25]\'\\n \'log10_equad[26]\' \'log10_ratio[0]\' \'log10_ratio[1]\' \'log10_ratio[2]\'\\n \'log10_ratio[3]\' \'log10_ratio[4]\' \'log10_ratio[5]\' \'log10_ratio[6]\'\\n \'log10_ratio[7]\' \'log10_ratio[8]\' \'log10_ratio[9]\' \'log10_ratio[10]\'\\n \'log10_ratio[11]\' \'log10_ratio[12]\' \'log10_ratio[13]\' \'log10_ratio[14]\'\\n \'log10_ratio[15]\' \'log10_ratio[16]\' \'log10_ratio[17]\' \'log10_ratio[18]\'\\n \'log10_ratio[19]\' \'log10_ratio[20]\' \'log10_ratio[21]\' \'log10_ratio[22]\'\\n \'log10_ratio[23]\' \'log10_ratio[24]\' \'log10_ratio[25]\' \'log10_ratio[26]\'\\n \'log10_ratio_raw[0]\' \'log10_ratio_raw[1]\' \'log10_ratio_raw[2]\'\\n \'log10_ratio_raw[3]\' \'log10_ratio_raw[4]\' \'log10_ratio_raw[5]\'\\n \'log10_ratio_raw[6]\' \'log10_ratio_raw[7]\' \'log10_ratio_raw[8]\'\\n \'log10_ratio_raw[9]\' \'log10_ratio_raw[10]\' \'log10_ratio_raw[11]\'\\n \'log10_ratio_raw[12]\' \'log10_ratio_raw[13]\' \'log10_ratio_raw[14]\'\\n \'log10_ratio_raw[15]\' \'log10_ratio_raw[16]\' \'log10_ratio_raw[17]\'\\n \'log10_ratio_raw[18]\' \'log10_ratio_raw[19]\' \'log10_ratio_raw[20]\'\\n \'log10_ratio_raw[21]\' \'log10_ratio_raw[22]\' \'log10_ratio_raw[23]\'\\n \'log10_ratio_raw[24]\' \'log10_ratio_raw[25]\' \'log10_ratio_raw[26]\'\\n \'log10_γp[0]\' \'log10_γp[1]\' \'log10_γp[2]\' \'log10_γp[3]\' \'log10_γp[4]\'\\n \'log10_γp[5]\' \'log10_γp[6]\' \'log10_γp[7]\' \'log10_γp[8]\' \'log10_γp[9]\'\\n \'log10_γp[10]\' \'log10_γp[11]\' \'log10_γp[12]\' \'log10_γp[13]\'\\n \'log10_γp[14]\' \'log10_γp[15]\' \'log10_γp[16]\' \'log10_γp[17]\'\\n \'log10_γp[18]\' \'log10_γp[19]\' \'log10_γp[20]\' \'log10_γp[21]\'\\n \'log10_γp[22]\' \'log10_γp[23]\' \'log10_γp[24]\' \'log10_γp[25]\'\\n \'log10_γp[26]\' \'log10_γp_raw[0]\' \'log10_γp_raw[1]\' \'log10_γp_raw[2]\'\\n \'log10_γp_raw[3]\' \'log10_γp_raw[4]\' \'log10_γp_raw[5]\' \'log10_γp_raw[6]\'\\n \'log10_γp_raw[7]\' \'log10_γp_raw[8]\' \'log10_γp_raw[9]\' \'log10_γp_raw[10]\'\\n \'log10_γp_raw[11]\' \'log10_γp_raw[12]\' \'log10_γp_raw[13]\'\\n \'log10_γp_raw[14]\' \'log10_γp_raw[15]\' \'log10_γp_raw[16]\'\\n \'log10_γp_raw[17]\' \'log10_γp_raw[18]\' \'log10_γp_raw[19]\'\\n \'log10_γp_raw[20]\' \'log10_γp_raw[21]\' \'log10_γp_raw[22]\'\\n \'log10_γp_raw[23]\' \'log10_γp_raw[24]\' \'log10_γp_raw[25]\'\\n \'log10_γp_raw[26]\' \'log10_σp[0]\' \'log10_σp[1]\' \'log10_σp[2]\'\\n \'log10_σp[3]\' \'log10_σp[4]\' \'log10_σp[5]\' \'log10_σp[6]\' \'log10_σp[7]\'\\n \'log10_σp[8]\' \'log10_σp[9]\' \'log10_σp[10]\' \'log10_σp[11]\' \'log10_σp[12]\'\\n \'log10_σp[13]\' \'log10_σp[14]\' \'log10_σp[15]\' \'log10_σp[16]\'\\n \'log10_σp[17]\' \'log10_σp[18]\' \'log10_σp[19]\' \'log10_σp[20]\'\\n \'log10_σp[21]\' \'log10_σp[22]\' \'log10_σp[23]\' \'log10_σp[24]\'\\n \'log10_σp[25]\' \'log10_σp[26]\'] are not present" in dataset'
+
+--- Trace Plot Interpretation ---
+(Interpret as before, focusing on these non-constant variables)
+
+--- Checking for Divergent Transitions ---
+Total number of divergent transitions: 0
+Total post-warmup samples: 400
+No divergent transitions found. Good!
+
+--- Diagnostics Complete ---

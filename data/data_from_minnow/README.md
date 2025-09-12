@@ -1,1 +1,0 @@
-This is PSR data taken from https://github.com/meyers-academic/minnow/tree/main/data

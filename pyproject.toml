@@ -1,15 +1,31 @@
 [tool.poetry]
-name = "argus"
+name = "argus-pta"
 version = "0.0.0-dev" # Just a place holder; package version is managed by the dynamic-versioning plugin & git tags
-description = "Short project description"
-authors = [ "Tom Kimpson", "J.Hu" ]
-license = "MIT-expat"
+description = "Bayesian inference for pulsar timing array data analysis using JAX and Kalman filtering"
+authors = [ "Tom Kimpson <tom.kimpson@example.com>", "J. Hu <j.hu@example.com>" ]
+license = "MIT"
 readme = "README.md"
+keywords = ["pulsar", "timing", "bayesian", "inference", "jax", "kalman", "gravitational-waves"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Topic :: Scientific/Engineering :: Physics", 
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+]
 packages = [
     { include = "argus", from = "python" } 
 ]
 homepage = "https://github.com/tomkimpson/Argus"
-documentation = "https://tomkimpson.github.io/Argus/"
+documentation = "https://argus-pta.readthedocs.io/"
+repository = "https://github.com/tomkimpson/Argus"
+
+[tool.poetry.scripts]
+argus = "argus.cli:main"
 
 [tool.poetry.dependencies]
 python = " >=3.11, <3.13"
@@ -17,6 +33,14 @@ numpy = "^1.21.2"
 pandas = "^2.2.3"
 fastparquet = "^2024.11.0"
 tqdm = "^4.67.1"
+jax = {extras = ["cuda12"], version = "^0.4.0"}
+numpyro = "^0.15.0"
+matplotlib = "^3.7.0"
+arviz = "^0.18.0"
+corner = "^2.2.0"
+flax = "^0.8.0"
+tensorflow-probability = "^0.24.0"
+enterprise-pulsar = "^3.3.0"
 
 [tool.poetry.group.docs.dependencies]
 # MkDocs Material documentation dependencies
@@ -35,6 +59,9 @@ black = "^24"
 ruff = "^0"
 mypy = "^1"
 pre-commit = "^3"
+
+[tool.poetry.extras]
+dev = ["pytest", "pytest-mock", "pytest-cookies", "pytest-cov", "black", "ruff", "mypy", "pre-commit"]
 
 # This configures the Poetry plugin which enables dynamic versioning via the repo tags
 # Note the changes that are also needed to the [build-system] config below.

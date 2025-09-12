@@ -4,8 +4,7 @@ import jax.numpy as jnp
 import tensorflow_probability.substrates.jax as tfp
 from argus.bayesian_inference import (
     Parameters,
-    configurable_prior_model,
-    jaxns_log_likelihood,
+    log_likelihood_fn,
     print_parameters
 )
 
@@ -38,37 +37,16 @@ def test_parameters_class():
     assert jnp.allclose(params.EFAC, EFAC)
     assert jnp.allclose(params.EQUAD, EQUAD)
 
-# Test prior models
-def test_configurable_prior_model():
-    Npsr = 3
-    # Test with fixed values
-    model = configurable_prior_model(
-        Npsr=Npsr,
-        log10_ha_spec=-15.0,
-        gamma_a_spec=1e-9,
-        log10_gamma_p_spec=jnp.array([-8.0, -7.0, -6.0]),
-        log10_sigma_p_spec=jnp.array([-15.0, -14.0, -13.0]),
-        efac_spec=jnp.array([1.0, 1.1, 1.2]),
-        equad_spec=jnp.array([1e-8, 1e-7, 1e-6])
-    )
-    
-    # Test that the model yields the correct number of parameters
-    params = list(model)
-    assert len(params) == 6  # log10_ha, γa, log10_γp, log10_σp, efac, equad
-
-# TODO: Add tests for other prior models if they exist
-
 # Test likelihood function
-def test_jaxns_log_likelihood():
+def test_log_likelihood_fn():
     # Create a mock KalmanFilter class for testing
     class MockKF:
         def get_likelihood(self, params):
             return -0.5 * jnp.sum(params.γp**2 + params.σp**2)
     
     # Create test parameters
-    Npsr = 3
     log10_ha = -15.0
-    γa = 1e-9
+    log10_gamma_a = jnp.log10(1e-9)
     log10_γp = jnp.array([-8.0, -7.0, -6.0])
     log10_σp = jnp.array([-15.0, -14.0, -13.0])
     efac = jnp.array([1.0, 1.1, 1.2])
@@ -78,8 +56,8 @@ def test_jaxns_log_likelihood():
     mock_kf = MockKF()
     
     # Test likelihood calculation
-    log_likelihood = jaxns_log_likelihood(
-        mock_kf, log10_ha, γa, log10_γp, log10_σp, efac, equad
+    log_likelihood = log_likelihood_fn(
+        mock_kf, log10_ha, log10_gamma_a, log10_γp, log10_σp, efac, equad
     )
     
     # Verify that the likelihood is a scalar

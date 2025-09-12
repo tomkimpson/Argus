@@ -30,6 +30,7 @@ __pycache__
 .src
 .cache
 .ropeproject
+*.pkl
 
 # Virtual env stuff
 venv

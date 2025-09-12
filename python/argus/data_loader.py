@@ -1,5 +1,6 @@
 """Module for loading pulsar data."""
 
+import os
 import numpy as np
 import pandas as pd
 from enterprise.pulsar import Pulsar as EnterprisePulsar
@@ -165,11 +166,25 @@ class LoadWidebandPulsarData:
             - 'parameter_covariances': list of parameter covariance matrices
             - 'hd_correlation': matrix of Hellings-Downs correlations
         """
+        # Validate directory path
+        if not directory:
+            raise ValueError("Data directory path cannot be empty")
+            
+        if not os.path.exists(directory):
+            raise FileNotFoundError(f"Data directory does not exist: {directory}")
+            
+        if not os.path.isdir(directory):
+            raise NotADirectoryError(f"Path is not a directory: {directory}")
+        
         # Get all .par and .tim files in the directory
-        par_files = sorted(glob.glob(directory + "/*.par"))
-        tim_files = sorted(glob.glob(directory + "/*.tim"))
+        par_files = sorted(glob.glob(os.path.join(directory, "*.par")))
+        tim_files = sorted(glob.glob(os.path.join(directory, "*.tim")))
 
-        assert len(par_files) == len(tim_files), "Mismatch between .par and .tim file counts."
+        if len(par_files) == 0 and len(tim_files) == 0:
+            raise FileNotFoundError(f"No .par or .tim files found in directory: {directory}")
+        
+        if len(par_files) != len(tim_files):
+            raise ValueError(f"Mismatch between .par ({len(par_files)}) and .tim ({len(tim_files)}) file counts in {directory}")
 
         #Exclude PR J1640+2224 as it has an exponent which is to small for the OU process to be valid
         par_files = [f for f in par_files if not any(psr in f for psr in excluded_psrs)]

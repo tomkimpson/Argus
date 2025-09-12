@@ -14,7 +14,6 @@ import numpy as np
 import arviz as az
 import corner
 import matplotlib.pyplot as plt
-from jaxns import load_results
 
 def load_config(config_path):
     """Load configuration from file.
@@ -41,6 +40,65 @@ def load_config(config_path):
     config.read(config_path)
     return config
 
+
+def resolve_config_paths(config, config_path):
+    """Resolve relative paths in configuration relative to config file location.
+    
+    This function modifies the config object in-place, converting any relative
+    paths to absolute paths based on the directory containing the config file.
+    Absolute paths are left unchanged.
+    
+    Parameters
+    ----------
+    config : configparser.ConfigParser
+        Configuration object to modify
+    config_path : str
+        Path to the configuration file (used as base for relative paths)
+        
+    Returns
+    -------
+    configparser.ConfigParser
+        The same config object with resolved paths (modified in-place)
+    """
+    config_dir = os.path.dirname(os.path.abspath(config_path))
+    
+    # List of config keys that should be treated as file paths
+    path_keys = {
+        ('Data', 'data_path'),
+        ('PriorModel', 'noise_params_path'), 
+        ('PriorModel', 'spin_injections_path')
+    }
+    
+    for section, key in path_keys:
+        if config.has_option(section, key):
+            path = config.get(section, key).strip()
+            if path and not os.path.isabs(path):
+                # Convert relative path to absolute path
+                resolved_path = os.path.abspath(os.path.join(config_dir, path))
+                config.set(section, key, resolved_path)
+                
+    return config
+
+
+def get_noise_parameters(config):
+    """Get injected noise parameters from configuration and data files.
+    
+    Args:
+        config: Configuration object
+    
+    Returns
+    -------
+        tuple: (efac_array, equad_array, sigma_p_array, gamma_p_array)
+    """
+    noise_params_path = config.get('PriorModel', 'noise_params_path')
+    spin_injections_path = config.get('PriorModel', 'spin_injections_path')
+    excluded_psrs = config.get('Data', 'excluded_psrs').split(',')
+    efac_array, equad_array = get_efac_equad_injections(noise_params_path, excluded_psrs)
+    sigma_p_array, gamma_p_array = get_psr_noise_injections(spin_injections_path, excluded_psrs)
+    
+    return efac_array, equad_array, sigma_p_array, gamma_p_array
+
+
 def setup_logging(output_dir, config):
     """Set up logging configuration.
     
@@ -61,7 +119,7 @@ def setup_logging(output_dir, config):
     """
     # Create a timestamp for the log file
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_file = os.path.join(output_dir, f'nested_sampling_test_output_{timestamp}.txt')
+    log_file = os.path.join(output_dir, f'inference_test_output_{timestamp}.txt')
     
     # Configure logging to both file and console
     logging.basicConfig(
@@ -163,7 +221,6 @@ def corner_plot(results, output_dir=None):
     ----------
     results : str or object
         Either a file path (string) to results file, or a results object.
-        For JAXNS: path to JSON file or jaxns.Results object
         For NumPyro: path to NetCDF file or arviz.InferenceData object
     output_dir : str, optional
         Directory to save the plot. If None, plot is shown but not saved.
@@ -177,36 +234,28 @@ def corner_plot(results, output_dir=None):
     if isinstance(results, str):
         # It's a file path - determine type and load
         if results.endswith('.json'):
-            # JAXNS results
-            results_obj = load_jaxns_results(results)
-            method = 'jaxns'
+            # JSON results no longer supported
+            raise ValueError("JSON results are no longer supported. Use NumPyro NetCDF files.")
         elif results.endswith('.nc'):
             # NumPyro results
             results_obj = az.from_netcdf(results)
             method = 'numpyro'
         else:
-            raise ValueError("Results file must be .json (JAXNS) or .nc (NumPyro)")
+            raise ValueError("Results file must be .nc (NumPyro). Only NetCDF files are supported.")
     else:
         # It's a loaded object - determine type
         if hasattr(results, 'log_Z_mean'):
-            # JAXNS results object
-            results_obj = results
-            method = 'jaxns'
+            # Legacy results object no longer supported
+            raise ValueError("Legacy results objects are no longer supported. Use NumPyro ArviZ InferenceData objects.")
         elif hasattr(results, 'posterior'):
             # ArviZ InferenceData object
             results_obj = results
             method = 'numpyro'
         else:
-            raise ValueError("Unknown results object type")
+            raise ValueError("Unknown results object type. Only NumPyro ArviZ InferenceData objects are supported.")
     
-    # Extract log10_ha samples (both methods use same parameterization)
-    if method == 'jaxns':
-        if 'log10_ha' not in results_obj.samples:
-            raise ValueError("Parameter 'log10_ha' not found in JAXNS results")
-        # Convert JAX array to numpy array for corner plotting
-        jax_samples = results_obj.samples['log10_ha']
-        samples = np.array(jax_samples).flatten()
-    else:  # numpyro
+    # Extract log10_ha samples (NumPyro only)
+    if method == 'numpyro':
         if 'log10_ha' not in results_obj.posterior:
             raise ValueError("Parameter 'log10_ha' not found in NumPyro results")
         samples = results_obj.posterior['log10_ha'].values.flatten()
@@ -415,7 +464,7 @@ def find_results_file(output_dir, file_pattern):
     output_dir : str
         Directory to search for results files
     file_pattern : str
-        Glob pattern to match files (e.g., 'nested_sampling_results_*.json')
+        Glob pattern to match files (e.g., 'inference_results_*.json')
     
     Returns
     -------
@@ -431,20 +480,6 @@ def find_results_file(output_dir, file_pattern):
     return None
 
 
-def load_jaxns_results(results_file):
-    """Load JAXNS results from JSON file.
-    
-    Parameters
-    ----------
-    results_file : str
-        Path to JAXNS results JSON file
-    
-    Returns
-    -------
-    object
-        JAXNS results object
-    """
-    return load_results(results_file)
 
 
 def load_numpyro_results(results_file):
@@ -470,9 +505,9 @@ def extract_log_evidence(results, method):
     Parameters
     ----------
     results : object
-        Results object (JAXNS or ArviZ)
+        Results object (ArviZ only)
     method : str
-        Inference method ('jaxns' or 'numpyro')
+        Inference method ('numpyro' only)
     
     Returns
     -------
@@ -480,7 +515,7 @@ def extract_log_evidence(results, method):
         (log_evidence, log_evidence_uncertainty)
     """
     if method.lower() == 'jaxns':
-        return float(results.log_Z_mean), float(results.log_Z_uncert)
+        raise ValueError("JAXNS method no longer supported")
     elif method.lower() == 'numpyro':
         # For NumPyro, we need to estimate evidence using importance sampling or other methods
         # This is a placeholder - proper evidence estimation for MCMC is non-trivial
@@ -488,6 +523,22 @@ def extract_log_evidence(results, method):
         return None, None
     else:
         raise ValueError(f"Unknown method: {method}")
+
+
+def load_jaxns_results(results_file):
+    """Load JAXNS results - DEPRECATED.
+    
+    Parameters
+    ----------
+    results_file : str
+        Path to results file
+        
+    Raises
+    ------
+    ValueError
+        Always raised as JAXNS is no longer supported
+    """
+    raise ValueError("JAXNS results loading is no longer supported. Use NumPyro instead.")
 
 
 def get_inference_method_from_files(output_dir):
@@ -501,14 +552,11 @@ def get_inference_method_from_files(output_dir):
     Returns
     -------
     str or None
-        'jaxns' if JAXNS results found, 'numpyro' if NumPyro results found, None if neither
+        'numpyro' if NumPyro results found, None if not found
     """
-    jaxns_file = find_results_file(output_dir, '*_results.json')
     numpyro_file = find_results_file(output_dir, '*_results.nc')
     
-    if jaxns_file:
-        return 'jaxns'
-    elif numpyro_file:
+    if numpyro_file:
         return 'numpyro'
     else:
         return None

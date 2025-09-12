@@ -6,13 +6,14 @@ import logging
 from datetime import datetime
 
 
-def setup_output_directory(config, use_gw, timestamp=None):
+def setup_output_directory(config, use_gw, timestamp=None, config_path=None):
     """Set up output directory for the inference run.
     
     Args:
         config: Configuration object
         use_gw (bool): Whether to include gravitational wave model
         timestamp (str): Optional timestamp to use for output directory
+        config_path (str): Optional path to the configuration file to determine workflow directory
     
     Returns
     -------
@@ -29,8 +30,21 @@ def setup_output_directory(config, use_gw, timestamp=None):
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         base_dir = config.get('Output', 'base_dir').format(timestamp=timestamp)
     
-    # Create base output directory
-    base_output_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'outputs', base_dir)
+    # Determine which workflow directory to use based on config path
+    workflow_name = 'example_workflow'  # default fallback
+    if config_path:
+        # Extract workflow name from config path (e.g., "workflows/dev_workflow/configs/dev_config.ini")
+        config_path_normalized = os.path.normpath(config_path)
+        path_parts = config_path_normalized.split(os.sep)
+        if 'workflows' in path_parts:
+            workflows_index = path_parts.index('workflows')
+            if workflows_index + 1 < len(path_parts):
+                workflow_name = path_parts[workflows_index + 1]
+    
+    # Create base output directory in the appropriate workflow directory
+    # Get to project root (3 levels up from argus/io_manager.py)
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    base_output_dir = os.path.join(project_root, 'workflows', workflow_name, 'outputs', base_dir)
     
     if not use_gw:
         # For no-GW runs, nest under the GW directory
@@ -90,33 +104,6 @@ def save_numpyro_results(inf_data, output_dir, output_id, logger):
     return results_path
 
 
-def save_jaxns_results(ns, termination_reason, state, output_dir, output_id, logger):
-    """Save the JAXNS nested sampling results.
-    
-    Args:
-        ns: NestedSampler object
-        termination_reason: Termination reason from sampling
-        state: Final state from sampling
-        output_dir: Output directory path
-        output_id: Output identifier for naming
-        logger: Logger object
-    
-    Returns
-    -------
-        str: Path to saved results file
-    """
-    logger.info("Converting results...")
-    results = ns.to_results(termination_reason=termination_reason, state=state)
-    
-    # Save results
-    logger.info("Saving results...")
-    results_path = os.path.join(output_dir, f'{output_id}_results.json')
-    ns.save_results(results, results_path)
-    logger.info(f"Results saved to {results_path}")
-    
-    return results_path
-
-
 def setup_single_logger(config, output_dir=None, enable_file_logging=True):
     """Set up a single, properly configured logger for the entire application.
     
@@ -169,7 +156,7 @@ def setup_single_logger(config, output_dir=None, enable_file_logging=True):
         
         # Create timestamp for log file
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        log_file = os.path.join(output_dir, 'logfiles', f'nested_sampling_test_output_{timestamp}.txt')
+        log_file = os.path.join(output_dir, 'logfiles', f'inference_output_{timestamp}.txt')
         
         # Ensure log directory exists
         os.makedirs(os.path.dirname(log_file), exist_ok=True)
