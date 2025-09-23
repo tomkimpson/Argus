@@ -1,0 +1,130 @@
+=== Argus CLI Full Inference Workflow Started ===
+Job ID: 4816960
+Node: gina15
+Start time: Tue Sep 23 11:33:42 AEST 2025
+
+=== Environment Information ===
+Python version: Python 3.12.8
+/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/enterprise/signals/utils.py:13: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import Requirement, resource_filename
+Argus version: Argus 0.0.0-dev
+Working directory: /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/cli_example_full
+
+=== Starting Bayesian Inference Analysis ===
+Configuration file: configs/cli_config.ini
+
+/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/enterprise/signals/utils.py:13: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import Requirement, resource_filename
+2025-09-23 11:39:51,613 - INFO - Logging to file: /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/example_workflow/outputs/20250923_113951/logfiles/inference_output_20250923_113951.txt
+2025-09-23 11:39:51,618 - INFO - Centralized logging initialized
+2025-09-23 11:39:51,635 - INFO - Copied config file to /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/example_workflow/outputs/20250923_113951/cli_config.ini
+2025-09-23 11:39:51,635 - INFO - Loading and processing data...
+[tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
+[preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0034-0534. Setting value to 1 with 20% uncertainty.
+[tempo2Util.C:401] Warning: [DUP1] duplicated warnings have been suppressed.
+[preProcess.C:158] Warning: PSR J0034-0534 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0218+4232. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0218+4232 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J0437-4715 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J0613-0200 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0621+1002. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0621+1002 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J0711-6830 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0751+1807. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0751+1807 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0900-3144. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J0900-3144 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1012+5307 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1022+1001 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1024-0719 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1045-4509 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1455-3330 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1600-3053 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1603-7202 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J1614-2230. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J1614-2230 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1643-1224 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1713+0747 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1730-2304 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1744-1134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1857+0943 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1909-3744 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1918-0642 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J1939+2134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J1944+0907. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J1944+0907 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J2010-1323. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J2010-1323 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2124-3358 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2129-5721 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2145-0750 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J2229+2643. Setting value to 1 with 20% uncertainty.
+[preProcess.C:158] Warning: PSR J2229+2643 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+[preProcess.C:158] Warning: PSR J2317+1439 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+2025-09-23 11:40:06,943 - INFO - Initializing Kalman filter...
+2025-09-23 11:40:06,943 - INFO - Initializing JaxKalmanFilter...
