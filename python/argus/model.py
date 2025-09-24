@@ -87,9 +87,39 @@ def get_F(gamma, gamma_spin, dt, Npsr, M_sum):
     F_spin = get_F_spin(gamma_spin, dt)
     return F_gw, F_spin
 
+@partial(jax.jit, static_argnums=(2,3))
+def get_F_diffuse(gamma, gamma_spin, dt, Npsr):
+    """Get transition matrices for diffuse filter (GW and spin only)."""
+    F_gw_block = get_F_block(gamma, dt)
+    F_gw = jnp.kron(jnp.eye(Npsr), F_gw_block)
+    F_spin = get_F_spin(gamma_spin, dt)
+    return F_gw, F_spin
+
+def get_F_diffuse_vmap(gamma, gamma_spin, dt, Npsr):
+    """Get transition matrices for diffuse filter (no static args for vmap)."""
+    F_gw_block = get_F_block(gamma, dt)
+    F_gw = jnp.kron(jnp.eye(Npsr), F_gw_block)
+    F_spin = get_F_spin(gamma_spin, dt)
+    return F_gw, F_spin
+
 @jax.jit
 def get_Q(gamma,σa2, gamma_spin,σp2, dt):
     """Get process noise matrices using JAX."""
+    Q_gw_block = get_Q_block(gamma, dt)
+    Q_gw = jnp.kron(σa2, Q_gw_block)
+    Q_spin = get_Q_spin(gamma_spin, dt, σp2)
+    return Q_gw, Q_spin
+
+@jax.jit
+def get_Q_diffuse(gamma,σa2, gamma_spin,σp2, dt):
+    """Get process noise matrices for diffuse filter (GW and spin only)."""
+    Q_gw_block = get_Q_block(gamma, dt)
+    Q_gw = jnp.kron(σa2, Q_gw_block)
+    Q_spin = get_Q_spin(gamma_spin, dt, σp2)
+    return Q_gw, Q_spin
+
+def get_Q_diffuse_vmap(gamma,σa2, gamma_spin,σp2, dt):
+    """Get process noise matrices for diffuse filter (no static args for vmap)."""
     Q_gw_block = get_Q_block(gamma, dt)
     Q_gw = jnp.kron(σa2, Q_gw_block)
     Q_spin = get_Q_spin(gamma_spin, dt, σp2)
@@ -170,6 +200,81 @@ def compute_H_matrix_for_step(time_step_index: int,
 
     return H
 
+def compute_H_matrix_diffuse_for_step(time_step_index: int,
+                                    Npsr: int,
+                                    use_gw: bool,
+                                    f0: np.ndarray) -> np.ndarray:
+    """
+    Compute the observation matrix H for diffuse filter (GW and spin only).
+
+    Parameters
+    ----------
+    time_step_index : int
+        The index corresponding to the current observation time step.
+    Npsr : int
+        Number of pulsars
+    use_gw : bool
+        Whether gravitational wave terms should be included
+    f0 : np.ndarray
+        Array of pulsar frequencies
+
+    Returns
+    -------
+    np.ndarray
+        Observation matrix H of shape (Npsr, 4*Npsr) for the current step.
+    """
+    nx_diffuse = 4 * Npsr  # Only GW and spin states
+    H = np.zeros((Npsr, nx_diffuse))
+
+    for psr_idx in range(Npsr):
+        # Indices in the reduced state vector 'x' relevant to this pulsar
+        redshift_idx = 2 * psr_idx
+        spin_idx = Npsr * 2 + 2 * psr_idx
+
+        # Update Redshift term coefficient (-1.0) only if use_gw is True
+        if use_gw:
+            H[psr_idx, redshift_idx] = -1.0
+
+        # Update Spin noise term coefficient (1 / f0_n)
+        H[psr_idx, spin_idx] = 1.0 / f0[psr_idx]
+
+    return H
+
+def extract_M_matrix_for_step(time_step_index: int,
+                            Npsr: int,
+                            pulsar_design_matrices: list) -> np.ndarray:
+    """
+    Extract timing model design matrix M for a single time step.
+
+    Parameters
+    ----------
+    time_step_index : int
+        The index corresponding to the current observation time step.
+    Npsr : int
+        Number of pulsars
+    pulsar_design_matrices : list
+        List of design matrices for each pulsar
+
+    Returns
+    -------
+    np.ndarray
+        Timing model design matrix M of shape (Npsr, total_timing_params).
+    """
+    # Get dimensions for each pulsar
+    pulsar_dims = [mat.shape[1] for mat in pulsar_design_matrices]
+    total_dims = sum(pulsar_dims)
+
+    M = np.zeros((Npsr, total_dims))
+    col_start = 0
+
+    for psr_idx in range(Npsr):
+        col_end = col_start + pulsar_dims[psr_idx]
+        design_row = pulsar_design_matrices[psr_idx][time_step_index, :]
+        M[psr_idx, col_start:col_end] = design_row
+        col_start = col_end
+
+    return M
+
 def precompute_H_matrix(Npsr: int,
                        nx: int,
                        M_start_indices: np.ndarray,
@@ -225,4 +330,61 @@ def precompute_H_matrix(Npsr: int,
                                          pulsar_design_matrices, use_gw, f0)
         all_H.append(H_step)
 
-    return np.stack(all_H, axis=0) 
+    return np.stack(all_H, axis=0)
+
+def precompute_H_matrix_diffuse(Npsr: int,
+                              use_gw: bool,
+                              f0: np.ndarray,
+                              num_time_steps: int) -> np.ndarray:
+    """
+    Compute the observation matrix H for all time steps for diffuse filter.
+
+    Parameters
+    ----------
+    Npsr : int
+        Number of pulsars
+    use_gw : bool
+        Whether gravitational wave terms should be included
+    f0 : np.ndarray
+        Array of pulsar frequencies
+    num_time_steps : int
+        Number of time steps
+
+    Returns
+    -------
+    np.ndarray
+        A NumPy array of shape (num_time_steps, Npsr, 4*Npsr) containing all H matrices.
+    """
+    all_H = []
+    for t_idx in range(num_time_steps):
+        H_step = compute_H_matrix_diffuse_for_step(t_idx, Npsr, use_gw, f0)
+        all_H.append(H_step)
+
+    return np.stack(all_H, axis=0)
+
+def precompute_M_matrices(Npsr: int,
+                         pulsar_design_matrices: list,
+                         num_time_steps: int) -> np.ndarray:
+    """
+    Compute the timing model design matrices M for all time steps.
+
+    Parameters
+    ----------
+    Npsr : int
+        Number of pulsars
+    pulsar_design_matrices : list
+        List of design matrices for each pulsar
+    num_time_steps : int
+        Number of time steps
+
+    Returns
+    -------
+    np.ndarray
+        A NumPy array of shape (num_time_steps, Npsr, total_timing_params) containing all M matrices.
+    """
+    all_M = []
+    for t_idx in range(num_time_steps):
+        M_step = extract_M_matrix_for_step(t_idx, Npsr, pulsar_design_matrices)
+        all_M.append(M_step)
+
+    return np.stack(all_M, axis=0) 

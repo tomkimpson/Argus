@@ -1,0 +1,3852 @@
+Loading test data...
+Testing standard Kalman filter...
+Standard filter log-likelihood: 55963.85103960353
+Testing diffuse Kalman filter...
+Diffuse init: x0 has nans: False
+Diffuse init: P0 has nans: False
+Diffuse init: x0.shape: (Array(128, dtype=int64), Array(1, dtype=int64))
+Before first update: x0 has nans: False
+xp has nans: False
+Diffuse init: σa2 has nans: False
+R has nans: False
+R condition number: 11164.480105857165
+H has nans: False
+M_row has nans: False
+z has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 105.66210345179186
+Rbeta_new condition number: 4.275464076875058e+17
+Sx condition number: 1.0
+S_add condition number: 25121.920064489008
+S_tilde determinant sign: 1.0, logdet: 922.1555842888954
+Quadratic term: 3646031185777898.5, logdet_L: -795.8113585232013, ll: -1823015592889041.8
+After first update: x has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12600.290987293922
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 112.25101775616079
+Rbeta_new condition number: 4134961551606203.0
+Sx condition number: 850307.8744047232
+S_add condition number: 42795.40187462956
+S_tilde determinant sign: 1.0, logdet: 892.6827833059215
+Quadratic term: 6.063474319653157e+17, logdet_L: -795.0680980530935, ll: -3.031737159826579e+17
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11828.42093807117
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 108.75854420720779
+Rbeta_new condition number: 3251961776136378.0
+Sx condition number: 2664316.027036619
+S_add condition number: 30401.13804390418
+S_tilde determinant sign: 1.0, logdet: 867.295318441853
+Quadratic term: 4.8529470714916205e+28, logdet_L: -794.1796755759274, ll: -2.4264735357458102e+28
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 14265.020844576784
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 119.43626268674345
+Rbeta_new condition number: 1812380122177394.0
+Sx condition number: 1984382.1674717094
+S_add condition number: 21477.123923184572
+S_tilde determinant sign: 1.0, logdet: 833.5396423343575
+Quadratic term: 2.062186906465306e+40, logdet_L: -794.1584723504411, ll: -1.031093453232653e+40
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9939.744027687644
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 99.6982649181401
+Rbeta_new condition number: 1266664628624529.8
+Sx condition number: 2756412.7167125125
+S_add condition number: 169925.51794060474
+S_tilde determinant sign: 1.0, logdet: 794.8341311188946
+Quadratic term: 5.077894481631525e+51, logdet_L: -794.7122006470659, ll: -2.5389472408157626e+51
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 8712.431438423633
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 93.34040624736767
+Rbeta_new condition number: 1269594606656537.0
+Sx condition number: 3289769.472815665
+S_add condition number: 224945.89222437216
+S_tilde determinant sign: 1.0, logdet: 749.18652276633
+Quadratic term: 6.322046024489102e+61, logdet_L: -791.7571706135542, ll: -3.161023012244551e+61
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11688.029911779497
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 108.11119235203863
+Rbeta_new condition number: 1316708793694495.2
+Sx condition number: 5453977.390296079
+S_add condition number: 1000039.920835221
+S_tilde determinant sign: 1.0, logdet: 721.6508791933269
+Quadratic term: 1.443530485299704e+74, logdet_L: -793.3048034105759, ll: -7.21765242649852e+73
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 8184.444246618567
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 90.46791832809335
+Rbeta_new condition number: 1276126279597163.0
+Sx condition number: 5634008.59089448
+S_add condition number: 3132664.1056900434
+S_tilde determinant sign: 1.0, logdet: 688.3696092174889
+Quadratic term: 6.058323766352593e+86, logdet_L: -795.0301029132426, ll: -3.0291618831762966e+86
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12716.390532606378
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 112.76697447660098
+Rbeta_new condition number: 1263526889016830.8
+Sx condition number: 5979484.316473433
+S_add condition number: 8857808.292700151
+S_tilde determinant sign: 1.0, logdet: 649.7588324716896
+Quadratic term: 3.8053566791416523e+99, logdet_L: -792.9324998493628, ll: -1.9026783395708262e+99
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11451.248338409463
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 107.01050573849963
+Rbeta_new condition number: 1152069641069276.8
+Sx condition number: 5135616.964610067
+S_add condition number: 3129930.0695344885
+S_tilde determinant sign: 1.0, logdet: 626.3369305688752
+Quadratic term: 7.205919217446892e+111, logdet_L: -794.5668022790145, ll: -3.602959608723446e+111
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 19205.001928697264
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 138.58211258563375
+Rbeta_new condition number: 1218470552275826.8
+Sx condition number: 2879794.5450257757
+S_add condition number: 47588726.61067139
+S_tilde determinant sign: 1.0, logdet: 596.4824477279428
+Quadratic term: 3.648906817573166e+123, logdet_L: -793.3711119424933, ll: -1.824453408786583e+123
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 7886.978067575125
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 88.80865986814081
+Rbeta_new condition number: 1165948834531357.8
+Sx condition number: 3802053.5657175924
+S_add condition number: 32759138.694542505
+S_tilde determinant sign: 1.0, logdet: 554.5928849426907
+Quadratic term: 3.0974722720467206e+134, logdet_L: -793.7254895315805, ll: -1.5487361360233603e+134
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11984.11502972265
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 109.47198285279504
+Rbeta_new condition number: 1220074625627426.0
+Sx condition number: 3002804.971085636
+S_add condition number: 47022206.26748073
+S_tilde determinant sign: 1.0, logdet: 545.1862515029034
+Quadratic term: 3.731468589894694e+144, logdet_L: -796.6686815951409, ll: -1.865734294947347e+144
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12627.923013922918
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 112.3740317596682
+Rbeta_new condition number: 1086392162057350.1
+Sx condition number: 1005807.5987959293
+S_add condition number: 51244362.22067389
+S_tilde determinant sign: 1.0, logdet: 494.64614596439696
+Quadratic term: 2.055524031276962e+156, logdet_L: -792.2080181469215, ll: -1.027762015638481e+156
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 16728.993128745882
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 129.3406089700597
+Rbeta_new condition number: 1067616407334240.5
+Sx condition number: 1243766.6172873436
+S_add condition number: 134700384.2779127
+S_tilde determinant sign: 1.0, logdet: 473.27365820724174
+Quadratic term: 1.6877418048186438e+168, logdet_L: -794.7106372074785, ll: -8.438709024093219e+167
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 6704.313933832402
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 81.87987502330718
+Rbeta_new condition number: 960855317591683.9
+Sx condition number: 888359.801874384
+S_add condition number: 20331657.045762725
+S_tilde determinant sign: 1.0, logdet: 447.5211822271923
+Quadratic term: 6.591664307139516e+177, logdet_L: -795.3874268030115, ll: -3.295832153569758e+177
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 16798.462180288167
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 129.6088815640663
+Rbeta_new condition number: 878596947514136.6
+Sx condition number: 1036666.8666454025
+S_add condition number: 26541052.692637235
+S_tilde determinant sign: 1.0, logdet: 435.345045495745
+Quadratic term: 1.2250424657765682e+190, logdet_L: -793.9189726250459, ll: -6.125212328882841e+189
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11796.870748802112
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 108.6134004108246
+Rbeta_new condition number: 837771921754462.0
+Sx condition number: 924053.5453098895
+S_add condition number: 354897719.3327368
+S_tilde determinant sign: 1.0, logdet: 428.42668256593504
+Quadratic term: 4.418334091438284e+199, logdet_L: -794.5324234817573, ll: -2.209167045719142e+199
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 16079.571818700462
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 126.80525154227824
+Rbeta_new condition number: 823231160030596.0
+Sx condition number: 960077.4494288496
+S_add condition number: 304261226.8721145
+S_tilde determinant sign: 1.0, logdet: 410.54237170057945
+Quadratic term: 1.3524713544654767e+211, logdet_L: -793.8707505196616, ll: -6.762356772327383e+210
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10727.03408657299
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 103.57139608295812
+Rbeta_new condition number: 528726583788270.75
+Sx condition number: 868859.3302996675
+S_add condition number: 440053867.8389649
+S_tilde determinant sign: 1.0, logdet: 402.0752706058412
+Quadratic term: 1.344312160034013e+222, logdet_L: -793.0611097421902, ll: -6.721560800170065e+221
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9522.852984812966
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 97.58510636779039
+Rbeta_new condition number: 500111959836484.8
+Sx condition number: 867136.9991086225
+S_add condition number: 10496621.154140431
+S_tilde determinant sign: 1.0, logdet: 387.9068036527178
+Quadratic term: 1.6002818311469106e+232, logdet_L: -793.7220190657538, ll: -8.001409155734553e+231
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11854.850749558282
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 108.87998323639788
+Rbeta_new condition number: 480598690828604.06
+Sx condition number: 1257138.576322461
+S_add condition number: 436160672.5578405
+S_tilde determinant sign: 1.0, logdet: 373.3107566671449
+Quadratic term: 1.4048966321860054e+244, logdet_L: -795.4795574144318, ll: -7.024483160930027e+243
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10042.796342067075
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 100.21375325805872
+Rbeta_new condition number: 424004427496589.8
+Sx condition number: 964151.9304301611
+S_add condition number: 41390801.26277305
+S_tilde determinant sign: 1.0, logdet: 370.0146273465404
+Quadratic term: 1.5128024424863574e+254, logdet_L: -793.0220191392524, ll: -7.564012212431787e+253
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 6528.127245513613
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 80.79682695201349
+Rbeta_new condition number: 419570818728426.5
+Sx condition number: 916341.7579475321
+S_add condition number: 498623491.8785934
+S_tilde determinant sign: 1.0, logdet: 372.34328826045635
+Quadratic term: 6.084114030338168e+266, logdet_L: -792.9995468444877, ll: -3.042057015169084e+266
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 14949.349998447075
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 122.26753452346652
+Rbeta_new condition number: 401465556137217.9
+Sx condition number: 987991.2020031412
+S_add condition number: 271284436.295149
+S_tilde determinant sign: 1.0, logdet: 355.1312544126352
+Quadratic term: 1.3997303927997574e+278, logdet_L: -793.4160380968082, ll: -6.998651963998787e+277
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9489.437114273527
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 97.41374191700844
+Rbeta_new condition number: 393950234719509.7
+Sx condition number: 1014156.850114454
+S_add condition number: 274483768.13476276
+S_tilde determinant sign: 1.0, logdet: 361.39169638387045
+Quadratic term: 9.822971353740415e+289, logdet_L: -792.6688784464635, ll: -4.911485676870207e+289
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11870.803516343147
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 108.95321709955675
+Rbeta_new condition number: 366385341652080.3
+Sx condition number: 1073314.4681879233
+S_add condition number: 839546025.6892989
+S_tilde determinant sign: 1.0, logdet: 351.01263245457653
+Quadratic term: 2.9945492404271072e+302, logdet_L: -793.1186623372764, ll: -1.4972746202135536e+302
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9362.12666118123
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 96.75808318265318
+Rbeta_new condition number: 362634150620538.6
+Sx condition number: 850169.1995255356
+S_add condition number: 270117416.32758516
+S_tilde determinant sign: 1.0, logdet: 353.3862149539746
+Quadratic term: inf, logdet_L: -793.3771801964763, ll: -inf
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 16583.521206333808
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 128.77702126673768
+Rbeta_new condition number: 352564818592535.8
+Sx condition number: 1334336.9410820561
+S_add condition number: 325236787.9924369
+S_tilde determinant sign: 1.0, logdet: 345.1903773681351
+Quadratic term: nan, logdet_L: -792.0622223598277, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9480.445256067971
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 97.36757805382636
+Rbeta_new condition number: 350969935264383.3
+Sx condition number: 1407287.4059543384
+S_add condition number: 883654772.5525516
+S_tilde determinant sign: 1.0, logdet: 339.5581088441364
+Quadratic term: nan, logdet_L: -791.4616340193118, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10248.89110490403
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 101.23680706592849
+Rbeta_new condition number: 313169011040152.5
+Sx condition number: 1208845.3513649902
+S_add condition number: 2607453112.165862
+S_tilde determinant sign: 1.0, logdet: 337.0963835545559
+Quadratic term: nan, logdet_L: -793.8431676388122, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 13565.154199810906
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 116.46954194041851
+Rbeta_new condition number: 279956220694366.28
+Sx condition number: 1390310.7556250237
+S_add condition number: 1228430523.5075197
+S_tilde determinant sign: 1.0, logdet: 332.5132420140536
+Quadratic term: nan, logdet_L: -793.5428414312644, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 14920.107532656682
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 122.1478920516301
+Rbeta_new condition number: 256669989115020.66
+Sx condition number: 1443359.5481111933
+S_add condition number: 2107680240.6932852
+S_tilde determinant sign: 1.0, logdet: 311.50823769107103
+Quadratic term: nan, logdet_L: -792.2735074602521, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 16277.072681496395
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 127.58163144236867
+Rbeta_new condition number: 253855538999227.38
+Sx condition number: 1406278.5160091622
+S_add condition number: 293594586.72886926
+S_tilde determinant sign: 1.0, logdet: 315.81458569149197
+Quadratic term: nan, logdet_L: -791.6849484393581, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 17093.36640073563
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 130.74160164513677
+Rbeta_new condition number: 257339509371035.78
+Sx condition number: 1681247.2533845834
+S_add condition number: 2920510261.799418
+S_tilde determinant sign: 1.0, logdet: 330.40018656257723
+Quadratic term: nan, logdet_L: -794.1832334758914, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12455.464819483997
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 111.60405377710973
+Rbeta_new condition number: 228198058006496.66
+Sx condition number: 1145634.9848967274
+S_add condition number: 811290369.3266091
+S_tilde determinant sign: 1.0, logdet: 317.9673990521916
+Quadratic term: nan, logdet_L: -792.2123693532875, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 7752.267816220308
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 88.04696369676986
+Rbeta_new condition number: 226477203911351.84
+Sx condition number: 1089287.5041719638
+S_add condition number: 464793977.409642
+S_tilde determinant sign: 1.0, logdet: 312.1553383822667
+Quadratic term: nan, logdet_L: -792.5867719623437, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 8677.113772516574
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 93.15102668525223
+Rbeta_new condition number: 220486521610141.5
+Sx condition number: 1102400.3059268252
+S_add condition number: 3025783698.513704
+S_tilde determinant sign: 1.0, logdet: 303.0234548049128
+Quadratic term: nan, logdet_L: -792.72883633406, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 15200.161062848343
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 123.28893325375292
+Rbeta_new condition number: 201191410842396.78
+Sx condition number: 1550575.4094970832
+S_add condition number: 1011234901.555159
+S_tilde determinant sign: 1.0, logdet: 308.6476723242471
+Quadratic term: nan, logdet_L: -794.3660385945861, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9802.704550554972
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 99.0086084669155
+Rbeta_new condition number: 175028316313894.34
+Sx condition number: 1320332.7186393354
+S_add condition number: 3441638232.478799
+S_tilde determinant sign: 1.0, logdet: 304.2943649675235
+Quadratic term: nan, logdet_L: -793.3445480499306, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11649.67658033072
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 107.93366750152948
+Rbeta_new condition number: 177194109249409.4
+Sx condition number: 1426437.8414911295
+S_add condition number: 2681901762.1040635
+S_tilde determinant sign: 1.0, logdet: 292.45490121607065
+Quadratic term: nan, logdet_L: -792.6420421973369, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10504.717304546515
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 102.49252316411435
+Rbeta_new condition number: 178302490169843.97
+Sx condition number: 1283982.984864981
+S_add condition number: 4702502877.511178
+S_tilde determinant sign: 1.0, logdet: 295.28129442797444
+Quadratic term: nan, logdet_L: -794.1003300268732, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 8863.437739494027
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 94.14583230018219
+Rbeta_new condition number: 172015811214287.78
+Sx condition number: 1362100.9935628239
+S_add condition number: 282365032.3226999
+S_tilde determinant sign: 1.0, logdet: 287.660144171439
+Quadratic term: nan, logdet_L: -791.2727116205524, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 13877.90052054859
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 117.80450127456332
+Rbeta_new condition number: 174636093129201.47
+Sx condition number: 928428.1935353804
+S_add condition number: 5794572897.679221
+S_tilde determinant sign: 1.0, logdet: 295.30557092690805
+Quadratic term: nan, logdet_L: -794.0491557506547, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 16342.490681218756
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 127.83775139300111
+Rbeta_new condition number: 176513347332892.97
+Sx condition number: 1264107.4972894308
+S_add condition number: 5120785256.500964
+S_tilde determinant sign: 1.0, logdet: 298.0410888376449
+Quadratic term: nan, logdet_L: -794.019230035075, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 15036.940765330673
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 122.62520444562233
+Rbeta_new condition number: 170405370967644.84
+Sx condition number: 1048704.4577590174
+S_add condition number: 1182153297.7674925
+S_tilde determinant sign: 1.0, logdet: 286.7711559100135
+Quadratic term: nan, logdet_L: -793.2682704114379, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12309.756508577817
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 110.94934208267222
+Rbeta_new condition number: 170178800315510.0
+Sx condition number: 1039202.7665201051
+S_add condition number: 1767801641.8444238
+S_tilde determinant sign: 1.0, logdet: 279.3552056031824
+Quadratic term: nan, logdet_L: -792.6089275326913, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11560.25179609706
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 107.51861139401429
+Rbeta_new condition number: 170091043473705.78
+Sx condition number: 1243204.714054363
+S_add condition number: 4486332349.927761
+S_tilde determinant sign: 1.0, logdet: 285.07125681976004
+Quadratic term: nan, logdet_L: -792.6573039660143, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 13661.09107209277
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 116.8806702243479
+Rbeta_new condition number: 169856914053974.0
+Sx condition number: 955359.9677656812
+S_add condition number: 4731001664.705447
+S_tilde determinant sign: 1.0, logdet: 282.248491990939
+Quadratic term: nan, logdet_L: -792.812923061214, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 16916.986224473567
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 130.06531522459616
+Rbeta_new condition number: 169694867198055.66
+Sx condition number: 726118.3487613712
+S_add condition number: 10153080873.661129
+S_tilde determinant sign: 1.0, logdet: 283.8118715561842
+Quadratic term: nan, logdet_L: -792.7419583781532, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11259.435455552431
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 106.11048701967414
+Rbeta_new condition number: 165709445494301.9
+Sx condition number: 868837.4611366568
+S_add condition number: 6156277159.21857
+S_tilde determinant sign: 1.0, logdet: 270.05201964434673
+Quadratic term: nan, logdet_L: -790.6894547293444, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11334.28068622775
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 106.46257880695804
+Rbeta_new condition number: 164871788015903.28
+Sx condition number: 1241786.4357813725
+S_add condition number: 2213136519.6293936
+S_tilde determinant sign: 1.0, logdet: 274.17209869505797
+Quadratic term: nan, logdet_L: -793.5614011035071, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10719.243485077379
+H has nans: False
+M_row has nans: False
+xp has nans: False
+_predict_diffuse: xp has nans: False
+y_w has nans: False
+H_w has nans: False
+M_w has nans: False
+L condition number: 103.53377943974314
+Rbeta_new condition number: 163908655246753.62
+Sx condition number: 1012159.5994808913
+S_add condition number: 813645501.7330695
+S_tilde determinant sign: 1.0, logdet: 258.66284308825567
+Quadratic term: nan, logdet_L: -792.5630972553221, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 15317.63179051636
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 123.76442053561418
+Rbeta_new condition number: 164160085436228.94
+Sx condition number: 930209.8775596389
+S_add condition number: 14238926499.472185
+S_tilde determinant sign: 1.0, logdet: 282.13587140070877
+Quadratic term: nan, logdet_L: -792.5581093759315, ll: nan
+_predict_diffuse: x has nans: False
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12170.700022278123
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 110.32089567383925
+Rbeta_new condition number: 162031096846436.44
+Sx condition number: 945522.3697930678
+S_add condition number: 12789630896.981478
+S_tilde determinant sign: 1.0, logdet: 278.2599756197055
+Quadratic term: nan, logdet_L: -792.6478753459706, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 18804.589504624946
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 137.12982718805176
+Rbeta_new condition number: 159033664102643.34
+Sx condition number: 1206154.253013675
+S_add condition number: 31417072804.486614
+S_tilde determinant sign: 1.0, logdet: 269.9639535496643
+Quadratic term: nan, logdet_L: -791.4877776108483, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 14456.798381113636
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 120.23642701408602
+Rbeta_new condition number: 157317549601732.47
+Sx condition number: 1012385.9495372145
+S_add condition number: 1839085790.968722
+S_tilde determinant sign: 1.0, logdet: 280.30170958222106
+Quadratic term: nan, logdet_L: -793.4785322975781, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 14126.658585626275
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 118.8556207573974
+Rbeta_new condition number: 155002161880744.4
+Sx condition number: 964378.4665982178
+S_add condition number: 6630651151.6198
+S_tilde determinant sign: 1.0, logdet: 274.4390264030989
+Quadratic term: nan, logdet_L: -792.9124556998433, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 14100.383518068942
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 118.74503576179066
+Rbeta_new condition number: 149482160308325.62
+Sx condition number: 842249.1770226585
+S_add condition number: 10172496017.623503
+S_tilde determinant sign: 1.0, logdet: 262.0099605339341
+Quadratic term: nan, logdet_L: -793.2754168398956, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11562.717146408957
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 107.53007554358435
+Rbeta_new condition number: 138933772993704.94
+Sx condition number: 1166113.6897794602
+S_add condition number: 4563367254.187856
+S_tilde determinant sign: 1.0, logdet: 276.9959741490875
+Quadratic term: nan, logdet_L: -794.4397923132336, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11804.806362353274
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 108.64992573560865
+Rbeta_new condition number: 137079287212606.17
+Sx condition number: 1049002.6751091057
+S_add condition number: 4922042768.445389
+S_tilde determinant sign: 1.0, logdet: 263.3755081550178
+Quadratic term: nan, logdet_L: -790.4356450981945, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10753.565445220285
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 103.69939944483906
+Rbeta_new condition number: 137240246439463.22
+Sx condition number: 1245259.8726431548
+S_add condition number: 27705685539.397667
+S_tilde determinant sign: 1.0, logdet: 260.5134289111106
+Quadratic term: nan, logdet_L: -793.3625544762403, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 8929.696127746503
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 94.49706941353529
+Rbeta_new condition number: 136060863252586.19
+Sx condition number: 887276.4320746503
+S_add condition number: 12379255395.758951
+S_tilde determinant sign: 1.0, logdet: 278.4344270806174
+Quadratic term: nan, logdet_L: -792.8362093450066, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11259.506738438675
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 106.11082290906369
+Rbeta_new condition number: 136478636105388.25
+Sx condition number: 1163505.8083303992
+S_add condition number: 10655891999.107445
+S_tilde determinant sign: 1.0, logdet: 271.22516337259117
+Quadratic term: nan, logdet_L: -795.2217824773915, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9991.397573117107
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 99.95697861138613
+Rbeta_new condition number: 119577294464068.0
+Sx condition number: 929532.7747566606
+S_add condition number: 18013881914.45712
+S_tilde determinant sign: 1.0, logdet: 262.7865922176517
+Quadratic term: nan, logdet_L: -793.8539084339238, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 20388.93931759467
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 142.78984318779354
+Rbeta_new condition number: 118994719106815.6
+Sx condition number: 1334383.3803159879
+S_add condition number: 5892364569.060359
+S_tilde determinant sign: 1.0, logdet: 266.03341527353876
+Quadratic term: nan, logdet_L: -791.4006337904354, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9586.218094196602
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 97.9092339577662
+Rbeta_new condition number: 118456721891095.44
+Sx condition number: 921654.2984208232
+S_add condition number: 23424596766.311092
+S_tilde determinant sign: 1.0, logdet: 257.57816602372
+Quadratic term: nan, logdet_L: -791.8103738047328, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12952.7579773491
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 113.8101839790671
+Rbeta_new condition number: 116134810275424.64
+Sx condition number: 1238793.3078545842
+S_add condition number: 25190287752.452618
+S_tilde determinant sign: 1.0, logdet: 272.09043184246684
+Quadratic term: nan, logdet_L: -794.8365393935602, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12815.279449881808
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 113.20459111662304
+Rbeta_new condition number: 112301423112976.14
+Sx condition number: 1561954.9414087527
+S_add condition number: 17414025897.46769
+S_tilde determinant sign: 1.0, logdet: 271.41592536300686
+Quadratic term: nan, logdet_L: -795.0728438968638, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9666.541242574829
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 98.31857018170489
+Rbeta_new condition number: 111616147785458.4
+Sx condition number: 1252127.00723335
+S_add condition number: 15342690256.444027
+S_tilde determinant sign: 1.0, logdet: 264.4574066536416
+Quadratic term: nan, logdet_L: -796.5153678073677, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 18403.622333791853
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 135.65995110492946
+Rbeta_new condition number: 110571012631824.03
+Sx condition number: 1523521.8328262032
+S_add condition number: 29047451586.755707
+S_tilde determinant sign: 1.0, logdet: 265.8730288788068
+Quadratic term: nan, logdet_L: -795.0712098877284, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10537.265282608969
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 102.65118256800051
+Rbeta_new condition number: 109523995124081.77
+Sx condition number: 1109133.8034195367
+S_add condition number: 9643122699.4907
+S_tilde determinant sign: 1.0, logdet: 271.5816865080135
+Quadratic term: nan, logdet_L: -793.3115955902483, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11701.751746372644
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 108.17463541132294
+Rbeta_new condition number: 109579477855075.61
+Sx condition number: 1184196.0608350215
+S_add condition number: 19610692229.876156
+S_tilde determinant sign: 1.0, logdet: 271.04533061546454
+Quadratic term: nan, logdet_L: -793.3225746408101, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10213.508096729682
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 101.06190230116233
+Rbeta_new condition number: 107359521370901.67
+Sx condition number: 1345131.2893932872
+S_add condition number: 19110199263.513355
+S_tilde determinant sign: 1.0, logdet: 260.5542682007388
+Quadratic term: nan, logdet_L: -792.4367631812187, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 16534.283897503003
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 128.58570642767026
+Rbeta_new condition number: 106455838363325.53
+Sx condition number: 1212793.0923219428
+S_add condition number: 13660331078.57789
+S_tilde determinant sign: 1.0, logdet: 250.31242458592095
+Quadratic term: nan, logdet_L: -794.7219413076755, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 13613.481198969055
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 116.6768237439169
+Rbeta_new condition number: 104105313193538.72
+Sx condition number: 1190344.649138486
+S_add condition number: 11405001788.30981
+S_tilde determinant sign: 1.0, logdet: 257.541036237922
+Quadratic term: nan, logdet_L: -792.3228557775965, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 14255.422091133329
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 119.39607234383102
+Rbeta_new condition number: 101468655358133.28
+Sx condition number: 1196629.4492860844
+S_add condition number: 52508112539.45568
+S_tilde determinant sign: 1.0, logdet: 262.7562105512796
+Quadratic term: nan, logdet_L: -790.4402562269206, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10695.816435149194
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 103.42058032688269
+Rbeta_new condition number: 100825280919847.56
+Sx condition number: 951108.2506695656
+S_add condition number: 21563316606.262882
+S_tilde determinant sign: 1.0, logdet: 264.3845395828633
+Quadratic term: nan, logdet_L: -793.3997030193349, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 8846.282064603583
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 94.0546759316281
+Rbeta_new condition number: 99890320022987.77
+Sx condition number: 1537793.7551945818
+S_add condition number: 40191632429.74885
+S_tilde determinant sign: 1.0, logdet: 269.48528570906836
+Quadratic term: nan, logdet_L: -794.6774688369517, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 7658.851031980121
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 87.51486177775818
+Rbeta_new condition number: 97960479220970.38
+Sx condition number: 1367302.7361800836
+S_add condition number: 10709672430.343712
+S_tilde determinant sign: 1.0, logdet: 262.3821718828335
+Quadratic term: nan, logdet_L: -791.9787318904453, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 14234.861600111
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 119.30993923437812
+Rbeta_new condition number: 97546052567925.23
+Sx condition number: 1160586.304113316
+S_add condition number: 16867374397.719345
+S_tilde determinant sign: 1.0, logdet: 269.16824982528783
+Quadratic term: nan, logdet_L: -793.8756070774562, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 18518.41573743504
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 136.0823858456157
+Rbeta_new condition number: 95901473485247.27
+Sx condition number: 1371014.2262146734
+S_add condition number: 13882057425.060839
+S_tilde determinant sign: 1.0, logdet: 261.84052558626564
+Quadratic term: nan, logdet_L: -793.9030808982175, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9037.95253996912
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 95.06814682094691
+Rbeta_new condition number: 95014447039996.42
+Sx condition number: 989638.1415250938
+S_add condition number: 19072096506.29878
+S_tilde determinant sign: 1.0, logdet: 260.75525879701775
+Quadratic term: nan, logdet_L: -793.8392598444029, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 6525.321318268172
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 80.77946099268163
+Rbeta_new condition number: 93319470164740.55
+Sx condition number: 1222794.4549274936
+S_add condition number: 38745808726.84878
+S_tilde determinant sign: 1.0, logdet: 261.87405836508935
+Quadratic term: nan, logdet_L: -793.3768642233288, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 14947.920394569035
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 122.26168817159787
+Rbeta_new condition number: 91969571739360.62
+Sx condition number: 1798599.093312732
+S_add condition number: 16326733075.244926
+S_tilde determinant sign: 1.0, logdet: 254.53313868324298
+Quadratic term: nan, logdet_L: -794.378193300852, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10420.975890246944
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 102.08318123102819
+Rbeta_new condition number: 91720055191983.88
+Sx condition number: 1251000.9577994496
+S_add condition number: 20789121492.546818
+S_tilde determinant sign: 1.0, logdet: 264.35341811040746
+Quadratic term: nan, logdet_L: -793.1880571376371, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 20118.200882378973
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 141.83864382592978
+Rbeta_new condition number: 92038438473863.0
+Sx condition number: 1589217.6994485415
+S_add condition number: 14488874250.676922
+S_tilde determinant sign: 1.0, logdet: 269.62133545035755
+Quadratic term: nan, logdet_L: -794.3249338986525, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 15075.552492487595
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 122.78254148081312
+Rbeta_new condition number: 91550080807043.52
+Sx condition number: 1156678.502777415
+S_add condition number: 11788263768.765848
+S_tilde determinant sign: 1.0, logdet: 265.5768293064366
+Quadratic term: nan, logdet_L: -792.3622862255024, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 13047.003170940226
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 114.22347907037425
+Rbeta_new condition number: 91042245633971.4
+Sx condition number: 984646.3229145465
+S_add condition number: 13712778888.68269
+S_tilde determinant sign: 1.0, logdet: 267.6738420968861
+Quadratic term: nan, logdet_L: -793.9027980968029, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11344.660909875052
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 106.5113182242857
+Rbeta_new condition number: 90123546047508.23
+Sx condition number: 1287021.5626668201
+S_add condition number: 5293807095.174937
+S_tilde determinant sign: 1.0, logdet: 264.16741141897495
+Quadratic term: nan, logdet_L: -793.5160918682576, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11350.33206337891
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 106.53793720257076
+Rbeta_new condition number: 89859319443951.5
+Sx condition number: 1785987.7900301327
+S_add condition number: 15696866391.01392
+S_tilde determinant sign: 1.0, logdet: 266.747982639916
+Quadratic term: nan, logdet_L: -795.9524286880156, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12206.929454794652
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 110.4849738869257
+Rbeta_new condition number: 89631573148530.12
+Sx condition number: 1555161.595596934
+S_add condition number: 17271343139.294086
+S_tilde determinant sign: 1.0, logdet: 253.8721504395544
+Quadratic term: nan, logdet_L: -794.838073237601, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 15857.795269314616
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 125.92773828396433
+Rbeta_new condition number: 88229895845576.55
+Sx condition number: 1698890.569521363
+S_add condition number: 35728656020.44431
+S_tilde determinant sign: 1.0, logdet: 264.1498643979555
+Quadratic term: nan, logdet_L: -793.7909197780368, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10471.24162224692
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 102.32908492822028
+Rbeta_new condition number: 86969729769222.0
+Sx condition number: 1418628.4022421346
+S_add condition number: 9359276208.6054
+S_tilde determinant sign: 1.0, logdet: 258.6165831421393
+Quadratic term: nan, logdet_L: -794.0050687376297, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9533.856954682686
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 97.64147148974499
+Rbeta_new condition number: 86173103360530.67
+Sx condition number: 963191.8070641425
+S_add condition number: 15587718720.413168
+S_tilde determinant sign: 1.0, logdet: 263.07127668281964
+Quadratic term: nan, logdet_L: -793.3727243131407, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10195.006147802527
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 100.9703231043782
+Rbeta_new condition number: 85193520445448.39
+Sx condition number: 869951.12606346
+S_add condition number: 3161936344.942237
+S_tilde determinant sign: 1.0, logdet: 258.4740262826109
+Quadratic term: nan, logdet_L: -794.5388826468952, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 7420.237777250891
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 86.14080204671241
+Rbeta_new condition number: 85004170496058.92
+Sx condition number: 784110.2844278191
+S_add condition number: 17629950917.484814
+S_tilde determinant sign: 1.0, logdet: 266.891354067225
+Quadratic term: nan, logdet_L: -793.7668742289466, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10621.159010992491
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 103.0590074228958
+Rbeta_new condition number: 83905690234869.92
+Sx condition number: 1519793.5329634557
+S_add condition number: 10557459893.637407
+S_tilde determinant sign: 1.0, logdet: 251.8041085883816
+Quadratic term: nan, logdet_L: -794.5512496530021, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11061.20963899865
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 105.17228550810641
+Rbeta_new condition number: 83551144077827.64
+Sx condition number: 882539.7343994796
+S_add condition number: 25488156681.670662
+S_tilde determinant sign: 1.0, logdet: 262.44100539602596
+Quadratic term: nan, logdet_L: -794.1424981524324, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 18201.767578376253
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 134.9139265545861
+Rbeta_new condition number: 83252561525848.52
+Sx condition number: 1120871.5436155596
+S_add condition number: 18126685783.03965
+S_tilde determinant sign: 1.0, logdet: 255.6994792656311
+Quadratic term: nan, logdet_L: -794.6878481714416, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 13183.514410633425
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 114.81948619739345
+Rbeta_new condition number: 81046131349777.42
+Sx condition number: 847716.6562897472
+S_add condition number: 14638825574.275232
+S_tilde determinant sign: 1.0, logdet: 252.09327426381242
+Quadratic term: nan, logdet_L: -792.1568049225418, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 7969.860916331985
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 89.27407751599557
+Rbeta_new condition number: 80820437286618.84
+Sx condition number: 1185472.4414272062
+S_add condition number: 12589281568.838287
+S_tilde determinant sign: 1.0, logdet: 251.09211293816566
+Quadratic term: nan, logdet_L: -791.3336299417555, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 16065.38984895784
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 126.74931892897034
+Rbeta_new condition number: 80278238495831.31
+Sx condition number: 1312246.7725386205
+S_add condition number: 4818764371.030823
+S_tilde determinant sign: 1.0, logdet: 258.058383218542
+Quadratic term: nan, logdet_L: -792.4166270841135, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11875.405057834481
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 108.97433210547555
+Rbeta_new condition number: 79820306456886.97
+Sx condition number: 1301612.9285818867
+S_add condition number: 12484095792.932219
+S_tilde determinant sign: 1.0, logdet: 263.38025615398647
+Quadratic term: nan, logdet_L: -792.4009506303078, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 13007.120620957849
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 114.04876422372077
+Rbeta_new condition number: 78581300040567.89
+Sx condition number: 1037704.0834527103
+S_add condition number: 6086107911.481177
+S_tilde determinant sign: 1.0, logdet: 261.5247128996188
+Quadratic term: nan, logdet_L: -791.9756233712894, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11944.594049372712
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 109.29132650568714
+Rbeta_new condition number: 77970200886964.75
+Sx condition number: 1059509.5341632208
+S_add condition number: 3134466116.548001
+S_tilde determinant sign: 1.0, logdet: 263.1235056102091
+Quadratic term: nan, logdet_L: -794.6001359731251, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10844.603820555616
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 104.13742756836092
+Rbeta_new condition number: 77369984343612.05
+Sx condition number: 1182700.446922131
+S_add condition number: 6883238685.388166
+S_tilde determinant sign: 1.0, logdet: 259.7606595815927
+Quadratic term: nan, logdet_L: -793.8326776637127, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12057.164853481196
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 109.80512216413767
+Rbeta_new condition number: 77132625748984.48
+Sx condition number: 1095958.2048348458
+S_add condition number: 5224518854.141074
+S_tilde determinant sign: 1.0, logdet: 255.89744518972927
+Quadratic term: nan, logdet_L: -794.9239008641376, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11196.577453681928
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 105.81388119562541
+Rbeta_new condition number: 76779797775131.67
+Sx condition number: 1319544.130700907
+S_add condition number: 5080564901.482825
+S_tilde determinant sign: 1.0, logdet: 259.25512130257596
+Quadratic term: nan, logdet_L: -793.219823468226, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 6995.815542638855
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 83.64099199937107
+Rbeta_new condition number: 76589170173251.81
+Sx condition number: 934982.4885768414
+S_add condition number: 3025105780.938369
+S_tilde determinant sign: 1.0, logdet: 259.88126596131974
+Quadratic term: nan, logdet_L: -792.5792919764986, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12972.384796808621
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 113.89637745252752
+Rbeta_new condition number: 75517856211927.25
+Sx condition number: 1024480.4156321122
+S_add condition number: 6105611364.174945
+S_tilde determinant sign: 1.0, logdet: 258.8638940126364
+Quadratic term: nan, logdet_L: -793.1941053400385, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11315.041320273222
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 106.37218301921429
+Rbeta_new condition number: 75295416662934.86
+Sx condition number: 1352438.5233243075
+S_add condition number: 6650727154.106394
+S_tilde determinant sign: 1.0, logdet: 264.5814738369414
+Quadratic term: nan, logdet_L: -792.2641858654658, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11306.296665984637
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 106.33107102810841
+Rbeta_new condition number: 74358605854570.03
+Sx condition number: 1207904.4764120479
+S_add condition number: 3641996054.5585346
+S_tilde determinant sign: 1.0, logdet: 250.56084316651018
+Quadratic term: nan, logdet_L: -793.8450271509225, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12685.861086890682
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 112.63152794351446
+Rbeta_new condition number: 74031235712586.2
+Sx condition number: 1332993.202183848
+S_add condition number: 3994593174.361008
+S_tilde determinant sign: 1.0, logdet: 256.0181242261988
+Quadratic term: nan, logdet_L: -793.6875095195728, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10644.969915633808
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 103.17446348604778
+Rbeta_new condition number: 73596979244807.08
+Sx condition number: 1475533.5372718673
+S_add condition number: 5481681218.145267
+S_tilde determinant sign: 1.0, logdet: 254.4252717957009
+Quadratic term: nan, logdet_L: -793.3587859613273, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 16089.949996029702
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 126.84616665879066
+Rbeta_new condition number: 73273238866280.67
+Sx condition number: 1410544.1592074675
+S_add condition number: 7211786757.684644
+S_tilde determinant sign: 1.0, logdet: 270.34599856700106
+Quadratic term: nan, logdet_L: -792.5724953644899, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9457.801567713143
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 97.2512291321459
+Rbeta_new condition number: 71833019454091.72
+Sx condition number: 1311334.514457301
+S_add condition number: 10248289334.527039
+S_tilde determinant sign: 1.0, logdet: 257.32350366785363
+Quadratic term: nan, logdet_L: -791.4144394321822, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 23428.918277161145
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 153.0650785684349
+Rbeta_new condition number: 69844826710041.086
+Sx condition number: 1349298.315324537
+S_add condition number: 9255539636.843733
+S_tilde determinant sign: 1.0, logdet: 261.9187761678927
+Quadratic term: nan, logdet_L: -792.5433218116825, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 21803.04171983584
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 147.65853080616725
+Rbeta_new condition number: 69029351533533.195
+Sx condition number: 1225373.5115994425
+S_add condition number: 2906615749.4644785
+S_tilde determinant sign: 1.0, logdet: 242.66409543933486
+Quadratic term: nan, logdet_L: -793.1764074491398, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 6077.719774342158
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 77.9597317487827
+Rbeta_new condition number: 68548529296796.37
+Sx condition number: 1025468.302969746
+S_add condition number: 5469060529.763209
+S_tilde determinant sign: 1.0, logdet: 258.15597250402624
+Quadratic term: nan, logdet_L: -793.00040601315, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11573.76656912652
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 107.58144156464218
+Rbeta_new condition number: 68392270302366.81
+Sx condition number: 1233053.0174153938
+S_add condition number: 3859765121.976058
+S_tilde determinant sign: 1.0, logdet: 258.6337275967323
+Quadratic term: nan, logdet_L: -792.2240588282211, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 8884.084138180273
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 94.25541967537079
+Rbeta_new condition number: 68228422789330.29
+Sx condition number: 1197258.3335626684
+S_add condition number: 3766486191.0187125
+S_tilde determinant sign: 1.0, logdet: 263.25888977900024
+Quadratic term: nan, logdet_L: -794.1959310578604, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 14986.624752067106
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 122.41987074028101
+Rbeta_new condition number: 67774795073053.08
+Sx condition number: 1037979.9534625735
+S_add condition number: 7119407947.346091
+S_tilde determinant sign: 1.0, logdet: 265.2933468925637
+Quadratic term: nan, logdet_L: -794.6619591339353, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11754.9956791
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 108.4204578439881
+Rbeta_new condition number: 67380809962430.21
+Sx condition number: 1309307.1765662967
+S_add condition number: 2140442823.8480408
+S_tilde determinant sign: 1.0, logdet: 268.4327396576632
+Quadratic term: nan, logdet_L: -794.5006979315926, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9051.395186014968
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 95.13882060449862
+Rbeta_new condition number: 67164376216941.34
+Sx condition number: 1089706.5131225947
+S_add condition number: 5766338737.046724
+S_tilde determinant sign: 1.0, logdet: 263.72874881613336
+Quadratic term: nan, logdet_L: -791.7934850948786, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 17873.070265445265
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 133.69020257836874
+Rbeta_new condition number: 66489462037540.22
+Sx condition number: 1640364.2782140167
+S_add condition number: 2098919355.811811
+S_tilde determinant sign: 1.0, logdet: 252.96216406675467
+Quadratic term: nan, logdet_L: -793.1721849878857, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9400.08472148759
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 96.95403406505368
+Rbeta_new condition number: 65593820789170.24
+Sx condition number: 936336.4565660239
+S_add condition number: 3285649603.4971523
+S_tilde determinant sign: 1.0, logdet: 249.0924804020097
+Quadratic term: nan, logdet_L: -793.6892759020169, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 15852.225739453412
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 125.90562235044713
+Rbeta_new condition number: 65407159956193.0
+Sx condition number: 1641240.3074113526
+S_add condition number: 5323670749.25246
+S_tilde determinant sign: 1.0, logdet: 266.40810846621844
+Quadratic term: nan, logdet_L: -794.8143214551428, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10214.060701065438
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 101.06463625356517
+Rbeta_new condition number: 64873036913634.62
+Sx condition number: 1309400.167183852
+S_add condition number: 4757866950.327717
+S_tilde determinant sign: 1.0, logdet: 249.69440520165335
+Quadratic term: nan, logdet_L: -794.4467763446503, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11621.493804161391
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 107.80303244418216
+Rbeta_new condition number: 64407146550606.05
+Sx condition number: 813928.9618474549
+S_add condition number: 4532033498.506885
+S_tilde determinant sign: 1.0, logdet: 258.0998435738601
+Quadratic term: nan, logdet_L: -791.9697330946292, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 17576.808189712978
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 132.5775553768924
+Rbeta_new condition number: 63582257367258.57
+Sx condition number: 1230971.4908166076
+S_add condition number: 4586428170.720219
+S_tilde determinant sign: 1.0, logdet: 253.84423532824155
+Quadratic term: nan, logdet_L: -791.1553082963203, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 16054.932102119825
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 126.7080585524055
+Rbeta_new condition number: 63078210032876.02
+Sx condition number: 749794.332896981
+S_add condition number: 2822066951.777931
+S_tilde determinant sign: 1.0, logdet: 255.72232008042488
+Quadratic term: nan, logdet_L: -793.4829212528211, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 13223.891421083355
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 114.99517999065593
+Rbeta_new condition number: 62942335209517.93
+Sx condition number: 852631.1579506489
+S_add condition number: 3662662872.107543
+S_tilde determinant sign: 1.0, logdet: 252.10034709870212
+Quadratic term: nan, logdet_L: -794.6833362197536, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 7284.778161467545
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 85.35091189593433
+Rbeta_new condition number: 62260311103649.49
+Sx condition number: 1222976.266674054
+S_add condition number: 6540133382.683952
+S_tilde determinant sign: 1.0, logdet: 269.1575777159327
+Quadratic term: nan, logdet_L: -794.2287801351247, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 14271.651756179186
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 119.46401866745983
+Rbeta_new condition number: 62033205208350.914
+Sx condition number: 870753.0808615865
+S_add condition number: 3536355590.076544
+S_tilde determinant sign: 1.0, logdet: 260.8284390275908
+Quadratic term: nan, logdet_L: -793.9579350608574, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 19335.080634601003
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 139.0506405400601
+Rbeta_new condition number: 61624574259044.56
+Sx condition number: 1102503.120038849
+S_add condition number: 3879145159.3397355
+S_tilde determinant sign: 1.0, logdet: 256.8047082048039
+Quadratic term: nan, logdet_L: -793.8665137344983, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11337.462144848969
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 106.47751943414613
+Rbeta_new condition number: 61246496291917.62
+Sx condition number: 959317.029223873
+S_add condition number: 4354724756.413913
+S_tilde determinant sign: 1.0, logdet: 248.72394783123656
+Quadratic term: nan, logdet_L: -791.6564004737083, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 14539.754234393784
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 120.58090327408308
+Rbeta_new condition number: 61042368878803.08
+Sx condition number: 862995.363351516
+S_add condition number: 3340663337.5446353
+S_tilde determinant sign: 1.0, logdet: 256.68306576608836
+Quadratic term: nan, logdet_L: -793.827493128003, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11014.511907252541
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 104.9500448177729
+Rbeta_new condition number: 60354228140996.09
+Sx condition number: 849188.7492881163
+S_add condition number: 2902675172.7281437
+S_tilde determinant sign: 1.0, logdet: 265.64490812481625
+Quadratic term: nan, logdet_L: -794.4065467381436, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11648.241440812295
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 107.92701904904209
+Rbeta_new condition number: 59601117650742.28
+Sx condition number: 885522.8419183246
+S_add condition number: 6097134423.107172
+S_tilde determinant sign: 1.0, logdet: 259.47792162419796
+Quadratic term: nan, logdet_L: -792.8560101148979, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10050.37041345278
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 100.25153571618132
+Rbeta_new condition number: 59255593633439.96
+Sx condition number: 812842.9764515585
+S_add condition number: 1702222312.0558004
+S_tilde determinant sign: 1.0, logdet: 250.34365201343167
+Quadratic term: nan, logdet_L: -791.2570418008547, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 13020.137058416936
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 114.10581518229883
+Rbeta_new condition number: 58990685635327.984
+Sx condition number: 1004849.6432814734
+S_add condition number: 1621172928.723676
+S_tilde determinant sign: 1.0, logdet: 259.05173878538915
+Quadratic term: nan, logdet_L: -794.827430339009, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9708.627369289476
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 98.53236711502203
+Rbeta_new condition number: 58518770082973.33
+Sx condition number: 944788.6988016943
+S_add condition number: 3256563056.811141
+S_tilde determinant sign: 1.0, logdet: 257.50675828299586
+Quadratic term: nan, logdet_L: -793.0424623932155, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9071.098566968474
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 95.24231500214844
+Rbeta_new condition number: 58355244312868.086
+Sx condition number: 784190.3117786122
+S_add condition number: 2784050396.904444
+S_tilde determinant sign: 1.0, logdet: 254.2055720214255
+Quadratic term: nan, logdet_L: -791.6796266744459, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9910.627199631817
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 99.55213307424314
+Rbeta_new condition number: 57936319510094.41
+Sx condition number: 817443.2026593117
+S_add condition number: 4257151386.7311554
+S_tilde determinant sign: 1.0, logdet: 254.74517686018504
+Quadratic term: nan, logdet_L: -793.3289109559498, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10402.63907340442
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 101.99332857302196
+Rbeta_new condition number: 57715332298091.945
+Sx condition number: 939044.4841868292
+S_add condition number: 631031689.1007271
+S_tilde determinant sign: 1.0, logdet: 245.24321102567114
+Quadratic term: nan, logdet_L: -794.0156503843832, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12198.171975001891
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 110.44533478151936
+Rbeta_new condition number: 57372533237819.72
+Sx condition number: 847818.9489172461
+S_add condition number: 4596130513.392441
+S_tilde determinant sign: 1.0, logdet: 253.32512713438143
+Quadratic term: nan, logdet_L: -791.6518161569413, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 8931.390470454011
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 94.50603404256266
+Rbeta_new condition number: 57048234400487.67
+Sx condition number: 1024218.1160934765
+S_add condition number: 3249788348.038352
+S_tilde determinant sign: 1.0, logdet: 267.1905588873311
+Quadratic term: nan, logdet_L: -792.3139455754077, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 7804.367244600655
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 88.34232985721316
+Rbeta_new condition number: 56517735258324.664
+Sx condition number: 780355.2755337826
+S_add condition number: 5510726393.833445
+S_tilde determinant sign: 1.0, logdet: 262.9173849507803
+Quadratic term: nan, logdet_L: -794.5249636705569, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 8617.559550892314
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 92.83081143075458
+Rbeta_new condition number: 55869150895020.0
+Sx condition number: 847807.0292203571
+S_add condition number: 2343837137.8894897
+S_tilde determinant sign: 1.0, logdet: 263.33756239104673
+Quadratic term: nan, logdet_L: -792.3197018386411, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 6936.251653583101
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 83.2841620812931
+Rbeta_new condition number: 55051974542281.62
+Sx condition number: 769116.0268134433
+S_add condition number: 4610592678.0013275
+S_tilde determinant sign: 1.0, logdet: 265.0007193539206
+Quadratic term: nan, logdet_L: -794.5799905349098, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 8928.514926486538
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 94.49081927090344
+Rbeta_new condition number: 54840632144513.57
+Sx condition number: 806180.3058683779
+S_add condition number: 4958885353.006299
+S_tilde determinant sign: 1.0, logdet: 259.3753746934888
+Quadratic term: nan, logdet_L: -795.7439002920672, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 7847.145385784852
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 88.58411474855326
+Rbeta_new condition number: 54703240291053.15
+Sx condition number: 700101.9982706885
+S_add condition number: 3012391425.1589284
+S_tilde determinant sign: 1.0, logdet: 250.6093966346732
+Quadratic term: nan, logdet_L: -793.6052747065057, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 15045.58668524749
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 122.6604528169022
+Rbeta_new condition number: 53774369144955.21
+Sx condition number: 837106.7092597756
+S_add condition number: 3815955190.4284678
+S_tilde determinant sign: 1.0, logdet: 258.6502484014733
+Quadratic term: nan, logdet_L: -792.7618327065022, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 8826.689602584695
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 93.95046355705061
+Rbeta_new condition number: 53676359850480.7
+Sx condition number: 876764.6654730948
+S_add condition number: 2914746488.844891
+S_tilde determinant sign: 1.0, logdet: 258.7572802241428
+Quadratic term: nan, logdet_L: -792.852871979298, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9920.064493526072
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 99.59952054867567
+Rbeta_new condition number: 53449493164860.59
+Sx condition number: 1058916.9560428606
+S_add condition number: 5402386744.922118
+S_tilde determinant sign: 1.0, logdet: 264.3888339127568
+Quadratic term: nan, logdet_L: -794.0250094820337, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10040.919688811122
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 100.2043895685769
+Rbeta_new condition number: 53041925365860.12
+Sx condition number: 917431.1395473008
+S_add condition number: 2746066827.8466225
+S_tilde determinant sign: 1.0, logdet: 249.70305316361697
+Quadratic term: nan, logdet_L: -792.3115239159615, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12841.40330419591
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 113.31991574386169
+Rbeta_new condition number: 52888069508183.45
+Sx condition number: 777956.6727244913
+S_add condition number: 3364356204.599251
+S_tilde determinant sign: 1.0, logdet: 265.6471027137911
+Quadratic term: nan, logdet_L: -792.904346709186, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 16258.83919810119
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 127.51015331377026
+Rbeta_new condition number: 52794628038637.305
+Sx condition number: 1029423.3867426697
+S_add condition number: 6170592540.224755
+S_tilde determinant sign: 1.0, logdet: 262.11709595580095
+Quadratic term: nan, logdet_L: -795.1448648227296, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11026.587766026998
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 105.00756051840742
+Rbeta_new condition number: 52651238984251.88
+Sx condition number: 807780.3511770546
+S_add condition number: 2005448941.8074071
+S_tilde determinant sign: 1.0, logdet: 256.01884952791545
+Quadratic term: nan, logdet_L: -792.5072831292421, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9435.375576790922
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 97.13586143536753
+Rbeta_new condition number: 52452039896715.3
+Sx condition number: 1179046.315788597
+S_add condition number: 3265003613.132791
+S_tilde determinant sign: 1.0, logdet: 258.9260904778912
+Quadratic term: nan, logdet_L: -793.6756026499954, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12228.419642006333
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 110.58218501190113
+Rbeta_new condition number: 52254793204456.3
+Sx condition number: 1037936.8935745306
+S_add condition number: 3565568031.8367014
+S_tilde determinant sign: 1.0, logdet: 254.0910659608311
+Quadratic term: nan, logdet_L: -793.3155488484095, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12745.102059359388
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 112.8942073773468
+Rbeta_new condition number: 52170904457292.31
+Sx condition number: 886250.0302227798
+S_add condition number: 3123177574.4152455
+S_tilde determinant sign: 1.0, logdet: 258.4167304004051
+Quadratic term: nan, logdet_L: -794.9187140331981, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 15186.843008628826
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 123.23490986173043
+Rbeta_new condition number: 52070678645494.62
+Sx condition number: 938914.2709183386
+S_add condition number: 3585904518.493272
+S_tilde determinant sign: 1.0, logdet: 254.14235691998803
+Quadratic term: nan, logdet_L: -793.0345744535073, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 10850.672851326533
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 104.16656301964915
+Rbeta_new condition number: 51882699836791.09
+Sx condition number: 898873.7314357327
+S_add condition number: 2301499109.806699
+S_tilde determinant sign: 1.0, logdet: 247.146536687541
+Quadratic term: nan, logdet_L: -791.6474361248311, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 13428.297285692757
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 115.88053022700903
+Rbeta_new condition number: 51626775734512.16
+Sx condition number: 834032.9701042726
+S_add condition number: 3779660627.1062613
+S_tilde determinant sign: 1.0, logdet: 264.8255097149547
+Quadratic term: nan, logdet_L: -792.4743755560743, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 22928.489836156
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 151.42156331301035
+Rbeta_new condition number: 51267255465244.11
+Sx condition number: 1525147.8398337
+S_add condition number: 1792501049.4937608
+S_tilde determinant sign: 1.0, logdet: 264.4919230030016
+Quadratic term: nan, logdet_L: -795.037687880375, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 17852.944896068275
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 133.6149127008968
+Rbeta_new condition number: 50575927814606.78
+Sx condition number: 1364226.2928055828
+S_add condition number: 671137617.9918776
+S_tilde determinant sign: 1.0, logdet: 250.4168369451533
+Quadratic term: nan, logdet_L: -795.1772855991617, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9519.004310551123
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 97.56538479681778
+Rbeta_new condition number: 50531374746545.17
+Sx condition number: 964886.6717842174
+S_add condition number: 1712460606.6809454
+S_tilde determinant sign: 1.0, logdet: 253.65918328829463
+Quadratic term: nan, logdet_L: -793.9166762130913, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 9602.504079308763
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 97.99236745435209
+Rbeta_new condition number: 50206795870734.086
+Sx condition number: 965397.2269002255
+S_add condition number: 3062017044.3025985
+S_tilde determinant sign: 1.0, logdet: 254.8070302847326
+Quadratic term: nan, logdet_L: -793.7294621037938, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11832.309607226725
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 108.77642027216527
+Rbeta_new condition number: 50071190534854.02
+Sx condition number: 1014001.5762493868
+S_add condition number: 2579648888.201069
+S_tilde determinant sign: 1.0, logdet: 259.94012870897734
+Quadratic term: nan, logdet_L: -794.4309534800462, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 7242.941098487397
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 85.10547043808288
+Rbeta_new condition number: 49642375599832.586
+Sx condition number: 873570.2466065639
+S_add condition number: 2636128049.0540276
+S_tilde determinant sign: 1.0, logdet: 252.43537729423116
+Quadratic term: nan, logdet_L: -793.3333242329966, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 8654.974398515673
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 93.03211487715235
+Rbeta_new condition number: 49465853254779.56
+Sx condition number: 805547.1507485359
+S_add condition number: 2168460187.382707
+S_tilde determinant sign: 1.0, logdet: 263.6591726605742
+Quadratic term: nan, logdet_L: -792.7357748742693, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12717.113271207536
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 112.77017899785181
+Rbeta_new condition number: 49072984329438.19
+Sx condition number: 1259609.1515942162
+S_add condition number: 977504709.7244802
+S_tilde determinant sign: 1.0, logdet: 247.04348366698343
+Quadratic term: nan, logdet_L: -794.9511311142994, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 15632.842231418532
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 125.03136499062357
+Rbeta_new condition number: 49109260000311.39
+Sx condition number: 1074628.700868588
+S_add condition number: 803119905.6702417
+S_tilde determinant sign: 1.0, logdet: 254.35533222633538
+Quadratic term: nan, logdet_L: -792.0235726627908, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 8607.829436930911
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 92.77838884638443
+Rbeta_new condition number: 49316398389015.82
+Sx condition number: 1074013.8571927755
+S_add condition number: 1662351881.8231246
+S_tilde determinant sign: 1.0, logdet: 262.24419826913515
+Quadratic term: nan, logdet_L: -792.6503449717709, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12034.210063004559
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 109.70054723201957
+Rbeta_new condition number: 50978324310699.81
+Sx condition number: 1046293.6199905039
+S_add condition number: 3777987086.783344
+S_tilde determinant sign: 1.0, logdet: 261.60768767183276
+Quadratic term: nan, logdet_L: -792.8990449123576, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 13268.517846078052
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 115.18905263122035
+Rbeta_new condition number: 53081240014945.97
+Sx condition number: 1454222.8407611316
+S_add condition number: 2249901255.3355775
+S_tilde determinant sign: 1.0, logdet: 262.31418439203264
+Quadratic term: nan, logdet_L: -794.8717878190434, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11531.347390886009
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 107.38411144525062
+Rbeta_new condition number: 52803340041095.48
+Sx condition number: 1058165.2946790748
+S_add condition number: 2616591496.6336427
+S_tilde determinant sign: 1.0, logdet: 255.9380560992593
+Quadratic term: nan, logdet_L: -795.783042616745, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11747.352799469076
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 108.38520563005393
+Rbeta_new condition number: 52597631199076.805
+Sx condition number: 1131487.2465053967
+S_add condition number: 4030963250.631678
+S_tilde determinant sign: 1.0, logdet: 258.3880259016318
+Quadratic term: nan, logdet_L: -793.7117161216535, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 12447.247695243366
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 111.56723396787861
+Rbeta_new condition number: 53881022561907.4
+Sx condition number: 898413.6185535837
+S_add condition number: 2334174017.510999
+S_tilde determinant sign: 1.0, logdet: 261.74828806315065
+Quadratic term: nan, logdet_L: -792.4636799284413, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 8676.903953506351
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 93.14990044818272
+Rbeta_new condition number: 55799760132707.23
+Sx condition number: 1131890.590125138
+S_add condition number: 2960555660.584737
+S_tilde determinant sign: 1.0, logdet: 255.37235836865386
+Quadratic term: nan, logdet_L: -791.6296661510571, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+_predict_diffuse: x.shape: (Array(128, dtype=int64), Array(32, dtype=int64))
+R has nans: False
+z has nans: False
+R condition number: 11271.260336047928
+H has nans: False
+M_row has nans: False
+xp has nans: True
+_predict_diffuse: xp has nans: True
+y_w has nans: True
+H_w has nans: False
+M_w has nans: False
+L condition number: 106.16619205777292
+Rbeta_new condition number: 55923548209232.195
+Sx condition number: 1446200.24324467
+S_add condition number: 2101422072.0953863
+S_tilde determinant sign: 1.0, logdet: 251.90681475755116
+Quadratic term: nan, logdet_L: -792.8314787003671, ll: nan
+_predict_diffuse: x has nans: True
+_predict_diffuse: P has nans: False
+_predict_diffuse: F_gw has nans: False
+_predict_diffuse: F_spin has nans: False
+Diffuse filter log-likelihood: nan
+Both filters completed successfully!
+Warning: Non-finite likelihoods detected
+
+❌ Test failed! There may be issues with the implementation.

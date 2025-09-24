@@ -3,7 +3,7 @@
 
 import numpy as np
 
-from argus.model import get_F,get_Q, precompute_R_matrices, precompute_H_matrix
+from argus.model import get_F,get_Q, get_F_diffuse, get_Q_diffuse, get_F_diffuse_vmap, get_Q_diffuse_vmap, precompute_R_matrices, precompute_H_matrix, precompute_H_matrix_diffuse, precompute_M_matrices
 from functools import partial
 import jax
 import jax.numpy as jnp
@@ -96,11 +96,11 @@ def compute_predicted_covariance(P: jax.Array,
 
 def _log_likelihood(y: jax.Array, cov: jax.Array) -> jax.Array:
     """Calculate the log likelihood given innovation and innovation covariance.
-    
+
     Args:
         y: Innovation term (measurement residual), shape (n,)
         cov: Innovation covariance matrix, shape (n,n)
-        
+
     Returns
     -------
         float: Log likelihood value
@@ -109,23 +109,186 @@ def _log_likelihood(y: jax.Array, cov: jax.Array) -> jax.Array:
     quadratic_term = y.T @ jnp.linalg.solve(cov, y)
     return -0.5 * (logdet + quadratic_term)
 
+def _solve_psd_chol(L, b):
+    """Solve (L L^T) x = b via Cholesky factors."""
+    return jax.scipy.linalg.cho_solve((L, False), b)
+
+def _quadform_inv_chol(L, B):
+    """Compute B (LL^T)^{-1} B^T without forming the inverse explicitly."""
+    X = jax.scipy.linalg.cho_solve((L, False), B.T)  # solve (LL^T) X = B^T
+    return B @ X
+
+def _logdet_from_chol(L):
+    """Return log|LL^T| from a Cholesky factor L (lower triangular)."""
+    return 2.0 * jnp.sum(jnp.log(jnp.diag(L)))
+
+def _whiten_by_chol(L, Y):
+    """Return L^{-1} Y by forward substitution; Y can be (ny,1), (ny,nx), etc."""
+    return jax.scipy.linalg.solve_triangular(L, Y, lower=True)
+
+def _update_diffuse_exact(xp: jax.Array,
+                          Pp: jax.Array,
+                          H: jax.Array,            # (ny, nx)  (no timing columns)
+                          R: jax.Array,            # (ny, ny)
+                          z: jax.Array,            # (ny, 1)
+                          M_row: jax.Array,        # (ny, p)   timing regressors at this epoch
+                          Rbeta_chol: jax.Array,   # (p, p)    chol of accumulated M^T R^{-1} M
+                          c_beta: jax.Array        # (p, 1)    accumulated M^T R^{-1} residuals
+                          ):
+    """
+    Exact diffuse-KF update for deterministic regressors:
+      y = H x + M beta + e,   beta ~ diffuse (flat),  e ~ N(0, R).
+
+    Works in whitened space (R -> I). Uses Cholesky (square-root) forms.
+    Returns:
+      x, P, Rbeta_chol_new, c_beta_new, y_tilde, S_tilde, ll_contrib
+    """
+    # 1) Whiten once per epoch
+    # Debug inputs
+    jax.debug.print("R has nans: {has_nans}", has_nans=jnp.any(jnp.isnan(R)))
+    jax.debug.print("R condition number: {cond}", cond=jnp.linalg.cond(R))
+    jax.debug.print("H has nans: {has_nans}", has_nans=jnp.any(jnp.isnan(H)))
+    jax.debug.print("M_row has nans: {has_nans}", has_nans=jnp.any(jnp.isnan(M_row)))
+    jax.debug.print("xp has nans: {has_nans}", has_nans=jnp.any(jnp.isnan(xp)))
+    jax.debug.print("z has nans: {has_nans}", has_nans=jnp.any(jnp.isnan(z)))
+
+    L = jnp.linalg.cholesky(R)                  # R = L L^T
+    r = z - H @ xp                              # pre-fit residual vs stochastic state
+
+    # Ensure proper shapes for whitening
+    if r.ndim == 1:
+        r = r[:, None]  # Make column vector
+
+    y_w = _whiten_by_chol(L, r)                 # (ny,1)
+    H_w = _whiten_by_chol(L, H)                 # (ny,nx)
+    M_w = _whiten_by_chol(L, M_row)             # (ny,p)
+
+    # Debug whitening outputs
+    jax.debug.print("y_w has nans: {has_nans}", has_nans=jnp.any(jnp.isnan(y_w)))
+    jax.debug.print("H_w has nans: {has_nans}", has_nans=jnp.any(jnp.isnan(H_w)))
+    jax.debug.print("M_w has nans: {has_nans}", has_nans=jnp.any(jnp.isnan(M_w)))
+    jax.debug.print("L condition number: {cond}", cond=jnp.linalg.cond(L))
+
+    # 2) Innovation covariance from stochastic state in whitened space
+    Sx = H_w @ Pp @ H_w.T + jnp.eye(H_w.shape[0])
+
+    # 3) Accumulate GLS information for timing coefficients (square-root form)
+    # For severely under-determined systems, use aggressive regularization
+    Rbeta_new = (Rbeta_chol @ Rbeta_chol.T) + (M_w.T @ M_w)          # (p,p)
+
+    # Debug the accumulated matrix
+    jax.debug.print("Rbeta_new condition number: {cond}", cond=jnp.linalg.cond(Rbeta_new))
+
+    # For under-determined systems, cap the condition number to prevent instability
+    max_condition_number = 1e12  # Much more conservative limit
+    current_cond = jnp.linalg.cond(Rbeta_new)
+
+    # If condition number is too large, use SVD regularization
+    regularization_strength = jnp.where(
+        current_cond > max_condition_number,
+        1e-3,  # Strong regularization
+        1e-8   # Minimal regularization
+    )
+
+    regularization = regularization_strength * jnp.eye(Rbeta_new.shape[0])
+    Rbeta_chol_new = jnp.linalg.cholesky(Rbeta_new + regularization)
+    c_beta_new = c_beta + (M_w.T @ y_w)                              # (p,1)
+
+    # 4) GLS posterior mode of beta
+    beta_hat = _solve_psd_chol(Rbeta_chol_new, c_beta_new)           # (p,1)
+
+    # 5) Diffuse-marginalized innovation and covariance
+    y_tilde = y_w - (M_w @ beta_hat)                                 # (ny,1)
+    S_add   = _quadform_inv_chol(Rbeta_chol_new, M_w)                # (ny,ny)
+
+    # Debug the matrix components
+    jax.debug.print("Sx condition number: {cond}", cond=jnp.linalg.cond(Sx))
+    jax.debug.print("S_add condition number: {cond}", cond=jnp.linalg.cond(S_add))
+
+    S_tilde = Sx + S_add                                             # (ny,ny)
+
+    # Ensure S_tilde is positive definite using SVD-based regularization
+    # This handles numerical precision issues that can make the matrix indefinite
+    U, s, Vt = jnp.linalg.svd(S_tilde)
+    s_regularized = jnp.maximum(s, 1e-12)  # Ensure all eigenvalues are positive
+    S_tilde = U @ jnp.diag(s_regularized) @ Vt
+
+    # 6) Kalman update for stochastic state (Joseph form)
+    Sinv = jnp.linalg.solve(S_tilde, jnp.eye(S_tilde.shape[0]))
+    Kx   = Pp @ H_w.T @ Sinv
+    x    = xp + (Kx @ y_tilde)
+    R_eff = S_tilde - (H_w @ Pp @ H_w.T)                             # = I + M_w J^{-1} M_w^T
+    I_KH = jnp.eye(Pp.shape[0]) - Kx @ H_w
+    P    = I_KH @ Pp @ I_KH.T + Kx @ R_eff @ Kx.T
+
+    # 7) Log-likelihood contribution (whitened, include Jacobian of whitening)
+    signS, logdetS = jnp.linalg.slogdet(S_tilde)
+    quad = (y_tilde.T @ jnp.linalg.solve(S_tilde, y_tilde))[0,0]
+    logdet_L = _logdet_from_chol(L)
+    ll = -0.5 * (logdetS + quad + H_w.shape[0] * jnp.log(2.0*jnp.pi)) - 0.5 * logdet_L
+
+    # Check for numerical issues (debug)
+    jax.debug.print("y_tilde norm: {norm}", norm=jnp.linalg.norm(y_tilde))
+    jax.debug.print("S_tilde smallest eigenval: {min_eig}", min_eig=jnp.min(jnp.linalg.eigvals(S_tilde)))
+    jax.debug.print("beta_hat norm: {norm}", norm=jnp.linalg.norm(beta_hat))
+    jax.debug.print("S_tilde determinant sign: {sign}, logdet: {logdet}", sign=signS, logdet=logdetS)
+    jax.debug.print("Quadratic term: {quad}, logdet_L: {logdet_L}, ll: {ll}", quad=quad, logdet_L=logdet_L, ll=ll)
+
+    return x, P, Rbeta_chol_new, c_beta_new, y_tilde, S_tilde, ll
+
 @partial(jax.jit, static_argnums=(4,))
 def _predict(x: jax.Array, P: jax.Array, F_list: tuple, Q_list: tuple, dim_x: int) -> tuple[jax.Array, jax.Array]:
     """Predict the next state and covariance.
-    
+
     Args:
         x: Current state vector
         P: Current covariance matrix
         F_list: Tuple of state transition matrices
         Q_list: Tuple of process noise matrices
-        dim_x: Dimension of the state vector
-        
+        dim_x: Dimension parameter (interpretation depends on context)
+
     Returns
     -------
         tuple: (predicted state, predicted covariance)
     """
-    xp = compute_predicted_state(F_list, x, dim_x, dim_x)
-    Pp = compute_predicted_covariance(P,F_list,Q_list,dim_x,dim_x)
+    # Original behavior for standard filter: dim_x is 2*Npsr
+    gw_size = dim_x  # 2*Npsr for GW block
+    spin_size = dim_x  # 2*Npsr for spin block
+    xp = compute_predicted_state(F_list, x, gw_size, spin_size)
+    Pp = compute_predicted_covariance(P,F_list,Q_list,gw_size,spin_size)
+    return xp, Pp
+
+@partial(jax.jit, static_argnums=(4,))
+def _predict_diffuse(x: jax.Array, P: jax.Array, F_list: tuple, Q_list: tuple, Npsr: int) -> tuple[jax.Array, jax.Array]:
+    """Predict the next state and covariance for diffuse filter.
+
+    Args:
+        x: Current state vector (only GW and spin states)
+        P: Current covariance matrix
+        F_list: Tuple of state transition matrices
+        Q_list: Tuple of process noise matrices
+        Npsr: Number of pulsars
+
+    Returns
+    -------
+        tuple: (predicted state, predicted covariance)
+    """
+    # Debug inputs
+    jax.debug.print("_predict_diffuse: x has nans: {has_nans}", has_nans=jnp.any(jnp.isnan(x)))
+    jax.debug.print("_predict_diffuse: P has nans: {has_nans}", has_nans=jnp.any(jnp.isnan(P)))
+    jax.debug.print("_predict_diffuse: x.shape: {shape}", shape=x.shape)
+
+    F_gw, F_spin = F_list
+    jax.debug.print("_predict_diffuse: F_gw has nans: {has_nans}", has_nans=jnp.any(jnp.isnan(F_gw)))
+    jax.debug.print("_predict_diffuse: F_spin has nans: {has_nans}", has_nans=jnp.any(jnp.isnan(F_spin)))
+
+    gw_size = 2 * Npsr  # 2*Npsr for GW block
+    spin_size = 2 * Npsr  # 2*Npsr for spin block
+    xp = compute_predicted_state(F_list, x, gw_size, spin_size)
+    Pp = compute_predicted_covariance(P,F_list,Q_list,gw_size,spin_size)
+
+    jax.debug.print("_predict_diffuse: xp has nans: {has_nans}", has_nans=jnp.any(jnp.isnan(xp)))
+
     return xp, Pp
 
 
@@ -171,7 +334,7 @@ def _compute_sigma_matrix(h2, γa, Γ):
     return (h2 / 12) * γa * Γ
 
 
-def _initialize_kalman_filter(nx,Npsr,P_eps,σa2,γa,σp2,γp):
+def _initialize_kalman_filter(nx,Npsr,P_eps,σa2,γa,σp2,γp,diffuse_mode=False):
     """Initialize the state vector (x0) and covariance matrix (P0).
 
     This function sets up the initial conditions for the Kalman filter based on
@@ -236,34 +399,43 @@ def _initialize_kalman_filter(nx,Npsr,P_eps,σa2,γa,σp2,γp):
     f_indices = jnp.arange(1, Npsr * 2, 2)
     P_spin = P_spin.at[f_indices, f_indices].set(spin_variance_values)
 
-    P0 = block_diag(P_GW, P_spin, P_eps)
+    if diffuse_mode:
+        # For diffuse mode, only include GW and spin blocks (no timing model block)
+        P0 = block_diag(P_GW, P_spin)
+    else:
+        P0 = block_diag(P_GW, P_spin, P_eps)
 
     return x0, P0
 
-@partial(jax.jit, static_argnames=('Npsr', 'M_sum'))
-def _precompute_transition_matrices(γa, γp, σa2, σp2, dt_array, Npsr, M_sum):
+@partial(jax.jit, static_argnames=('Npsr', 'M_sum', 'diffuse_mode'))
+def _precompute_transition_matrices(γa, γp, σa2, σp2, dt_array, Npsr, M_sum, diffuse_mode=False):
     """Precompute all F and Q matrices for all timesteps.
-    
+
     Args:
         γa: GW damping parameter
         γp: Pulsar damping parameters
         σa2: GW noise variance matrix
-        σp2: Pulsar noise variance parameters  
+        σp2: Pulsar noise variance parameters
         dt_array: Array of time differences
         Npsr: Number of pulsars
         M_sum: Sum of timing model dimensions
-        
+        diffuse_mode: Whether to use diffuse mode (no timing model)
+
     Returns
     -------
         tuple: (F_matrices, Q_matrices) where each is a tuple of (gw_matrices, spin_matrices)
     """
     # Use vmap to vectorize over all timesteps
-    vectorized_get_F = jax.vmap(lambda dt: get_F(γa, γp, dt, Npsr, M_sum))
-    vectorized_get_Q = jax.vmap(lambda dt: get_Q(γa, σa2, γp, σp2, dt))
-    
+    if diffuse_mode:
+        vectorized_get_F = jax.vmap(lambda dt: get_F_diffuse_vmap(γa, γp, dt, Npsr))
+        vectorized_get_Q = jax.vmap(lambda dt: get_Q_diffuse_vmap(γa, σa2, γp, σp2, dt))
+    else:
+        vectorized_get_F = jax.vmap(lambda dt: get_F(γa, γp, dt, Npsr, M_sum))
+        vectorized_get_Q = jax.vmap(lambda dt: get_Q(γa, σa2, γp, σp2, dt))
+
     F_gw_all, F_spin_all = vectorized_get_F(dt_array)
     Q_gw_all, Q_spin_all = vectorized_get_Q(dt_array)
-    
+
     return (F_gw_all, F_spin_all), (Q_gw_all, Q_spin_all)
 
 @jax.named_call
@@ -324,6 +496,80 @@ def _run_kalman_filter_scan(θ, data, data_errors, H_matrices, Npsr, M_sum,helli
     total_ll = ll0 + jnp.sum(ll_arr)
     return total_ll[0][0]
 
+@jax.named_call
+@partial(jax.jit, static_argnames=('Npsr', 'M_sum', 'dim_x','n_states','n_timing_params'))
+def _run_kalman_filter_scan_diffuse(θ, data, data_errors, H_matrices, M_matrices, Npsr, M_sum, hellings_downs_matrix, dt_array, dim_x, n_states, n_timing_params):
+    """Run the diffuse Kalman filter algorithm over all observations and return a log likelihood."""
+    σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
+
+    # Initialize for diffuse mode (no timing model block)
+    P_eps = jnp.zeros((0, 0))  # Empty for diffuse mode
+    x0, P0 = _initialize_kalman_filter(n_states, Npsr, P_eps, σa2, θ.γa, θ.σp**2, θ.γp, diffuse_mode=True)
+
+    # Debug initialization
+    jax.debug.print("Diffuse init: x0 has nans: {has_nans}", has_nans=jnp.any(jnp.isnan(x0)))
+    jax.debug.print("Diffuse init: P0 has nans: {has_nans}", has_nans=jnp.any(jnp.isnan(P0)))
+    jax.debug.print("Diffuse init: x0.shape: {shape}", shape=x0.shape)
+    jax.debug.print("Diffuse init: σa2 has nans: {has_nans}", has_nans=jnp.any(jnp.isnan(σa2)))
+
+    # Precompute the R matrix for this parameter set and these data errors
+    R_matrices = precompute_R_matrices(data_errors, θ.EFAC, θ.EQUAD)
+
+    # Precompute all F and Q matrices for all timesteps
+    dt_indices = jnp.arange(len(data)-1)
+    F_matrices, Q_matrices = _precompute_transition_matrices(
+        θ.γa, θ.γp, σa2, θ.σp**2, dt_array[dt_indices], Npsr, M_sum, diffuse_mode=True
+    )
+
+    # Initialize GLS accumulation for timing model parameters
+    # For severely under-determined systems, use a proper informative prior
+    # This is equivalent to a Gaussian prior with std deviation of 1e-2
+    prior_precision = 1e4  # Prior precision (inverse variance)
+    Rbeta_chol = jnp.sqrt(prior_precision) * jnp.eye(n_timing_params)
+    c_beta = jnp.zeros((n_timing_params, 1))  # Prior mean is zero
+
+    # First diffuse update
+    jax.debug.print("Before first update: x0 has nans: {has_nans}", has_nans=jnp.any(jnp.isnan(x0)))
+    x, P, Rbeta_chol, c_beta, y_tilde, S_tilde, ll0 = _update_diffuse_exact(
+        xp=x0, Pp=P0, H=H_matrices[0,:,:], R=R_matrices[0,:,:], z=data[0],
+        M_row=M_matrices[0,:,:], Rbeta_chol=Rbeta_chol, c_beta=c_beta
+    )
+    jax.debug.print("After first update: x has nans: {has_nans}", has_nans=jnp.any(jnp.isnan(x)))
+
+    def step(carry, inputs):
+        x, P, Rbeta_chol, c_beta = carry
+        z, R, H, M, F_gw, F_spin, Q_gw, Q_spin = inputs
+
+        # Use precomputed matrices
+        F = (F_gw, F_spin)
+        Q = (Q_gw, Q_spin)
+
+        x_predict, P_predict = _predict_diffuse(x, P, F, Q, Npsr)
+
+        x_new, P_new, Rbeta_chol_new, c_beta_new, y_tilde, S_tilde, ll = _update_diffuse_exact(
+            x_predict, P_predict, H, R, z, M, Rbeta_chol, c_beta
+        )
+        return (x_new, P_new, Rbeta_chol_new, c_beta_new), ll
+
+    # Pack inputs for scan - include precomputed matrices
+    F_gw_all, F_spin_all = F_matrices
+    Q_gw_all, Q_spin_all = Q_matrices
+
+    inputs = (data[1:],
+             R_matrices[1:],
+             H_matrices[1:],
+             M_matrices[1:],
+             F_gw_all,
+             F_spin_all,
+             Q_gw_all,
+             Q_spin_all)
+
+    # Run scan loop
+    (xf, Pf, Rbeta_chol_f, c_beta_f), ll_arr = lax.scan(step, (x, P, Rbeta_chol, c_beta), inputs)
+
+    total_ll = ll0 + jnp.sum(ll_arr)
+    return total_ll
+
 class JaxKalmanFilter:
     """A class to implement the linear Kalman filter on scalar inputs using JAX.
 
@@ -338,9 +584,10 @@ class JaxKalmanFilter:
         use_gw: If True, include GW terms in measurement equation. Default True.
     """
 
-    def __init__(self, data: dict, use_gw: bool = True):
+    def __init__(self, data: dict, use_gw: bool = True, use_diffuse: bool = False):
         """Initialize the class."""
         get_logger().info("Initializing JaxKalmanFilter...")
+        self.use_diffuse = use_diffuse
 
 
         observations = data['processed_residuals']
@@ -375,16 +622,23 @@ class JaxKalmanFilter:
         # Calculate state dimensions
         self.M = df_psr["dim_M"].values.astype(int)  # array of integers
         self.M_sum = self.M.sum()
-        # Total state dimension: for each pulsar, two state variables from spin noise,
-        # two from GW noise, and dim_M extra parameters
-        self.nx = self.Npsr * (2 + 2) + self.M_sum
+
+        if self.use_diffuse:
+            # For diffuse mode: only GW and spin states (no timing model in state)
+            self.nx = self.Npsr * (2 + 2)  # 4 * Npsr
+            self.n_timing_params = self.M_sum  # Store separately for diffuse filter
+        else:
+            # Total state dimension: for each pulsar, two state variables from spin noise,
+            # two from GW noise, and dim_M extra parameters
+            self.nx = self.Npsr * (2 + 2) + self.M_sum
 
         # Store correlation and design matrices
         self.hd_correlation_matrix = hd_correlation_matrix
         self.pulsar_design_matrices = pulsar_design_matrices
-        
-        # Calculate timing parameter start indices
-        self.M_start_indices = np.cumsum([0] + [m for m in self.M]) + 4 * self.Npsr
+
+        if not self.use_diffuse:
+            # Calculate timing parameter start indices (only needed for non-diffuse mode)
+            self.M_start_indices = np.cumsum([0] + [m for m in self.M]) + 4 * self.Npsr
 
         # Store pulsar frequencies
         self.f0 = df_psr["F0"].values
@@ -396,8 +650,15 @@ class JaxKalmanFilter:
         get_logger().info(f"The errors at t=1 are: {self.data_errors[0,:]}")
 
         # Precompute the observation matrices
-        self.Hmat = precompute_H_matrix(self.Npsr, self.nx, self.M_start_indices, 
-                                      self.pulsar_design_matrices, self.use_gw, self.f0)
+        if self.use_diffuse:
+            # For diffuse mode: H matrices without timing model columns, M matrices separate
+            num_time_steps = len(self.data)
+            self.Hmat = precompute_H_matrix_diffuse(self.Npsr, self.use_gw, self.f0, num_time_steps)
+            self.Mmat = precompute_M_matrices(self.Npsr, self.pulsar_design_matrices, num_time_steps)
+        else:
+            # Standard mode: full H matrices including timing model
+            self.Hmat = precompute_H_matrix(self.Npsr, self.nx, self.M_start_indices,
+                                          self.pulsar_design_matrices, self.use_gw, self.f0)
 
         # Convert to JAX arrays for faster processing
         self._prepare_jax_arrays()
@@ -416,6 +677,10 @@ class JaxKalmanFilter:
         # Convert H matrices
         self.jax_H_matrices = jnp.array(self.Hmat)
 
+        # Convert M matrices if in diffuse mode
+        if self.use_diffuse:
+            self.jax_M_matrices = jnp.array(self.Mmat)
+
         # Convert hellings downs matrix
         self.hellings_downs_matrix = jnp.array(self.hd_correlation_matrix)
 
@@ -427,6 +692,9 @@ class JaxKalmanFilter:
             ('jax_H_matrices', self.jax_H_matrices),
             ('hellings_downs_matrix', self.hellings_downs_matrix)
         ]
+
+        if self.use_diffuse:
+            float_arrays.append(('jax_M_matrices', self.jax_M_matrices))
         
         for name, arr in float_arrays:
             if arr.dtype != jnp.float64:
@@ -435,19 +703,35 @@ class JaxKalmanFilter:
 
     def get_likelihood(self, θ):
         """Run the Kalman filter algorithm over all observations and return a log likelihood."""
-        return _run_kalman_filter_scan(
-            θ=θ,
-            data=self.jax_data,
-            data_errors=self.jax_data_errors,
-            H_matrices=self.jax_H_matrices,
-            Npsr=self.Npsr,
-            M_sum=self.M_sum,
-            hellings_downs_matrix=self.hellings_downs_matrix,
-            dt_array=self.jax_t_diffs,
-            dim_x=2*self.Npsr,
-            n_states=self.nx,
-            P_eps=self.P_eps
-        ) 
+        if self.use_diffuse:
+            return _run_kalman_filter_scan_diffuse(
+                θ=θ,
+                data=self.jax_data,
+                data_errors=self.jax_data_errors,
+                H_matrices=self.jax_H_matrices,
+                M_matrices=self.jax_M_matrices,
+                Npsr=self.Npsr,
+                M_sum=self.M_sum,
+                hellings_downs_matrix=self.hellings_downs_matrix,
+                dt_array=self.jax_t_diffs,
+                dim_x=2*self.Npsr,  # Restore original for standard filter compatibility
+                n_states=self.nx,
+                n_timing_params=self.n_timing_params
+            )
+        else:
+            return _run_kalman_filter_scan(
+                θ=θ,
+                data=self.jax_data,
+                data_errors=self.jax_data_errors,
+                H_matrices=self.jax_H_matrices,
+                Npsr=self.Npsr,
+                M_sum=self.M_sum,
+                hellings_downs_matrix=self.hellings_downs_matrix,
+                dt_array=self.jax_t_diffs,
+                dim_x=2*self.Npsr,
+                n_states=self.nx,
+                P_eps=self.P_eps
+            ) 
 
     def F_matrix(self, dt: float, γa: float, γp: float) -> tuple[np.ndarray, np.ndarray]:
         """Return the state–transition matrix for time step dt.
