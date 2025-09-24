@@ -12,7 +12,7 @@ Argus uses a sophisticated parameterization scheme that combines hierarchical mo
 
 ## Hierarchical Modeling for γp (Spectral Index)
 
-When `hierarchical_noise = true` is set in the configuration, Argus applies hierarchical modeling to the spectral index parameter log₁₀(γp).
+Argus always applies hierarchical modeling to the spectral index parameter log₁₀(γp) to improve sampling efficiency.
 
 ### Mathematical Formulation
 
@@ -37,10 +37,7 @@ where:
 ### Configuration Parameters
 
 ```ini
-# Hierarchical modeling for gamma_p
-hierarchical_noise = true
-
-# Hyperprior ranges for hierarchical modeling of gamma_p
+# Hyperprior ranges for hierarchical modeling of gamma_p (always enabled)
 log10_gamma_p_mean_min = -9.0
 log10_gamma_p_mean_max = -7.0
 log10_gamma_p_std_min = 0.1
@@ -49,7 +46,7 @@ log10_gamma_p_std_max = 1.0
 
 ## Log-Ratio Parameterization for σp (Amplitude)
 
-Argus uses log-ratio parameterization for the red noise amplitude, controlled by `log_ratio_parameterization = true`.
+Argus always uses log-ratio parameterization for the red noise amplitude to improve sampling efficiency and capture parameter correlations.
 
 ### Mathematical Formulation
 
@@ -80,8 +77,7 @@ This parameterization is motivated by astrophysical considerations:
 ### Configuration Parameters
 
 ```ini
-# Log-ratio parameterization for sigma_p
-log_ratio_parameterization = true
+# Hyperprior ranges for log-ratio parameterization (always enabled)
 # log10(σp) = log10(γp) + log10(ratio)
 log10_ratio_mean_min = -8.0
 log10_ratio_mean_max = -4.0
@@ -89,24 +85,17 @@ log10_ratio_std_min = 0.5
 log10_ratio_std_max = 3.0
 ```
 
-## Alternative Parameterizations
+## Fixed Parameter Override
 
-### Independent Uniform Priors
+### Injection-Based Parameter Fixing
 
-When `hierarchical_noise = false` and `log_ratio_parameterization = false`, Argus falls back to independent uniform priors for each pulsar:
+When spin injection files are provided, Argus can fix pulsar red noise parameters to specific values instead of sampling them. This is typically used for:
 
-```ini
-# Independent uniform priors
-log10_gamma_p_min = -11.0
-log10_gamma_p_max = -6.0
-log10_sigma_p_min = -20.0
-log10_sigma_p_max = -12.0
-```
+- Testing with known injected signals
+- Validation studies with predetermined parameter values
+- Development and debugging scenarios
 
-This approach:
-- Treats each pulsar independently
-- Uses uniform priors for both γp and σp
-- Is simpler but potentially less efficient for large datasets
+The hierarchical modeling is automatically disabled for parameters that are explicitly fixed via injection files.
 
 ## Implementation Details
 
@@ -125,27 +114,25 @@ The effective number of parameters depends on the parameterization:
 - **Hierarchical γp + log-ratio σp**: 4 hyperparameters + 2×n_pulsars individual parameters
 - **Independent priors**: 2×n_pulsars parameters
 
-## Recommended Usage
+## Configuration
 
-For most scientific analyses, the recommended configuration is:
+The hierarchical modeling and log-ratio parameterization are always enabled. Configure the hyperprior ranges:
 
 ```ini
-# Enable hierarchical modeling for gamma_p
-hierarchical_noise = true
+# Hyperprior ranges for hierarchical modeling of gamma_p
 log10_gamma_p_mean_min = -9.0
 log10_gamma_p_mean_max = -7.0
 log10_gamma_p_std_min = 0.1
 log10_gamma_p_std_max = 1.0
 
-# Enable log-ratio parameterization for sigma_p
-log_ratio_parameterization = true
+# Hyperprior ranges for log-ratio parameterization of sigma_p
 log10_ratio_mean_min = -8.0
 log10_ratio_mean_max = -4.0
 log10_ratio_std_min = 0.5
 log10_ratio_std_max = 3.0
 ```
 
-This combination provides:
+This approach provides:
 - Efficient sampling for large pulsar arrays
 - Physically motivated parameter correlations
 - Population-level inference capabilities
