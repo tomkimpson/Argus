@@ -30,6 +30,7 @@ __pycache__
 .cache
 .ropeproject
 *.pkl
+!test/data/spin_injections.pkl
 
 # Virtual env stuff
 venv
