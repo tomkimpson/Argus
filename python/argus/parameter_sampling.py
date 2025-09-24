@@ -172,41 +172,48 @@ def sample_log_ratio_parameters(hierarchical_specs, log10_γp, n_pulsars):
 
 
 def sample_pulsar_noise_parameters(prior_specs, n_pulsars):
-    """Sample pulsar red noise parameters from their priors.
-    
+    """Sample pulsar red noise parameters using hierarchical modeling.
+
+    Always uses hierarchical modeling for gamma_p and log-ratio parameterization
+    for sigma_p unless parameters are explicitly fixed via injection.
+
     Parameters
     ----------
     prior_specs : dict
         Prior distributions dictionary
     n_pulsars : int
         Number of pulsars
-        
+
     Returns
     -------
     tuple
         (log10_γp, log10_σp) values
     """
     hierarchical_specs = prior_specs.get('hierarchical_specs')
-    
-    # Handle log10_gamma_p
-    if hierarchical_specs and hierarchical_specs.get('hierarchical_noise', False):
-        log10_γp = sample_hierarchical_gamma_parameters(hierarchical_specs, n_pulsars)
-    elif isinstance(prior_specs['log10_gamma_p_spec'], tfpd.Distribution):
+
+    # Handle log10_gamma_p - either hierarchical or fixed
+    if isinstance(prior_specs['log10_gamma_p_spec'], tfpd.Distribution):
+        # Fallback for backwards compatibility - shouldn't occur in new setup
         log10_γp = sample_reparameterized_parameters(
             prior_specs['log10_gamma_p_spec'], "log10_γp", n_pulsars)
-    else:
-        # Fixed value
+    elif prior_specs['log10_gamma_p_spec'] is not None:
+        # Fixed value (from injections)
         log10_γp = numpyro.deterministic("log10_γp", prior_specs['log10_gamma_p_spec'])
+    else:
+        # Always use hierarchical modeling
+        log10_γp = sample_hierarchical_gamma_parameters(hierarchical_specs, n_pulsars)
 
-    # Handle log10_sigma_p
-    if hierarchical_specs and hierarchical_specs.get('log_ratio_parameterization', False):
-        log10_σp = sample_log_ratio_parameters(hierarchical_specs, log10_γp, n_pulsars)
-    elif isinstance(prior_specs['log10_sigma_p_spec'], tfpd.Distribution):
+    # Handle log10_sigma_p - either log-ratio or fixed
+    if isinstance(prior_specs['log10_sigma_p_spec'], tfpd.Distribution):
+        # Fallback for backwards compatibility - shouldn't occur in new setup
         log10_σp = sample_reparameterized_parameters(
             prior_specs['log10_sigma_p_spec'], "log10_σp", n_pulsars)
-    else:
-        # Fixed value
+    elif prior_specs['log10_sigma_p_spec'] is not None:
+        # Fixed value (from injections)
         log10_σp = numpyro.deterministic("log10_σp", prior_specs['log10_sigma_p_spec'])
+    else:
+        # Always use log-ratio parameterization
+        log10_σp = sample_log_ratio_parameters(hierarchical_specs, log10_γp, n_pulsars)
 
     return log10_γp, log10_σp
 
@@ -296,21 +303,26 @@ def count_free_parameters(prior_specs, n_pulsars):
     if isinstance(prior_specs['log10_gamma_a_spec'], tfpd.Distribution):
         count += 1
 
-    # Pulsar red noise parameters
+    # Pulsar red noise parameters - always hierarchical unless fixed
     hierarchical_specs = prior_specs.get('hierarchical_specs')
-    if hierarchical_specs and hierarchical_specs.get('hierarchical_noise', False):
+
+    # Count gamma_p parameters
+    if isinstance(prior_specs['log10_gamma_p_spec'], tfpd.Distribution):
+        count += n_pulsars  # Fallback: one per pulsar
+    elif prior_specs['log10_gamma_p_spec'] is None:
         # Hierarchical modeling: 2 hyperparameters + n_pulsars individual parameters
         count += 2  # log10_gamma_p_mean and log10_gamma_p_std
         count += n_pulsars  # Individual pulsar gamma parameters
-    elif isinstance(prior_specs['log10_gamma_p_spec'], tfpd.Distribution):
-        count += n_pulsars  # One per pulsar
+    # If fixed, no parameters to count
 
-    if hierarchical_specs and hierarchical_specs.get('log_ratio_parameterization', False):
+    # Count sigma_p parameters
+    if isinstance(prior_specs['log10_sigma_p_spec'], tfpd.Distribution):
+        count += n_pulsars  # Fallback: one per pulsar
+    elif prior_specs['log10_sigma_p_spec'] is None:
         # Log-ratio parameterization: 2 hyperparameters + n_pulsars ratio parameters
         count += 2  # log10_ratio_mean and log10_ratio_std
         count += n_pulsars  # Individual pulsar ratio parameters (σp derived deterministically)
-    elif isinstance(prior_specs['log10_sigma_p_spec'], tfpd.Distribution):
-        count += n_pulsars  # One per pulsar
+    # If fixed, no parameters to count
 
     # Measurement noise parameters
     if isinstance(prior_specs['efac_spec'], tfpd.Distribution):
