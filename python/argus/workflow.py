@@ -1,9 +1,8 @@
 """Workflow orchestration and high-level functions for the argus package."""
 
 
-from argus import data_loader, jax_kalman_filter, bayesian_inference, utils
+from argus import data_loader, jax_kalman_filter, bayesian_inference, utils,prior_models,nuts_inference
 from argus import io_manager
-
 
 
 
@@ -27,6 +26,8 @@ def setup_data_and_kalman_filter(config, logger, use_gw):
         excluded_psrs=[psr.strip() for psr in excluded_psrs if psr.strip()],
     )
     
+    print("THE FOLLOWIUNG IS THE PULSAR IS EXCLUDED PSRS")
+    print(excluded_psrs)
     logger.info("Initializing Kalman filter...")
     KF = jax_kalman_filter.JaxKalmanFilter(data=pulsar_data, use_gw=use_gw)
     
@@ -72,7 +73,7 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     
     # Get prior model specifications and display them
     n_pulsars = len(pulsar_data['metadata'])
-    prior_specs = bayesian_inference.get_prior_model_specs(
+    prior_specs = prior_models.get_prior_model_specs(
         config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array
     )
     
@@ -81,11 +82,11 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     
     # Test likelihood performance with known parameters
     logger.info("Performing likelihood performance test...")
-    bayesian_inference.test_likelihood_performance(KF, config, logger)
+    nuts_inference.test_likelihood_performance(KF, config, logger)
     
     # Run NumPyro NUTS inference
     logger.info("Running NUMPYRO inference...")
-    results = bayesian_inference.run_nuts_sampling(
+    results = nuts_inference.run_nuts_sampling(
         KF, config, len(pulsar_data['metadata']), 
         sigma_p_array, gamma_p_array, efac_array, equad_array
     )
