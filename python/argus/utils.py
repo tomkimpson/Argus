@@ -39,7 +39,6 @@ def load_config(config_path):
     config.read(config_path)
     return config
 
-
 def resolve_config_paths(config, config_path):
     """Resolve relative paths in configuration relative to config file location.
     
@@ -78,7 +77,6 @@ def resolve_config_paths(config, config_path):
                 
     return config
 
-
 def get_noise_parameters(config):
     """Get injected noise parameters from configuration and data files.
     
@@ -96,7 +94,6 @@ def get_noise_parameters(config):
     sigma_p_array, gamma_p_array = get_psr_noise_injections(spin_injections_path, excluded_psrs)
     
     return efac_array, equad_array, sigma_p_array, gamma_p_array
-
 
 def setup_logging(output_dir, config):
     """Set up logging configuration.
@@ -208,11 +205,6 @@ def get_psr_noise_injections(spin_injections_path, excluded_psrs=[]):
     
     return jnp.array(sigma_p_injected), jnp.array(gamma_p_injected) 
 
-
-
-
-
-
 def corner_plot(results, output_dir=None):
     """Create a corner plot for log10_ha parameter from inference results.
     
@@ -305,9 +297,6 @@ def corner_plot(results, output_dir=None):
     else:
         plt.show()
         return None
-
-
-
 
 def diagnostics(fname, output_dir=None):
     """Run MCMC diagnostics on NumPyro results.

@@ -1,7 +1,7 @@
 """Workflow orchestration and high-level functions for the argus package."""
 
 
-from argus import data_loader, jax_kalman_filter, bayesian_inference, utils,prior_models,nuts_inference
+from argus import data_loader, jax_kalman_filter, bayesian_inference, utils, prior_models
 from argus import io_manager
 
 
@@ -82,12 +82,12 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     
     # Test likelihood performance with known parameters
     logger.info("Performing likelihood performance test...")
-    nuts_inference.test_likelihood_performance(KF, config, logger)
+    bayesian_inference.test_likelihood_performance(KF, config, logger)
     
     # Run NumPyro NUTS inference
     logger.info("Running NUMPYRO inference...")
-    results = nuts_inference.run_nuts_sampling(
-        KF, config, len(pulsar_data['metadata']), 
+    results = bayesian_inference.run_nuts_sampling(
+        KF, config, len(pulsar_data['metadata']),
         sigma_p_array, gamma_p_array, efac_array, equad_array
     )
     

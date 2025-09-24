@@ -10,59 +10,6 @@ import tensorflow_probability.substrates.jax as tfp
 
 tfpd = tfp.distributions
 
-
-def create_hierarchical_priors(config, hierarchical_noise, log_ratio_parameterization):
-    """Create hierarchical modeling prior distributions if needed.
-    
-    Parameters
-    ----------
-    config : ConfigParser
-        Configuration object
-    hierarchical_noise : bool
-        Whether to use hierarchical noise modeling
-    log_ratio_parameterization : bool
-        Whether to use log-ratio parameterization
-        
-    Returns
-    -------
-    dict or None
-        Hierarchical prior distributions dictionary or None if not needed
-    """
-    if not (hierarchical_noise or log_ratio_parameterization):
-        return None
-        
-    hierarchical_specs = {
-        'hierarchical_noise': hierarchical_noise,
-        'log_ratio_parameterization': log_ratio_parameterization
-    }
-    
-    if hierarchical_noise:
-        hierarchical_specs.update({
-            'log10_gamma_p_mean_spec': tfpd.Uniform(
-                config.getfloat('PriorModel', 'log10_gamma_p_mean_min'),
-                config.getfloat('PriorModel', 'log10_gamma_p_mean_max')
-            ),
-            'log10_gamma_p_std_spec': tfpd.Uniform(
-                config.getfloat('PriorModel', 'log10_gamma_p_std_min'),
-                config.getfloat('PriorModel', 'log10_gamma_p_std_max')
-            )
-        })
-    
-    if log_ratio_parameterization:
-        hierarchical_specs.update({
-            'log10_ratio_mean_spec': tfpd.Uniform(
-                config.getfloat('PriorModel', 'log10_ratio_mean_min'),
-                config.getfloat('PriorModel', 'log10_ratio_mean_max')
-            ),
-            'log10_ratio_std_spec': tfpd.Uniform(
-                config.getfloat('PriorModel', 'log10_ratio_std_min'),
-                config.getfloat('PriorModel', 'log10_ratio_std_max')
-            )
-        })
-    
-    return hierarchical_specs
-
-
 def get_gw_parameter_priors(config):
     """Extract gravitational wave parameter prior distributions from config.
     
@@ -117,7 +64,6 @@ def get_gw_parameter_priors(config):
         'log10_gamma_a_spec': log10_gamma_a_spec
     }
 
-
 def get_pulsar_noise_priors(config, n_pulsars, sigma_p_array, gamma_p_array):
     """Extract pulsar red noise parameter prior distributions from config.
     
@@ -153,10 +99,8 @@ def get_pulsar_noise_priors(config, n_pulsars, sigma_p_array, gamma_p_array):
         log10_sigma_p_fixed = False
         print("No spin_injections_path provided, sampling red noise parameters from priors")
     
-    # Check for hierarchical modeling and log-ratio parameterization
-    hierarchical_noise = config.getboolean('PriorModel', 'hierarchical_noise', fallback=False)
-    log_ratio_parameterization = config.getboolean('PriorModel', 'log_ratio_parameterization', fallback=False)
-    hierarchical_specs = create_hierarchical_priors(config, hierarchical_noise, log_ratio_parameterization)
+    # Always use hierarchical modeling and log-ratio parameterization
+    hierarchical_specs = create_hierarchical_priors(config)
     
     # Handle gamma_p specification
     if log10_gamma_p_fixed:
@@ -176,14 +120,8 @@ def get_pulsar_noise_priors(config, n_pulsars, sigma_p_array, gamma_p_array):
             # Use injected values (legacy approach)
             log10_gamma_p_spec = jnp.log10(gamma_p_array)
             print("Using injected gamma_p values (legacy mode)")
-    elif hierarchical_noise:
-        log10_gamma_p_spec = None  # Will be handled hierarchically
     else:
-        # Free gamma_p with uniform prior
-        log10_gamma_p_spec = tfpd.Uniform(
-            low=jnp.full(n_pulsars, config.getfloat('PriorModel', 'log10_gamma_p_min')),
-            high=jnp.full(n_pulsars, config.getfloat('PriorModel', 'log10_gamma_p_max'))
-        )
+        log10_gamma_p_spec = None  # Will be handled hierarchically
     
     # Handle sigma_p specification  
     if log10_sigma_p_fixed:
@@ -203,21 +141,14 @@ def get_pulsar_noise_priors(config, n_pulsars, sigma_p_array, gamma_p_array):
             # Use injected values (legacy approach)
             log10_sigma_p_spec = jnp.log10(sigma_p_array)
             print("Using injected sigma_p values (legacy mode)")
-    elif log_ratio_parameterization:
-        log10_sigma_p_spec = None  # Will be derived from log-ratio
     else:
-        # Free sigma_p with uniform prior
-        log10_sigma_p_spec = tfpd.Uniform(
-            low=jnp.full(n_pulsars, config.getfloat('PriorModel', 'log10_sigma_p_min')),
-            high=jnp.full(n_pulsars, config.getfloat('PriorModel', 'log10_sigma_p_max'))
-        )
+        log10_sigma_p_spec = None  # Will be derived from log-ratio
 
     return {
         'log10_gamma_p_spec': log10_gamma_p_spec,
         'log10_sigma_p_spec': log10_sigma_p_spec,
         'hierarchical_specs': hierarchical_specs
     }
-
 
 def get_measurement_noise_priors(config, efac_array, equad_array):
     """Extract measurement noise parameter prior distributions from config.
@@ -270,7 +201,45 @@ def get_measurement_noise_priors(config, efac_array, equad_array):
         'equad_spec': equad_spec
     }
 
+def create_hierarchical_priors(config):
+    """Create hierarchical modeling prior distributions.
 
+    Always creates hierarchical priors for both gamma_p and sigma_p (via log-ratio)
+    parameterization to improve MCMC sampling efficiency.
+
+    Parameters
+    ----------
+    config : ConfigParser
+        Configuration object containing hyperprior ranges
+
+    Returns
+    -------
+    dict
+        Hierarchical prior distributions dictionary
+    """
+    hierarchical_specs = {
+        'hierarchical_noise': True,
+        'log_ratio_parameterization': True,
+        'log10_gamma_p_mean_spec': tfpd.Uniform(
+            config.getfloat('PriorModel', 'log10_gamma_p_mean_min'),
+            config.getfloat('PriorModel', 'log10_gamma_p_mean_max')
+        ),
+        'log10_gamma_p_std_spec': tfpd.Uniform(
+            config.getfloat('PriorModel', 'log10_gamma_p_std_min'),
+            config.getfloat('PriorModel', 'log10_gamma_p_std_max')
+        ),
+        'log10_ratio_mean_spec': tfpd.Uniform(
+            config.getfloat('PriorModel', 'log10_ratio_mean_min'),
+            config.getfloat('PriorModel', 'log10_ratio_mean_max')
+        ),
+        'log10_ratio_std_spec': tfpd.Uniform(
+            config.getfloat('PriorModel', 'log10_ratio_std_min'),
+            config.getfloat('PriorModel', 'log10_ratio_std_max')
+        )
+    }
+    
+    return hierarchical_specs
+    
 def get_prior_model_specs(config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array):
     """Create prior model distributions based on config settings.
     
