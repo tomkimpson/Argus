@@ -1,6 +1,5 @@
 #Jax stuff
 import jax
-jax.config.update("jax_enable_x64", True)
 import jax.numpy as jnp
 from jax.scipy.linalg import block_diag
 
@@ -26,6 +25,10 @@ import glob
 
 import json 
 import pandas as pd
+
+# Configure JAX after all imports
+jax.config.update("jax_enable_x64", True)
+
 def _get_efac_equad_injections():
 
     # Load the noise parameters from the json file
