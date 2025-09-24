@@ -16,7 +16,6 @@ from . import (
     io_manager,
     jax_kalman_filter,
     model,
-    nuts_inference,
     parameter_sampling,
     prior_models,
     utils,
@@ -29,13 +28,12 @@ from .utils import get_noise_parameters
 __all__ = [
     # Main modules
     "bayesian_inference",
-    "cli", 
+    "cli",
     "data_loader",
     "gravitational_waves",
     "io_manager",
     "jax_kalman_filter",
-    "model", 
-    "nuts_inference",
+    "model",
     "parameter_sampling",
     "prior_models",
     "utils",
