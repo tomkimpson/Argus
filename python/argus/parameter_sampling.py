@@ -15,44 +15,44 @@ tfpd = tfp.distributions
 
 def sample_gw_parameters(prior_specs):
     """Sample gravitational wave parameters from their priors.
-    
+
     Parameters
     ----------
     prior_specs : dict
         Prior distributions dictionary
-        
+
     Returns
     -------
     tuple
         (log10_ha, log10_gamma_a, γa) values
     """
-    # Handle reparameterization for log10_ha if needed
+    # Handle log10_ha: either fixed value or reparameterized sampling
     if prior_specs['log10_ha_transform_params'] is not None:
-        # Sample log10_ha_prime ~ N(0,1) and transform to log10_ha
+        # Sample log10_ha_prime ~ N(0,1) and transform to log10_ha for efficient NUTS sampling
         transform_params = prior_specs['log10_ha_transform_params']
         log10_ha_prime = numpyro.sample("log10_ha_prime", dist.Normal(0.0, 1.0))
-        log10_ha = numpyro.deterministic("log10_ha", 
+        log10_ha = numpyro.deterministic("log10_ha",
             transform_params['mean'] + log10_ha_prime * transform_params['std'])
-    elif isinstance(prior_specs['log10_ha_spec'], tfpd.Distribution):
-        # Check if it's a uniform distribution (backward compatibility)
-        if hasattr(prior_specs['log10_ha_spec'], 'low'):
-            log10_ha = numpyro.sample("log10_ha", 
-                dist.Uniform(prior_specs['log10_ha_spec'].low, prior_specs['log10_ha_spec'].high))
-        else:
-            # Other distribution types
-            raise NotImplementedError(f"Distribution type {type(prior_specs['log10_ha_spec'])} not implemented")
+    else:
+        # Fixed value (delta prior)
+        log10_ha = numpyro.deterministic("log10_ha", prior_specs['log10_ha_spec'])
+
+    # Handle log10_gamma_a: either fixed value or reparameterized sampling
+    if isinstance(prior_specs['log10_gamma_a_spec'], tfpd.Distribution):
+        # Use reparameterization for efficient NUTS sampling
+        low = prior_specs['log10_gamma_a_spec'].low
+        high = prior_specs['log10_gamma_a_spec'].high
+        mean = (low + high) / 2.0
+        std = (high - low) / 6.0  # 3-sigma rule
+
+        log10_gamma_a_prime = numpyro.sample("log10_gamma_a_prime", dist.Normal(0.0, 1.0))
+        log10_gamma_a = numpyro.deterministic("log10_gamma_a", mean + log10_gamma_a_prime * std)
+        γa = numpyro.deterministic("γa", 10.0 ** log10_gamma_a)
     else:
         # Fixed value
-        log10_ha = numpyro.deterministic("log10_ha", prior_specs['log10_ha_spec'])
-    
-    if isinstance(prior_specs['log10_gamma_a_spec'], tfpd.Distribution):
-        log10_gamma_a = numpyro.sample("log10_gamma_a", 
-            dist.Uniform(prior_specs['log10_gamma_a_spec'].low, prior_specs['log10_gamma_a_spec'].high))
-        γa = numpyro.deterministic("γa", 10.0 ** log10_gamma_a)
-    else:
         log10_gamma_a = numpyro.deterministic("log10_gamma_a", prior_specs['log10_gamma_a_spec'])
         γa = numpyro.deterministic("γa", 10.0 ** log10_gamma_a)
-    
+
     return log10_ha, log10_gamma_a, γa
 
 
@@ -96,9 +96,9 @@ def sample_hierarchical_gamma_parameters(hierarchical_specs, n_pulsars):
     return log10_γp
 
 
-def sample_uniform_parameters(prior_spec, param_name, n_pulsars):
-    """Sample parameters from uniform distribution with improved parameterization.
-    
+def sample_reparameterized_parameters(prior_spec, param_name, n_pulsars):
+    """Sample parameters using reparameterization for efficient NUTS sampling.
+
     Parameters
     ----------
     prior_spec : tfpd.Distribution
@@ -107,24 +107,22 @@ def sample_uniform_parameters(prior_spec, param_name, n_pulsars):
         Name of the parameter for sampling
     n_pulsars : int
         Number of pulsars
-        
+
     Returns
     -------
     jax.Array
         Sampled parameter values
     """
-    # Use improved standardized parameterization with gradient balancing
+    # Reparameterize uniform distribution using Normal(0,1) + affine transformation
     low = prior_spec.low
     high = prior_spec.high
-    
     mean = (low + high) / 2.0
     std = (high - low) / 6.0  # 3-sigma rule
-    
-    param_standardized = numpyro.sample(f"{param_name}_standardized", 
+
+    param_standardized = numpyro.sample(f"{param_name}_standardized",
         dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars) / jnp.sqrt(n_pulsars)))
-    param_values = numpyro.deterministic(param_name, 
-        mean + param_standardized * std)
-    
+    param_values = numpyro.deterministic(param_name, mean + param_standardized * std)
+
     return param_values
 
 
@@ -194,18 +192,20 @@ def sample_pulsar_noise_parameters(prior_specs, n_pulsars):
     if hierarchical_specs and hierarchical_specs.get('hierarchical_noise', False):
         log10_γp = sample_hierarchical_gamma_parameters(hierarchical_specs, n_pulsars)
     elif isinstance(prior_specs['log10_gamma_p_spec'], tfpd.Distribution):
-        log10_γp = sample_uniform_parameters(
+        log10_γp = sample_reparameterized_parameters(
             prior_specs['log10_gamma_p_spec'], "log10_γp", n_pulsars)
     else:
+        # Fixed value
         log10_γp = numpyro.deterministic("log10_γp", prior_specs['log10_gamma_p_spec'])
-    
-    # Handle log10_sigma_p - always use log-ratio parameterization when hierarchical_specs exist
+
+    # Handle log10_sigma_p
     if hierarchical_specs and hierarchical_specs.get('log_ratio_parameterization', False):
         log10_σp = sample_log_ratio_parameters(hierarchical_specs, log10_γp, n_pulsars)
     elif isinstance(prior_specs['log10_sigma_p_spec'], tfpd.Distribution):
-        log10_σp = sample_uniform_parameters(
+        log10_σp = sample_reparameterized_parameters(
             prior_specs['log10_sigma_p_spec'], "log10_σp", n_pulsars)
     else:
+        # Fixed value
         log10_σp = numpyro.deterministic("log10_σp", prior_specs['log10_sigma_p_spec'])
 
     return log10_γp, log10_σp
@@ -213,91 +213,89 @@ def sample_pulsar_noise_parameters(prior_specs, n_pulsars):
 
 def sample_measurement_noise_parameters(prior_specs, n_pulsars):
     """Sample measurement noise parameters from their priors.
-    
+
     Parameters
     ----------
     prior_specs : dict
         Prior distributions dictionary
     n_pulsars : int
         Number of pulsars
-        
+
     Returns
     -------
     tuple
         (efac, equad) values
     """
+    # Handle EFAC: either fixed value or reparameterized sampling
     if isinstance(prior_specs['efac_spec'], tfpd.Distribution):
-        # Use improved standardized parameterization: sample z ~ N(0,1) and transform
+        # Use reparameterization for efficient NUTS sampling
         low = prior_specs['efac_spec'].low
         high = prior_specs['efac_spec'].high
-        
-        # Improved parameterization: center around expected value with tighter scaling
-        # Use 3-sigma rule instead of uniform standard deviation for better convergence
         mean = (low + high) / 2.0
-        std = (high - low) / 6.0  # 3-sigma rule: 99.7% of samples within range
-        
-        efac_standardized = numpyro.sample("efac_standardized", 
+        std = (high - low) / 6.0  # 3-sigma rule
+
+        efac_standardized = numpyro.sample("efac_standardized",
                                           dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars)))
-        efac = numpyro.deterministic("efac", 
-                                    mean + efac_standardized * std)
+        efac = numpyro.deterministic("efac", mean + efac_standardized * std)
     else:
+        # Fixed value
         efac = numpyro.deterministic("efac", prior_specs['efac_spec'])
-    
+
+    # Handle EQUAD: either fixed value or reparameterized sampling
     if isinstance(prior_specs['equad_spec'], dict) and prior_specs['equad_spec'].get('use_log10', False):
-        # log10(EQUAD) parameterization - follow same pattern as log10_gamma_a
+        # log10(EQUAD) parameterization with reparameterization
         log10_equad_spec = prior_specs['equad_spec']['log10_equad_spec']
-        log10_equad = numpyro.sample("log10_equad", 
-            dist.Uniform(log10_equad_spec.low, log10_equad_spec.high))
+        low = log10_equad_spec.low
+        high = log10_equad_spec.high
+        mean = (low + high) / 2.0
+        std = (high - low) / 6.0  # 3-sigma rule
+
+        log10_equad_prime = numpyro.sample("log10_equad_prime",
+                                          dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars)))
+        log10_equad = numpyro.deterministic("log10_equad", mean + log10_equad_prime * std)
         equad = numpyro.deterministic("equad", 10.0 ** log10_equad)
     elif isinstance(prior_specs['equad_spec'], tfpd.Distribution):
-        # Regular uniform distribution - use improved standardized parameterization
+        # Regular distribution with reparameterization
         low = prior_specs['equad_spec'].low
         high = prior_specs['equad_spec'].high
-        
-        # Improved parameterization: center around expected value with tighter scaling
-        # Use 3-sigma rule instead of uniform standard deviation for better convergence
         mean = (low + high) / 2.0
-        std = (high - low) / 6.0  # 3-sigma rule: 99.7% of samples within range
-        
-        equad_standardized = numpyro.sample("equad_standardized", 
+        std = (high - low) / 6.0  # 3-sigma rule
+
+        equad_standardized = numpyro.sample("equad_standardized",
                                            dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars)))
-        equad = numpyro.deterministic("equad", 
-                                     mean + equad_standardized * std)
+        equad = numpyro.deterministic("equad", mean + equad_standardized * std)
     else:
+        # Fixed value
         equad = numpyro.deterministic("equad", prior_specs['equad_spec'])
-    
+
     return efac, equad
 
 
 def count_free_parameters(prior_specs, n_pulsars):
     """Count the total number of free (non-fixed) parameters for NUTS sampling.
-    
+
     Parameters
     ----------
     prior_specs : dict
         Prior distributions dictionary
     n_pulsars : int
         Number of pulsars
-        
+
     Returns
     -------
     int
         Total number of free parameters
     """
-    import tensorflow_probability.substrates.jax as tfp
-    tfpd = tfp.distributions
-    
     count = 0
-    
-    # GW amplitude parameter
-    if (prior_specs['log10_ha_transform_params'] is not None or 
-        isinstance(prior_specs['log10_ha_spec'], tfpd.Distribution)):
+
+    # GW amplitude parameter - free if reparameterization is used
+    if prior_specs['log10_ha_transform_params'] is not None:
         count += 1
-    
-    # GW spectral index parameter  
+
+    # GW spectral index parameter - free if it's a distribution (not fixed)
     if isinstance(prior_specs['log10_gamma_a_spec'], tfpd.Distribution):
         count += 1
-    
+
     # Pulsar red noise parameters
     hierarchical_specs = prior_specs.get('hierarchical_specs')
     if hierarchical_specs and hierarchical_specs.get('hierarchical_noise', False):
@@ -306,18 +304,22 @@ def count_free_parameters(prior_specs, n_pulsars):
         count += n_pulsars  # Individual pulsar gamma parameters
     elif isinstance(prior_specs['log10_gamma_p_spec'], tfpd.Distribution):
         count += n_pulsars  # One per pulsar
-    
+
     if hierarchical_specs and hierarchical_specs.get('log_ratio_parameterization', False):
         # Log-ratio parameterization: 2 hyperparameters + n_pulsars ratio parameters
         count += 2  # log10_ratio_mean and log10_ratio_std
         count += n_pulsars  # Individual pulsar ratio parameters (σp derived deterministically)
     elif isinstance(prior_specs['log10_sigma_p_spec'], tfpd.Distribution):
         count += n_pulsars  # One per pulsar
-    
+
     # Measurement noise parameters
     if isinstance(prior_specs['efac_spec'], tfpd.Distribution):
         count += n_pulsars  # One per pulsar
-    if isinstance(prior_specs['equad_spec'], tfpd.Distribution):
-        count += n_pulsars  # One per pulsar
-    
+
+    # Handle EQUAD - can be either regular distribution or log10 parameterization
+    if isinstance(prior_specs['equad_spec'], dict) and prior_specs['equad_spec'].get('use_log10', False):
+        count += n_pulsars  # log10(EQUAD) parameters
+    elif isinstance(prior_specs['equad_spec'], tfpd.Distribution):
+        count += n_pulsars  # Regular EQUAD parameters
+
     return count

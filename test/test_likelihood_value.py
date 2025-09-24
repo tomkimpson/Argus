@@ -14,7 +14,7 @@ from argus.utils import get_efac_equad_injections, get_psr_noise_injections
 
 def test_likelihood_value():
     """
-    Tests the likelihood evaluation is correct. The "correct" value is inserted by hand to ensure consistency between edits
+    Tests the likelihood evaluation is correct. The "correct" value is inserted by hand to ensure consistency between edits during development.
     """
     # Initialize logger for testing (without file logging)
     class MockConfig:
