@@ -67,12 +67,14 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     
     # Setup data and Kalman filter
     pulsar_data, KF = setup_data_and_kalman_filter(config, logger, use_gw)
-    
-    # Get noise parameters
-    efac_array, equad_array, sigma_p_array, gamma_p_array = utils.get_noise_parameters(config)
-    
-    # Get prior model specifications and display them
+
+    # Get number of pulsars for noise parameter defaults
     n_pulsars = len(pulsar_data['metadata'])
+
+    # Get noise parameters
+    efac_array, equad_array, sigma_p_array, gamma_p_array = utils.get_noise_parameters(config, n_pulsars)
+
+    # Get prior model specifications and display them
     prior_specs = bayesian_inference.get_prior_model_specs(
         config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array
     )
@@ -82,7 +84,7 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     
     # Test likelihood performance with known parameters
     logger.info("Performing likelihood performance test...")
-    bayesian_inference.test_likelihood_performance(KF, config, logger)
+    bayesian_inference.test_likelihood_performance(KF, config, logger, efac_array, equad_array, sigma_p_array, gamma_p_array)
     
     # Run NumPyro NUTS inference
     logger.info("Running NUMPYRO inference...")

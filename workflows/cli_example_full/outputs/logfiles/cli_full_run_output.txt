@@ -1,7 +1,7 @@
 === Argus CLI Full Inference Workflow Started ===
-Job ID: 4816960
-Node: gina15
-Start time: Tue Sep 23 11:33:42 AEST 2025
+Job ID: 4831446
+Node: gina301
+Start time: Tue Sep 23 18:50:05 AEST 2025
 
 === Environment Information ===
 Python version: Python 3.12.8
@@ -15,10 +15,10 @@ Configuration file: configs/cli_config.ini
 
 /fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/enterprise/signals/utils.py:13: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import Requirement, resource_filename
-2025-09-23 11:39:51,613 - INFO - Logging to file: /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/example_workflow/outputs/20250923_113951/logfiles/inference_output_20250923_113951.txt
-2025-09-23 11:39:51,618 - INFO - Centralized logging initialized
-2025-09-23 11:39:51,635 - INFO - Copied config file to /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/example_workflow/outputs/20250923_113951/cli_config.ini
-2025-09-23 11:39:51,635 - INFO - Loading and processing data...
+2025-09-23 18:56:31,581 - INFO - Logging to file: /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/example_workflow/outputs/20250923_185631/logfiles/inference_output_20250923_185631.txt
+2025-09-23 18:56:31,582 - INFO - Centralized logging initialized
+2025-09-23 18:56:31,605 - INFO - Copied config file to /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/example_workflow/outputs/20250923_185631/cli_config.ini
+2025-09-23 18:56:31,606 - INFO - Loading and processing data...
 [tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
 [preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
@@ -126,5 +126,156 @@ See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a
 [preProcess.C:158] Warning: PSR J2317+1439 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
 
-2025-09-23 11:40:06,943 - INFO - Initializing Kalman filter...
-2025-09-23 11:40:06,943 - INFO - Initializing JaxKalmanFilter...
+2025-09-23 18:56:48,812 - INFO - Initializing Kalman filter...
+2025-09-23 18:56:48,812 - INFO - Initializing JaxKalmanFilter...
+2025-09-23 18:56:52,214 - INFO - Number of pulsars: 32
+2025-09-23 18:56:52,214 - INFO - Pulsar frequencies: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
+  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
+  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
+  67.37658113 317.37893707 216.37333714 218.81184042 123.11028715
+ 245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
+ 192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
+ 335.8162082  290.25460366]
+2025-09-23 18:56:52,214 - INFO - Total number of observations: 183
+2025-09-23 18:56:52,214 - INFO - Starting dt (days): 29.875630165338517
+2025-09-23 18:56:52,214 - INFO - Ending dt (days): 30.060462559770656
+2025-09-23 18:56:52,215 - INFO - The errors at t=1 are: [2.697680e-06 9.700560e-06 1.613116e-05 3.307200e-07 4.558820e-06
+ 2.141629e-05 5.225050e-06 4.722880e-06 4.797490e-06 5.783810e-06
+ 2.626620e-06 5.090810e-06 6.527710e-06 1.173289e-05 8.300700e-07
+ 3.826940e-06 2.880370e-06 2.054900e-06 1.612610e-06 3.759770e-06
+ 1.103370e-06 2.220800e-06 4.024300e-07 5.434910e-06 1.372800e-07
+ 7.031630e-06 4.653570e-06 5.474680e-06 3.388130e-06 4.303360e-06
+ 1.993229e-05 2.291670e-06]
+2025-09-23 18:56:52,368 - INFO - 
+============================================================
+2025-09-23 18:56:52,369 - INFO - PRIOR SPECIFICATIONS SUMMARY
+2025-09-23 18:56:52,369 - INFO - ============================================================
+2025-09-23 18:56:52,369 - INFO - 
+--- Gravitational Wave Background Parameters ---
+2025-09-23 18:56:52,369 - INFO - log10(h_a): REPARAMETERIZED for better NUTS sampling
+2025-09-23 18:56:52,369 - INFO -   - Sampling: log10_ha_prime ~ N(0, 1)
+2025-09-23 18:56:52,369 - INFO -   - Transform: log10_ha = -16.00 + log10_ha_prime * 0.667
+2025-09-23 18:56:52,369 - INFO -   - Equivalent to: Uniform(-18.0, -14.0)
+2025-09-23 18:56:52,445 - INFO - log10(γ_a): Uniform(-10.0, -8.0)
+2025-09-23 18:56:52,445 - INFO - 
+--- Pulsar Red Noise Parameters (32 pulsars) ---
+2025-09-23 18:56:52,445 - INFO - log10(γ_p): HIERARCHICAL modeling
+2025-09-23 18:56:52,445 - INFO -   - Population mean: Uniform(-9.0, -7.0)
+2025-09-23 18:56:52,446 - INFO -   - Population std: Uniform(0.1, 1.0)
+2025-09-23 18:56:52,446 - INFO -   - Individual pulsars: Normal(population_mean, population_std)
+2025-09-23 18:56:52,446 - INFO - log10(σ_p): LOG-RATIO parameterization
+2025-09-23 18:56:52,446 - INFO -   - log10(σ_p) = log10(γ_p) + log10(ratio)
+2025-09-23 18:56:52,446 - INFO -   - Ratio mean: Uniform(-8.0, -4.0)
+2025-09-23 18:56:52,446 - INFO -   - Ratio std: Uniform(0.5, 3.0)
+2025-09-23 18:56:52,446 - INFO -   - Individual ratios: Normal(ratio_mean, ratio_std)
+2025-09-23 18:56:52,446 - INFO - 
+--- Measurement Noise Parameters (32 pulsars) ---
+2025-09-23 18:56:52,502 - INFO - EFAC: Uniform(0.10, 3.00) for each pulsar
+2025-09-23 18:56:52,525 - INFO - EQUAD: log10(EQUAD) ~ Uniform(-9.0, -5.0) for each pulsar
+2025-09-23 18:56:52,526 - INFO - ============================================================
+2025-09-23 18:56:52,526 - INFO - Performing likelihood performance test...
+2025-09-23 18:56:52,526 - INFO - === Likelihood Performance Test ===
+2025-09-23 18:56:52,526 - INFO - Testing likelihood evaluation with known parameter values...
+2025-09-23 18:56:52,641 - INFO - Test parameters: γa=1e-09, ha=1e-15
+2025-09-23 18:56:52,641 - INFO - Number of pulsars: 32
+2025-09-23 18:56:52,641 - INFO - Performing for the first time a likelihood evaluation...
+2025-09-23 18:57:03,964 - INFO - Performing timed for the second time a likelihood evaluation...
+2025-09-23 18:57:04,041 - INFO - Likelihood evaluation completed in 11.3223 seconds the first time
+2025-09-23 18:57:04,042 - INFO - Likelihood evaluation completed in 0.0776 seconds the second time
+2025-09-23 18:57:04,042 - INFO - Log likelihood value: 33909.80303413758
+2025-09-23 18:57:04,042 - INFO - === End Likelihood Performance Test ===
+2025-09-23 18:57:04,042 - INFO - Running NUMPYRO inference...
+=== ARGUS VERSION INFO ===
+Argus version: 0.0.0-dev
+JAX version: 0.4.38
+Default device: gpu
+
+Starting Bayesian inference with config: configs/cli_config.ini
+Starting Bayesian inference with GW model...
+Getting the data. Loading 32 pulsars from /fred/oz022/tkimpson/tmp/argus_dev/Argus/data/IPTA_MockDataChallenge2/dataset_2b/
+PSR: J0030+0451, F0: 205.53069593846152, # TOAs: 183
+PSR: J0034-0534, F0: 532.7134293952242, # TOAs: 183
+PSR: J0218+4232, F0: 430.46105454575843, # TOAs: 183
+PSR: J0437-4715, F0: 173.6879457375193, # TOAs: 183
+PSR: J0613-0200, F0: 326.60056202349193, # TOAs: 183
+PSR: J0621+1002, F0: 34.65740662142043, # TOAs: 183
+PSR: J0711-6830, F0: 182.1172346472276, # TOAs: 183
+PSR: J0751+1807, F0: 287.4578539950941, # TOAs: 183
+PSR: J0900-3144, F0: 90.0118419193632, # TOAs: 183
+PSR: J1012+5307, F0: 190.26783444155498, # TOAs: 183
+PSR: J1022+1001, F0: 60.779447956696714, # TOAs: 183
+PSR: J1024-0719, F0: 193.71568344854623, # TOAs: 183
+PSR: J1045-4509, F0: 133.79314954119278, # TOAs: 183
+PSR: J1455-3330, F0: 125.20024324499536, # TOAs: 183
+PSR: J1600-3053, F0: 277.9377069896204, # TOAs: 183
+PSR: J1603-7202, F0: 67.37658112877924, # TOAs: 183
+PSR: J1614-2230, F0: 317.37893706872126, # TOAs: 183
+PSR: J1643-1224, F0: 216.37333714263485, # TOAs: 183
+PSR: J1713+0747, F0: 218.81184041715784, # TOAs: 183
+PSR: J1730-2304, F0: 123.1102871473812, # TOAs: 183
+PSR: J1744-1134, F0: 245.42611968980754, # TOAs: 183
+PSR: J1857+0943, F0: 186.4940783779791, # TOAs: 183
+PSR: J1909-3744, F0: 339.31568721848686, # TOAs: 183
+PSR: J1918-0642, F0: 130.78951412337267, # TOAs: 183
+PSR: J1939+2134, F0: 641.9282245822469, # TOAs: 183
+PSR: J1944+0907, F0: 192.85651792018598, # TOAs: 183
+PSR: J2010-1323, F0: 191.45090909263828, # TOAs: 183
+PSR: J2124-3358, F0: 202.7938937460303, # TOAs: 183
+PSR: J2129-5721, F0: 268.3592272938787, # TOAs: 183
+PSR: J2145-0750, F0: 62.29588783738885, # TOAs: 183
+PSR: J2229+2643, F0: 335.81620819685526, # TOAs: 183
+PSR: J2317+1439, F0: 290.2546036648635, # TOAs: 183
+Getting prior model specs...
+No spin_injections_path provided, sampling red noise parameters from priors
+No noise_params_path provided, sampling EFAC/EQUAD from priors
+Getting prior model specs...
+No spin_injections_path provided, sampling red noise parameters from priors
+No noise_params_path provided, sampling EFAC/EQUAD from priors
+Running NumPyro NUTS inference...
+NUTS parameters: 2000 samples, 1000 warmup, 4 chains
+Target accept prob: 0.85 (optimized for high-dimensional sampling)
+Dense mass matrix: True
+Max tree depth: 10
+Total free parameters: 102
+Advanced modeling enabled for pulsar noise parameters
+γp hierarchical + σp via log-ratio parameterization
+Effective dimensionality: 4 hyperparameters + 0 constrained parameters
+σp = γp + ratio (reduces parameter correlations)
+High-dimensional parameter space detected - using aggressive NUTS tuning
+  0%|          | 0/3000 [00:00<?, ?it/s]Compiling.. :   0%|          | 0/3000 [00:00<?, ?it/s]
+  0%|          | 0/3000 [00:00<?, ?it/s][A
+Compiling.. :   0%|          | 0/3000 [00:00<?, ?it/s][A
+
+  0%|          | 0/3000 [00:00<?, ?it/s][A[A
+
+Compiling.. :   0%|          | 0/3000 [00:00<?, ?it/s][A[A
+
+
+  0%|          | 0/3000 [00:00<?, ?it/s][A[A[A
+
+
+Compiling.. :   0%|          | 0/3000 [00:00<?, ?it/s][A[A[ARunning chain 0:   0%|          | 0/3000 [00:18<?, ?it/s]
+Running chain 1:   0%|          | 0/3000 [00:18<?, ?it/s][A
+
+Running chain 2:   0%|          | 0/3000 [00:18<?, ?it/s][A[A
+
+
+Running chain 3:   0%|          | 0/3000 [00:18<?, ?it/s][A[A[A
+Running chain 1:   5%|▌         | 150/3000 [3:11:11<60:26:43, 76.35s/it][A
+
+Running chain 2:   5%|▌         | 150/3000 [3:14:21<61:27:01, 77.62s/it][A[A
+
+
+Running chain 3:   5%|▌         | 150/3000 [3:19:51<63:11:29, 79.82s/it][A[A[ARunning chain 0:   5%|▌         | 150/3000 [3:24:16<64:35:20, 81.59s/it]
+Running chain 1:  10%|█         | 300/3000 [10:42:08<103:09:30, 137.54s/it][A
+
+Running chain 2:  10%|█         | 300/3000 [10:43:40<103:15:37, 137.68s/it][A[A
+
+
+Running chain 3:  10%|█         | 300/3000 [10:55:03<104:58:39, 139.97s/it][A[A[ARunning chain 0:  10%|█         | 300/3000 [10:58:22<105:19:51, 140.44s/it]
+Running chain 1:  15%|█▌        | 450/3000 [18:16:20<111:42:12, 157.70s/it][A
+
+Running chain 2:  15%|█▌        | 450/3000 [18:24:15<112:34:54, 158.94s/it][A[ARunning chain 0:  15%|█▌        | 450/3000 [18:36:19<113:18:09, 159.96s/it]
+
+
+Running chain 3:  15%|█▌        | 450/3000 [18:36:49<113:36:57, 160.40s/it][A[A[A

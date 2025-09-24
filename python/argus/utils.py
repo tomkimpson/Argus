@@ -80,22 +80,38 @@ def resolve_config_paths(config, config_path):
     return config
 
 
-def get_noise_parameters(config):
+def get_noise_parameters(config, n_pulsars=None):
     """Get injected noise parameters from configuration and data files.
-    
+
     Args:
         config: Configuration object
-    
+        n_pulsars: Number of pulsars (used for default arrays when files not provided)
+
     Returns
     -------
         tuple: (efac_array, equad_array, sigma_p_array, gamma_p_array)
     """
-    noise_params_path = config.get('PriorModel', 'noise_params_path')
-    spin_injections_path = config.get('PriorModel', 'spin_injections_path')
+    # Use fallback for optional paths - these may be commented out when doing inference
+    try:
+        noise_params_path = config.get('PriorModel', 'noise_params_path')
+        # Check if path is empty string or just whitespace
+        if not noise_params_path.strip():
+            noise_params_path = None
+    except:
+        noise_params_path = None
+
+    try:
+        spin_injections_path = config.get('PriorModel', 'spin_injections_path')
+        # Check if path is empty string or just whitespace
+        if not spin_injections_path.strip():
+            spin_injections_path = None
+    except:
+        spin_injections_path = None
+
     excluded_psrs = config.get('Data', 'excluded_psrs').split(',')
-    efac_array, equad_array = get_efac_equad_injections(noise_params_path, excluded_psrs)
-    sigma_p_array, gamma_p_array = get_psr_noise_injections(spin_injections_path, excluded_psrs)
-    
+    efac_array, equad_array = get_efac_equad_injections(noise_params_path, excluded_psrs, n_pulsars)
+    sigma_p_array, gamma_p_array = get_psr_noise_injections(spin_injections_path, excluded_psrs, n_pulsars)
+
     return efac_array, equad_array, sigma_p_array, gamma_p_array
 
 
@@ -153,60 +169,86 @@ def check_gpu_availability():
         logging.error(f"Error checking for JAX GPU devices: {e}")
         return False
 
-def get_efac_equad_injections(noise_params_path, excluded_psrs=[]):
+def get_efac_equad_injections(noise_params_path, excluded_psrs=[], n_pulsars=None):
     """Load EFAC and EQUAD values from noise parameters file.
-    
+
     Parameters
     ----------
-    noise_params_path : str
-        Path to the noise parameters JSON file
+    noise_params_path : str or None
+        Path to the noise parameters JSON file, or None if not provided
     excluded_psrs : list of str, optional
         List of pulsar names to exclude from the analysis.
         Default is an empty list.
-    
+    n_pulsars : int, optional
+        Number of pulsars for default arrays when noise_params_path is None
+
     Returns
     -------
     tuple
         Two JAX arrays containing EFAC and EQUAD values for the included pulsars.
+        Returns default arrays with sensible values if noise_params_path is None.
     """
+    if noise_params_path is None:
+        # Return default arrays when no noise parameters file is provided
+        # Use sensible defaults: EFAC=1.0, EQUAD=1e-7 (in seconds)
+        if n_pulsars is None:
+            return jnp.array([]), jnp.array([])
+        efac_default = jnp.ones(n_pulsars)  # EFAC = 1.0 (no scaling)
+        equad_default = jnp.full(n_pulsars, 1e-7)  # EQUAD = 100 ns
+        return efac_default, equad_default
+
     with open(noise_params_path, "r") as f:
         noise_params = json.load(f)
-    
+
     efac_values = []
     equad_values = []
-    
+
     for psr in noise_params:
         if not any(excluded_psr in psr for excluded_psr in excluded_psrs):
             efac_values.append(noise_params[psr]["efac"])
             equad_values.append(10**noise_params[psr]["equad"])
-    
+
     return jnp.array(efac_values), jnp.array(equad_values)
 
-def get_psr_noise_injections(spin_injections_path, excluded_psrs=[]):
+def get_psr_noise_injections(spin_injections_path, excluded_psrs=[], n_pulsars=None):
     """Load pulsar noise parameters from pickle file.
-    
+
     Parameters
     ----------
-    spin_injections_path : str
-        Path to the spin injections pickle file
+    spin_injections_path : str or None
+        Path to the spin injections pickle file, or None if not provided
     excluded_psrs : list of str, optional
         List of pulsar names to exclude from the analysis.
         Default is an empty list.
-    
+    n_pulsars : int, optional
+        Number of pulsars for default arrays when spin_injections_path is None
+
     Returns
     -------
     tuple
         Two JAX arrays containing sigma_p and gamma_p values for the included pulsars.
+        Returns default arrays with sensible values if spin_injections_path is None.
     """
+    if spin_injections_path is None:
+        # Return default arrays when no spin injections file is provided
+        # Use sensible defaults from typical PTA analysis ranges
+        if n_pulsars is None:
+            return jnp.array([]), jnp.array([])
+        # gamma_p ~ 1e-8 to 1e-7 (typical red noise spectral index range)
+        gamma_p_default = jnp.full(n_pulsars, 1e-8)
+        # sigma_p ~ 1e-15 to 1e-13 (typical red noise amplitude range)
+        sigma_p_default = jnp.full(n_pulsars, 1e-14)
+        return sigma_p_default, gamma_p_default
+
     df = pd.read_pickle(spin_injections_path)
-    
+
     # Create a mask for pulsars to exclude
     exclude_mask = df['psr'].apply(lambda x: not any(excluded_psr in x for excluded_psr in excluded_psrs))
     df_filtered = df[exclude_mask]
-    
+
     sigma_p_injected = df_filtered['optimal_sigma'].values
     gamma_p_injected = df_filtered['optimal_gamma'].values
-    
+
     return jnp.array(sigma_p_injected), jnp.array(gamma_p_injected) 
 
 

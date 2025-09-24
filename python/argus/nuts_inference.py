@@ -273,13 +273,13 @@ def run_nuts_sampling(kalman_filter, config, n_pulsars, sigma_p_array, gamma_p_a
     return inf_data
 
 
-def test_likelihood_performance(kalman_filter, config, logger):
+def test_likelihood_performance(kalman_filter, config, logger, efac_array=None, equad_array=None, sigma_p_array=None, gamma_p_array=None):
     """Test likelihood evaluation performance using known parameter values.
-    
+
     This function runs a single likelihood evaluation using the same parameter
     values as in test_likelihood_value to provide users with timing and
     likelihood value information before running the full inference.
-    
+
     Parameters
     ----------
     kalman_filter : object
@@ -288,20 +288,31 @@ def test_likelihood_performance(kalman_filter, config, logger):
         Configuration object
     logger : logging.Logger
         Logger object
-        
+    efac_array : array, optional
+        Pre-computed EFAC array. If None, will compute from config.
+    equad_array : array, optional
+        Pre-computed EQUAD array. If None, will compute from config.
+    sigma_p_array : array, optional
+        Pre-computed sigma_p array. If None, will compute from config.
+    gamma_p_array : array, optional
+        Pre-computed gamma_p array. If None, will compute from config.
+
     Returns
     -------
     float
         The computed log likelihood value
     """
     from .bayesian_inference import Parameters  # Import here to avoid circular imports
-    from argus.utils import get_noise_parameters
-    
+
     logger.info("=== Likelihood Performance Test ===")
     logger.info("Testing likelihood evaluation with known parameter values...")
-    
-    # Get noise parameters using the common function
-    efac_array, equad_array, sigma_p_array, gamma_p_array = get_noise_parameters(config)
+
+    # Use provided arrays or get noise parameters from config
+    if efac_array is None or equad_array is None or sigma_p_array is None or gamma_p_array is None:
+        from argus.utils import get_noise_parameters
+        # Get number of pulsars from Kalman filter
+        n_pulsars = kalman_filter.Npsr
+        efac_array, equad_array, sigma_p_array, gamma_p_array = get_noise_parameters(config, n_pulsars)
     
     # Set test parameter values
     γa_test = 1e-9 
