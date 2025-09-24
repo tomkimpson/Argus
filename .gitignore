@@ -31,6 +31,7 @@ __pycache__
 .ropeproject
 *.pkl
 !test/data/spin_injections.pkl
+!test/data/processed_pulsar_data.pkl
 
 # Virtual env stuff
 venv

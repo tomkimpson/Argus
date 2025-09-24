@@ -2,6 +2,7 @@
 
 import os
 import pytest
+import pickle
 import jax.numpy as jnp
 
 from argus import data_loader
@@ -23,18 +24,18 @@ def test_likelihood_value():
     config = MockConfig()
     io_manager.setup_single_logger(config, enable_file_logging=False)
 
-    # Get the data directory path relative to test file location
+    # Get the preprocessed data file path
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    directory = os.path.join(script_dir, "../data/IPTA_MockDataChallenge2/dataset_2b/")
+    preprocessed_data_path = os.path.join(script_dir, "data/processed_pulsar_data.pkl")
 
-    # Skip test if data directory doesn't exist
-    if not os.path.exists(directory):
-        pytest.skip(f"Data directory not found: {directory}")
+    # Skip test if preprocessed data doesn't exist
+    if not os.path.exists(preprocessed_data_path):
+        pytest.skip(f"Preprocessed pulsar data not found: {preprocessed_data_path}. "
+                   f"Run 'python test/get_pulsar_data_for_testing.py' to generate it.")
 
-    # Get the data
-    pulsar_data = data_loader.LoadWidebandPulsarData.get_processed_residuals(
-        directory, excluded_psrs=['J1640+2224']
-    )
+    # Load the preprocessed pulsar data
+    with open(preprocessed_data_path, 'rb') as f:
+        pulsar_data = pickle.load(f)
 
     # Get noise parameters from test data directory
     noise_params_path = os.path.join(script_dir, "data/noise_parameters.json")
