@@ -10,7 +10,6 @@ __author__ = "Tom Kimpson, J.Hu"
 # Import main modules
 from . import (
     bayesian_inference,
-    cli,
     data_loader,
     gravitational_waves,
     io_manager,
@@ -28,7 +27,6 @@ from .utils import get_noise_parameters
 __all__ = [
     # Main modules
     "bayesian_inference",
-    "cli",
     "data_loader",
     "gravitational_waves",
     "io_manager",
