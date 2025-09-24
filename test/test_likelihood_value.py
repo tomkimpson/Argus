@@ -7,6 +7,7 @@ import jax.numpy as jnp
 from argus import data_loader
 from argus import jax_kalman_filter as jk
 from argus import bayesian_inference
+from argus import io_manager
 from argus.utils import get_efac_equad_injections, get_psr_noise_injections
 
 
@@ -14,6 +15,14 @@ def test_likelihood_value():
     """
     Tests the likelihood evaluation is correct. The "correct" value is inserted by hand to ensure consistency between edits
     """
+    # Initialize logger for testing (without file logging)
+    class MockConfig:
+        def get(self, section, key, fallback=None):
+            return fallback
+
+    config = MockConfig()
+    io_manager.setup_single_logger(config, enable_file_logging=False)
+
     # Get the data directory path relative to test file location
     script_dir = os.path.dirname(os.path.abspath(__file__))
     directory = os.path.join(script_dir, "../data/IPTA_MockDataChallenge2/dataset_2b/")
@@ -27,9 +36,9 @@ def test_likelihood_value():
         directory, excluded_psrs=['J1640+2224']
     )
 
-    # Get noise parameters - using dummy paths for now, may need to be adjusted
-    noise_params_path = os.path.join(script_dir, "../data/noise_parameters.json")
-    spin_injections_path = os.path.join(script_dir, "../data/spin_injections.pkl")
+    # Get noise parameters from test data directory
+    noise_params_path = os.path.join(script_dir, "data/noise_parameters.json")
+    spin_injections_path = os.path.join(script_dir, "data/spin_injections.pkl")
 
     # Skip if noise parameter files don't exist
     if not os.path.exists(noise_params_path) or not os.path.exists(spin_injections_path):
@@ -66,6 +75,8 @@ def test_likelihood_value():
 
     # Calculate likelihood
     log_likelihood = KF.get_likelihood(params)
+
+    print("the computed log likelihood is:", log_likelihood)
 
     # Assert expected value - using a placeholder value that should be updated
     # based on actual test runs with the specific dataset
