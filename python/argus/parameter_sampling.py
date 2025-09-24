@@ -304,7 +304,7 @@ def count_free_parameters(prior_specs, n_pulsars):
         count += 1
 
     # Pulsar red noise parameters - always hierarchical unless fixed
-    hierarchical_specs = prior_specs.get('hierarchical_specs')
+    prior_specs.get('hierarchical_specs')
 
     # Count gamma_p parameters
     if isinstance(prior_specs['log10_gamma_p_spec'], tfpd.Distribution):
