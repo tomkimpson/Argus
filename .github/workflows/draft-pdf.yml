@@ -7,17 +7,30 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-      - name: Build draft PDF
-        uses: openjournals/openjournals-draft-action@master
+
+      - name: Setup Pandoc
+        uses: r-lib/actions/setup-pandoc@v2
         with:
-          journal: joss
-          # This should be the path to the paper within your repo.
-          paper-path: docs/joss/paper.md
+          pandoc-version: 'latest'
+
+      - name: Install LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y texlive-latex-base texlive-fonts-recommended texlive-fonts-extra texlive-latex-extra
+
+      - name: Build draft PDF
+        run: |
+          cd docs/joss
+          pandoc paper.md \
+            --from markdown \
+            --to pdf \
+            --output paper.pdf \
+            --pdf-engine=pdflatex \
+            --template=https://raw.githubusercontent.com/openjournals/joss-papers/master/joss-template.latex \
+            --citeproc
+
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: paper
-          # This is the output path where Pandoc will write the compiled
-          # PDF. Note, this should be the same directory as the input
-          # paper.md
           path: docs/joss/paper.pdf

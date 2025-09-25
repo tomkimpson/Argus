@@ -28,8 +28,6 @@ homepage = "https://github.com/tomkimpson/Argus"
 documentation = "https://tomkimpson.github.io/Argus/"
 repository = "https://github.com/tomkimpson/Argus"
 
-[project.scripts]
-argus = "argus.cli:main"
 
 [tool.poetry]
 packages = [
