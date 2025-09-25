@@ -255,4 +255,5 @@ This mathematical framework provides the foundation for efficient Kalman filteri
 3. **Separating physical processes** into distinct, manageable blocks
 4. **Leveraging sparsity** in measurement matrices for efficient updates
 
-For implementation details and code examples, see the [API reference](api/index.md) and [examples](examples/index.md).
+*Developer notes: Nice to have API reference documentation*
+For implementation details and code examples, see the [examples](examples/index.md).

@@ -5,23 +5,27 @@ Interactive notebooks for hands-on exploration of Argus functionality.
 ## Available Notebooks
 
 ### Data Exploration
-- [`01.explore_how_minnow_works.ipynb`](../../../notebooks/01.explore_how_minnow_works.ipynb) - Understanding the Minnow framework
-- [`02.run_on_mock_data_challenge.ipynb`](../../../notebooks/02.run_on_mock_data_challenge.ipynb) - IPTA mock data analysis
-- [`02e.loading_mock_data_with_argus.ipynb`](../../../notebooks/02e.loading_mock_data_with_argus.ipynb) - Data loading with Argus
+*Developer notes: Nice to have interactive notebooks for data exploration and framework understanding*
+- Understanding the Minnow framework
+- IPTA mock data analysis
+- Data loading with Argus
 
 ### Parameter Estimation
-- [`09.estimate_psr_noise_params.ipynb`](../../../notebooks/09.estimate_psr_noise_params.ipynb) - Pulsar noise characterization
-- [`10.estimate_timing_ephemeris_params.ipynb`](../../../notebooks/10.estimate_timing_ephemeris_params.ipynb) - Timing model parameters
-- [`11.inspect_parameter_estimation_results.ipynb`](../../../notebooks/11.inspect_parameter_estimation_results.ipynb) - Result analysis
+*Developer notes: Nice to have notebooks demonstrating parameter estimation workflows*
+- Pulsar noise characterization
+- Timing model parameters
+- Result analysis
 
 ### Analysis Methods
-- [`07.explore_inference_convergence.ipynb`](../../../notebooks/07.explore_inference_convergence.ipynb) - Convergence diagnostics
-- [`08.explore_different_likelihood_values.ipynb`](../../../notebooks/08.explore_different_likelihood_values.ipynb) - Likelihood evaluation
-- [`12.plot_likelihood_curves.ipynb`](../../../notebooks/12.plot_likelihood_curves.ipynb) - Visualization techniques
+*Developer notes: Nice to have notebooks showing analysis and diagnostic techniques*
+- Convergence diagnostics
+- Likelihood evaluation
+- Visualization techniques
 
 ### Signal Processing
-- [`05.PSD_for_OU_process.ipynb`](../../../notebooks/05.PSD_for_OU_process.ipynb) - Ornstein-Uhlenbeck processes
-- [`06.PSD_for_OU_GW_process.ipynb`](../../../notebooks/06.PSD_for_OU_GW_process.ipynb) - Gravitational wave PSDs
+*Developer notes: Nice to have notebooks exploring signal processing methods*
+- Ornstein-Uhlenbeck processes
+- Gravitational wave PSDs
 
 ## Running the Notebooks
 
