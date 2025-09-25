@@ -6,21 +6,25 @@ This section contains practical examples and tutorials for using Argus in pulsar
 
 ### 🚀 Getting Started
 - [Basic Parameter Estimation](basic_parameter_estimation.md) - Your first PTA analysis
-- [Loading Data](loading_data.md) - Working with different data formats
+*Developer notes: Nice to have examples for different data formats and loading methods*
+- Working with different data formats
 
-### 🔬 Advanced Analysis  
-- [Multi-parameter Estimation](multi_parameter_estimation.md) - Complex parameter inference
-- [Custom Noise Models](custom_noise_models.md) - Building specialized noise models
-- [Gravitational Wave Detection](gw_detection.md) - Detecting and characterizing GW signals
+### 🔬 Advanced Analysis
+*Developer notes: Nice to have advanced analysis examples*
+- Complex parameter inference
+- Building specialized noise models
+- Detecting and characterizing GW signals
 
 ### 📊 Data Processing
-- [NANOGrav Analysis](nanograv_analysis.md) - Working with NANOGrav 15-year data
-- [Mock Data Challenges](mock_data_challenges.md) - IPTA mock data challenge analysis
-- [Custom Datasets](custom_datasets.md) - Preparing your own data
+*Developer notes: Nice to have data processing examples for different datasets*
+- Working with NANOGrav 15-year data
+- IPTA mock data challenge analysis
+- Preparing your own data
 
 ### ⚡ Performance
-- [High-Performance Computing](hpc_usage.md) - Running on clusters and GPUs
-- [Optimization Tips](optimization.md) - Making your analysis faster
+*Developer notes: Nice to have performance optimization guides*
+- Running on clusters and GPUs
+- Making your analysis faster
 
 !!! info "Example Data"
     Example datasets are available in the repository under `data/` directory. These include:

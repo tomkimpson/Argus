@@ -164,9 +164,10 @@ print("Number of divergences:", results.sample_stats.diverging.sum())
 ## Next Steps
 
 - Learn more about [Advanced Bayesian Methods](../bayesian_methods.md) for detailed explanations
-- Try [multi-parameter estimation](multi_parameter_estimation.md) for more complex models
+*Developer notes: Nice to have additional example tutorials*
+- Multi-parameter estimation for more complex models
 - Explore [Mathematical Background](../mathematical_background.md) for theoretical foundations
-- See [gravitational wave detection](gw_detection.md) techniques
+- Gravitational wave detection techniques
 
 !!! tip "Performance Guidelines"
     - **Small PTAs (≤5 pulsars)**: 2000-4000 samples usually sufficient
