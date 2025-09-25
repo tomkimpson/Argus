@@ -13,7 +13,11 @@ nav:
     - 🤝 Contributing: contributing.md
   - User Guide:
     - 🔬 State Space Methods: state_space.md
+    - ⚡ State Space Advantages: state_space_advantages.md
     - 🧮 Kalman Filter Mathematics: kalman_mathematics.md
+    - 🎯 Advanced Bayesian Methods: bayesian_methods.md
+    - 📐 Mathematical Background: mathematical_background.md
+    - 🔧 Red Noise Parameterization: red_noise_parameterization.md
     - 📊 Examples: examples/index.md
   - 📖 API Reference: api/index.md
   - Developer Guide:
