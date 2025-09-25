@@ -20,10 +20,11 @@ jobs:
 
       - name: Build draft PDF
         run: |
-          pandoc docs/joss/paper.md \
+          cd docs/joss
+          pandoc paper.md \
             --from markdown \
             --to pdf \
-            --output docs/joss/paper.pdf \
+            --output paper.pdf \
             --pdf-engine=pdflatex \
             --template=https://raw.githubusercontent.com/openjournals/joss-papers/master/joss-template.latex \
             --citeproc
