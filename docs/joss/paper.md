@@ -1,5 +1,5 @@
 ---
-title: 'Argus: A JAX-based Python package for gravitational wave detection in pulsar timing arrays using state-space filtering methods'
+title: 'Argus: JAX state-space filtering for gravitational wave detection in pulsar timing arrays'
 tags:
   - Python
   - astronomy
@@ -35,21 +35,37 @@ bibliography: paper.bib
 # Summary
 
 
-`Argus` is a high-performance Python package for detecting and characterizing gravitational waves in pulsar timing array (PTA) data. The package provides a complete Bayesian inference framework based on state-space models, using Kalman filtering for efficient likelihood evaluation.
+`Argus` is a high-performance Python package for detecting and characterizing gravitational waves in pulsar timing array (PTA) data. The package provides a complete Bayesian inference framework based on state-space models, using Kalman filtering for efficient likelihood evaluation. `Argus` leverages the JAX library [@jax2018github] for just-in-time (JIT) compilation, GPU acceleration, and end-to-end automatic differentiation, facilitating rapid Bayesian inference with gradient-based samplers. The state-space approach provides a computationally efficient alternative to traditional frequency-domain methods, offering linear scaling with observations, and natural handling of non-stationary processes in the complex, high-dimensional datasets characteristic of modern PTA experiments.
 
-`Argus` leverages the JAX library [@jax2018github] for just-in-time (JIT) compilation, vectorization, parallelization, GPU/TPU acceleration, and end-to-end automatic differentiation of the entire filtering and likelihood pipeline. This enables efficient gradient-based samplers such as the No-U-Turn Sampler (NUTS), facilitating robust analysis of the complex, high-dimensional datasets characteristic of modern PTA experiments.
 
 
 # Statement of Need
 
-Pulsar timing arrays (PTAs) monitor the precise arrival times of radio pulses from millisecond pulsars distributed across the sky, enabling the detection of nanohertz gravitational waves. The recent discovery of a nanohertz stochastic gravitational-wave background by PTA collaborations [@nanograv2023pta] [@EPTA] [@ParkesPPTA2023] represents a landmark achievement in gravitational wave astronomy. However, the detection and characterization of gravitational wave signals in PTA data presents significant computational challenges due to complex inter-pulsar correlations, stochastic signal characteristics, and high-dimensional parameter spaces in Bayesian inference.
 
-Traditional PTA analysis methods rely primarily on frequency-domain techniques that measure spatial cross-correlation patterns, particularly the Hellings-Downs correlation [@hellings1983gravitational]. These approaches work by estimating power spectral densities (PSDs) of various noise processes under assumptions of stationarity and Gaussianity. While successful, these methods often struggle with the computational demands of high-dimensional Bayesian inference and face limitations when modeling non-stationary processes or when the underlying statistical assumptions are violated.
-
-State-space methods provide a novel and powerful complementary framework for PTA analysis. Instead of operating in the frequency domain with PSDs, they model the temporal evolution of hidden states (such as pulsar spin fluctuations and gravitational wave effects) using Kalman filtering [@kalman1960new] for recursive state estimation. This approach enables the explicit incorporation of physical knowledge about how different processes evolve over time—for example, how gravitational wave signals change amplitude and phase, or how pulsar spin noise behaves—directly into the model structure rather than treating these as generic stochastic processes. Crucially, state-space methods track the actual measured time-ordered realization of intrinsic timing noise in each pulsar, rather than averaging over ensemble realizations. This time-domain approach offers computationally favorable likelihood calculations that scale linearly with observations while naturally handling non-stationary processes. 
+<!-- PTAs in general. -->
+The discovery of a nanohertz stochastic gravitational-wave background by pulsar timing array (PTA) collaborations [@nanograv2023pta] [@EPTA] [@ParkesPPTA2023] represents a landmark achievement in gravitational wave astronomy. PTAs monitor the precise arrival times of radio pulses from a collection of millisecond pulsars distributed across the sky. By measuring the spatial correlation of the variations between different pulsars - the characteristic Hellings-Downs curve [@hellings1983gravitational] - PTAs can detect gravitational-waves in a frequency band inaccessible to ground-based interferometers.
 
 
+
+<!-- Traditional analyses-->
+Traditional PTA data-analysis methods operate in the frequency domain. The various noise processes are treated as Gaussian stationary processes, characterised by their power spectral densities. These noise sources generally fall into two categories; uncorrelated white noise and time-correlated red noise. White noise sources include measurement noise from telescope receivers, while red noise components include pulsar spin noise (intrinsic to the neutron star) and dispersion measure (DM) variations (from electron density fluctuations in the interstellar medium). The GWB signal itself is also modeled as a red noise process with a characteristic power-law PSD, distinguished from the other noise components by its specific spatial correlation, the Hellings-Downs pattern. This frequncy domain modelling is combined with standard Bayesian inference methods [@2009MNRAS.395.1005V], such Markov Chain Monte Carlo (MCMC) algorithms for parameter estimation and model selection.
+
+
+
+<!-- State space methods-->
+State-space methods provide a novel, powerful and complementary framework for PTA analysis. The approach offers a time-domain realization of the Gaussian processes framework, allowing for a computationally efficient alternative to traditional frequency-domain modeling. Instead of relying on full matrix inversions of the covariance matrix, state-space methods model the temporal evolution of hidden states (such as pulsar spin fluctuations and gravitational-wave effects) using Kalman filtering [@kalman1960new] for recursive state estimation. This approach is computationally favorable, scaling linearly $\mathcal{O}\left(N\right)$ with the number of observations $N$,compared to the $\mathcal{O}\left(N^3\right)$\footnote{qualifier here for referee} cost associated with matrix inversion in traditional methods. State-space methods enable the explicit incorporation of physical knowledge about how different stochastic processes evolve over time directly into the model structure, naturally accommodating non-stationary processes. Additionally,the method tracks the actual, measured, time-ordered realization of intrinsic timing noise in each pulsar, rather than averaging over ensemble realizations, and can readily handle non-Gaussian statistics[@2024arXiv240500058U]
+
+
+
+<!-- The gap filled by argus-->
 Despite their theoretical advantages, state-space methods have seen limited adoption in PTA research, primarily due to the lack of accessible, high-performance implementations. `Argus` fills a critical gap in the PTA analysis ecosystem by providing a modern, high-performance implementation of state-space methods specifically designed for gravitational wave detection. The package leverages JAX's just-in-time compilation, automatic differentiation, and GPU acceleration capabilities to handle the computational intensity of PTA Bayesian inference.  The package matures and formalizes the state-space methodology that was successfully applied in prior research and mock data challenges [@kimpson2024a; @kimpson2024b; @kimpson2025c], transforming proof-of-concept implementations into a robust, production-ready tool. The package serves as an independent analysis pipeline for the stochastic GW background detected by PTAs, providing a vital cross-check for results obtained with standard Hellings-Downs analyses.
+
+
+
+
+
+
+
 
 
 ![Corner plot showing posterior distributions from Bayesian parameter estimation using Argus on IPTA mock dataset. The plot displays marginal and joint posterior distributions for key noise model parameters including logarithmic amplitudes of various stochastic processes (log₁₀ ρ parameters), timing model error factors (EFAC), and additional white noise terms (EQUAD). The well-constrained posteriors demonstrate the effectiveness of the state-space Kalman filtering approach for robust parameter estimation in pulsar timing array analysis.\label{fig:corner}](images/example_corner_plot.png)
@@ -73,7 +89,7 @@ While these extensions represent exciting future directions, we release `Argus` 
 
 # Acknowledgements
 
-We acknowledge support from the Australian Research Council Centre of Excellence for Gravitational Wave Discovery (OzGrav) under grant CE170100004. This research made use of computational resources provided by the University of Melbourne. We thank the International Pulsar Timing Array collaboration for providing mock data challenges that aided in the development and validation of this software. The development of `Argus` builds upon foundational work in state-space methods for pulsar timing analysis, and we acknowledge the broader PTA community for valuable feedback and contributions to the conceptual framework.
+We acknowledge support from the Australian Research Council Centre of Excellence for Gravitational Wave Discovery (OzGrav) under grant CE170100004. This work was performed on the OzSTAR national facility at Swinburne University of Technology. The OzSTAR program receives funding in part from the Astronomy National Collaborative Research Infrastructure Strategy (NCRIS) allocation provided by the Australian Government, and from the Victorian Higher Education State Investment Fund (VHESIF) provided by the Victorian Government. This work was supported by software support resources awarded under the Astronomy Data and Computing Services (ADACS) Merit Allocation Program. ADACS is funded from the Astronomy National Collaborative Research Infrastructure Strategy (NCRIS) allocation provided by the Australian Government and managed by Astronomy Australia Limited (AAL). We thank the International Pulsar Timing Array collaboration for providing mock data challenges that aided in the development and validation of this software. The development of `Argus` builds upon foundational work in state-space methods for pulsar timing analysis, and we acknowledge the broader PTA community for valuable feedback and contributions to the conceptual framework.
 
 # Availability and Documentation
 
