@@ -1,31 +1,223 @@
 /fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/enterprise/signals/utils.py:13: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import Requirement, resource_filename
+=== DEV WORKFLOW - RAPID PROTOTYPING ===
+JAX version: 0.4.38
+Default device: gpu
+Note: This is a lightweight development workflow for rapid prototyping.
+Use the full example_workflow for production runs.
+
+Starting Bayesian inference with GW model...
+2025-09-28 16:45:20,756 - INFO - Centralized logging initialized
+2025-09-28 16:45:21,402 - INFO - Copied config file to /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/dev_workflow_full/outputs/results_dev_full/dev_config.ini
+2025-09-28 16:45:21,402 - INFO - Loading and processing data...
+Getting the data. Loading 32 pulsars from /fred/oz022/tkimpson/tmp/argus_dev/Argus/data/IPTA_MockDataChallenge2/dataset_2b/
+[tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
+[preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J0030+0451, F0: 205.53069593846152, # TOAs: 183
+[tempo2Util.C:401] Warning: [DUP1] duplicated warnings have been suppressed.
+[preProcess.C:158] Warning: PSR J0034-0534 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0034-0534. Setting value to 1 with 20% uncertainty.
+PSR: J0034-0534, F0: 532.7134293952242, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0218+4232 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0218+4232. Setting value to 1 with 20% uncertainty.
+PSR: J0218+4232, F0: 430.46105454575843, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0437-4715 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J0437-4715, F0: 173.6879457375193, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0613-0200 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J0613-0200, F0: 326.60056202349193, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0621+1002 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0621+1002. Setting value to 1 with 20% uncertainty.
+PSR: J0621+1002, F0: 34.65740662142043, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0711-6830 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J0711-6830, F0: 182.1172346472276, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0751+1807 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0751+1807. Setting value to 1 with 20% uncertainty.
+PSR: J0751+1807, F0: 287.4578539950941, # TOAs: 183
+[preProcess.C:158] Warning: PSR J0900-3144 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J0900-3144. Setting value to 1 with 20% uncertainty.
+PSR: J0900-3144, F0: 90.0118419193632, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1012+5307 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1012+5307, F0: 190.26783444155498, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1022+1001 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1022+1001, F0: 60.779447956696714, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1024-0719 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1024-0719, F0: 193.71568344854623, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1045-4509 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1045-4509, F0: 133.79314954119278, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1455-3330 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1455-3330, F0: 125.20024324499536, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1600-3053 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1600-3053, F0: 277.9377069896204, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1603-7202 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1603-7202, F0: 67.37658112877924, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1614-2230 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J1614-2230. Setting value to 1 with 20% uncertainty.
+PSR: J1614-2230, F0: 317.37893706872126, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1643-1224 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1643-1224, F0: 216.37333714263485, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1713+0747 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1713+0747, F0: 218.81184041715784, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1730-2304 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1730-2304, F0: 123.1102871473812, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1744-1134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1744-1134, F0: 245.42611968980754, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1857+0943 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1857+0943, F0: 186.4940783779791, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1909-3744 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1909-3744, F0: 339.31568721848686, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1918-0642 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1918-0642, F0: 130.78951412337267, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1939+2134 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J1939+2134, F0: 641.9282245822469, # TOAs: 183
+[preProcess.C:158] Warning: PSR J1944+0907 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J1944+0907. Setting value to 1 with 20% uncertainty.
+PSR: J1944+0907, F0: 192.85651792018598, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2010-1323 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J2010-1323. Setting value to 1 with 20% uncertainty.
+PSR: J2010-1323, F0: 191.45090909263828, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2124-3358 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J2124-3358, F0: 202.7938937460303, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2129-5721 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J2129-5721, F0: 268.3592272938787, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2145-0750 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J2145-0750, F0: 62.29588783738885, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2229+2643 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+WARNING: Could not find pulsar distance for PSR J2229+2643. Setting value to 1 with 20% uncertainty.
+PSR: J2229+2643, F0: 335.81620819685526, # TOAs: 183
+[preProcess.C:158] Warning: PSR J2317+1439 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
+See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
+
+PSR: J2317+1439, F0: 290.2546036648635, # TOAs: 183
+THE FOLLOWIUNG IS THE PULSAR IS EXCLUDED PSRS
+['J1640+2224']
+2025-09-28 16:45:36,751 - INFO - Initializing Kalman filter...
+2025-09-28 16:45:36,751 - INFO - Initializing JaxKalmanFilter...
+2025-09-28 16:45:39,408 - INFO - Number of pulsars: 32
+2025-09-28 16:45:39,409 - INFO - Pulsar frequencies: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
+  34.65740662 182.11723465 287.457854    90.01184192 190.26783444
+  60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
+  67.37658113 317.37893707 216.37333714 218.81184042 123.11028715
+ 245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
+ 192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
+ 335.8162082  290.25460366]
+2025-09-28 16:45:39,409 - INFO - Total number of observations: 183
+2025-09-28 16:45:39,409 - INFO - Starting dt (days): 29.875630165338517
+2025-09-28 16:45:39,409 - INFO - Ending dt (days): 30.060462559770656
+2025-09-28 16:45:39,409 - INFO - The errors at t=1 are: [2.697680e-06 9.700560e-06 1.613116e-05 3.307200e-07 4.558820e-06
+ 2.141629e-05 5.225050e-06 4.722880e-06 4.797490e-06 5.783810e-06
+ 2.626620e-06 5.090810e-06 6.527710e-06 1.173289e-05 8.300700e-07
+ 3.826940e-06 2.880370e-06 2.054900e-06 1.612610e-06 3.759770e-06
+ 1.103370e-06 2.220800e-06 4.024300e-07 5.434910e-06 1.372800e-07
+ 7.031630e-06 4.653570e-06 5.474680e-06 3.388130e-06 4.303360e-06
+ 1.993229e-05 2.291670e-06]
 Traceback (most recent call last):
-  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/dev_workflow/run_analysis.py", line 15, in <module>
-    from argus import utils, workflow
-  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/__init__.py", line 11, in <module>
-    from . import (
-  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/utils.py", line 18, in <module>
-    import scienceplots
-ModuleNotFoundError: No module named 'scienceplots'
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/configparser.py", line 767, in get
+    value = d[option]
+            ~^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/collections/__init__.py", line 1015, in __getitem__
+    return self.__missing__(key)            # support subclasses that define __missing__
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/collections/__init__.py", line 1007, in __missing__
+    raise KeyError(key)
+KeyError: 'noise_params_path'
 
-real	6m35.810s
-user	0m2.975s
-sys	0m3.072s
+During handling of the above exception, another exception occurred:
 
-+-------------------- Job Report: 4967990 (FAILED) --------------------+
-| Memory (RAM)  [                    ]  2.9% (238.6 MB peak / 8 GB)    |
-| CPU           [                    ]  0.3% average                   |
+Traceback (most recent call last):
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/dev_workflow_full/run_analysis.py", line 61, in <module>
+    main()
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/dev_workflow_full/run_analysis.py", line 42, in main
+    output_dir = workflow.run_inference(
+                 ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/workflow.py", line 72, in run_inference
+    efac_array, equad_array, sigma_p_array, gamma_p_array = utils.get_noise_parameters(config)
+                                                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/utils.py", line 93, in get_noise_parameters
+    noise_params_path = config.get('PriorModel', 'noise_params_path')
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/configparser.py", line 770, in get
+    raise NoOptionError(option, section)
+configparser.NoOptionError: No option 'noise_params_path' in section: 'PriorModel'
+
+real	2m36.128s
+user	0m8.077s
+sys	0m8.605s
+
++-------------------- Job Report: 5091098 (FAILED) --------------------+
+| Memory (RAM)  [                    ]  4.3% (349.1 MB peak / 8 GB)    |
+| CPU           [                    ]  2.3% average                   |
 | GPU           [                    ]  0.0% average                   |
-| Time          [->                  ]  7.1% (0-00:08:31 / 0-02:00:00) |
+| Time          [>                   ]  2.4% (0-00:02:52 / 0-02:00:00) |
 |                                                                      |
 | Lustre Filesystem:                                                   |
 |   Path    Total Read    Total Write    Total IOPS                    |
 |   ------  ------------  -------------  ------------                  |
-|   /apps   996 KB        0 B            13                            |
-|   /fred   269.9 MB      400 B          16.1 K                        |
-|   /home   27.4 MB       0 B            13                            |
-|   OS      16.6 MB       0 B            20                            |
+|   /apps   62.2 MB       0 B            21                            |
+|   /fred   298.7 MB      861 B          16.8 K                        |
+|   /home   27.4 MB       0 B            14                            |
+|   OS      17 MB         0 B            25                            |
 |                                                                      |
 | Warnings:                                                            |
 |   - Too much memory requested                                        |

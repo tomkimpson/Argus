@@ -82,20 +82,42 @@ def resolve_config_paths(config, config_path):
 
 def get_noise_parameters(config):
     """Get injected noise parameters from configuration and data files.
-    
+
     Args:
         config: Configuration object
-    
+
     Returns
     -------
         tuple: (efac_array, equad_array, sigma_p_array, gamma_p_array)
     """
-    noise_params_path = config.get('PriorModel', 'noise_params_path')
-    spin_injections_path = config.get('PriorModel', 'spin_injections_path')
     excluded_psrs = config.get('Data', 'excluded_psrs').split(',')
-    efac_array, equad_array = get_efac_equad_injections(noise_params_path, excluded_psrs)
-    sigma_p_array, gamma_p_array = get_psr_noise_injections(spin_injections_path, excluded_psrs)
-    
+
+    # Try to get noise_params_path, handle gracefully if missing
+    try:
+        noise_params_path = config.get('PriorModel', 'noise_params_path')
+        if noise_params_path.strip():
+            efac_array, equad_array = get_efac_equad_injections(noise_params_path, excluded_psrs)
+            print(f"Loaded EFAC/EQUAD parameters from: {noise_params_path}")
+        else:
+            efac_array, equad_array = None, None
+            print("Empty noise_params_path provided, will use priors for EFAC/EQUAD")
+    except Exception:
+        efac_array, equad_array = None, None
+        print("No noise_params_path provided, will use priors for EFAC/EQUAD")
+
+    # Try to get spin_injections_path, handle gracefully if missing
+    try:
+        spin_injections_path = config.get('PriorModel', 'spin_injections_path')
+        if spin_injections_path.strip():
+            sigma_p_array, gamma_p_array = get_psr_noise_injections(spin_injections_path, excluded_psrs)
+            print(f"Loaded pulsar noise parameters from: {spin_injections_path}")
+        else:
+            sigma_p_array, gamma_p_array = None, None
+            print("Empty spin_injections_path provided, will use priors for pulsar noise")
+    except Exception:
+        sigma_p_array, gamma_p_array = None, None
+        print("No spin_injections_path provided, will use priors for pulsar noise")
+
     return efac_array, equad_array, sigma_p_array, gamma_p_array
 
 def setup_logging(output_dir, config):
