@@ -40,6 +40,15 @@ def setup_output_directory(config, use_gw, timestamp=None, config_path=None):
             workflows_index = path_parts.index('workflows')
             if workflows_index + 1 < len(path_parts):
                 workflow_name = path_parts[workflows_index + 1]
+        else:
+            # If config path is relative (e.g., "configs/dev_config.ini"),
+            # try to determine workflow from current working directory
+            cwd = os.getcwd()
+            cwd_parts = cwd.split(os.sep)
+            if 'workflows' in cwd_parts:
+                workflows_index = cwd_parts.index('workflows')
+                if workflows_index + 1 < len(cwd_parts):
+                    workflow_name = cwd_parts[workflows_index + 1]
     
     # Create base output directory in the appropriate workflow directory
     # Get to project root (3 levels up from argus/io_manager.py)
@@ -104,7 +113,7 @@ def save_numpyro_results(inf_data, output_dir, output_id, logger):
     return results_path
 
 
-def setup_single_logger(config, output_dir=None, enable_file_logging=True):
+def setup_single_logger(config, output_dir=None, enable_file_logging=None):
     """Set up a single, properly configured logger for the entire application.
     
     This function creates a centralized logger that eliminates duplicate messages
@@ -114,7 +123,7 @@ def setup_single_logger(config, output_dir=None, enable_file_logging=True):
     Args:
         config: Configuration object
         output_dir (str, optional): Directory for log files. Required if enable_file_logging=True
-        enable_file_logging (bool): Whether to enable file logging. Default True.
+        enable_file_logging (bool, optional): Whether to enable file logging. If None, reads from config.
         
     Returns
     -------
@@ -124,11 +133,15 @@ def setup_single_logger(config, output_dir=None, enable_file_logging=True):
     ------
         ValueError: If enable_file_logging=True but output_dir is None
     """
+    # Determine file logging setting from config if not explicitly provided
+    if enable_file_logging is None:
+        enable_file_logging = config.getboolean('Logging', 'enable_file_logging', fallback=True)
+
     # Clear any existing handlers from the root logger and all argus loggers
     root_logger = logging.getLogger()
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
-    
+
     # Clear handlers from argus package loggers
     argus_logger = logging.getLogger('argus')
     for handler in argus_logger.handlers[:]:

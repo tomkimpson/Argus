@@ -13,6 +13,9 @@ from datetime import datetime
 import arviz as az
 import corner
 import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
+import scienceplots
 
 def load_config(config_path):
     """Load configuration from file.
@@ -205,78 +208,180 @@ def get_psr_noise_injections(spin_injections_path, excluded_psrs=[]):
     
     return jnp.array(sigma_p_injected), jnp.array(gamma_p_injected) 
 
-def corner_plot(results, output_dir=None):
-    """Create a corner plot for log10_ha parameter from inference results.
-    
+def corner_plot(results, output_dir=None, plot_priors=False, smooth_sigma=1.0, nbins=40):
+    """Create a publication-quality corner plot for log10_ha and log10_gamma_a parameters.
+
+    This function uses professional scientific plotting styles and creates high-quality
+    corner plots suitable for publications. Supports both 1D (log10_ha only) and 2D
+    (log10_ha + log10_gamma_a) plots.
+
     Parameters
     ----------
-    results : str or object
-        Either a file path (string) to results file, or a results object.
-        For NumPyro: path to NetCDF file or arviz.InferenceData object
+    results : str or arviz.InferenceData
+        Either a file path to NumPyro NetCDF file (.nc) or arviz.InferenceData object
     output_dir : str, optional
         Directory to save the plot. If None, plot is shown but not saved.
-        
+    plot_priors : bool, optional
+        Whether to overlay prior distributions on 1D histograms (default: False)
+    smooth_sigma : float, optional
+        Smoothing parameter for histograms (default: 1.0)
+    nbins : int, optional
+        Number of bins for histograms (default: 40)
+
     Returns
     -------
     str or None
-        Path to saved plot file, or None if not saved
+        Path to saved PNG plot file, or None if not saved. Also saves PDF version.
+
+    Notes
+    -----
+    - Requires scienceplots package for professional styling
+    - Always saves both PNG and PDF versions when output_dir is provided
+    - Uses professional blue color scheme with gradient contours
+    - Includes minor ticks, grids, and enhanced typography
     """
-    # Determine if results is a file path or loaded object
+    # Set up professional styling
+    plt.style.use(["science", "no-latex"])  # Add 'no-latex' if LaTeX not available
+    plt.rcParams.update({
+        "font.size": 12,
+        "axes.linewidth": 1.2,
+        "xtick.major.width": 1.2,
+        "ytick.major.width": 1.2,
+        "xtick.minor.width": 0.8,
+        "ytick.minor.width": 0.8,
+        "figure.dpi": 100,
+        "savefig.dpi": 300,
+    })
+
+    # Load results - simplified to handle only NumPyro
     if isinstance(results, str):
-        # It's a file path - determine type and load
-        if results.endswith('.json'):
-            # JSON results no longer supported
-            raise ValueError("JSON results are no longer supported. Use NumPyro NetCDF files.")
-        elif results.endswith('.nc'):
-            # NumPyro results
-            results_obj = az.from_netcdf(results)
-            method = 'numpyro'
-        else:
-            raise ValueError("Results file must be .nc (NumPyro). Only NetCDF files are supported.")
+        # File path to NetCDF file
+        if not results.endswith('.nc'):
+            raise ValueError("Results file must be .nc (NumPyro NetCDF file)")
+        results_obj = az.from_netcdf(results)
+        results_path = results
     else:
-        # It's a loaded object - determine type
-        if hasattr(results, 'log_Z_mean'):
-            # Legacy results object no longer supported
-            raise ValueError("Legacy results objects are no longer supported. Use NumPyro ArviZ InferenceData objects.")
-        elif hasattr(results, 'posterior'):
-            # ArviZ InferenceData object
-            results_obj = results
-            method = 'numpyro'
-        else:
-            raise ValueError("Unknown results object type. Only NumPyro ArviZ InferenceData objects are supported.")
-    
-    # Extract log10_ha samples (NumPyro only)
-    if method == 'numpyro':
-        if 'log10_ha' not in results_obj.posterior:
-            raise ValueError("Parameter 'log10_ha' not found in NumPyro results")
-        samples = results_obj.posterior['log10_ha'].values.flatten()
-    
-    title = "Corner Plot Results"
-    
-    # Create corner plot (1D histogram for single parameter)
-    corner.corner(
-        samples.reshape(-1, 1),
-        labels=['log₁₀(hₐ)'],
-        quantiles=[0.16, 0.5, 0.84],
+        # ArviZ InferenceData object
+        if not hasattr(results, 'posterior'):
+            raise ValueError("Results object must be ArviZ InferenceData with posterior samples")
+        results_obj = results
+        results_path = None
+
+    # Extract parameters
+    if 'log10_ha' not in results_obj.posterior:
+        raise ValueError("Parameter 'log10_ha' not found in results")
+
+    log10_ha = results_obj.posterior['log10_ha'].values.flatten()
+    samples_list = [log10_ha]
+    labels = [r'$\log_{10} h_a$']
+
+    # Extract log10_gamma_a if available
+    if 'log10_gamma_a' in results_obj.posterior.data_vars:
+        log10_gamma_a = results_obj.posterior['log10_gamma_a'].values.flatten()
+        samples_list.append(log10_gamma_a)
+        labels.append(r'$\log_{10} \gamma_a$')
+        print("Found log10_gamma_a parameter - creating 2D corner plot")
+    else:
+        print("log10_gamma_a not found - creating 1D plot for log10_ha only")
+
+    # Combine parameters
+    samples = np.column_stack(samples_list)
+
+    # Load config for prior plotting if requested
+    config = None
+    if plot_priors and results_path:
+        config = _load_config_from_results_path(results_path)
+
+    # Print parameter information
+    _print_parameter_ranges(samples, labels, config)
+
+    # Define plot ranges (slightly extended from typical prior ranges)
+    if len(labels) == 1:
+        plot_ranges = [(-17.5, -13.5)]  # log10_ha
+    else:
+        plot_ranges = [
+            (-17.5, -13.5),  # log10_ha
+            (-10.5, -7.5)    # log10_gamma_a
+        ]
+
+    # Professional color scheme
+    posterior_color = "#2E86C1"  # Professional blue
+    contour_colors = ["#AED6F1", "#5DADE2", "#2E86C1"]  # Gradient blues
+    truth_color = "orange"
+
+    # Create publication-quality corner plot
+    fig = corner.corner(
+        samples,
+        labels=labels,
         show_titles=True,
-        title_kwargs={"fontsize": 12},
-        range=[(-17, -14)],
-        bins=30,
-        smooth=1.0,
-        plot_datapoints=True,
+        title_kwargs={"fontsize": 14, "fontweight": "bold", "pad": 10},
+        label_kwargs={"fontsize": 16, "fontweight": "bold"},
+        title_fmt=".3f",
+        bins=nbins,
+        quantiles=[0.16, 0.5, 0.84],  # 68% credible intervals
+        levels=(1 - np.exp(-0.5), 1 - np.exp(-2)),  # 1σ and 2σ contours
+        plot_density=True,
+        plot_datapoints=False,  # Clean look without individual points
         fill_contours=True,
-        levels=[0.68, 0.95]
+        range=plot_ranges,
+        color=posterior_color,
+        contour_kwargs={"colors": contour_colors, "linewidths": 0.5},
+        #hist_kwargs={"alpha": 0.8, "edgecolor": posterior_color, "linewidth": 1.0},
+        max_n_ticks=4,
+        use_math_text=True,
+        smooth=smooth_sigma,
+        smooth1d=smooth_sigma
     )
-    
-    # Add title
-    plt.suptitle(title, y=1.02, fontsize=14)
+
+    # Post-processing improvements
+    axes = fig.get_axes()
+
+    # Enhance axis appearance
+    for ax in axes:
+        if ax is not None:
+            # Improve tick appearance
+            ax.tick_params(
+                which="major",
+                labelsize=12,
+                width=1.2,
+                length=6,
+                direction="in",
+                top=True,
+                right=True,
+            )
+            ax.tick_params(
+                which="minor",
+                width=0.8,
+                length=3,
+                direction="in",
+                top=True,
+                right=True
+            )
+
+            # Add minor ticks
+            ax.minorticks_on()
+
+            # Add subtle grid
+            ax.grid(True, alpha=0.3, linewidth=0.5, linestyle=":")
+
+    # Add prior overlays if requested
+    if plot_priors and config is not None:
+        _add_prior_overlays(fig, labels, config)
+
+    # Adjust layout
     plt.tight_layout()
-    
+
+    # Manually adjust layout with reduced spacing
+    plt.subplots_adjust(
+        hspace=0.05,  # Reduce vertical spacing between subplots
+        wspace=0.05,  # Reduce horizontal spacing between subplots
+    )
+
     if output_dir is not None:
         # Create plots directory if it doesn't exist
         plots_dir = os.path.join(output_dir, 'plots')
         os.makedirs(plots_dir, exist_ok=True)
-        
+
         # Extract output_id from results file path if available
         if isinstance(results, str):
             # Extract from filename: {output_id}_results.{ext} -> {output_id}
@@ -288,15 +393,167 @@ def corner_plot(results, output_dir=None):
         else:
             # For loaded objects, use timestamp as fallback
             output_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
-        # Save the plot
-        plot_path = os.path.join(plots_dir, f'corner_plot_{output_id}.png')
-        plt.savefig(plot_path, bbox_inches='tight')
+
+        # Generate filename with options
+        smooth_suffix = f"_smooth{smooth_sigma}" if smooth_sigma != 1.0 else ""
+        priors_suffix = "_priors" if plot_priors else ""
+        params_suffix = "_ha_gamma_a" if len(labels) > 1 else "_ha_only"
+
+        # Save PNG for general use
+        plot_path = os.path.join(plots_dir, f'corner_plot_{output_id}{params_suffix}{smooth_suffix}{priors_suffix}.png')
+        fig.savefig(plot_path, dpi=300, bbox_inches='tight', facecolor='white', edgecolor='none')
+
+        # Also save PDF for publications
+        pdf_path = plot_path.replace('.png', '.pdf')
+        fig.savefig(pdf_path, bbox_inches='tight', facecolor='white', edgecolor='none')
+
         plt.close()
+        print(f"Corner plot saved to: {plot_path}")
+        print(f"PDF version saved to: {pdf_path}")
         return plot_path
     else:
         plt.show()
         return None
+
+
+def _load_config_from_results_path(results_file):
+    """Try to load corresponding config file for the given results file."""
+    results_dir = os.path.dirname(results_file)
+
+    # Look for config files in the results directory
+    config_candidates = [
+        os.path.join(results_dir, 'config.ini'),
+        os.path.join(results_dir, f'{os.path.basename(results_dir)}_config.ini'),
+    ]
+
+    # Also look in parent directory for argus-style configs
+    parent_dir = os.path.dirname(results_dir)
+    run_id = os.path.basename(results_file).replace('_results.nc', '').replace('numpyro_test_', '')
+    config_candidates.extend([
+        os.path.join(parent_dir, 'configs', f'config_numpyro_test_{run_id}.ini'),
+        os.path.join('configs', f'config_numpyro_test_{run_id}.ini'),
+    ])
+
+    for config_file in config_candidates:
+        if os.path.exists(config_file):
+            print(f"Loading config from: {config_file}")
+            config = configparser.ConfigParser()
+            config.read(config_file)
+            return config
+
+    print("Warning: No config file found. Prior plotting will be disabled.")
+    return None
+
+
+def _get_log10_ha_prior_pdf(config, x):
+    """Get prior PDF for log10_ha parameter."""
+    if config is None:
+        return None
+
+    try:
+        if config.getboolean('PriorModel', 'log10_ha_fixed', fallback=False):
+            return None  # Fixed parameter, no prior to plot
+
+        # Get uniform range
+        min_val = config.getfloat('PriorModel', 'log10_ha_min', fallback=-16.0)
+        max_val = config.getfloat('PriorModel', 'log10_ha_max', fallback=-14.0)
+
+        # Create uniform distribution
+        return stats.uniform(loc=min_val, scale=max_val - min_val).pdf(x)
+    except (configparser.NoSectionError, configparser.NoOptionError):
+        return None
+
+
+def _get_log10_gamma_a_prior_pdf(config, x):
+    """Get prior PDF for log10_gamma_a parameter."""
+    if config is None:
+        return None
+
+    try:
+        if config.getboolean('PriorModel', 'log10_gamma_a_fixed', fallback=False):
+            return None  # Fixed parameter, no prior to plot
+
+        # Get uniform range
+        min_val = config.getfloat('PriorModel', 'log10_gamma_a_min', fallback=-10.0)
+        max_val = config.getfloat('PriorModel', 'log10_gamma_a_max', fallback=-8.0)
+
+        # Create uniform distribution
+        return stats.uniform(loc=min_val, scale=max_val - min_val).pdf(x)
+    except (configparser.NoSectionError, configparser.NoOptionError):
+        return None
+
+
+def _print_parameter_ranges(samples, labels, config):
+    """Print parameter ranges and prior information."""
+    print(f"\nParameter ranges from posterior samples:")
+    print("=" * 60)
+    for i, label in enumerate(labels):
+        param_min = samples[:, i].min()
+        param_max = samples[:, i].max()
+        param_mean = samples[:, i].mean()
+        param_std = samples[:, i].std()
+        print(f"  {label}:")
+        print(f"    Range: [{param_min:.3f}, {param_max:.3f}]")
+        print(f"    Mean ± Std: {param_mean:.3f} ± {param_std:.3f}")
+
+    if config is not None:
+        print(f"\nPrior ranges from config:")
+        print("=" * 60)
+        try:
+            # log10_ha prior
+            if not config.getboolean('PriorModel', 'log10_ha_fixed', fallback=False):
+                min_val = config.getfloat('PriorModel', 'log10_ha_min', fallback=-16.0)
+                max_val = config.getfloat('PriorModel', 'log10_ha_max', fallback=-14.0)
+                print(f"  log10_ha: U({min_val}, {max_val})")
+            else:
+                fixed_val = config.getfloat('PriorModel', 'log10_ha_value', fallback=-15.0)
+                print(f"  log10_ha: Fixed at {fixed_val}")
+
+            # log10_gamma_a prior
+            if len(labels) > 1:  # Only if gamma_a is included
+                if not config.getboolean('PriorModel', 'log10_gamma_a_fixed', fallback=False):
+                    min_val = config.getfloat('PriorModel', 'log10_gamma_a_min', fallback=-10.0)
+                    max_val = config.getfloat('PriorModel', 'log10_gamma_a_max', fallback=-8.0)
+                    print(f"  log10_gamma_a: U({min_val}, {max_val})")
+                else:
+                    fixed_val = config.getfloat('PriorModel', 'log10_gamma_a_value', fallback=-9.0)
+                    print(f"  log10_gamma_a: Fixed at {fixed_val}")
+        except (configparser.NoSectionError, configparser.NoOptionError):
+            print("  Config sections not found for prior information")
+
+    print("=" * 60)
+
+
+def _add_prior_overlays(fig, labels, config):
+    """Add prior overlays to corner plot."""
+    axes = fig.get_axes()
+    ndim = len(labels)
+
+    # Prior overlay for each parameter (diagonal elements)
+    for i in range(ndim):
+        ax = axes[i * ndim + i]  # Diagonal axis
+
+        # Get parameter name and x-range for prior
+        x_min, x_max = ax.get_xlim()
+        x_range = np.linspace(x_min, x_max, 200)
+
+        # Get prior PDF based on parameter
+        prior_pdf = None
+        if i == 0:  # log10_ha
+            prior_pdf = _get_log10_ha_prior_pdf(config, x_range)
+        elif i == 1 and len(labels) > 1:  # log10_gamma_a
+            prior_pdf = _get_log10_gamma_a_prior_pdf(config, x_range)
+
+        # Plot prior if available
+        if prior_pdf is not None and np.any(prior_pdf > 0) and np.all(np.isfinite(prior_pdf)):
+            # Scale prior to match histogram height
+            y_max = ax.get_ylim()[1]
+            prior_max = np.max(prior_pdf)
+            if prior_max > 0:
+                prior_pdf_scaled = prior_pdf * y_max / prior_max * 0.7  # Scale to 70% of max
+                ax.plot(x_range, prior_pdf_scaled, 'r--', linewidth=2.5,
+                       alpha=0.8, label='Prior')
+                ax.legend(fontsize=12)
 
 def diagnostics(fname, output_dir=None):
     """Run MCMC diagnostics on NumPyro results.

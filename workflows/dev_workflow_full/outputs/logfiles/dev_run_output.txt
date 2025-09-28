@@ -1,0 +1,35 @@
+/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/enterprise/signals/utils.py:13: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import Requirement, resource_filename
+Traceback (most recent call last):
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/dev_workflow/run_analysis.py", line 15, in <module>
+    from argus import utils, workflow
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/__init__.py", line 11, in <module>
+    from . import (
+  File "/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/utils.py", line 18, in <module>
+    import scienceplots
+ModuleNotFoundError: No module named 'scienceplots'
+
+real	6m35.810s
+user	0m2.975s
+sys	0m3.072s
+
++-------------------- Job Report: 4967990 (FAILED) --------------------+
+| Memory (RAM)  [                    ]  2.9% (238.6 MB peak / 8 GB)    |
+| CPU           [                    ]  0.3% average                   |
+| GPU           [                    ]  0.0% average                   |
+| Time          [->                  ]  7.1% (0-00:08:31 / 0-02:00:00) |
+|                                                                      |
+| Lustre Filesystem:                                                   |
+|   Path    Total Read    Total Write    Total IOPS                    |
+|   ------  ------------  -------------  ------------                  |
+|   /apps   996 KB        0 B            13                            |
+|   /fred   269.9 MB      400 B          16.1 K                        |
+|   /home   27.4 MB       0 B            13                            |
+|   OS      16.6 MB       0 B            20                            |
+|                                                                      |
+| Warnings:                                                            |
+|   - Too much memory requested                                        |
+|   - CPU usage is low                                                 |
+|   - GPU usage is low                                                 |
+|   - Too much time requested                                          |
++----------------------------------------------------------------------+
