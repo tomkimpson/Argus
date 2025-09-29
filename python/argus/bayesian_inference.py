@@ -451,7 +451,7 @@ def run_nuts_sampling(kalman_filter, config, n_pulsars, sigma_p_array, gamma_p_a
     return inf_data
 
 
-def test_likelihood_performance(kalman_filter, config, logger):
+def test_likelihood_performance(kalman_filter, config, n_pulsars, logger):
     """Test likelihood evaluation performance using known parameter values.
 
     This function runs a single likelihood evaluation using the same parameter
@@ -464,6 +464,8 @@ def test_likelihood_performance(kalman_filter, config, logger):
         Kalman filter object
     config : configparser.ConfigParser
         Configuration object
+    n_pulsars : int
+        Number of pulsars
     logger : logging.Logger
         Logger object
 
@@ -484,6 +486,16 @@ def test_likelihood_performance(kalman_filter, config, logger):
     γa_test = 1e-9
     ha_test = 1e-15
 
+    # If noise parameters are None, create test arrays with reasonable values
+    if gamma_p_array is None:
+        gamma_p_array = jnp.full(n_pulsars, 1e-8)  # Default gamma_p test value
+    if sigma_p_array is None:
+        sigma_p_array = jnp.full(n_pulsars, 1e-15)  # Default sigma_p test value
+    if efac_array is None:
+        efac_array = jnp.ones(n_pulsars)  # Default EFAC test value
+    if equad_array is None:
+        equad_array = jnp.full(n_pulsars, 1e-7)  # Default EQUAD test value
+
     # Create parameter object
     test_params = Parameters(
         log10_gamma_a=jnp.log10(γa_test),
@@ -496,7 +508,7 @@ def test_likelihood_performance(kalman_filter, config, logger):
     )
 
     logger.info(f"Test parameters: γa={γa_test}, ha={ha_test}")
-    logger.info(f"Number of pulsars: {len(gamma_p_array)}")
+    logger.info(f"Number of pulsars: {n_pulsars}")
 
     # Time the likelihood evaluation (first time)
     logger.info("Performing for the first time a likelihood evaluation...")

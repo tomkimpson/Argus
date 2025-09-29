@@ -82,7 +82,7 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     
     # Test likelihood performance with known parameters
     logger.info("Performing likelihood performance test...")
-    bayesian_inference.test_likelihood_performance(KF, config, logger)
+    bayesian_inference.test_likelihood_performance(KF, config, n_pulsars, logger)
     
     # Run NumPyro NUTS inference
     logger.info("Running NUMPYRO inference...")
