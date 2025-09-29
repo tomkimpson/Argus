@@ -1,0 +1,34 @@
+Successfully loaded InferenceData from: /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/dev_workflow/outputs/results2/results2_results.nc
+
+--- Calculating Full MCMC Summary ---
+
+--- Filtered MCMC Summary (Excluding Constant Deterministics) ---
+                       mean     sd  hdi_3%  ...  ess_bulk  ess_tail  r_hat
+log10_gamma_a        -8.975  0.323  -9.551  ...   267.423   251.802  1.014
+log10_gamma_a_prime   0.074  0.968  -1.653  ...   267.423   251.802  1.014
+log10_ha            -15.511  0.064 -15.621  ...   299.566   283.757  1.008
+log10_ha_prime        0.733  0.097   0.569  ...   299.566   283.757  1.008
+
+[4 rows x 9 columns]
+
+--- Interpretation Guidance (Filtered Parameters) ---
+Checking R-hat and ESS only for variables that showed variation:
+
+Maximum R-hat value (filtered): 1.014
+NOTE: Maximum R-hat is slightly elevated (> 1.01). Check trace plots carefully.
+Minimum Bulk ESS (filtered): 267
+Minimum Tail ESS (filtered): 252
+WARNING: Minimum ESS is low (< 400). Consider increasing 'num_samples'.
+
+--- Generating Trace Plots (Filtered Parameters) ---
+Trace plots saved to: /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/dev_workflow/outputs/results2/numpyro_diagnostics/trace_plots.png
+
+--- Trace Plot Interpretation ---
+(Interpret as before, focusing on these non-constant variables)
+
+--- Checking for Divergent Transitions ---
+Total number of divergent transitions: 0
+Total post-warmup samples: 400
+No divergent transitions found. Good!
+
+--- Diagnostics Complete ---

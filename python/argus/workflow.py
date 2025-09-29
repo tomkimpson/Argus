@@ -59,8 +59,8 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     # Setup output directory
     output_dir = io_manager.setup_output_directory(config, use_gw, timestamp, config_path)
     
-    # Setup centralized logging with both console and file output
-    logger = io_manager.setup_single_logger(config, output_dir, enable_file_logging=True)
+    # Setup centralized logging - file logging controlled by config
+    logger = io_manager.setup_single_logger(config, output_dir)
     
     # Copy config file to output directory
     io_manager.copy_config_file(config_path, output_dir, logger)
@@ -82,7 +82,7 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     
     # Test likelihood performance with known parameters
     logger.info("Performing likelihood performance test...")
-    bayesian_inference.test_likelihood_performance(KF, config, logger)
+    bayesian_inference.test_likelihood_performance(KF, config, n_pulsars, logger)
     
     # Run NumPyro NUTS inference
     logger.info("Running NUMPYRO inference...")
