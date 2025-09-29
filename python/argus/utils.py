@@ -15,7 +15,6 @@ import corner
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import stats
-import scienceplots
 
 def load_config(config_path):
     """Load configuration from file.
@@ -329,7 +328,6 @@ def corner_plot(results, output_dir=None, plot_priors=False, smooth_sigma=1.0, n
     # Professional color scheme
     posterior_color = "#2E86C1"  # Professional blue
     contour_colors = ["#AED6F1", "#5DADE2", "#2E86C1"]  # Gradient blues
-    truth_color = "orange"
 
     # Create publication-quality corner plot
     fig = corner.corner(
@@ -507,7 +505,7 @@ def _get_log10_gamma_a_prior_pdf(config, x):
 
 def _print_parameter_ranges(samples, labels, config):
     """Print parameter ranges and prior information."""
-    print(f"\nParameter ranges from posterior samples:")
+    print("\nParameter ranges from posterior samples:")
     print("=" * 60)
     for i, label in enumerate(labels):
         param_min = samples[:, i].min()
@@ -519,7 +517,7 @@ def _print_parameter_ranges(samples, labels, config):
         print(f"    Mean ± Std: {param_mean:.3f} ± {param_std:.3f}")
 
     if config is not None:
-        print(f"\nPrior ranges from config:")
+        print("\nPrior ranges from config:")
         print("=" * 60)
         try:
             # log10_ha prior
