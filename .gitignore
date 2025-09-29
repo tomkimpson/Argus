@@ -77,3 +77,6 @@ htmlcov
 
 # MkDocs build output
 site/
+
+#claude stuff
+.claude
