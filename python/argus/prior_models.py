@@ -150,18 +150,20 @@ def get_pulsar_noise_priors(config, n_pulsars, sigma_p_array, gamma_p_array):
         'hierarchical_specs': hierarchical_specs
     }
 
-def get_measurement_noise_priors(config, efac_array, equad_array):
+def get_measurement_noise_priors(config, n_pulsars, efac_array, equad_array):
     """Extract measurement noise parameter prior distributions from config.
-    
+
     Parameters
     ----------
     config : ConfigParser
         Configuration object containing prior model settings
-    efac_array : array
-        Array of EFAC values
-    equad_array : array
-        Array of EQUAD values
-        
+    n_pulsars : int
+        Number of pulsars
+    efac_array : array or None
+        Array of EFAC values, or None if not provided
+    equad_array : array or None
+        Array of EQUAD values, or None if not provided
+
     Returns
     -------
     dict
@@ -179,20 +181,21 @@ def get_measurement_noise_priors(config, efac_array, equad_array):
         # If no noise_params_path, sample from priors
         efac_equad_fixed = False
         print("No noise_params_path provided, sampling EFAC/EQUAD from priors")
-    
-    if efac_equad_fixed:
+
+    if efac_equad_fixed and efac_array is not None and equad_array is not None:
         efac_spec = efac_array
         equad_spec = equad_array
     else:
+        # Create prior distributions using the number of pulsars to determine shape
         efac_spec = tfpd.Uniform(
-            low=jnp.full_like(efac_array, config.getfloat('PriorModel', 'efac_min')),
-            high=jnp.full_like(efac_array, config.getfloat('PriorModel', 'efac_max'))
+            low=jnp.full(n_pulsars, config.getfloat('PriorModel', 'efac_min')),
+            high=jnp.full(n_pulsars, config.getfloat('PriorModel', 'efac_max'))
         )
-        
+
         # Use log10(EQUAD) uniform prior - transformation handled in numpyro model
         log10_equad_spec = tfpd.Uniform(
-            low=jnp.full_like(equad_array, config.getfloat('PriorModel', 'log10_equad_min')),
-            high=jnp.full_like(equad_array, config.getfloat('PriorModel', 'log10_equad_max'))
+            low=jnp.full(n_pulsars, config.getfloat('PriorModel', 'log10_equad_min')),
+            high=jnp.full(n_pulsars, config.getfloat('PriorModel', 'log10_equad_max'))
         )
         equad_spec = {'log10_equad_spec': log10_equad_spec, 'use_log10': True}
 
@@ -283,7 +286,7 @@ def get_prior_model_specs(config, n_pulsars, sigma_p_array, gamma_p_array, efac_
     # Get parameter prior distributions from specialized functions
     gw_specs = get_gw_parameter_priors(config)
     pulsar_noise_specs = get_pulsar_noise_priors(config, n_pulsars, sigma_p_array, gamma_p_array)
-    measurement_noise_specs = get_measurement_noise_priors(config, efac_array, equad_array)
+    measurement_noise_specs = get_measurement_noise_priors(config, n_pulsars, efac_array, equad_array)
 
     return {
         'log10_ha_spec': gw_specs['log10_ha_spec'],
