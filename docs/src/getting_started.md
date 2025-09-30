@@ -22,9 +22,8 @@ $ conda activate argus-env
 
 ## Installation
 
-:::{note}
-PyPI distribution is coming soon! For now, please install from source.
-:::
+!!! note
+    PyPI distribution is coming soon! For now, please install from source.
 
 ### From Source
 
@@ -144,6 +143,5 @@ print(f"Results saved to: {output_dir}")
 - Read about [Bayesian methods](bayesian_methods.md) used in Argus
 - Check out the [contributing guide](contributing.md) if you'd like to contribute
 
-:::{tip}
-Start with `example_workflow_lite` for testing and development. It runs much faster and is perfect for experimenting with different configurations before committing to a full production run.
-:::
+!!! tip
+    Start with `example_workflow_lite` for testing and development. It runs much faster and is perfect for experimenting with different configurations before committing to a full production run.

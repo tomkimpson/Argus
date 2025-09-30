@@ -1,6 +1,5 @@
 """Module which holds all functions which are related to the properties of the gravitational wave."""
 
-from numpy import sin, cos
 import numpy as np
 
 
