@@ -1,16 +1,16 @@
 /fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/enterprise/signals/utils.py:13: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   from pkg_resources import Requirement, resource_filename
-=== DEV WORKFLOW - RAPID PROTOTYPING ===
+=== EXAMPLE WORKFLOW LITE - RAPID PROTOTYPING ===
 JAX version: 0.4.38
 Default device: gpu
-Note: This is a lightweight development workflow for rapid prototyping.
+Note: This is a lightweight workflow for rapid prototyping.
 Use the full example_workflow for production runs.
 
 Starting Bayesian inference with GW model...
-2025-09-28 13:56:02,101 - INFO - Centralized logging initialized
-2025-09-28 13:56:02,119 - INFO - Copied config file to /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/dev_workflow/outputs/results2/dev_config.ini
-2025-09-28 13:56:02,119 - INFO - Loading and processing data...
-Getting the data. Loading 32 pulsars from /fred/oz022/tkimpson/tmp/argus_dev/Argus/data/IPTA_MockDataChallenge2/dataset_2b/
+2025-09-30 11:53:05,171 - INFO - Centralized logging initialized
+2025-09-30 11:53:05,176 - INFO - Copied config file to /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/example_workflow_lite/outputs/01/example_config_lite.ini
+2025-09-30 11:53:05,176 - INFO - Loading and processing data...
+Getting the data. Loading 32 pulsars from /fred/oz022/tkimpson/Argus/workflows/data/IPTA_MockDataChallenge2/dataset_2b
 [tempo2Util.C:396] Warning: [TIM1] Please place MODE flags in the parameter file 
 [preProcess.C:158] Warning: PSR J0030+0451 uses DM2+ but does not define DM_SERIES. Assume Taylor. This has behaviour has changed since June 2020!
 See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a-taylor
@@ -152,70 +152,74 @@ See https://bitbucket.org/psrsoft/tempo2/issues/27/tempo2-dm-polynomial-is-not-a
 PSR: J2317+1439, F0: 290.2546036648635, # TOAs: 183
 THE FOLLOWIUNG IS THE PULSAR IS EXCLUDED PSRS
 ['J1640+2224']
-2025-09-28 13:56:16,414 - INFO - Initializing Kalman filter...
-2025-09-28 13:56:16,414 - INFO - Initializing JaxKalmanFilter...
-2025-09-28 13:56:19,318 - INFO - Number of pulsars: 32
-2025-09-28 13:56:19,318 - INFO - Pulsar frequencies: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
+2025-09-30 11:53:13,867 - INFO - Initializing Kalman filter...
+2025-09-30 11:53:13,867 - INFO - Initializing JaxKalmanFilter...
+2025-09-30 11:53:15,960 - INFO - Number of pulsars: 32
+2025-09-30 11:53:15,961 - INFO - Pulsar frequencies: [205.53069594 532.7134294  430.46105455 173.68794574 326.60056202
   34.65740662 182.11723465 287.457854    90.01184192 190.26783444
   60.77944796 193.71568345 133.79314954 125.20024324 277.93770699
   67.37658113 317.37893707 216.37333714 218.81184042 123.11028715
  245.42611969 186.49407838 339.31568722 130.78951412 641.92822458
  192.85651792 191.45090909 202.79389375 268.35922729  62.29588784
  335.8162082  290.25460366]
-2025-09-28 13:56:19,319 - INFO - Total number of observations: 183
-2025-09-28 13:56:19,319 - INFO - Starting dt (days): 29.875630165338517
-2025-09-28 13:56:19,319 - INFO - Ending dt (days): 30.060462559770656
-2025-09-28 13:56:19,319 - INFO - The errors at t=1 are: [2.697680e-06 9.700560e-06 1.613116e-05 3.307200e-07 4.558820e-06
+2025-09-30 11:53:15,961 - INFO - Total number of observations: 183
+2025-09-30 11:53:15,961 - INFO - Starting dt (days): 29.875630165338517
+2025-09-30 11:53:15,961 - INFO - Ending dt (days): 30.060462559770656
+2025-09-30 11:53:15,961 - INFO - The errors at t=1 are: [2.697680e-06 9.700560e-06 1.613116e-05 3.307200e-07 4.558820e-06
  2.141629e-05 5.225050e-06 4.722880e-06 4.797490e-06 5.783810e-06
  2.626620e-06 5.090810e-06 6.527710e-06 1.173289e-05 8.300700e-07
  3.826940e-06 2.880370e-06 2.054900e-06 1.612610e-06 3.759770e-06
  1.103370e-06 2.220800e-06 4.024300e-07 5.434910e-06 1.372800e-07
  7.031630e-06 4.653570e-06 5.474680e-06 3.388130e-06 4.303360e-06
  1.993229e-05 2.291670e-06]
+Loaded EFAC/EQUAD parameters from: /fred/oz022/tkimpson/Argus/workflows/data/IPTA_MockDataChallenge2/group1_psr_noise.json
+Loaded pulsar noise parameters from: /fred/oz022/tkimpson/Argus/workflows/example_workflow_lite/data_files/approximate_spin_injections.pkl
 Getting prior model specs...
 Red noise parameters fixed via spin_injections_path: True
 Using injected gamma_p values (legacy mode)
 Using injected sigma_p values (legacy mode)
 EFAC/EQUAD parameters fixed via noise_params_path: True
-2025-09-28 13:56:19,625 - INFO - 
+2025-09-30 11:53:16,189 - INFO - 
 ============================================================
-2025-09-28 13:56:19,625 - INFO - PRIOR SPECIFICATIONS SUMMARY
-2025-09-28 13:56:19,625 - INFO - ============================================================
-2025-09-28 13:56:19,625 - INFO - 
+2025-09-30 11:53:16,189 - INFO - PRIOR SPECIFICATIONS SUMMARY
+2025-09-30 11:53:16,189 - INFO - ============================================================
+2025-09-30 11:53:16,189 - INFO - 
 --- Gravitational Wave Background Parameters ---
-2025-09-28 13:56:19,625 - INFO - log10(h_a): REPARAMETERIZED for better NUTS sampling
-2025-09-28 13:56:19,625 - INFO -   - Sampling: log10_ha_prime ~ N(0, 1)
-2025-09-28 13:56:19,625 - INFO -   - Transform: log10_ha = -16.00 + log10_ha_prime * 0.667
-2025-09-28 13:56:19,625 - INFO -   - Equivalent to: Uniform(-18.0, -14.0)
-2025-09-28 13:56:19,700 - INFO - log10(γ_a): Uniform(-10.0, -8.0)
-2025-09-28 13:56:19,700 - INFO - 
+2025-09-30 11:53:16,189 - INFO - log10(h_a): REPARAMETERIZED for better NUTS sampling
+2025-09-30 11:53:16,189 - INFO -   - Sampling: log10_ha_prime ~ N(0, 1)
+2025-09-30 11:53:16,189 - INFO -   - Transform: log10_ha = -16.00 + log10_ha_prime * 0.667
+2025-09-30 11:53:16,189 - INFO -   - Equivalent to: Uniform(-18.0, -14.0)
+2025-09-30 11:53:16,266 - INFO - log10(γ_a): Uniform(-10.0, -8.0)
+2025-09-30 11:53:16,266 - INFO - 
 --- Pulsar Red Noise Parameters (32 pulsars) ---
-2025-09-28 13:56:19,700 - INFO - log10(γ_p): HIERARCHICAL modeling
-2025-09-28 13:56:19,700 - INFO -   - Population mean: Uniform(-9.0, -7.0)
-2025-09-28 13:56:19,701 - INFO -   - Population std: Uniform(0.1, 1.0)
-2025-09-28 13:56:19,701 - INFO -   - Individual pulsars: Normal(population_mean, population_std)
-2025-09-28 13:56:19,701 - INFO - log10(σ_p): LOG-RATIO parameterization
-2025-09-28 13:56:19,701 - INFO -   - log10(σ_p) = log10(γ_p) + log10(ratio)
-2025-09-28 13:56:19,701 - INFO -   - Ratio mean: Uniform(-8.0, -4.0)
-2025-09-28 13:56:19,701 - INFO -   - Ratio std: Uniform(0.5, 3.0)
-2025-09-28 13:56:19,701 - INFO -   - Individual ratios: Normal(ratio_mean, ratio_std)
-2025-09-28 13:56:19,701 - INFO - 
+2025-09-30 11:53:16,266 - INFO - log10(γ_p): HIERARCHICAL modeling
+2025-09-30 11:53:16,267 - INFO -   - Population mean: Uniform(-9.0, -7.0)
+2025-09-30 11:53:16,267 - INFO -   - Population std: Uniform(0.1, 1.0)
+2025-09-30 11:53:16,267 - INFO -   - Individual pulsars: Normal(population_mean, population_std)
+2025-09-30 11:53:16,267 - INFO - log10(σ_p): LOG-RATIO parameterization
+2025-09-30 11:53:16,267 - INFO -   - log10(σ_p) = log10(γ_p) + log10(ratio)
+2025-09-30 11:53:16,267 - INFO -   - Ratio mean: Uniform(-8.0, -4.0)
+2025-09-30 11:53:16,268 - INFO -   - Ratio std: Uniform(0.5, 3.0)
+2025-09-30 11:53:16,268 - INFO -   - Individual ratios: Normal(ratio_mean, ratio_std)
+2025-09-30 11:53:16,268 - INFO - 
 --- Measurement Noise Parameters (32 pulsars) ---
-2025-09-28 13:56:19,818 - INFO - EFAC: FIXED at individual values (range: 0.903 to 2.206)
-2025-09-28 13:56:19,819 - INFO - EQUAD: FIXED at individual values (range: 2.78e-08 to 5.69e-07)
-2025-09-28 13:56:19,819 - INFO - ============================================================
-2025-09-28 13:56:19,819 - INFO - Performing likelihood performance test...
-2025-09-28 13:56:19,819 - INFO - === Likelihood Performance Test ===
-2025-09-28 13:56:19,819 - INFO - Testing likelihood evaluation with known parameter values...
-2025-09-28 13:56:19,863 - INFO - Test parameters: γa=1e-09, ha=1e-15
-2025-09-28 13:56:19,863 - INFO - Number of pulsars: 32
-2025-09-28 13:56:19,863 - INFO - Performing for the first time a likelihood evaluation...
-2025-09-28 13:56:29,202 - INFO - Performing timed for the second time a likelihood evaluation...
-2025-09-28 13:56:29,279 - INFO - Likelihood evaluation completed in 9.3387 seconds the first time
-2025-09-28 13:56:29,280 - INFO - Likelihood evaluation completed in 0.0776 seconds the second time
-2025-09-28 13:56:29,280 - INFO - Log likelihood value: 55963.87289660473
-2025-09-28 13:56:29,280 - INFO - === End Likelihood Performance Test ===
-2025-09-28 13:56:29,280 - INFO - Running NUMPYRO inference...
+2025-09-30 11:53:16,411 - INFO - EFAC: FIXED at individual values (range: 0.903 to 2.206)
+2025-09-30 11:53:16,412 - INFO - EQUAD: FIXED at individual values (range: 2.78e-08 to 5.69e-07)
+2025-09-30 11:53:16,412 - INFO - ============================================================
+2025-09-30 11:53:16,412 - INFO - Performing likelihood performance test...
+2025-09-30 11:53:16,412 - INFO - === Likelihood Performance Test ===
+2025-09-30 11:53:16,412 - INFO - Testing likelihood evaluation with known parameter values...
+Loaded EFAC/EQUAD parameters from: /fred/oz022/tkimpson/Argus/workflows/data/IPTA_MockDataChallenge2/group1_psr_noise.json
+Loaded pulsar noise parameters from: /fred/oz022/tkimpson/Argus/workflows/example_workflow_lite/data_files/approximate_spin_injections.pkl
+2025-09-30 11:53:16,465 - INFO - Test parameters: γa=1e-09, ha=1e-15
+2025-09-30 11:53:16,465 - INFO - Number of pulsars: 32
+2025-09-30 11:53:16,465 - INFO - Performing for the first time a likelihood evaluation...
+2025-09-30 11:53:21,806 - INFO - Performing timed for the second time a likelihood evaluation...
+2025-09-30 11:53:21,887 - INFO - Likelihood evaluation completed in 5.3415 seconds the first time
+2025-09-30 11:53:21,887 - INFO - Likelihood evaluation completed in 0.0807 seconds the second time
+2025-09-30 11:53:21,888 - INFO - Log likelihood value: 55963.87289660473
+2025-09-30 11:53:21,888 - INFO - === End Likelihood Performance Test ===
+2025-09-30 11:53:21,888 - INFO - Running NUMPYRO inference...
 Getting prior model specs...
 Red noise parameters fixed via spin_injections_path: True
 Using injected gamma_p values (legacy mode)
@@ -233,123 +237,30 @@ Effective dimensionality: 4 hyperparameters + 0 constrained parameters
 σp = γp + ratio (reduces parameter correlations)
   0%|          | 0/300 [00:00<?, ?it/s]Compiling.. :   0%|          | 0/300 [00:00<?, ?it/s]
   0%|          | 0/300 [00:00<?, ?it/s][A
-Compiling.. :   0%|          | 0/300 [00:00<?, ?it/s][ARunning chain 0:   0%|          | 0/300 [00:11<?, ?it/s]
-Running chain 1:   0%|          | 0/300 [00:11<?, ?it/s][A
-Running chain 1:   5%|▌         | 15/300 [00:27<04:50,  1.02s/it][ARunning chain 0:   5%|▌         | 15/300 [00:39<08:43,  1.84s/it]
-Running chain 1:  10%|█         | 30/300 [01:06<08:50,  1.97s/it][ARunning chain 0:  10%|█         | 30/300 [01:20<10:44,  2.39s/it]
-Running chain 1:  15%|█▌        | 45/300 [01:42<09:12,  2.16s/it][ARunning chain 0:  15%|█▌        | 45/300 [01:52<09:36,  2.26s/it]
-Running chain 1:  20%|██        | 60/300 [02:27<09:57,  2.49s/it][ARunning chain 0:  20%|██        | 60/300 [02:42<10:40,  2.67s/it]
-Running chain 1:  25%|██▌       | 75/300 [02:54<08:25,  2.25s/it][ARunning chain 0:  25%|██▌       | 75/300 [03:06<08:36,  2.30s/it]
+Compiling.. :   0%|          | 0/300 [00:00<?, ?it/s][ARunning chain 0:   0%|          | 0/300 [00:12<?, ?it/s]
+Running chain 1:   0%|          | 0/300 [00:12<?, ?it/s][A
+Running chain 1:   5%|▌         | 15/300 [00:27<04:49,  1.02s/it][ARunning chain 0:   5%|▌         | 15/300 [00:40<08:44,  1.84s/it]
+Running chain 1:  10%|█         | 30/300 [01:07<08:50,  1.96s/it][ARunning chain 0:  10%|█         | 30/300 [01:21<10:47,  2.40s/it]
+Running chain 1:  15%|█▌        | 45/300 [01:43<09:11,  2.16s/it][ARunning chain 0:  15%|█▌        | 45/300 [01:53<09:39,  2.27s/it]
+Running chain 1:  20%|██        | 60/300 [02:27<09:57,  2.49s/it][ARunning chain 0:  20%|██        | 60/300 [02:43<10:45,  2.69s/it]
+Running chain 1:  25%|██▌       | 75/300 [02:55<08:25,  2.25s/it][ARunning chain 0:  25%|██▌       | 75/300 [03:08<08:40,  2.31s/it]
 Running chain 1:  30%|███       | 90/300 [03:17<06:58,  1.99s/it][A
-Running chain 1:  35%|███▌      | 105/300 [03:31<05:21,  1.65s/it][ARunning chain 0:  30%|███       | 90/300 [03:36<07:42,  2.20s/it]
-Running chain 1:  40%|████      | 120/300 [03:45<04:15,  1.42s/it][ARunning chain 0:  35%|███▌      | 105/300 [04:00<06:27,  1.99s/it]
-Running chain 1:  45%|████▌     | 135/300 [04:01<03:36,  1.31s/it][ARunning chain 0:  40%|████      | 120/300 [04:13<04:55,  1.64s/it]
-Running chain 1:  50%|█████     | 150/300 [04:14<02:57,  1.18s/it][ARunning chain 0:  45%|████▌     | 135/300 [04:26<03:49,  1.39s/it]
-Running chain 1:  55%|█████▌    | 165/300 [04:27<02:24,  1.07s/it][A
-Running chain 1:  60%|██████    | 180/300 [04:40<02:02,  1.02s/it][ARunning chain 0:  50%|█████     | 150/300 [04:41<03:09,  1.27s/it]Running chain 0:  55%|█████▌    | 165/300 [04:53<02:32,  1.13s/it]
-Running chain 1:  65%|██████▌   | 195/300 [04:54<01:44,  1.00it/s][ARunning chain 0:  60%|██████    | 180/300 [05:06<02:06,  1.05s/it]
-Running chain 1:  70%|███████   | 210/300 [05:08<01:26,  1.04it/s][ARunning chain 0:  65%|██████▌   | 195/300 [05:18<01:43,  1.02it/s]
-Running chain 1:  75%|███████▌  | 225/300 [05:23<01:14,  1.01it/s][ARunning chain 0:  70%|███████   | 210/300 [05:31<01:25,  1.05it/s]
-Running chain 1:  80%|████████  | 240/300 [05:36<00:56,  1.06it/s][ARunning chain 0:  75%|███████▌  | 225/300 [05:45<01:09,  1.07it/s]
-Running chain 1:  85%|████████▌ | 255/300 [05:52<00:43,  1.02it/s][ARunning chain 0:  80%|████████  | 240/300 [06:00<00:57,  1.04it/s]
-Running chain 1:  90%|█████████ | 270/300 [06:06<00:28,  1.04it/s][ARunning chain 0:  85%|████████▌ | 255/300 [06:15<00:43,  1.04it/s]
-Running chain 1:  95%|█████████▌| 285/300 [06:22<00:14,  1.01it/s][ARunning chain 0:  90%|█████████ | 270/300 [06:26<00:27,  1.11it/s]
-Running chain 1: 100%|██████████| 300/300 [06:35<00:00,  1.04it/s][ARunning chain 1: 100%|██████████| 300/300 [06:35<00:00,  1.32s/it]
-Running chain 0:  95%|█████████▌| 285/300 [06:38<00:13,  1.14it/s]Running chain 0: 100%|██████████| 300/300 [06:52<00:00,  1.12it/s]Running chain 0: 100%|██████████| 300/300 [06:52<00:00,  1.38s/it]
+Running chain 1:  35%|███▌      | 105/300 [03:31<05:21,  1.65s/it][ARunning chain 0:  30%|███       | 90/300 [03:39<07:48,  2.23s/it]
+Running chain 1:  40%|████      | 120/300 [03:46<04:17,  1.43s/it][Aslurmstepd: error: *** JOB 5124129 ON gina305 CANCELLED AT 2025-09-30T11:57:18 ***
 
-                           mean       std    median      5.0%     95.0%     n_eff     r_hat
-  log10_gamma_a_prime      0.07      0.97      0.08     -1.37      1.94    270.07      1.01
-       log10_ha_prime      0.73      0.10      0.74      0.60      0.91    308.76      1.00
-
-Number of divergences: 0
-2025-09-28 14:03:56,398 - INFO - Saving NumPyro results...
-2025-09-28 14:04:00,660 - INFO - NumPyro results saved to /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/dev_workflow/outputs/results2/results2_results.nc
-2025-09-28 14:04:00,660 - INFO - Creating corner plot and diagnostics for NUTS results...
-Found log10_gamma_a parameter - creating 2D corner plot
-
-Parameter ranges from posterior samples:
-============================================================
-  $\log_{10} h_a$:
-    Range: [-15.705, -15.324]
-    Mean ± Std: -15.511 ± 0.064
-  $\log_{10} \gamma_a$:
-    Range: [-9.950, -8.169]
-    Mean ± Std: -8.975 ± 0.322
-============================================================
-Corner plot saved to: /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/dev_workflow/outputs/results2/plots/corner_plot_results2_ha_gamma_a.png
-PDF version saved to: /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/dev_workflow/outputs/results2/plots/corner_plot_results2_ha_gamma_a.pdf
-2025-09-28 14:04:14,322 - INFO - Corner plot saved to /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/dev_workflow/outputs/results2/plots/corner_plot_results2_ha_gamma_a.png
-2025-09-28 14:04:14,322 - INFO - Running MCMC diagnostics...
-Successfully loaded InferenceData from: /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/dev_workflow/outputs/results2/results2_results.nc
-
---- Calculating Full MCMC Summary ---
-/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/arviz/stats/diagnostics.py:592: RuntimeWarning: invalid value encountered in scalar divide
-  (between_chain_variance / within_chain_variance + num_samples - 1) / (num_samples)
-/fred/oz022/tkimpson/conda_envs/Argus/lib/python3.12/site-packages/arviz/stats/diagnostics.py:592: RuntimeWarning: invalid value encountered in scalar divide
-  (between_chain_variance / within_chain_variance + num_samples - 1) / (num_samples)
-
---- Filtered MCMC Summary (Excluding Constant Deterministics) ---
-                       mean     sd  hdi_3%  ...  ess_bulk  ess_tail  r_hat
-log10_gamma_a        -8.975  0.323  -9.551  ...   267.423   251.802  1.014
-log10_gamma_a_prime   0.074  0.968  -1.653  ...   267.423   251.802  1.014
-log10_ha            -15.511  0.064 -15.621  ...   299.566   283.757  1.008
-log10_ha_prime        0.733  0.097   0.569  ...   299.566   283.757  1.008
-
-[4 rows x 9 columns]
-
---- Interpretation Guidance (Filtered Parameters) ---
-Checking R-hat and ESS only for variables that showed variation:
-
-Maximum R-hat value (filtered): 1.014
-NOTE: Maximum R-hat is slightly elevated (> 1.01). Check trace plots carefully.
-Minimum Bulk ESS (filtered): 267
-Minimum Tail ESS (filtered): 252
-WARNING: Minimum ESS is low (< 400). Consider increasing 'num_samples'.
-
---- Generating Trace Plots (Filtered Parameters) ---
-Trace plots saved to: /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/dev_workflow/outputs/results2/numpyro_diagnostics/trace_plots.png
-
---- Trace Plot Interpretation ---
-(Interpret as before, focusing on these non-constant variables)
-
---- Checking for Divergent Transitions ---
-/fred/oz022/tkimpson/tmp/argus_dev/Argus/python/argus/utils.py:662: FutureWarning: The return type of `Dataset.dims` will be changed to return a set of dimension names in future, in order to be more consistent with `DataArray.dims`. To access a mapping from dimension names to lengths, please use `Dataset.sizes`.
-  total_samples = inf_data.posterior.dims["chain"] * inf_data.posterior.dims["draw"]
-Total number of divergent transitions: 0
-Total post-warmup samples: 400
-No divergent transitions found. Good!
-
---- Diagnostics Complete ---
-Diagnostics saved to: /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/dev_workflow/outputs/results2/numpyro_diagnostics/mcmc_diagnostics.txt
-2025-09-28 14:04:18,689 - INFO - MCMC diagnostics completed
-
-Dev inference complete! Results saved to: /fred/oz022/tkimpson/tmp/argus_dev/Argus/workflows/dev_workflow/outputs/results2
-
-=== DEV SUMMARY ===
-This was a lightweight development run.
-For production analysis, use the full example_workflow with:
-- More MCMC samples (2000+ vs 200)
-- More warmup samples (1000+ vs 100)
-- More chains (4+ vs 2)
-- Full parameter space exploration
-
-real	11m56.761s
-user	7m31.104s
-sys	6m5.689s
-
-+------------------ Job Report: 5085405 (COMPLETED) -------------------+
-| Memory (RAM)  [#############       ] 65.3% (5.2 GB peak / 8 GB)      |
-| CPU           [######              ] 30.7% average                   |
-| GPU           [#####               ] 28.8% average                   |
-| Time          [-->                 ] 10.2% (0-00:12:17 / 0-02:00:00) |
++------------------ Job Report: 5124129 (CANCELLED) -------------------+
+| Memory (RAM)  [############        ] 63.4% (5.1 GB peak / 8 GB)      |
+| CPU           [########            ] 44.6% average                   |
+| GPU           [######              ] 34.3% average                   |
+| Time          [>                   ]  4.0% (0-00:04:48 / 0-02:00:00) |
 |                                                                      |
 | Lustre Filesystem:                                                   |
 |   Path    Total Read    Total Write    Total IOPS                    |
 |   ------  ------------  -------------  ------------                  |
-|   /apps   62.2 MB       0 B            28                            |
-|   /fred   590.9 MB      75.6 KB        17.4 K                        |
-|   /home   27.4 MB       0 B            14                            |
-|   OS      16.6 MB       0 B            13                            |
+|   /apps   62.4 MB       0 B            28                            |
+|   /fred   598.8 MB      43.3 KB        17.2 K                        |
+|   /home   27.4 MB       0 B            11                            |
+|   OS      17.1 MB       0 B            24                            |
 |                                                                      |
 | Warnings:                                                            |
 |   - CPU usage is low                                                 |

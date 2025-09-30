@@ -32,16 +32,23 @@ def setup_output_directory(config, use_gw, timestamp=None, config_path=None):
     
     # Determine which workflow directory to use based on config path
     workflow_name = 'example_workflow'  # default fallback
+    project_root = None
+
     if config_path:
-        # Extract workflow name from config path (e.g., "workflows/dev_workflow/configs/dev_config.ini")
-        config_path_normalized = os.path.normpath(config_path)
+        # Extract workflow name and project root from config path
+        # Config path should be: /path/to/project/workflows/workflow_name/configs/config.ini
+        config_path_abs = os.path.abspath(config_path)
+        config_path_normalized = os.path.normpath(config_path_abs)
         path_parts = config_path_normalized.split(os.sep)
+
         if 'workflows' in path_parts:
             workflows_index = path_parts.index('workflows')
             if workflows_index + 1 < len(path_parts):
                 workflow_name = path_parts[workflows_index + 1]
+            # Project root is everything up to 'workflows'
+            project_root = os.sep.join(path_parts[:workflows_index])
         else:
-            # If config path is relative (e.g., "configs/dev_config.ini"),
+            # If config path is relative (e.g., "configs/config.ini"),
             # try to determine workflow from current working directory
             cwd = os.getcwd()
             cwd_parts = cwd.split(os.sep)
@@ -49,10 +56,14 @@ def setup_output_directory(config, use_gw, timestamp=None, config_path=None):
                 workflows_index = cwd_parts.index('workflows')
                 if workflows_index + 1 < len(cwd_parts):
                     workflow_name = cwd_parts[workflows_index + 1]
-    
+                project_root = os.sep.join(cwd_parts[:workflows_index])
+
+    # Fallback to using __file__ location if we couldn't determine from config_path
+    if project_root is None:
+        # Get to project root (3 levels up from argus/io_manager.py)
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
     # Create base output directory in the appropriate workflow directory
-    # Get to project root (3 levels up from argus/io_manager.py)
-    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     base_output_dir = os.path.join(project_root, 'workflows', workflow_name, 'outputs', base_dir)
     
     if not use_gw:
@@ -67,7 +78,8 @@ def setup_output_directory(config, use_gw, timestamp=None, config_path=None):
     os.makedirs(output_dir, exist_ok=True)
     
     print(f"Starting Bayesian inference {'with' if use_gw else 'without'} GW model...")
-    
+    print(f"the output dir is {output_dir}")
+
     return output_dir
 
 
@@ -86,6 +98,7 @@ def copy_config_file(config_path, output_dir, logger):
     config_filename = os.path.basename(config_path)
     output_config_path = os.path.join(output_dir, config_filename)
     shutil.copy2(config_path, output_config_path)
+    logger.info(f"The output dir is {output_dir}")
     logger.info(f"Copied config file to {output_config_path}")
     return output_config_path
 
