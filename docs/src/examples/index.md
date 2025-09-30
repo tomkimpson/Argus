@@ -27,8 +27,8 @@ This section contains practical examples and tutorials for using Argus in pulsar
 - Making your analysis faster
 
 !!! info "Example Data"
-    Example datasets are available in the repository under `data/` directory. These include:
-    
+    Example datasets are available in the repository under `workflows/data/` directory. These include:
+
     - IPTA Mock Data Challenge datasets
     - NANOGrav 15-year data samples
     - Preprocessed timing residuals

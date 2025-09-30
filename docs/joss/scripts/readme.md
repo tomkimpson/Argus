@@ -1,1 +1,1 @@
-The example corner plot is produced via the command 'python create_corner_plot.py --results-file ../../../workflows/dev_workflow_full/outputs/results_dev_full/results_dev_full_results.nc 1 1.0 --plot_log10_gamma_a  --efac --equad'
+The example corner plot is produced via the command 'python create_corner_plot.py --results-file ../../../workflows/example_workflow/outputs/results_dev_full/results_dev_full_results.nc 1 1.0 --plot_log10_gamma_a  --efac --equad'

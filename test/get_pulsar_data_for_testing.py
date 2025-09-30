@@ -30,7 +30,7 @@ def main():
 
     # Define paths
     script_dir = Path(__file__).parent.absolute()
-    data_directory = script_dir / "../data/IPTA_MockDataChallenge2/dataset_2b/"
+    data_directory = script_dir / "../workflows/data/IPTA_MockDataChallenge2/dataset_2b/"
     output_file = script_dir / "data/processed_pulsar_data.pkl"
 
     # Validate input directory

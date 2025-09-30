@@ -1,4 +1,4 @@
-"""Lightweight development script for rapid prototyping of Bayesian inference."""
+"""Example workflow script for Bayesian inference on pulsar timing array data."""
 
 import os
 import sys
@@ -18,19 +18,19 @@ jax.config.update("jax_enable_x64", True)
 
 
 def main():
-    """Run lightweight development version for rapid prototyping."""
+    """Run full example workflow for Bayesian inference."""
     # Set up argument parser
-    parser = argparse.ArgumentParser(description='Run lightweight Bayesian inference for development.')
+    parser = argparse.ArgumentParser(description='Run Bayesian inference workflow.')
     parser.add_argument('config', type=str, help='Path to the configuration file')
     
     args = parser.parse_args()
     
     # Print JAX configuration and system info
-    print("=== DEV WORKFLOW - RAPID PROTOTYPING ===")
+    print("=== EXAMPLE WORKFLOW ===")
     print(f"JAX version: {jax.__version__}")
     print("Default device:", jax.default_backend())
-    print("Note: This is a lightweight development workflow for rapid prototyping.")
-    print("Use the full example_workflow for production runs.\n")
+    print("Note: This is the full example workflow.")
+    print("For rapid prototyping, use example_workflow_lite.\n")
     
     # Check GPU availability
     utils.check_gpu_availability()
@@ -45,16 +45,16 @@ def main():
         timestamp=timestamp
     )
     
-    print(f"\nDev inference complete! Results saved to: {output_dir}")
-    
-    # Print quick summary for development purposes
-    print("\n=== DEV SUMMARY ===")
-    print("This was a lightweight development run.")
-    print("For production analysis, use the full example_workflow with:")
-    print("- More MCMC samples (2000+ vs 200)")
-    print("- More warmup samples (1000+ vs 100)")
-    print("- More chains (4+ vs 2)")
-    print("- Full parameter space exploration")
+    print(f"\nInference complete! Results saved to: {output_dir}")
+
+    # Print quick summary
+    print("\n=== SUMMARY ===")
+    print("This was a full example workflow run.")
+    print("For faster prototyping, use example_workflow_lite with:")
+    print("- Fewer MCMC samples (200 vs 2000+)")
+    print("- Fewer warmup samples (100 vs 1000+)")
+    print("- Fewer chains (2 vs 4+)")
+    print("- Reduced parameter space exploration")
 
 
 if __name__ == "__main__":

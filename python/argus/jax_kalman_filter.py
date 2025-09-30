@@ -447,36 +447,4 @@ class JaxKalmanFilter:
             dim_x=2*self.Npsr,
             n_states=self.nx,
             P_eps=self.P_eps
-        ) 
-
-    def F_matrix(self, dt: float, γa: float, γp: float) -> tuple[np.ndarray, np.ndarray]:
-        """Return the state–transition matrix for time step dt.
-        
-        Args:
-            dt: Time step
-            γa: GW damping rate
-            γp: Spin noise damping rate
-            
-        Returns
-        -------
-            tuple: (F_gw, F_spin) matrices
-        """
-        F_gw, F_spin = get_F(γa, γp, dt, self.Npsr, self.M_sum)
-        return F_gw, F_spin
-
-    def Q_matrix(self, dt: float, γa: float, γp: float, σa2: float, σp2: float) -> tuple[np.ndarray, np.ndarray]:
-        """Return the process–noise covariance matrix for time step dt.
-        
-        Args:
-            dt: Time step
-            γa: GW damping rate
-            γp: Spin noise damping rate
-            σa2: GW noise amplitude squared
-            σp2: Spin noise amplitude squared
-            
-        Returns
-        -------
-            tuple: (Q_gw, Q_spin) matrices
-        """
-        Q_gw, Q_spin = get_Q(γa, σa2, γp, σp2, dt)
-        return Q_gw, Q_spin 
+        )

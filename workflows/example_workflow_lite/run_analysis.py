@@ -26,10 +26,10 @@ def main():
     args = parser.parse_args()
     
     # Print JAX configuration and system info
-    print("=== DEV WORKFLOW - RAPID PROTOTYPING ===")
+    print("=== EXAMPLE WORKFLOW LITE - RAPID PROTOTYPING ===")
     print(f"JAX version: {jax.__version__}")
     print("Default device:", jax.default_backend())
-    print("Note: This is a lightweight development workflow for rapid prototyping.")
+    print("Note: This is a lightweight workflow for rapid prototyping.")
     print("Use the full example_workflow for production runs.\n")
     
     # Check GPU availability
@@ -45,11 +45,11 @@ def main():
         timestamp=timestamp
     )
     
-    print(f"\nDev inference complete! Results saved to: {output_dir}")
-    
-    # Print quick summary for development purposes
-    print("\n=== DEV SUMMARY ===")
-    print("This was a lightweight development run.")
+    print(f"\nInference complete! Results saved to: {output_dir}")
+
+    # Print quick summary
+    print("\n=== SUMMARY ===")
+    print("This was a lightweight example run.")
     print("For production analysis, use the full example_workflow with:")
     print("- More MCMC samples (2000+ vs 200)")
     print("- More warmup samples (1000+ vs 100)")

@@ -12,59 +12,110 @@ We'll cover:
 
 ## Prerequisites
 
-Make sure you have Argus installed:
+Make sure you have Argus installed. See the [Getting Started](../getting_started.md) guide for detailed installation instructions.
+
+**Quick install from source:**
 
 ```bash
-pip install argus
+# Set up a virtual environment (recommended)
+python -m venv argus-env
+source argus-env/bin/activate
+
+# Clone and install
+git clone https://github.com/tomkimpson/Argus.git
+cd Argus
+pip install .
 ```
 
-## Example Code
+## Using Example Workflows
+
+The easiest way to get started is to use the provided example workflows in the `workflows/` directory. These contain complete, working examples that you can run immediately.
+
+### Quick Start: Example Workflow Lite
+
+For rapid prototyping and testing:
+
+```bash
+cd workflows/example_workflow_lite
+python run_analysis.py configs/example_config.ini
+```
+
+This workflow uses:
+- IPTA Mock Data Challenge dataset
+- Reduced MCMC samples (200) for faster execution
+- 2-4 chains for basic convergence checking
+- All pulsar noise and GW parameters
+
+Expected output:
+```
+=== EXAMPLE WORKFLOW LITE - RAPID PROTOTYPING ===
+JAX version: 0.4.x
+Default device: gpu
+...
+Inference complete! Results saved to: outputs/results_dev_lite/20250930_120000/
+```
+
+### Production Analysis: Full Workflow
+
+For publication-quality results:
+
+```bash
+cd workflows/example_workflow
+python run_analysis.py configs/example_config.ini
+```
+
+This uses more MCMC samples (2000+) and chains (4+) for robust convergence diagnostics.
+
+## Using the Python API
+
+You can also use Argus programmatically in your own scripts:
 
 ```python
-import numpy as np
-import argus
-from argus.data_loader import DataLoader
-from argus.model import ArgusModel
-from argus.workflow import run_inference
+from argus import workflow
 
-# Load mock data
-data_loader = DataLoader()
-timing_data = data_loader.load_mock_data("IPTA_Challenge1_open")
-
-# Set up the model
-model = ArgusModel(
-    data=timing_data,
-    include_gw_signal=True,
-    noise_model="white_red"
+# Run Bayesian inference using a configuration file
+output_dir = workflow.run_inference(
+    config_path="path/to/config.ini",
+    use_gw=True,
+    timestamp="20250930_120000"
 )
 
-# Configure priors - Advanced Bayesian techniques are available
-# Basic configuration (suitable for small PTAs)
-priors = {
-    "log10_A_gw": {"type": "uniform", "min": -18, "max": -12},  # Automatic reparameterization applied
-    "gamma_gw": {"type": "uniform", "min": 1, "max": 7},
-    "log10_white_noise": {"type": "uniform", "min": -10, "max": -4}
-}
-
-# Run NUTS sampling
-output_dir = run_inference(
-    config_path="config.ini",
-    use_gw=True
-)
-
-# Analyze results
-print(f"Best-fit log10(A_gw): {results.posterior['log10_A_gw'].mean():.2f}")
-print(f"Posterior std log10(A_gw): {results.posterior['log10_A_gw'].std():.2f}")
+print(f"Results saved to: {output_dir}")
 ```
 
-## Expected Output
+The workflow handles:
+- Loading pulsar timing data
+- Setting up the Bayesian model with priors
+- Running NUTS sampling with NumPyro
+- Saving posterior samples and diagnostics
+- Generating summary plots
 
+## Configuration Files
+
+Analysis parameters are specified in `.ini` configuration files. Example structure:
+
+```ini
+[Data]
+data_path = ../../data/IPTA_MockDataChallenge2/dataset_2b/
+excluded_psrs = J1640+2224
+
+[NUTS]
+num_samples = 200
+num_warmup = 100
+num_chains = 4
+target_accept_prob = 0.855
+
+[PriorModel]
+# GW parameters
+log10_ha_min = -18.0
+log10_ha_max = -14.0
+
+# Pulsar red noise parameters
+log10_gamma_p_min = -11.0
+log10_gamma_p_max = -6.0
 ```
-Best-fit log10(A_gw): -15.23
-Posterior std log10(A_gw): 0.45
-Number of MCMC samples: 2000
-Number of chains: 4
-```
+
+See `workflows/example_workflow*/configs/` for complete configuration templates.
 
 ## Advanced Bayesian Techniques
 
