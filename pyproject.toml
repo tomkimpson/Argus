@@ -1,10 +1,10 @@
 [project]
-name = "argus-pta"
+name = "argus"
 version = "0.0.0-dev" # Just a place holder; package version is managed by the dynamic-versioning plugin & git tags
 description = "Bayesian inference for pulsar timing array data analysis using JAX and Kalman filtering"
 authors = [
-    { name = "Tom Kimpson", email = "tom.kimpson@example.com" },
-    { name = "J. Hu", email = "j.hu@example.com" }
+    { name = "Tom Kimpson", email = "tomkimpson@gmail.com" },
+    { name = "J. Hu" }
 ]
 license = { text = "MIT" }
 readme = "README.md"

@@ -11,7 +11,7 @@ tags:
   - high-performance computing
 authors:
   - name: Tom Kimpson
-    orcid: 0000-0000-0000-0000
+    orcid: 0000-0002-6542-6032
     affiliation: "1, 2"
     corresponding: true
   - name: Nicholas O'Neil

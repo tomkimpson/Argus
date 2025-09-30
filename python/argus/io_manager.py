@@ -221,28 +221,6 @@ def get_argus_logger():
     return logger
 
 
-def setup_console_logging(config):
-    """Set up console-only logging.
-    
-    DEPRECATED: Use setup_single_logger() instead for centralized logging.
-    This function is kept for backward compatibility.
-    
-    Args:
-        config: Configuration object
-        
-    Returns
-    -------
-        logging.Logger: Configured logger instance
-    """
-    logger = logging.getLogger(__name__)
-    logger.setLevel(getattr(logging, config.get('Logging', 'level')))
-    if not logger.handlers:
-        handler = logging.StreamHandler()
-        handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-        logger.addHandler(handler)
-    return logger
-
-
 def get_output_id_from_config(config, timestamp=None):
     """Extract output_id from config with fallback to timestamp.
     
