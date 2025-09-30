@@ -1,6 +1,6 @@
 # Argus
 
-![Tests](https://github.com/tomkimpson/Argus/actions/workflows/run_test.yml/badge.svg) [![codecov](https://codecov.io/gh/tomkimpson/Argus/graph/badge.svg?token=2PEOHCFV1K)](https://codecov.io/gh/tomkimpson/Argus) [![PyPI version](https://badge.fury.io/py/argus.svg)](https://badge.fury.io/py/argus) [![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://tomkimpson.github.io/Argus/)
+![Tests](https://github.com/tomkimpson/Argus/actions/workflows/run_test.yml/badge.svg) [![codecov](https://codecov.io/gh/tomkimpson/Argus/graph/badge.svg?token=2PEOHCFV1K)](https://codecov.io/gh/tomkimpson/Argus) [![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://tomkimpson.github.io/Argus/)
 
 **Argus** is a Python package for Bayesian inference on pulsar timing array data using JAX and Kalman filtering techniques. It provides efficient, GPU-accelerated analysis tools for detecting gravitational waves and estimating astrophysical parameters from pulsar timing data.
 
@@ -10,7 +10,6 @@
 - 🔬 **Bayesian parameter estimation** using NumPyro
 - 📊 **Kalman filtering** for efficient state space modeling
 - 🌊 **Gravitational wave detection** in pulsar timing arrays
-- 📈 **Comprehensive analysis tools** and visualization
 - 🔧 **Example workflows** for quick start and development
 
 ## Installation
@@ -45,8 +44,6 @@ For development with additional dependencies (testing, linting, etc.):
 # Follow the same conda setup as above, then:
 pip install -e ".[dev]"
 ```
-
-> **Why this workflow?** The `enterprise-pulsar` package has dependencies that are challenging to resolve correctly with pip alone. Installing it via conda first ensures all system-level dependencies are properly configured, then pip handles the remaining Python packages from `pyproject.toml`.
 
 ## Quick Start
 
