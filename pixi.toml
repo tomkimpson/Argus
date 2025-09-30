@@ -1,0 +1,74 @@
+[project]
+name = "argus-pta"
+version = "0.0.0-dev"
+description = "Bayesian inference for pulsar timing array data analysis using JAX and Kalman filtering"
+authors = ["Tom Kimpson <tom.kimpson@example.com>", "J. Hu <j.hu@example.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/tomkimpson/Argus"
+repository = "https://github.com/tomkimpson/Argus"
+documentation = "https://tomkimpson.github.io/Argus/"
+keywords = ["pulsar", "timing", "bayesian", "inference", "jax", "kalman", "gravitational-waves"]
+channels = ["conda-forge"]
+platforms = ["osx-64", "osx-arm64", "linux-64", "win-64"]
+
+[dependencies]
+python = ">=3.11,<3.13"
+numpy = ">=1.21.2"
+pandas = ">=2.2.3"
+fastparquet = ">=2024.11.0"
+tqdm = ">=4.67.1"
+jax = ">=0.4.0"
+jaxlib = "*"
+numpyro = ">=0.15.0"
+matplotlib = ">=3.7.0"
+arviz = ">=0.18.0"
+corner = ">=2.2.0"
+flax = ">=0.8.0"
+tensorflow-probability = ">=0.24.0"
+enterprise-pulsar = ">=3.3.0"
+
+[feature.cuda.dependencies]
+jaxlib = { version = "*", build = "*cuda*" }
+
+[feature.docs.dependencies]
+mkdocs-material = ">=9.5"
+mkdocstrings-python = ">=0.26"
+mkdocs-autorefs = ">=1.0"
+mkdocs-gen-files = ">=0.5"
+mkdocs-literate-nav = ">=0.6"
+
+[feature.dev.dependencies]
+pytest = ">=7"
+pytest-mock = ">=3"
+pytest-cookies = "*"
+pytest-cov = ">=5"
+black = ">=24"
+ruff = "*"
+mypy = ">=1"
+pre-commit = ">=3"
+
+[environments]
+default = ["cuda"]
+docs = ["docs"]
+dev = ["dev", "cuda"]
+test = ["dev"]
+
+[tasks]
+install-local = "pip install -e ."
+test = "pytest"
+test-gpu = "pytest -m gpu"
+test-no-gpu = "pytest -m 'not gpu'"
+lint = "ruff check python/"
+format = "black python/"
+type-check = "mypy python/"
+docs-serve = "mkdocs serve"
+docs-build = "mkdocs build"
+pre-commit = "pre-commit run --all-files"
+
+[tasks.setup-dev]
+cmd = ["pip install -e .", "pre-commit install"]
+description = "Install package in development mode and set up pre-commit hooks"
+
+[pypi-dependencies]
+argus-pta = { path = ".", editable = true }

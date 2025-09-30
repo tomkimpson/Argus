@@ -21,7 +21,22 @@
 pip install argus-pta
 ```
 
-### From Source
+### From Source with Pixi (recommended for development)
+
+[Pixi](https://pixi.sh) is a fast, cross-platform package manager that handles complex scientific dependencies better than pip. It's especially recommended for this project due to dependencies like `enterprise-pulsar` and `scikit-sparse`.
+
+```bash
+# Install pixi first (see https://pixi.sh for installation instructions)
+curl -fsSL https://pixi.sh/install.sh | bash
+
+# Clone and setup the project
+git clone https://github.com/tomkimpson/Argus.git
+cd Argus
+pixi install
+pixi run setup-dev
+```
+
+### From Source with pip/poetry (alternative)
 
 ```bash
 git clone https://github.com/tomkimpson/Argus.git
@@ -31,6 +46,15 @@ pip install .
 
 ### Development Installation
 
+**With Pixi (recommended):**
+```bash
+git clone https://github.com/tomkimpson/Argus.git
+cd Argus
+pixi shell dev  # Activates development environment
+pixi run setup-dev  # Installs package and pre-commit hooks
+```
+
+**With pip:**
 ```bash
 git clone https://github.com/tomkimpson/Argus.git
 cd Argus
