@@ -3,8 +3,6 @@
 import numpy as np
 
 
-
-
 def pairwise_angular_separation(ra_rad, dec_rad):
     """Compute the pairwise angular separations for a set of celestial coordinates in radians.
 
@@ -58,12 +56,12 @@ def pairwise_angular_separation(ra_rad, dec_rad):
 
 def hellings_downs(θ):
     """Compute the Hellings–Downs function for an angle θ (in radians).
-    
+
     Parameters
     ----------
     θ : np.ndarray or float
         Angular separation between pulsars in radians
-        
+
     Returns
     -------
     np.ndarray or float
@@ -75,12 +73,12 @@ def hellings_downs(θ):
         x = np.zeros_like(θ)
         # Only compute (1-cos(θ))/2 for non-zero angles
         x[~mask] = (1 - np.cos(θ[~mask])) / 2.0
-        
+
         result = np.zeros_like(θ)
         result[mask] = 1.0
         # Only compute HD function for non-zero angles
         result[~mask] = (3 / 2) * x[~mask] * np.log(x[~mask]) - x[~mask] / 4 + 0.5
-        
+
         return result
     else:
         # Handle scalar input
@@ -88,5 +86,3 @@ def hellings_downs(θ):
             return 1.0
         x = (1 - np.cos(θ)) / 2.0
         return (3 / 2) * x * np.log(x) - x / 4 + 0.5
-
-

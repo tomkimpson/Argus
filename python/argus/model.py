@@ -16,7 +16,7 @@ import numpy as np
 
 def get_F_block(γ: float, dt: float) -> jax.Array:
     """Compute 2x2 state transition block matrix for a single component.
-    
+
     Uses expm1 for improved numerical stability when γ*dt is small.
     Assumes γ != 0 based on prior constraints.
 
@@ -29,13 +29,13 @@ def get_F_block(γ: float, dt: float) -> jax.Array:
         jax.Array: 2x2 state transition matrix
     """
     neg_gamma_dt = -γ * dt
-    exp_term = jnp.exp(neg_gamma_dt) 
+    exp_term = jnp.exp(neg_gamma_dt)
 
     # Calculate (1 - exp(-gamma*dt)) / gamma = - (exp(-gamma*dt) - 1) / gamma
-    F12 = -jnp.expm1(neg_gamma_dt) / γ 
+    F12 = -jnp.expm1(neg_gamma_dt) / γ
 
-    return jnp.array([[1.0, F12],
-                     [0.0, exp_term]])
+    return jnp.array([[1.0, F12], [0.0, exp_term]])
+
 
 def get_Q_block(γ: float, dt: float) -> jax.Array:
     """Compute Q block matrix using JAX.
@@ -43,7 +43,7 @@ def get_Q_block(γ: float, dt: float) -> jax.Array:
     Uses expm1 for improved numerical stability when gamma*dt is small.
     Assumes gamma != 0 based on prior constraints.
 
-    Note: For very small γ or dt values, exponential terms may need 
+    Note: For very small γ or dt values, exponential terms may need
     special handling to maintain numerical stability.
     """
     neg_gamma_dt = -γ * dt
@@ -60,13 +60,14 @@ def get_Q_block(γ: float, dt: float) -> jax.Array:
 
     return jnp.array([[q11, q12], [q12, q22]])
 
+
 def get_F_spin(gamma: jax.Array, dt: float) -> jax.Array:
     """Compute block diagonal state transition matrix for spin noise.
-    
+
     Args:
         gamma: Array of decay rates for each component
         dt: Time step
-        
+
     Returns
     -------
         jax.Array: Block diagonal matrix composed of 2x2 blocks
@@ -74,12 +75,14 @@ def get_F_spin(gamma: jax.Array, dt: float) -> jax.Array:
     res = vmap(lambda x: get_F_block(x, dt))(gamma)
     return block_diag(*res)
 
+
 def get_Q_spin(gamma, dt, sigma_p):
     """Compute Q spin matrix using JAX."""
     res = vmap(lambda g, s: get_Q_block(g, dt) * s)(gamma, sigma_p)
     return block_diag(*res)
 
-@partial(jax.jit, static_argnums=(3,4))
+
+@partial(jax.jit, static_argnums=(3, 4))
 def get_F(gamma, gamma_spin, dt, Npsr, M_sum):
     """Get transition matrices using JAX."""
     F_gw_block = get_F_block(gamma, dt)
@@ -87,13 +90,15 @@ def get_F(gamma, gamma_spin, dt, Npsr, M_sum):
     F_spin = get_F_spin(gamma_spin, dt)
     return F_gw, F_spin
 
+
 @jax.jit
-def get_Q(gamma,σa2, gamma_spin,σp2, dt):
+def get_Q(gamma, σa2, gamma_spin, σp2, dt):
     """Get process noise matrices using JAX."""
     Q_gw_block = get_Q_block(gamma, dt)
     Q_gw = jnp.kron(σa2, Q_gw_block)
     Q_spin = get_Q_spin(gamma_spin, dt, σp2)
     return Q_gw, Q_spin
+
 
 @jax.jit
 def precompute_R_matrices(σ: jax.Array, EFAC: jax.Array, EQUAD: jax.Array) -> jax.Array:
@@ -103,19 +108,22 @@ def precompute_R_matrices(σ: jax.Array, EFAC: jax.Array, EQUAD: jax.Array) -> j
     Currently, this method returns a scalar
     or a per-pulsar value.
     """
-   # Calculate all diagonal elements for all observations using broadcasting
-    diagonals = jnp.square(EFAC * σ ) + jnp.square(EQUAD) # Shape: (Nobs, ny)
+    # Calculate all diagonal elements for all observations using broadcasting
+    diagonals = jnp.square(EFAC * σ) + jnp.square(EQUAD)  # Shape: (Nobs, ny)
     R = jax.vmap(jnp.diag)(diagonals)
-    #jax.debug.print('R.shape: {shape}',shape=R.shape,ordered=True)
+    # jax.debug.print('R.shape: {shape}',shape=R.shape,ordered=True)
     return R
 
-def compute_H_matrix_for_step(time_step_index: int,
-                            Npsr: int,
-                            nx: int,
-                            M_start_indices: np.ndarray,
-                            pulsar_design_matrices: list,
-                            use_gw: bool,
-                            f0: np.ndarray) -> np.ndarray:
+
+def compute_H_matrix_for_step(
+    time_step_index: int,
+    Npsr: int,
+    nx: int,
+    M_start_indices: np.ndarray,
+    pulsar_design_matrices: list,
+    use_gw: bool,
+    f0: np.ndarray,
+) -> np.ndarray:
     """
     Compute the observation matrix H for the current time step using NumPy.
 
@@ -170,12 +178,15 @@ def compute_H_matrix_for_step(time_step_index: int,
 
     return H
 
-def precompute_H_matrix(Npsr: int,
-                       nx: int,
-                       M_start_indices: np.ndarray,
-                       pulsar_design_matrices: list,
-                       use_gw: bool,
-                       f0: np.ndarray) -> np.ndarray:
+
+def precompute_H_matrix(
+    Npsr: int,
+    nx: int,
+    M_start_indices: np.ndarray,
+    pulsar_design_matrices: list,
+    use_gw: bool,
+    f0: np.ndarray,
+) -> np.ndarray:
     """
     Compute the observation matrix H for all time steps using NumPy.
 
@@ -209,20 +220,24 @@ def precompute_H_matrix(Npsr: int,
     try:
         num_time_steps = pulsar_design_matrices[0].shape[0]
     except (IndexError, AttributeError):
-        raise ValueError("Cannot determine number of time steps. "
-                        "Ensure pulsar_design_matrices is a list of NumPy arrays "
-                        "with at least one element.")
+        raise ValueError(
+            "Cannot determine number of time steps. "
+            "Ensure pulsar_design_matrices is a list of NumPy arrays "
+            "with at least one element."
+        )
 
     # Optional consistency check
     for i in range(1, Npsr):
         if pulsar_design_matrices[i].shape[0] != num_time_steps:
-            raise ValueError(f"Inconsistent number of time steps found (Pulsar 0: {num_time_steps}, Pulsar {i}: {pulsar_design_matrices[i].shape[0]})")
-
+            raise ValueError(
+                f"Inconsistent number of time steps found (Pulsar 0: {num_time_steps}, Pulsar {i}: {pulsar_design_matrices[i].shape[0]})"
+            )
 
     all_H = []
     for t_idx in range(num_time_steps):
-        H_step = compute_H_matrix_for_step(t_idx, Npsr, nx, M_start_indices,
-                                         pulsar_design_matrices, use_gw, f0)
+        H_step = compute_H_matrix_for_step(
+            t_idx, Npsr, nx, M_start_indices, pulsar_design_matrices, use_gw, f0
+        )
         all_H.append(H_step)
 
-    return np.stack(all_H, axis=0) 
+    return np.stack(all_H, axis=0)

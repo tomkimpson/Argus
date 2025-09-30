@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Create corner plot from NUMPYRO results showing log10_ha and 
+Create corner plot from NUMPYRO results showing log10_ha and
 sigma_p, gamma_p parameters for selected pulsars.
 
 This script supports:
@@ -50,37 +50,49 @@ def setup_professional_styling():
     except OSError:
         # Fallback if scienceplots not available
         plt.style.use("default")
-        print("Warning: scienceplots package not found. Using default matplotlib style.")
+        print(
+            "Warning: scienceplots package not found. Using default matplotlib style."
+        )
 
     # Professional plot parameters
-    plt.rcParams.update({
-        "font.size": 12,
-        "axes.linewidth": 1.2,
-        "xtick.major.width": 1.2,
-        "ytick.major.width": 1.2,
-        "xtick.minor.width": 0.8,
-        "ytick.minor.width": 0.8,
-        "figure.dpi": 100,
-        "savefig.dpi": 300,
-    })
-
-
-
-
-
-
-
-
+    plt.rcParams.update(
+        {
+            "font.size": 12,
+            "axes.linewidth": 1.2,
+            "xtick.major.width": 1.2,
+            "ytick.major.width": 1.2,
+            "xtick.minor.width": 0.8,
+            "ytick.minor.width": 0.8,
+            "figure.dpi": 100,
+            "savefig.dpi": 300,
+        }
+    )
 
 
 # Parse command line arguments
-parser = argparse.ArgumentParser(description='Create corner plot from NUMPYRO results')
-parser.add_argument('--results-file', type=str, required=True, help='Path to NumPyro results file (.nc)')
-parser.add_argument('num_pulsars', type=int, help='Number of pulsars to include')
-parser.add_argument('smooth_sigma', type=float, nargs='?', default=None, help='Smoothing parameter for histograms')
-parser.add_argument('--plot_log10_gamma_a', action='store_true', help='Include log10_gamma_a parameter in the plot')
-parser.add_argument('--efac', action='store_true', help='Include EFAC parameters for each pulsar')
-parser.add_argument('--equad', action='store_true', help='Include EQUAD parameters for each pulsar')
+parser = argparse.ArgumentParser(description="Create corner plot from NUMPYRO results")
+parser.add_argument(
+    "--results-file", type=str, required=True, help="Path to NumPyro results file (.nc)"
+)
+parser.add_argument("num_pulsars", type=int, help="Number of pulsars to include")
+parser.add_argument(
+    "smooth_sigma",
+    type=float,
+    nargs="?",
+    default=None,
+    help="Smoothing parameter for histograms",
+)
+parser.add_argument(
+    "--plot_log10_gamma_a",
+    action="store_true",
+    help="Include log10_gamma_a parameter in the plot",
+)
+parser.add_argument(
+    "--efac", action="store_true", help="Include EFAC parameters for each pulsar"
+)
+parser.add_argument(
+    "--equad", action="store_true", help="Include EQUAD parameters for each pulsar"
+)
 
 args = parser.parse_args()
 results_file = args.results_file
@@ -104,7 +116,7 @@ idata = az.from_netcdf(results_file)
 posterior = idata.posterior
 
 # Extract log10_ha
-log10_ha = posterior['log10_ha'].values.flatten()
+log10_ha = posterior["log10_ha"].values.flatten()
 
 # Select pulsars (indices 0 to num_pulsars-1)
 pulsar_indices = list(range(num_pulsars))
@@ -112,36 +124,38 @@ print(f"Creating corner plot for {num_pulsars} pulsars at indices: {pulsar_indic
 
 # Start with log10_ha
 samples_list = [log10_ha]
-labels = [r'$\log_{10} h_a$']
+labels = [r"$\log_{10} h_a$"]
 
 # Add log10_gamma_a if requested and available
 if plot_log10_gamma_a:
-    if 'log10_gamma_a' in posterior.data_vars:
-        log10_gamma_a = posterior['log10_gamma_a'].values.flatten()
+    if "log10_gamma_a" in posterior.data_vars:
+        log10_gamma_a = posterior["log10_gamma_a"].values.flatten()
         samples_list.append(log10_gamma_a)
-        labels.append(r'$\log_{10} \gamma_a$')
+        labels.append(r"$\log_{10} \gamma_a$")
         print(f"Added log10_gamma_a parameter to plot")
     else:
-        print(f"Warning: log10_gamma_a requested but not found in posterior. Skipping log10_gamma_a.")
+        print(
+            f"Warning: log10_gamma_a requested but not found in posterior. Skipping log10_gamma_a."
+        )
 
 # Extract sigma_p and gamma_p for selected pulsars
 for i, pulsar_idx in enumerate(pulsar_indices):
-    sigma_p = posterior['log10_σp'].isel(log10_σp_dim_0=pulsar_idx).values.flatten()
-    gamma_p = posterior['log10_γp'].isel(log10_γp_dim_0=pulsar_idx).values.flatten()
-    
+    sigma_p = posterior["log10_σp"].isel(log10_σp_dim_0=pulsar_idx).values.flatten()
+    gamma_p = posterior["log10_γp"].isel(log10_γp_dim_0=pulsar_idx).values.flatten()
+
     samples_list.append(sigma_p)
     samples_list.append(gamma_p)
-    
-    labels.append(rf'$\log_{{10}} \sigma_{{p,{i}}}$')
-    labels.append(rf'$\log_{{10}} \gamma_{{p,{i}}}$')
+
+    labels.append(rf"$\log_{{10}} \sigma_{{p,{i}}}$")
+    labels.append(rf"$\log_{{10}} \gamma_{{p,{i}}}$")
 
 # Extract EFAC parameters for selected pulsars if requested
 if plot_efac:
-    if 'efac' in posterior.data_vars:
+    if "efac" in posterior.data_vars:
         for i, pulsar_idx in enumerate(pulsar_indices):
-            efac = posterior['efac'].isel(efac_dim_0=pulsar_idx).values.flatten()
+            efac = posterior["efac"].isel(efac_dim_0=pulsar_idx).values.flatten()
             samples_list.append(efac)
-            labels.append(rf'$\mathrm{{EFAC}}_{{p,{i}}}$')
+            labels.append(rf"$\mathrm{{EFAC}}_{{p,{i}}}$")
         print(f"Added EFAC parameters for {num_pulsars} pulsars")
     else:
         print(f"Warning: EFAC requested but not found in posterior. Skipping EFAC.")
@@ -149,21 +163,29 @@ if plot_efac:
 # Extract EQUAD parameters for selected pulsars if requested
 if plot_equad:
     # Always use log10_equad if available, otherwise convert equad to log10
-    if 'log10_equad' in posterior.data_vars:
+    if "log10_equad" in posterior.data_vars:
         for i, pulsar_idx in enumerate(pulsar_indices):
-            log10_equad = posterior['log10_equad'].isel(log10_equad_dim_0=pulsar_idx).values.flatten()
+            log10_equad = (
+                posterior["log10_equad"]
+                .isel(log10_equad_dim_0=pulsar_idx)
+                .values.flatten()
+            )
             samples_list.append(log10_equad)
-            labels.append(rf'$\log_{{10}} \mathrm{{EQUAD}}_{{p,{i}}}$')
+            labels.append(rf"$\log_{{10}} \mathrm{{EQUAD}}_{{p,{i}}}$")
         print(f"Added log10_EQUAD parameters for {num_pulsars} pulsars")
-    elif 'equad' in posterior.data_vars:
+    elif "equad" in posterior.data_vars:
         for i, pulsar_idx in enumerate(pulsar_indices):
-            equad = posterior['equad'].isel(equad_dim_0=pulsar_idx).values.flatten()
+            equad = posterior["equad"].isel(equad_dim_0=pulsar_idx).values.flatten()
             log10_equad = np.log10(equad)  # Convert to log10
             samples_list.append(log10_equad)
-            labels.append(rf'$\log_{{10}} \mathrm{{EQUAD}}_{{p,{i}}}$')
-        print(f"Added log10_EQUAD parameters (converted from EQUAD) for {num_pulsars} pulsars")
+            labels.append(rf"$\log_{{10}} \mathrm{{EQUAD}}_{{p,{i}}}$")
+        print(
+            f"Added log10_EQUAD parameters (converted from EQUAD) for {num_pulsars} pulsars"
+        )
     else:
-        print(f"Warning: EQUAD requested but neither 'log10_equad' nor 'equad' found in posterior. Skipping EQUAD.")
+        print(
+            f"Warning: EQUAD requested but neither 'log10_equad' nor 'equad' found in posterior. Skipping EQUAD."
+        )
 
 # Combine all parameters
 samples = np.column_stack(samples_list)
@@ -178,12 +200,12 @@ for i, label in enumerate(labels):
 prior_ranges = [[-18.5, -13.5]]  # log10_ha - extended from [-16.0, -14.0]
 
 # Add log10_gamma_a range if plotting
-if plot_log10_gamma_a and 'log10_gamma_a' in posterior.data_vars:
+if plot_log10_gamma_a and "log10_gamma_a" in posterior.data_vars:
     prior_ranges.append([-10.0, -8.0])  # log10_gamma_a - typical range
 
 for i in range(num_pulsars):
     prior_ranges.append([-20.5, -11.5])  # log10_sigma_p - extended from [-18.0, -12.0]
-    prior_ranges.append([-11.5, -5.5])   # log10_gamma_p - extended from [-11.0, -6.0]
+    prior_ranges.append([-11.5, -5.5])  # log10_gamma_p - extended from [-11.0, -6.0]
 
 # Add EFAC ranges if plotting
 if plot_efac:
@@ -239,7 +261,7 @@ fig = corner.corner(
     max_n_ticks=4,
     use_math_text=True,
     smooth=smooth_option,
-    smooth1d=smooth1d_option
+    smooth1d=smooth1d_option,
 )
 
 # Post-processing improvements to enhance axis appearance
@@ -258,12 +280,7 @@ for ax in axes:
             right=True,
         )
         ax.tick_params(
-            which="minor",
-            width=0.8,
-            length=3,
-            direction="in",
-            top=True,
-            right=True
+            which="minor", width=0.8, length=3, direction="in", top=True, right=True
         )
 
         # Add minor ticks
@@ -271,8 +288,6 @@ for ax in axes:
 
         # Add subtle grid
         ax.grid(True, alpha=0.3, linewidth=0.5, linestyle=":")
-
-
 
 
 # Adjust layout with professional spacing
@@ -288,9 +303,11 @@ plt.subplots_adjust(
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
 # Save the plot
-output_file = 'example_corner_plot.png' 
+output_file = "example_corner_plot.png"
 # Save PNG
-plt.savefig(output_file, dpi=300, bbox_inches='tight', facecolor='white', edgecolor='none')
+plt.savefig(
+    output_file, dpi=300, bbox_inches="tight", facecolor="white", edgecolor="none"
+)
 
 print(f"Corner plot saved to: {output_file}")
 
