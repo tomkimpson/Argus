@@ -11,14 +11,26 @@
 - 📊 **Kalman filtering** for efficient state space modeling
 - 🌊 **Gravitational wave detection** in pulsar timing arrays
 - 📈 **Comprehensive analysis tools** and visualization
-- 🔧 **Easy-to-use command-line interface**
+- 🔧 **Example workflows** for quick start and development
 
 ## Installation
 
-### From PyPI (recommended)
+> **Note:** PyPI distribution coming soon! For now, please install from source.
 
+### Prerequisites
+
+We recommend setting up a fresh virtual environment:
+
+**Using venv:**
 ```bash
-pip install argus-pta
+python -m venv argus-env
+source argus-env/bin/activate  # On Windows: argus-env\Scripts\activate
+```
+
+**Using conda:**
+```bash
+conda create -n argus-env python=3.11
+conda activate argus-env
 ```
 
 ### From Source
@@ -39,40 +51,54 @@ pip install -e ".[dev]"
 
 ## Quick Start
 
-### Command Line Interface
+### Example Workflows
 
-1. **Create a configuration file template:**
-   ```bash
-   argus init -o my_analysis.ini
-   ```
+Argus includes two example workflows to help you get started:
 
-2. **Edit the configuration file** with your data paths and analysis parameters
+1. **`example_workflow_lite`** - Lightweight workflow for rapid prototyping and testing
+   - Fewer MCMC samples (200 vs 2000+)
+   - Faster execution (~minutes vs hours)
+   - Perfect for development and testing
 
-3. **Run the analysis:**
-   ```bash
-   argus run my_analysis.ini
-   ```
+2. **`example_workflow`** - Full production workflow
+   - Complete MCMC sampling (2000+ samples)
+   - Multiple chains for convergence diagnostics
+   - Recommended for publication-quality results
 
-### Python API
+### Running an Example
+
+```bash
+# Navigate to the example workflow directory
+cd workflows/example_workflow_lite
+
+# Run the analysis with the provided config file
+python run_analysis.py configs/example_config.ini
+```
+
+The workflow will:
+- Load pulsar timing data from the IPTA Mock Data Challenge
+- Run Bayesian inference using JAX and NumPyro
+- Save results including posterior samples and diagnostic plots
+- Display a summary of the analysis
+
+### Using the Python API
+
+You can also use Argus programmatically in your own scripts:
 
 ```python
-import argus
+from argus import workflow
 
-# Load pulsar timing data
-pulsar_data = argus.data_loader.LoadWidebandPulsarData.get_processed_residuals(
-    "path/to/data.pkl",
-    excluded_psrs=[]
-)
-
-# Run Bayesian inference using workflow
-output_dir = argus.workflow.run_inference(
-    config_path="my_analysis.ini",
+# Run Bayesian inference using a configuration file
+output_dir = workflow.run_inference(
+    config_path="path/to/config.ini",
     use_gw=True,
-    timestamp="20250101_120000"
+    timestamp="20250930_120000"
 )
 
 print(f"Results saved to: {output_dir}")
 ```
+
+See the `workflows/` directory for complete examples and configuration templates.
 
 ## Documentation
 

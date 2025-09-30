@@ -19,10 +19,10 @@ Welcome to the **Argus** project documentation.
 To get started with Argus:
 
 1. **Install the package**: See the [Getting Started](getting_started.md) guide
-2. **Run your first analysis**: Check out the [examples](examples/index.md)
-*Developer notes: Nice to have API reference documentation*
-3. **Explore the API**: Browse the API reference
-4. **Contribute**: Read our [Contributing Guide](contributing.md)
+2. **Run example workflows**: Try `workflows/example_workflow_lite` for rapid prototyping
+3. **Run your first analysis**: Check out the [examples](examples/index.md)
+4. **Explore the API**: Browse the workflow and API examples
+5. **Contribute**: Read our [Contributing Guide](contributing.md)
 
 ## About this Documentation
 
@@ -33,8 +33,23 @@ This documentation provides an overview of the project, installation and usage i
 
 ## Example Usage
 
-You can find examples of standard PTA analysis using various datasets:
+### Example Workflows
 
+Argus includes complete example workflows in the `workflows/` directory:
+
+- **`workflows/example_workflow_lite/`** - Lightweight workflow for rapid prototyping
+  - Reduced MCMC samples for faster execution
+  - Perfect for testing and development
+  - Run with: `python run_analysis.py configs/example_config.ini`
+
+- **`workflows/example_workflow/`** - Full production workflow
+  - Complete MCMC sampling for convergence
+  - Multiple chains for diagnostics
+  - Recommended for publication-quality results
+
+### Tutorials and Examples
+
+- [Getting Started](getting_started.md) - Installation and first analysis
 - [Basic parameter estimation with Mock Data Challenge](examples/basic_parameter_estimation.md)
 *Developer notes: Nice to have additional analysis examples*
 - Multi-parameter estimation with NANOGrav data
