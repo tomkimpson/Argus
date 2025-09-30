@@ -73,13 +73,13 @@ Frequency-domain PTA packages such as ENTERPRISE and TempoNest represent timing 
 
 - **Kalman filter likelihood evaluation.** The core of the package is a highly-optimized Kalman filter [@kalman1960new], which evaluates the likelihood of the time-of-arrival data in the time domain. This approach achieves a computational complexity that scales linearly with the number of observations, $\mathcal{O}(N)$.
 
-- **Seamless Sampler Integration.** The log-likelihood and its gradients (provided by JAX's autodiff capabilities)  integrate directly with JAX-native samplers such as those in `numpyro` [@phan2019composable] or `blackjax`[@cabezas2024blackjax]. This enables the use of efficient gradient-based algorithms like Hamiltonian Monte Carlo (HMC), which can accelerate convergence in high-dimensional parameter spaces.
+- **Seamless Sampler Integration.** The log-likelihood and its gradients (provided by JAX's autodiff capabilities)  integrate directly with JAX-native samplers such as those in `numpyro` [@phan2019composable] or `blackjax` [@cabezas2024blackjax]. This enables the use of efficient gradient-based algorithms like Hamiltonian Monte Carlo (HMC), which can accelerate convergence in high-dimensional parameter spaces.
 
 - **Standardized Data Input**  `Argus`  ingests pulsar timing data through an interface with libstempo via `libstempo` [@vallisneri2020libstempo], ensuring compatibility with standard PTA data formats and analysis workflows.
 
 Figure \ref{fig:corner} shows an example application of `Argus` to synthetic pulsar data from the second IPTA mock data challenge [@2018arXiv181010527H]. The reproducible analysis script for this figure is available in the software repository.
 
-![Corner plot showing posterior distributions from Bayesian parameter estimation using Argus on the IPTA mock dataset. The first two parameters, $h_a$, $\gamma_a$, describe the gravitational wave background. The middle two parameters,$\sigma{p,0}$, $\gamma{p,0}$, characterize red timing noise for the $0$-th pulsar in the array. The final two parameters,EFAC, EQUAD, are the standard white measurement noise parameters for the $0$-th pulsar in the array. The well-constrained posteriors demonstrate the effectiveness of the state-space Kalman filtering approach for robust parameter estimation in pulsar timing array analysis.\label{fig:corner}](images/example_corner_plot.png)
+![Corner plot showing posterior distributions from Bayesian parameter estimation using Argus on the IPTA mock dataset. The first two parameters, $h_a$, $\gamma_a$, describe the gravitational wave background. The middle two parameters,$\sigma_{p,0}$, $\gamma_{p,0}$, characterize red timing noise for the $0$-th pulsar in the array. The final two parameters,EFAC, EQUAD, are the standard white measurement noise parameters for the $0$-th pulsar in the array. The well-constrained posteriors demonstrate the effectiveness of the state-space Kalman filtering approach for robust parameter estimation in pulsar timing array analysis.\label{fig:corner}](images/example_corner_plot.png)
 
 
 
