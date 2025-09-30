@@ -17,37 +17,36 @@
 
 > **Note:** PyPI distribution coming soon! For now, please install from source.
 
-### Prerequisites
+Argus requires a specific installation workflow using conda and pip to handle the `enterprise-pulsar` dependency, which has complex dependencies that are difficult to resolve with pip alone.
 
-We recommend setting up a fresh virtual environment:
-
-**Using venv:**
-```bash
-python -m venv argus-env
-source argus-env/bin/activate  # On Windows: argus-env\Scripts\activate
-```
-
-**Using conda:**
-```bash
-conda create -n argus-env python=3.11
-conda activate argus-env
-```
-
-### From Source
+### Installation Steps
 
 ```bash
+# Clone the repository
 git clone https://github.com/tomkimpson/Argus.git
 cd Argus
-pip install .
+
+# Create a new conda environment with Python 3.11
+conda create -n argus-env python=3.11
+conda activate argus-env
+
+# Install enterprise-pulsar via conda (required due to dependency complexities)
+conda install -c conda-forge enterprise-pulsar
+
+# Install Argus and remaining dependencies
+pip install -e .
 ```
 
 ### Development Installation
 
+For development with additional dependencies (testing, linting, etc.):
+
 ```bash
-git clone https://github.com/tomkimpson/Argus.git
-cd Argus
+# Follow the same conda setup as above, then:
 pip install -e ".[dev]"
 ```
+
+> **Why this workflow?** The `enterprise-pulsar` package has dependencies that are challenging to resolve correctly with pip alone. Installing it via conda first ensures all system-level dependencies are properly configured, then pip handles the remaining Python packages from `pyproject.toml`.
 
 ## Quick Start
 

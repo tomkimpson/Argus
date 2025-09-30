@@ -33,11 +33,18 @@ To run these notebooks locally:
 
 ```bash
 # Clone the repository
-git clone https://github.com/ADACS-Australia/tkimpson_2025a.git
-cd tkimpson_2025a
+git clone https://github.com/tomkimpson/Argus.git
+cd Argus
 
-# Install dependencies
-poetry install
+# Create conda environment with Python 3.11
+conda create -n argus-env python=3.11
+conda activate argus-env
+
+# Install enterprise-pulsar via conda
+conda install -c conda-forge enterprise-pulsar
+
+# Install Argus and dependencies
+pip install -e ".[dev]"
 
 # Start Jupyter
 jupyter lab notebooks/
