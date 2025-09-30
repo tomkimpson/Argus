@@ -17,15 +17,23 @@ Make sure you have Argus installed. See the [Getting Started](../getting_started
 **Quick install from source:**
 
 ```bash
-# Set up a virtual environment (recommended)
-python -m venv argus-env
-source argus-env/bin/activate
-
-# Clone and install
+# Clone repository
 git clone https://github.com/tomkimpson/Argus.git
 cd Argus
-pip install .
+
+# Create conda environment
+conda create -n argus-env python=3.11
+conda activate argus-env
+
+# Install enterprise-pulsar via conda (required due to dependency complexities)
+conda install -c conda-forge enterprise-pulsar
+
+# Install Argus and remaining dependencies
+pip install -e .
 ```
+
+!!! note "Why this workflow?"
+    The `enterprise-pulsar` package has complex system-level dependencies that are difficult to resolve with pip alone. Installing it via conda first ensures proper configuration.
 
 ## Using Example Workflows
 

@@ -13,11 +13,21 @@ Whether you're fixing bugs, improving documentation, adding features, or suggest
 1. **Fork the repository**  
    Click the "Fork" button on GitHub to create your own copy of the repository.
 
-2. **Clone your fork**
+2. **Clone your fork and set up the development environment**
 
    ```bash
    git clone https://github.com/your-username/Argus.git
    cd Argus
+
+   # Create conda environment with Python 3.11
+   conda create -n argus-dev python=3.11
+   conda activate argus-dev
+
+   # Install enterprise-pulsar via conda
+   conda install -c conda-forge enterprise-pulsar
+
+   # Install Argus in editable mode with dev dependencies
+   pip install -e ".[dev]"
    ```
 
 3. **Create a new branch for your change**
@@ -38,7 +48,7 @@ Whether you're fixing bugs, improving documentation, adding features, or suggest
    git push origin my-feature-branch
    ```
 
-6. **Open a Pull Request (PR)**  
+6. **Open a Pull Request (PR)**
    Go to your fork on GitHub and open a PR against the `main` branch of the original repository.
 
    Please describe your changes clearly and tag any relevant issues.

@@ -18,7 +18,7 @@ from . import (
     parameter_sampling,
     prior_models,
     utils,
-    workflow
+    workflow,
 )
 
 # Expose key classes and functions at package level
@@ -37,5 +37,5 @@ __all__ = [
     "utils",
     "workflow",
     # Key functions
-    "get_noise_parameters"
+    "get_noise_parameters",
 ]

@@ -1,7 +1,7 @@
 """Parameter sampling functions for NumPyro models.
 
 This module provides functions for sampling parameters from their priors
-in NumPyro models, including support for hierarchical modeling and 
+in NumPyro models, including support for hierarchical modeling and
 reparameterization techniques for improved NUTS sampling.
 """
 
@@ -27,72 +27,92 @@ def sample_gw_parameters(prior_specs):
         (log10_ha, log10_gamma_a, γa) values
     """
     # Handle log10_ha: either fixed value or reparameterized sampling
-    if prior_specs['log10_ha_transform_params'] is not None:
+    if prior_specs["log10_ha_transform_params"] is not None:
         # Sample log10_ha_prime ~ N(0,1) and transform to log10_ha for efficient NUTS sampling
-        transform_params = prior_specs['log10_ha_transform_params']
+        transform_params = prior_specs["log10_ha_transform_params"]
         log10_ha_prime = numpyro.sample("log10_ha_prime", dist.Normal(0.0, 1.0))
-        log10_ha = numpyro.deterministic("log10_ha",
-            transform_params['mean'] + log10_ha_prime * transform_params['std'])
+        log10_ha = numpyro.deterministic(
+            "log10_ha",
+            transform_params["mean"] + log10_ha_prime * transform_params["std"],
+        )
     else:
         # Fixed value (delta prior)
-        log10_ha = numpyro.deterministic("log10_ha", prior_specs['log10_ha_spec'])
+        log10_ha = numpyro.deterministic("log10_ha", prior_specs["log10_ha_spec"])
 
     # Handle log10_gamma_a: either fixed value or reparameterized sampling
-    if isinstance(prior_specs['log10_gamma_a_spec'], tfpd.Distribution):
+    if isinstance(prior_specs["log10_gamma_a_spec"], tfpd.Distribution):
         # Use reparameterization for efficient NUTS sampling
-        low = prior_specs['log10_gamma_a_spec'].low
-        high = prior_specs['log10_gamma_a_spec'].high
+        low = prior_specs["log10_gamma_a_spec"].low
+        high = prior_specs["log10_gamma_a_spec"].high
         mean = (low + high) / 2.0
         std = (high - low) / 6.0  # 3-sigma rule
 
-        log10_gamma_a_prime = numpyro.sample("log10_gamma_a_prime", dist.Normal(0.0, 1.0))
-        log10_gamma_a = numpyro.deterministic("log10_gamma_a", mean + log10_gamma_a_prime * std)
-        γa = numpyro.deterministic("γa", 10.0 ** log10_gamma_a)
+        log10_gamma_a_prime = numpyro.sample(
+            "log10_gamma_a_prime", dist.Normal(0.0, 1.0)
+        )
+        log10_gamma_a = numpyro.deterministic(
+            "log10_gamma_a", mean + log10_gamma_a_prime * std
+        )
+        γa = numpyro.deterministic("γa", 10.0**log10_gamma_a)
     else:
         # Fixed value
-        log10_gamma_a = numpyro.deterministic("log10_gamma_a", prior_specs['log10_gamma_a_spec'])
-        γa = numpyro.deterministic("γa", 10.0 ** log10_gamma_a)
+        log10_gamma_a = numpyro.deterministic(
+            "log10_gamma_a", prior_specs["log10_gamma_a_spec"]
+        )
+        γa = numpyro.deterministic("γa", 10.0**log10_gamma_a)
 
     return log10_ha, log10_gamma_a, γa
 
 
 def sample_hierarchical_gamma_parameters(hierarchical_specs, n_pulsars):
     """Sample hierarchical gamma parameters with gradient balancing.
-    
+
     Parameters
     ----------
     hierarchical_specs : dict
         Hierarchical modeling specifications
     n_pulsars : int
         Number of pulsars
-        
+
     Returns
     -------
     jax.Array
         Sampled log10_γp values
     """
     # Hierarchical modeling for log10_gamma_p with gradient balancing
-    log10_gamma_p_mean_raw = numpyro.sample("log10_gamma_p_mean_raw", dist.Normal(0.0, 1.0))
-    log10_gamma_p_std_raw = numpyro.sample("log10_gamma_p_std_raw", dist.Normal(0.0, 1.0))
-    
+    log10_gamma_p_mean_raw = numpyro.sample(
+        "log10_gamma_p_mean_raw", dist.Normal(0.0, 1.0)
+    )
+    log10_gamma_p_std_raw = numpyro.sample(
+        "log10_gamma_p_std_raw", dist.Normal(0.0, 1.0)
+    )
+
     # Transform to appropriate ranges with balanced gradients
-    mean_low = hierarchical_specs['log10_gamma_p_mean_spec'].low
-    mean_high = hierarchical_specs['log10_gamma_p_mean_spec'].high
-    std_low = hierarchical_specs['log10_gamma_p_std_spec'].low
-    std_high = hierarchical_specs['log10_gamma_p_std_spec'].high
-    
+    mean_low = hierarchical_specs["log10_gamma_p_mean_spec"].low
+    mean_high = hierarchical_specs["log10_gamma_p_mean_spec"].high
+    std_low = hierarchical_specs["log10_gamma_p_std_spec"].low
+    std_high = hierarchical_specs["log10_gamma_p_std_spec"].high
+
     # Apply gradient-balanced transforms
-    log10_gamma_p_mean = numpyro.deterministic("log10_gamma_p_mean", 
-        (mean_low + mean_high) / 2.0 + log10_gamma_p_mean_raw * (mean_high - mean_low) / 6.0)
-    log10_gamma_p_std = numpyro.deterministic("log10_gamma_p_std", 
-        (std_low + std_high) / 2.0 + log10_gamma_p_std_raw * (std_high - std_low) / 6.0)
-    
+    log10_gamma_p_mean = numpyro.deterministic(
+        "log10_gamma_p_mean",
+        (mean_low + mean_high) / 2.0
+        + log10_gamma_p_mean_raw * (mean_high - mean_low) / 6.0,
+    )
+    log10_gamma_p_std = numpyro.deterministic(
+        "log10_gamma_p_std",
+        (std_low + std_high) / 2.0 + log10_gamma_p_std_raw * (std_high - std_low) / 6.0,
+    )
+
     # Sample individual pulsar parameters with scaled gradients
-    log10_γp_raw = numpyro.sample("log10_γp_raw", 
-        dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars)))
-    log10_γp = numpyro.deterministic("log10_γp", 
-        log10_gamma_p_mean + log10_γp_raw * log10_gamma_p_std / jnp.sqrt(n_pulsars))
-    
+    log10_γp_raw = numpyro.sample(
+        "log10_γp_raw", dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars))
+    )
+    log10_γp = numpyro.deterministic(
+        "log10_γp",
+        log10_gamma_p_mean + log10_γp_raw * log10_gamma_p_std / jnp.sqrt(n_pulsars),
+    )
+
     return log10_γp
 
 
@@ -119,8 +139,10 @@ def sample_reparameterized_parameters(prior_spec, param_name, n_pulsars):
     mean = (low + high) / 2.0
     std = (high - low) / 6.0  # 3-sigma rule
 
-    param_standardized = numpyro.sample(f"{param_name}_standardized",
-        dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars) / jnp.sqrt(n_pulsars)))
+    param_standardized = numpyro.sample(
+        f"{param_name}_standardized",
+        dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars) / jnp.sqrt(n_pulsars)),
+    )
     param_values = numpyro.deterministic(param_name, mean + param_standardized * std)
 
     return param_values
@@ -128,7 +150,7 @@ def sample_reparameterized_parameters(prior_spec, param_name, n_pulsars):
 
 def sample_log_ratio_parameters(hierarchical_specs, log10_γp, n_pulsars):
     """Sample log-ratio parameters for sigma_p derivation.
-    
+
     Parameters
     ----------
     hierarchical_specs : dict
@@ -137,7 +159,7 @@ def sample_log_ratio_parameters(hierarchical_specs, log10_γp, n_pulsars):
         Log10 gamma_p values
     n_pulsars : int
         Number of pulsars
-        
+
     Returns
     -------
     jax.Array
@@ -146,28 +168,36 @@ def sample_log_ratio_parameters(hierarchical_specs, log10_γp, n_pulsars):
     # Log-ratio parameterization: σp derived from γp + ratio with gradient balancing
     log10_ratio_mean_raw = numpyro.sample("log10_ratio_mean_raw", dist.Normal(0.0, 1.0))
     log10_ratio_std_raw = numpyro.sample("log10_ratio_std_raw", dist.Normal(0.0, 1.0))
-    
+
     # Transform to appropriate ranges with balanced gradients
-    mean_low = hierarchical_specs['log10_ratio_mean_spec'].low
-    mean_high = hierarchical_specs['log10_ratio_mean_spec'].high
-    std_low = hierarchical_specs['log10_ratio_std_spec'].low
-    std_high = hierarchical_specs['log10_ratio_std_spec'].high
-    
+    mean_low = hierarchical_specs["log10_ratio_mean_spec"].low
+    mean_high = hierarchical_specs["log10_ratio_mean_spec"].high
+    std_low = hierarchical_specs["log10_ratio_std_spec"].low
+    std_high = hierarchical_specs["log10_ratio_std_spec"].high
+
     # Apply gradient-balanced transforms
-    log10_ratio_mean = numpyro.deterministic("log10_ratio_mean", 
-        (mean_low + mean_high) / 2.0 + log10_ratio_mean_raw * (mean_high - mean_low) / 6.0)
-    log10_ratio_std = numpyro.deterministic("log10_ratio_std", 
-        (std_low + std_high) / 2.0 + log10_ratio_std_raw * (std_high - std_low) / 6.0)
-    
+    log10_ratio_mean = numpyro.deterministic(
+        "log10_ratio_mean",
+        (mean_low + mean_high) / 2.0
+        + log10_ratio_mean_raw * (mean_high - mean_low) / 6.0,
+    )
+    log10_ratio_std = numpyro.deterministic(
+        "log10_ratio_std",
+        (std_low + std_high) / 2.0 + log10_ratio_std_raw * (std_high - std_low) / 6.0,
+    )
+
     # Sample individual ratio parameters with scaled gradients
-    log10_ratio_raw = numpyro.sample("log10_ratio_raw", 
-        dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars)))
-    log10_ratio = numpyro.deterministic("log10_ratio", 
-        log10_ratio_mean + log10_ratio_raw * log10_ratio_std / jnp.sqrt(n_pulsars))
-    
+    log10_ratio_raw = numpyro.sample(
+        "log10_ratio_raw", dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars))
+    )
+    log10_ratio = numpyro.deterministic(
+        "log10_ratio",
+        log10_ratio_mean + log10_ratio_raw * log10_ratio_std / jnp.sqrt(n_pulsars),
+    )
+
     # Derive log10_σp deterministically from γp + ratio
     log10_σp = numpyro.deterministic("log10_σp", log10_γp + log10_ratio)
-    
+
     return log10_σp
 
 
@@ -189,28 +219,30 @@ def sample_pulsar_noise_parameters(prior_specs, n_pulsars):
     tuple
         (log10_γp, log10_σp) values
     """
-    hierarchical_specs = prior_specs.get('hierarchical_specs')
+    hierarchical_specs = prior_specs.get("hierarchical_specs")
 
     # Handle log10_gamma_p - either hierarchical or fixed
-    if isinstance(prior_specs['log10_gamma_p_spec'], tfpd.Distribution):
+    if isinstance(prior_specs["log10_gamma_p_spec"], tfpd.Distribution):
         # Fallback for backwards compatibility - shouldn't occur in new setup
         log10_γp = sample_reparameterized_parameters(
-            prior_specs['log10_gamma_p_spec'], "log10_γp", n_pulsars)
-    elif prior_specs['log10_gamma_p_spec'] is not None:
+            prior_specs["log10_gamma_p_spec"], "log10_γp", n_pulsars
+        )
+    elif prior_specs["log10_gamma_p_spec"] is not None:
         # Fixed value (from injections)
-        log10_γp = numpyro.deterministic("log10_γp", prior_specs['log10_gamma_p_spec'])
+        log10_γp = numpyro.deterministic("log10_γp", prior_specs["log10_gamma_p_spec"])
     else:
         # Always use hierarchical modeling
         log10_γp = sample_hierarchical_gamma_parameters(hierarchical_specs, n_pulsars)
 
     # Handle log10_sigma_p - either log-ratio or fixed
-    if isinstance(prior_specs['log10_sigma_p_spec'], tfpd.Distribution):
+    if isinstance(prior_specs["log10_sigma_p_spec"], tfpd.Distribution):
         # Fallback for backwards compatibility - shouldn't occur in new setup
         log10_σp = sample_reparameterized_parameters(
-            prior_specs['log10_sigma_p_spec'], "log10_σp", n_pulsars)
-    elif prior_specs['log10_sigma_p_spec'] is not None:
+            prior_specs["log10_sigma_p_spec"], "log10_σp", n_pulsars
+        )
+    elif prior_specs["log10_sigma_p_spec"] is not None:
         # Fixed value (from injections)
-        log10_σp = numpyro.deterministic("log10_σp", prior_specs['log10_sigma_p_spec'])
+        log10_σp = numpyro.deterministic("log10_σp", prior_specs["log10_sigma_p_spec"])
     else:
         # Always use log-ratio parameterization
         log10_σp = sample_log_ratio_parameters(hierarchical_specs, log10_γp, n_pulsars)
@@ -234,46 +266,53 @@ def sample_measurement_noise_parameters(prior_specs, n_pulsars):
         (efac, equad) values
     """
     # Handle EFAC: either fixed value or reparameterized sampling
-    if isinstance(prior_specs['efac_spec'], tfpd.Distribution):
+    if isinstance(prior_specs["efac_spec"], tfpd.Distribution):
         # Use reparameterization for efficient NUTS sampling
-        low = prior_specs['efac_spec'].low
-        high = prior_specs['efac_spec'].high
+        low = prior_specs["efac_spec"].low
+        high = prior_specs["efac_spec"].high
         mean = (low + high) / 2.0
         std = (high - low) / 6.0  # 3-sigma rule
 
-        efac_standardized = numpyro.sample("efac_standardized",
-                                          dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars)))
+        efac_standardized = numpyro.sample(
+            "efac_standardized", dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars))
+        )
         efac = numpyro.deterministic("efac", mean + efac_standardized * std)
     else:
         # Fixed value
-        efac = numpyro.deterministic("efac", prior_specs['efac_spec'])
+        efac = numpyro.deterministic("efac", prior_specs["efac_spec"])
 
     # Handle EQUAD: either fixed value or reparameterized sampling
-    if isinstance(prior_specs['equad_spec'], dict) and prior_specs['equad_spec'].get('use_log10', False):
+    if isinstance(prior_specs["equad_spec"], dict) and prior_specs["equad_spec"].get(
+        "use_log10", False
+    ):
         # log10(EQUAD) parameterization with reparameterization
-        log10_equad_spec = prior_specs['equad_spec']['log10_equad_spec']
+        log10_equad_spec = prior_specs["equad_spec"]["log10_equad_spec"]
         low = log10_equad_spec.low
         high = log10_equad_spec.high
         mean = (low + high) / 2.0
         std = (high - low) / 6.0  # 3-sigma rule
 
-        log10_equad_prime = numpyro.sample("log10_equad_prime",
-                                          dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars)))
-        log10_equad = numpyro.deterministic("log10_equad", mean + log10_equad_prime * std)
-        equad = numpyro.deterministic("equad", 10.0 ** log10_equad)
-    elif isinstance(prior_specs['equad_spec'], tfpd.Distribution):
+        log10_equad_prime = numpyro.sample(
+            "log10_equad_prime", dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars))
+        )
+        log10_equad = numpyro.deterministic(
+            "log10_equad", mean + log10_equad_prime * std
+        )
+        equad = numpyro.deterministic("equad", 10.0**log10_equad)
+    elif isinstance(prior_specs["equad_spec"], tfpd.Distribution):
         # Regular distribution with reparameterization
-        low = prior_specs['equad_spec'].low
-        high = prior_specs['equad_spec'].high
+        low = prior_specs["equad_spec"].low
+        high = prior_specs["equad_spec"].high
         mean = (low + high) / 2.0
         std = (high - low) / 6.0  # 3-sigma rule
 
-        equad_standardized = numpyro.sample("equad_standardized",
-                                           dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars)))
+        equad_standardized = numpyro.sample(
+            "equad_standardized", dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars))
+        )
         equad = numpyro.deterministic("equad", mean + equad_standardized * std)
     else:
         # Fixed value
-        equad = numpyro.deterministic("equad", prior_specs['equad_spec'])
+        equad = numpyro.deterministic("equad", prior_specs["equad_spec"])
 
     return efac, equad
 
@@ -296,42 +335,44 @@ def count_free_parameters(prior_specs, n_pulsars):
     count = 0
 
     # GW amplitude parameter - free if reparameterization is used
-    if prior_specs['log10_ha_transform_params'] is not None:
+    if prior_specs["log10_ha_transform_params"] is not None:
         count += 1
 
     # GW spectral index parameter - free if it's a distribution (not fixed)
-    if isinstance(prior_specs['log10_gamma_a_spec'], tfpd.Distribution):
+    if isinstance(prior_specs["log10_gamma_a_spec"], tfpd.Distribution):
         count += 1
 
     # Pulsar red noise parameters - always hierarchical unless fixed
-    prior_specs.get('hierarchical_specs')
+    prior_specs.get("hierarchical_specs")
 
     # Count gamma_p parameters
-    if isinstance(prior_specs['log10_gamma_p_spec'], tfpd.Distribution):
+    if isinstance(prior_specs["log10_gamma_p_spec"], tfpd.Distribution):
         count += n_pulsars  # Fallback: one per pulsar
-    elif prior_specs['log10_gamma_p_spec'] is None:
+    elif prior_specs["log10_gamma_p_spec"] is None:
         # Hierarchical modeling: 2 hyperparameters + n_pulsars individual parameters
         count += 2  # log10_gamma_p_mean and log10_gamma_p_std
         count += n_pulsars  # Individual pulsar gamma parameters
     # If fixed, no parameters to count
 
     # Count sigma_p parameters
-    if isinstance(prior_specs['log10_sigma_p_spec'], tfpd.Distribution):
+    if isinstance(prior_specs["log10_sigma_p_spec"], tfpd.Distribution):
         count += n_pulsars  # Fallback: one per pulsar
-    elif prior_specs['log10_sigma_p_spec'] is None:
+    elif prior_specs["log10_sigma_p_spec"] is None:
         # Log-ratio parameterization: 2 hyperparameters + n_pulsars ratio parameters
         count += 2  # log10_ratio_mean and log10_ratio_std
         count += n_pulsars  # Individual pulsar ratio parameters (σp derived deterministically)
     # If fixed, no parameters to count
 
     # Measurement noise parameters
-    if isinstance(prior_specs['efac_spec'], tfpd.Distribution):
+    if isinstance(prior_specs["efac_spec"], tfpd.Distribution):
         count += n_pulsars  # One per pulsar
 
     # Handle EQUAD - can be either regular distribution or log10 parameterization
-    if isinstance(prior_specs['equad_spec'], dict) and prior_specs['equad_spec'].get('use_log10', False):
+    if isinstance(prior_specs["equad_spec"], dict) and prior_specs["equad_spec"].get(
+        "use_log10", False
+    ):
         count += n_pulsars  # log10(EQUAD) parameters
-    elif isinstance(prior_specs['equad_spec'], tfpd.Distribution):
+    elif isinstance(prior_specs["equad_spec"], tfpd.Distribution):
         count += n_pulsars  # Regular EQUAD parameters
 
     return count

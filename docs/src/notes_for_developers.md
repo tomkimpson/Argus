@@ -11,7 +11,7 @@ workflows can be found within the `./.github/workflows/` directory and include:
     This workflow is run whenever a pull request is opened, updated or reopened.  The following things are enforced by this workflow:
 
     - linting and code formatting standards
-    - proper maintainance of the Poetry project
+    - proper configuration of the project dependencies
     - successful building of the project
     - successful building of the documentation
     - successful running of tests
@@ -41,39 +41,31 @@ A local development copy of the code base can be obtained and configured as foll
 !!! note
     Although not strictly necessary, it is recommended that you configure the branch permissions of any forked repositories as detailed in the *GitHub* configuration section below.
 
-## Poetry and Python environments for development
+## Conda/Pip Installation Workflow
 
-Poetry is used to manage this project ([see here for an introduction](https://python-poetry.org)).  It simplifies & helps with managing the following:
+This project uses a conda + pip workflow to manage dependencies. This hybrid approach is necessary to handle the `enterprise-pulsar` dependency, which has complex system-level dependencies that are difficult to resolve with pip alone.
 
-1. **Creation and activation of a Python environment for the project**
+### Why Conda + Pip?
 
-    Python development should always be managed using a Python environment.  Poetry makes this easy for you.  You simply run the following from within the project:
+1. **System-level dependency handling**: `enterprise-pulsar` requires system libraries and dependencies that conda manages more reliably than pip
+2. **Python environment isolation**: Conda provides robust environment management for scientific Python packages
+3. **Dependency resolution**: The combination ensures all packages install correctly across different systems
 
-    ``` console
-    $ poetry shell
-    ```
-    
-    !!! note
-        You don't have to use Poetry to manage your Python environment if you would rather not.  You can instruct Poetry to respect your Python environemnts (e.g. created with `pyenv`) by setting the following option:
-        ``` console
-        $ poetry config virtualenvs.prefer-active-python true
-        ```
+### Installing Development Dependencies
 
-2. **Dependency management**
-
-    Poetry manages a "lock file" (which should be committed and maintained within the code repository) ensuring repeatible installs for all versions.
-
-3. **Publication of the project to the Python Package Index (*PyPI*) so that people can easily install it for themselves**
-
-    Once properly configured, publishing to *PyPI* with Poetry is extremely easy.  This is generally managed by the CI/CD workflow for the project though, and developers should never have to manually do this.
-
-## Installing Development Dependencies
-
-Once the code is locally installed, development dependencies should be installed by moving to the project's root directory and executing the following:
+Once the code is cloned locally, set up the development environment by executing the following:
 
 ``` console
-$ poetry install
+$ conda create -n argus-dev python=3.11
+$ conda activate argus-dev
+$ conda install -c conda-forge enterprise-pulsar
+$ pip install -e ".[dev]"
 ```
+
+This workflow:
+1. Creates a fresh conda environment with Python 3.11
+2. Installs `enterprise-pulsar` via conda to handle its complex dependencies
+3. Uses pip to install Argus in editable mode with all development dependencies from `pyproject.toml`
 
 In what follows, it will be assumed that this has been done.
 
@@ -307,4 +299,4 @@ Develpers and project owners/maintainers will require accounts with one or all o
     To test releases, a parallel account on *test.PyPI* is needed and a similar token to **PYPI_TOKEN** - named **TEST_PYPI_TOKEN** needs to be set, in the same way as above.  To create a test release, flag it as a "pre-release" through the *GitHub* interface when you generate a release, and it will be published on *test.PyPI.org* rather than *PyPI.org*.
 
     !!! note
-        Although `poetry` can be used to directly publish this project to *PyPI*, users should not do this.  The proper way to publish the project is through the *GitHub* interface, which leverages the *GitHub Workflows* of this project to ensure the enforcement of project standards before a new version can be created.
+        Users should not manually publish to *PyPI*. The proper way to publish the project is through the *GitHub* interface, which leverages the *GitHub Workflows* of this project to ensure the enforcement of project standards before a new version can be created.
