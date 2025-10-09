@@ -9,5 +9,5 @@
 #SBATCH --cpus-per-task=2
 
 source ~/.bashrc
-conda activate Argus
+conda activate argus-env
 time python -u run_analysis.py configs/example_config.ini

@@ -111,7 +111,6 @@ def precompute_R_matrices(σ: jax.Array, EFAC: jax.Array, EQUAD: jax.Array) -> j
     # Calculate all diagonal elements for all observations using broadcasting
     diagonals = jnp.square(EFAC * σ) + jnp.square(EQUAD)  # Shape: (Nobs, ny)
     R = jax.vmap(jnp.diag)(diagonals)
-    # jax.debug.print('R.shape: {shape}',shape=R.shape,ordered=True)
     return R
 
 
