@@ -328,7 +328,8 @@ class TestReadMultipleParTim:
             )
 
     @patch('argus.data_loader.LoadWidebandPulsarData.read_par_tim')
-    def test_max_files_limit(self, mock_read):
+    @patch('argus.data_loader.LoadWidebandPulsarData.get_par_value')
+    def test_max_files_limit(self, mock_get_par, mock_read):
         """Test that max_files parameter limits processing."""
         mock_psr = Mock()
         mock_psr.name = "PSR1"
@@ -336,8 +337,13 @@ class TestReadMultipleParTim:
         mock_psr.residuals = np.array([1e-6])
         mock_psr.toaerrs = np.array([1e-7])
         mock_psr.M_matrix = np.random.randn(1, 5)
+        mock_psr.M_scaled = np.random.randn(1, 5)
+        mock_psr.P_eps = np.eye(5)
+        mock_psr.RA = 0.5
+        mock_psr.DEC = 0.3
 
         mock_read.return_value = mock_psr
+        mock_get_par.return_value = 200.0
 
         par_files = [f'/data/psr{i}.par' for i in range(5)]
         tim_files = [f'/data/psr{i}.tim' for i in range(5)]

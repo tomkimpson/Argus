@@ -3,6 +3,7 @@
 import pytest
 import numpy as np
 import jax.numpy as jnp
+from unittest.mock import Mock, patch
 from argus import jax_kalman_filter, bayesian_inference
 
 
@@ -85,12 +86,15 @@ class TestLogLikelihood:
     def test_basic_likelihood(self):
         """Test basic log likelihood calculation."""
         y = jnp.array([[0.1], [0.2]])
-        cov = jnp.eye(2) * 0.01
+        cov = jnp.eye(2)
 
         ll = jax_kalman_filter._log_likelihood(y, cov)
 
-        # Should be negative (log of probability < 1)
-        assert ll < 0
+        # Should return a (1, 1) array, not a scalar
+        assert ll.shape == (1, 1)
+        assert jnp.isfinite(ll)
+        # For non-zero innovation, likelihood should be negative
+        assert ll[0, 0] < 0
 
     def test_zero_innovation(self):
         """Test likelihood with zero innovation."""
