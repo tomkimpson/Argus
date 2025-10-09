@@ -16,6 +16,7 @@ def test_likelihood_value():
     """
     Tests the likelihood evaluation is correct. The "correct" value is inserted by hand to ensure consistency between edits during development.
     """
+
     # Initialize logger for testing (without file logging)
     class MockConfig:
         def get(self, section, key, fallback=None):
@@ -30,11 +31,13 @@ def test_likelihood_value():
 
     # Skip test if preprocessed data doesn't exist
     if not os.path.exists(preprocessed_data_path):
-        pytest.skip(f"Preprocessed pulsar data not found: {preprocessed_data_path}. "
-                   f"Run 'python test/get_pulsar_data_for_testing.py' to generate it.")
+        pytest.skip(
+            f"Preprocessed pulsar data not found: {preprocessed_data_path}. "
+            f"Run 'python test/get_pulsar_data_for_testing.py' to generate it."
+        )
 
     # Load the preprocessed pulsar data
-    with open(preprocessed_data_path, 'rb') as f:
+    with open(preprocessed_data_path, "rb") as f:
         pulsar_data = pickle.load(f)
 
     # Get noise parameters from test data directory
@@ -42,14 +45,20 @@ def test_likelihood_value():
     spin_injections_path = os.path.join(script_dir, "data/spin_injections.pkl")
 
     # Skip if noise parameter files don't exist
-    if not os.path.exists(noise_params_path) or not os.path.exists(spin_injections_path):
+    if not os.path.exists(noise_params_path) or not os.path.exists(
+        spin_injections_path
+    ):
         pytest.skip(f"Noise parameter files not found")
 
     # Get efac and equad
-    efac_array, equad_array = get_efac_equad_injections(noise_params_path, excluded_psrs=['J1640+2224'])
+    efac_array, equad_array = get_efac_equad_injections(
+        noise_params_path, excluded_psrs=["J1640+2224"]
+    )
 
     # Get psr noise
-    sigma_p_injected, gamma_p_injected = get_psr_noise_injections(spin_injections_path, excluded_psrs=['J1640+2224'])
+    sigma_p_injected, gamma_p_injected = get_psr_noise_injections(
+        spin_injections_path, excluded_psrs=["J1640+2224"]
+    )
 
     # Initialize the Kalman filter
     KF = jk.JaxKalmanFilter(data=pulsar_data, use_gw=True)
@@ -64,14 +73,12 @@ def test_likelihood_value():
         γa=γa,
         ha=ha,
         log10_gamma_a=jnp.log10(γa),  # Add required log10 parameter
-
         # Spin parameters
         γp=gamma_p_injected,
         σp=sigma_p_injected,
-
         # Measurement noise parameters
         EFAC=efac_array,
-        EQUAD=equad_array
+        EQUAD=equad_array,
     )
 
     # Calculate likelihood
@@ -84,4 +91,6 @@ def test_likelihood_value():
     expected_likelihood = 55963.86  # Approximate expected value
 
     # Use relative tolerance for floating point comparison
-    assert abs(log_likelihood - expected_likelihood) < 1.0, f"Expected ~{expected_likelihood}, got {log_likelihood}"
+    assert (
+        abs(log_likelihood - expected_likelihood) < 1.0
+    ), f"Expected ~{expected_likelihood}, got {log_likelihood}"

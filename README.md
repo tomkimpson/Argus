@@ -1,6 +1,6 @@
 # Argus
 
-![Tests](https://github.com/tomkimpson/Argus/actions/workflows/run_test.yml/badge.svg) [![codecov](https://codecov.io/gh/tomkimpson/Argus/graph/badge.svg?token=2PEOHCFV1K)](https://codecov.io/gh/tomkimpson/Argus) [![PyPI version](https://badge.fury.io/py/argus.svg)](https://badge.fury.io/py/argus) [![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://tomkimpson.github.io/Argus/)
+![Tests](https://github.com/tomkimpson/Argus/actions/workflows/run_test.yml/badge.svg) [![codecov](https://codecov.io/gh/tomkimpson/Argus/graph/badge.svg?token=2PEOHCFV1K)](https://codecov.io/gh/tomkimpson/Argus) [![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://tomkimpson.github.io/Argus/)
 
 **Argus** is a Python package for Bayesian inference on pulsar timing array data using JAX and Kalman filtering techniques. It provides efficient, GPU-accelerated analysis tools for detecting gravitational waves and estimating astrophysical parameters from pulsar timing data.
 
@@ -10,42 +10,38 @@
 - 🔬 **Bayesian parameter estimation** using NumPyro
 - 📊 **Kalman filtering** for efficient state space modeling
 - 🌊 **Gravitational wave detection** in pulsar timing arrays
-- 📈 **Comprehensive analysis tools** and visualization
 - 🔧 **Example workflows** for quick start and development
 
 ## Installation
 
 > **Note:** PyPI distribution coming soon! For now, please install from source.
 
-### Prerequisites
+Argus requires a specific installation workflow using conda and pip to handle the `enterprise-pulsar` dependency, which has complex dependencies that are difficult to resolve with pip alone.
 
-We recommend setting up a fresh virtual environment:
-
-**Using venv:**
-```bash
-python -m venv argus-env
-source argus-env/bin/activate  # On Windows: argus-env\Scripts\activate
-```
-
-**Using conda:**
-```bash
-conda create -n argus-env python=3.11
-conda activate argus-env
-```
-
-### From Source
+### Installation Steps
 
 ```bash
+# Clone the repository
 git clone https://github.com/tomkimpson/Argus.git
 cd Argus
-pip install .
+
+# Create a new conda environment with Python 3.11
+conda create -n argus-env python=3.11
+conda activate argus-env
+
+# Install enterprise-pulsar via conda (required due to dependency complexities)
+conda install -c conda-forge enterprise-pulsar
+
+# Install Argus and remaining dependencies
+pip install -e .
 ```
 
 ### Development Installation
 
+For development with additional dependencies (testing, linting, etc.):
+
 ```bash
-git clone https://github.com/tomkimpson/Argus.git
-cd Argus
+# Follow the same conda setup as above, then:
 pip install -e ".[dev]"
 ```
 

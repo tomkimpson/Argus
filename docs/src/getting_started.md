@@ -4,48 +4,46 @@ This guide will help you install Argus and run your first pulsar timing array an
 
 ## Prerequisites
 
-Argus requires Python 3.11 or 3.12. We strongly recommend setting up a fresh virtual environment to avoid dependency conflicts.
+Argus requires Python 3.11 or 3.12 and uses conda for package management. We strongly recommend using conda to avoid dependency conflicts.
 
-### Setting Up a Virtual Environment
-
-**Using venv:**
-```console
-$ python -m venv argus-env
-$ source argus-env/bin/activate  # On Windows: argus-env\Scripts\activate
-```
-
-**Using conda:**
-```console
-$ conda create -n argus-env python=3.11
-$ conda activate argus-env
-```
+!!! note "Why Conda?"
+    Argus uses a conda + pip installation workflow to handle the `enterprise-pulsar` dependency, which has complex system-level dependencies that are difficult to resolve with pip alone. This hybrid approach ensures reliable installation across different systems.
 
 ## Installation
 
 !!! note
-    PyPI distribution is coming soon! For now, please install from source.
+    PyPI distribution is coming soon! For now, please install from source using the workflow below.
 
-### From Source
-
-Clone the repository and install:
+### Installation Steps
 
 ```console
 $ git clone https://github.com/tomkimpson/Argus.git
 $ cd Argus
-$ pip install .
+$ conda create -n argus-env python=3.11
+$ conda activate argus-env
+$ conda install -c conda-forge enterprise-pulsar
+$ pip install -e .
 ```
+
+This workflow:
+1. Creates a fresh conda environment with Python 3.11
+2. Installs `enterprise-pulsar` via conda to handle its complex dependencies
+3. Uses pip to install Argus and all remaining dependencies from `pyproject.toml`
 
 ### Development Installation
 
-If you plan to contribute or modify the code:
+If you plan to contribute or modify the code, install with development dependencies:
 
 ```console
 $ git clone https://github.com/tomkimpson/Argus.git
 $ cd Argus
+$ conda create -n argus-env python=3.11
+$ conda activate argus-env
+$ conda install -c conda-forge enterprise-pulsar
 $ pip install -e ".[dev]"
 ```
 
-This installs Argus in editable mode with development dependencies including testing and documentation tools.
+This adds testing tools (pytest), linting (black, ruff), type checking (mypy), and pre-commit hooks.
 
 ## Running Your First Analysis
 

@@ -30,7 +30,9 @@ def main():
 
     # Define paths
     script_dir = Path(__file__).parent.absolute()
-    data_directory = script_dir / "../workflows/data/IPTA_MockDataChallenge2/dataset_2b/"
+    data_directory = (
+        script_dir / "../workflows/data/IPTA_MockDataChallenge2/dataset_2b/"
+    )
     output_file = script_dir / "data/processed_pulsar_data.pkl"
 
     # Validate input directory
@@ -53,24 +55,27 @@ def main():
         # Process the pulsar data using the same parameters as the test
         # Exclude J1640+2224 as in the original test
         pulsar_data = data_loader.LoadWidebandPulsarData.get_processed_residuals(
-            str(data_directory),
-            excluded_psrs=['J1640+2224']
+            str(data_directory), excluded_psrs=["J1640+2224"]
         )
 
         # Save the processed data to pickle file
-        with open(output_file, 'wb') as f:
+        with open(output_file, "wb") as f:
             pickle.dump(pulsar_data, f, protocol=pickle.HIGHEST_PROTOCOL)
 
         print(f"✅ Successfully processed and saved pulsar data.")
-        print(f"   - Processed residuals shape: {pulsar_data['processed_residuals']['toas'].shape}")
+        print(
+            f"   - Processed residuals shape: {pulsar_data['processed_residuals']['toas'].shape}"
+        )
         print(f"   - Number of pulsars: {len(pulsar_data['metadata'])}")
         print(f"   - Design matrices: {len(pulsar_data['design_matrices'])}")
-        print(f"   - HD correlation matrix shape: {pulsar_data['hd_correlation'].shape}")
+        print(
+            f"   - HD correlation matrix shape: {pulsar_data['hd_correlation'].shape}"
+        )
 
         # Display some basic info about the processed data
         print("\nPulsar metadata preview:")
-        if 'metadata' in pulsar_data and not pulsar_data['metadata'].empty:
-            print(pulsar_data['metadata'][['psr', 'RA', 'DEC']].head())
+        if "metadata" in pulsar_data and not pulsar_data["metadata"].empty:
+            print(pulsar_data["metadata"][["psr", "RA", "DEC"]].head())
 
         return 0
 

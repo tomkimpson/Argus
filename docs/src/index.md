@@ -24,12 +24,6 @@ To get started with Argus:
 4. **Explore the API**: Browse the workflow and API examples
 5. **Contribute**: Read our [Contributing Guide](contributing.md)
 
-## About this Documentation
-
-This documentation provides an overview of the project, installation and usage instructions, API details, and developer notes for contributors.
-
-!!! note
-    If you're new to Argus, start with the "Getting Started" section.
 
 ## Example Usage
 
@@ -37,42 +31,20 @@ This documentation provides an overview of the project, installation and usage i
 
 Argus includes complete example workflows in the `workflows/` directory:
 
-- **`workflows/example_workflow_lite/`** - Lightweight workflow for rapid prototyping
+- **`workflows/example_workflow_lite/`** 
+  - Lightweight workflow for rapid prototyping
   - Reduced MCMC samples for faster execution
   - Perfect for testing and development
   - Run with: `python run_analysis.py configs/example_config.ini`
 
-- **`workflows/example_workflow/`** - Full production workflow
+- **`workflows/example_workflow/`** 
+  - Full production workflow
   - Complete MCMC sampling for convergence
   - Multiple chains for diagnostics
   - Recommended for publication-quality results
 
-### Tutorials and Examples
-
-- [Getting Started](getting_started.md) - Installation and first analysis
-- [Basic parameter estimation with Mock Data Challenge](examples/basic_parameter_estimation.md)
-*Developer notes: Nice to have additional analysis examples*
-- Multi-parameter estimation with NANOGrav data
-- Custom noise models
-
-!!! tip "Interactive Notebooks"
-    Interactive Jupyter notebooks are available in the [`notebooks/`](notebooks/index.md) directory of the repository.
-
-
 ---
 
-## Research and Citations
-
-If you use Argus in your research, please cite the relevant papers:
-
-```bibtex
-@article{kimpson2024a,
-  title={State-space analysis for pulsar timing arrays},
-  author={Kimpson, Tom and others},
-  journal={arXiv preprint arXiv:2409.14613},
-  year={2024}
-}
-```
 
 ## Support
 

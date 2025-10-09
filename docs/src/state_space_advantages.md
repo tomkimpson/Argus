@@ -48,31 +48,19 @@ This page summarizes where **state-space** (Kalman filters/smoothers) offer some
 - Add physics as **state blocks** rather than covariance algebra: clock noise, ephemeris terms, HD-correlated GWB, anisotropy, CWs/Memory signals.
 - Priors are **transparent** (encoded in \(Q\)), and smoothed posteriors over states are **interpretable** and easy to visualize.
 
----
-
-## 7) Diagnostics & Posterior Reconstructions
-
-- **Innovation whiteness** tests and standardized residuals are built-in.
-- **Smoothed state trajectories** enable time-domain reconstructions, gap filling, forecasts, and uncertainty bands—highly persuasive for domain users.
 
 ---
 
-## 8) Accelerator & Autodiff Friendly
+## 7) Accelerator & Autodiff Friendly
 
 - Recursions are composed of **batched small linear algebra**—great for XLA/JIT on GPU/TPU.
 - Easy to vmap over quadrature nodes or proposals and to differentiate end-to-end for HMC/NUTS.
 - PSD pipelines often hinge on large dense factorizations that scale less naturally on accelerators.
 
----
-
-## 9) Robustness Extensions
-
-- **Robust filters** (Huber/Student-\(t\) via iteratively reweighted updates) mitigate outliers/RFI with minimal changes.
-- **Square-root forms** and **rank-aware diffuse updates** (SVD/eig) provide rock-solid numerics even when \(p\gg n_y\) per epoch.
 
 ---
 
-## 10) Incremental (Online) Science
+## 8) Incremental (Online) Science
 
 - New TOAs can be assimilated **sequentially**: the filter state and diffuse accumulators update in one step.
 - Posterior over parameters can be updated via **sequential importance reweighting** (and occasional resample+rejuvenation) without a full rerun—see our SMC recipe.
@@ -80,4 +68,4 @@ This page summarizes where **state-space** (Kalman filters/smoothers) offer some
 
 
 
-**Bottom line:** State-space methods deliver **speed, robustness, and flexibility** for PTA inference, especially with irregular sampling, heteroskedastic noise, and rich physical structure. They produce exact likelihoods, scale to long baselines, and support online updates—making them a strong default for modern PTA pipelines.
+**Bottom line:** State-space methods deliver **speed, robustness, and flexibility** for PTA inference, especially with irregular sampling, heteroskedastic noise, and rich physical structure. They produce exact likelihoods, scale to long baselines, and support online updates. 

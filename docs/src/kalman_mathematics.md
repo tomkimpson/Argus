@@ -2,8 +2,6 @@
 
 This document provides the detailed mathematical formulation of the Kalman filter applied to pulsar timing array (PTA) analysis in the context of timing residuals. This builds upon the general [state-space methods](state_space.md) overview by providing the specific mathematical framework used in Argus.
 
-!!! info "Mathematical Foundation"
-    This formulation is based on work by P. Meyers and the MINNOW package, with extensions to handle multiple pulsars and the influence of the stochastic gravitational wave background.
 
 ---
 
