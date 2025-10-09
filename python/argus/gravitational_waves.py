@@ -67,7 +67,7 @@ def hellings_downs(θ):
     np.ndarray or float
         Hellings-Downs correlation values
     """
-    # Handle the autocorrelation case first
+    # Handle the vector case first
     if isinstance(θ, np.ndarray):
         mask = np.isclose(θ, 0.0)
         x = np.zeros_like(θ)
@@ -82,6 +82,8 @@ def hellings_downs(θ):
         return result
     else:
         # Handle scalar input
+        # Special case for θ = 0 (autocorrelation): x = 0 leads to 0 * log(0) = nan
+        # The correct limit as θ → 0 is HD(0) = 1
         if np.isclose(θ, 0.0):
             return 1.0
         x = (1 - np.cos(θ)) / 2.0

@@ -37,9 +37,9 @@ jobs:
           conda install -c conda-forge enterprise-pulsar
           pip install -e ".[dev]"
 
-      - name: Test with pytest (excluding GPU tests)
+      - name: Test with pytest 
         shell: bash -l {0}
-        run: pytest -m "not gpu"
+        run: pytest 
 
       # - name: Generate Coverage Report
       #   run: |
