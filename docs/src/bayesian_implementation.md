@@ -1,9 +1,7 @@
-# Advanced Bayesian Parameter Estimation in Argus
+# Bayesian Inference in Argus
 
-This document provides pedagogical explanations of the sophisticated Bayesian parameter estimation techniques implemented in Argus for pulsar timing array (PTA) analysis. These methods address key computational and statistical challenges that arise when performing high-dimensional Bayesian inference on PTA datasets.
+A general overview of Bayesian inference in `Argus` was provided on the [Bayesian Inference](bayesian_inference.md) page. This page goes into some additional detail on some of the techniques implemented in Argus for Bayesian inference with PTAs. 
 
-!!! info "Target Audience"
-    This guide is intended for researchers and students who want to understand the **why** behind Argus's advanced parameter estimation methods, not just the how. Basic familiarity with Bayesian inference and MCMC sampling is assumed.
 
 ---
 
@@ -21,11 +19,11 @@ This creates parameter spaces with dimensions ranging from ~10 parameters for sm
 2. **Divergent transitions**: NUTS sampler may encounter numerical difficulties with poorly scaled parameters
 3. **Computational cost**: Gradient calculations become expensive as dimensionality increases
 
-Argus addresses these challenges through three sophisticated reparameterization techniques.
+Argus addresses these challenges through three reparameterization techniques.
 
 ---
 
-## Technique 1: h_a Parameter Reparameterization
+## Technique 1: $h_a$ Parameter Reparameterization
 
 ### The Problem
 
@@ -43,6 +41,7 @@ Instead of sampling $\log_{10} h_a$ directly from its uniform prior, Argus sampl
 2. **Transform**: $\log_{10} h_a = \mu + \sigma \cdot \log_{10} h_a'$
 
 where:
+
 - $\mu = \frac{a + b}{2}$ (midpoint of uniform range)
 - $\sigma = \frac{b - a}{6}$ (using 3-sigma rule: 99.7% of samples within bounds)
 
@@ -56,21 +55,6 @@ This transformation leverages the fact that NUTS sampling works most efficiently
 2. **Automatic step size tuning**: NUTS can efficiently adapt to $\mathcal{N}(0,1)$ geometry
 3. **Reduced divergences**: Avoids boundary effects that cause sampler failures
 
-### When to Use
-
-Enable h_a reparameterization when:
-- Using uniform priors for $\log_{10} h_a$ 
-- Experiencing slow convergence or divergent transitions
-- Working with wide prior ranges (>2 orders of magnitude)
-
-**Configuration**:
-```ini
-[PriorModel]
-log10_ha_fixed = false
-log10_ha_min = -18.0
-log10_ha_max = -12.0
-# Reparameterization is automatic when using uniform priors
-```
 
 ---
 
@@ -83,9 +67,12 @@ Each pulsar in a PTA has individual red noise parameters $\gamma_p^{(i)}$ and $\
 $$\gamma_p^{(i)} \sim \text{Uniform}(\gamma_{\text{min}}, \gamma_{\text{max}}) \quad \text{for } i = 1, \ldots, N$$
 
 This leads to several problems:
+
 1. **Curse of dimensionality**: Parameter space grows linearly with number of pulsars
 2. **Information waste**: No sharing of knowledge between similar pulsars
 3. **Prior sensitivity**: Individual pulsar constraints depend heavily on prior choices
+
+
 
 ### The Solution: Population-Level Hierarchical Priors
 
@@ -121,23 +108,19 @@ where $\gamma_{\text{raw}}^{(i)} \sim \mathcal{N}(0, 1)$ and the $1/\sqrt{N}$ fa
 2. **Gradient balancing**: $1/\sqrt{N}$ scaling prevents gradient explosion
 3. **Fewer divergences**: Smoother posterior geometry
 
-### When to Use
 
-Enable hierarchical modeling when:
-- Analyzing >5 pulsars simultaneously
-- Individual pulsar data quality varies significantly  
-- Interested in population-level astrophysical inference
-- Standard sampling shows poor mixing for noise parameters
+See also [Pulsar Timing Arrays require hierarchical models
+](https://arxiv.org/html/2406.05081v2).
 
-**Configuration**:
-```ini
-[PriorModel]
-hierarchical_noise = true
-log10_gamma_p_mean_min = -10.0
-log10_gamma_p_mean_max = -6.0
-log10_gamma_p_std_min = 0.1
-log10_gamma_p_std_max = 2.0
-```
+### Fixed Parameter Override
+
+When spin injection files are provided, Argus can fix pulsar red noise parameters to specific values instead of sampling them. This is typically used for:
+
+- Testing with known injected signals
+- Validation studies with predetermined parameter values
+- Development and debugging scenarios
+
+The hierarchical modeling is automatically disabled for parameters that are explicitly fixed via injection files.
 
 ---
 
@@ -159,6 +142,7 @@ Instead of sampling $\gamma_p$ and $\sigma_p$ independently, the log-ratio param
 2. $\log_{10} \text{ratio}$ where $\text{ratio} = \sigma_p / \gamma_p$
 
 Then $\sigma_p$ is computed deterministically:
+
 $$\log_{10} \sigma_p = \log_{10} \gamma_p + \log_{10} \text{ratio}$$
 
 ### Physical Motivation
@@ -182,104 +166,15 @@ $$\begin{align}
 3. **Improved mixing**: Decorrelated parameters are easier for NUTS to sample
 4. **Computational efficiency**: Faster convergence due to better geometry
 
-### When to Use
 
-Enable log-ratio parameterization when:
-- Red noise parameters show strong correlations in standard analysis
-- Interested in population-level ratio statistics
-- Standard parameterization shows poor NUTS performance
-- Working with hierarchical noise models
-
-**Configuration**:
-```ini
-[PriorModel]
-log_ratio_parameterization = true
-log10_ratio_mean_min = -2.0
-log10_ratio_mean_max = 2.0  
-log10_ratio_std_min = 0.1
-log10_ratio_std_max = 1.0
-```
-
----
-
-## Practical Guidelines
-
-### Choosing the Right Combination
-
-| Scenario | h_a Reparam | Hierarchical | Log-Ratio |
-|----------|-------------|--------------|-----------|
-| Small PTA (≤5 pulsars) | ✓ | ✗ | ✗ |
-| Medium PTA (6-20 pulsars) | ✓ | ✓ | Optional |
-| Large PTA (>20 pulsars) | ✓ | ✓ | ✓ |
-| Parameter correlations observed | ✓ | ✓ | ✓ |
-| Poor NUTS performance | ✓ | ✓ | ✓ |
-
-### Monitoring Effectiveness
-
-Signs that advanced parameterizations are helping:
-- **Increased effective sample size (ESS)** for difficult parameters
-- **Reduced number of divergent transitions**  
-- **Better R̂ convergence diagnostics** across chains
-- **Faster warmup adaptation**
-
-Signs of problems:
-- ESS decreases compared to standard parameterization
-- New divergences appear
-- Posterior distributions become unreasonably wide
-
-### Computational Considerations
-
-- **Memory**: Hierarchical models require storing population parameters
-- **Runtime**: Gradient calculations become more complex with transformations
-- **Convergence**: May need longer warmup to adapt to new geometry
-- **Interpretation**: Transform samples back to original parameterization for plotting
-
----
-
-## Advanced Topics
-
-### Gradient Balancing Theory
-
-The $1/\sqrt{N}$ scaling in hierarchical models prevents a phenomenon called **gradient explosion** where:
-
-$$\frac{\partial \log p(\theta)}{\partial \theta_{\text{pop}}} \propto N \quad \text{(problematic)}$$
-
-The rescaling ensures gradients remain $O(1)$ regardless of $N$:
-
-$$\frac{\partial \log p(\theta)}{\partial \theta_{\text{pop}}} \propto \sqrt{N} \quad \text{(well-conditioned)}$$
-
-### Custom Transformations
-
-Advanced users can implement custom parameter transformations by:
-1. Subclassing the base parameter model
-2. Implementing forward and inverse transformations  
-3. Ensuring proper Jacobian corrections for probability densities
-
-### Integration with Other Tools
-
-These techniques are compatible with:
-- **ArviZ**: All transformations preserve MCMC diagnostics
-- **Corner plots**: Automatic back-transformation for visualization
-- **Model comparison**: Bayes factors computed correctly with proper Jacobians
+!!! note "Parameter Counting"
+    The effective number of parameters with hierarchical modeling and log-ratio parameterization is: **4 hyperparameters + 2×N individual parameters** (where N is the number of pulsars), compared to **2×N parameters** with independent priors.
 
 ---
 
 ## Further Reading
 
 - [Kalman Mathematics](kalman_mathematics.md): Mathematical foundations of the state-space approach
-- [Mathematical Background](mathematical_background.md): Detailed derivations and proofs
-- [Examples](examples/index.md): Practical applications of these techniques
 - **Betancourt (2017)**: "A Conceptual Introduction to Hamiltonian Monte Carlo" - theoretical background
 - **Gelman et al. (2013)**: "Bayesian Data Analysis" - hierarchical modeling principles
 
----
-
-## Summary
-
-Argus's advanced Bayesian techniques address the fundamental challenges of high-dimensional parameter estimation in PTA analysis:
-
-1. **h_a reparameterization** improves NUTS sampling through standardized normal geometry
-2. **Hierarchical modeling** enables information sharing and reduces effective dimensionality  
-3. **Log-ratio parameterization** decorrelates strongly correlated noise parameters
-
-Together, these methods enable robust, efficient Bayesian inference even for next-generation PTAs with hundreds of parameters. The key insight is that **how** you parameterize the problem is often as important as **what** model you choose.

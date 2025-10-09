@@ -1,18 +1,19 @@
 # Argus
 
-Welcome to the **Argus** project documentation.
+👋 Welcome to the **Argus** project documentation.
 
 **Argus** is a research project for the [detection of nHz gravitational waves](https://arxiv.org/abs/2105.13270) using Pulsar Timing Arrays (PTAs), leveraging a [state-space representation](https://academic.oup.com/book/16563). It is an ongoing effort to open-source methods developed at the [University of Melbourne](https://github.com/UniMelb-NSGW) and [OzGrav](https://www.ozgrav.org). 
+
+---
 
 ## Key Features
 
 - **State-space framework** for PTA data analysis
 - **Bayesian parameter estimation** using NUTS sampling with NumPyro
-- **Gravitational wave detection** and characterization
 - **Pulsar noise modeling** with flexible priors
-- **JAX-based implementation** for high-performance computing
+- **JAX-based implementation** for GPU acceleration, automatic differentiation
 
-
+---
 
 ## Quick Start
 
@@ -20,28 +21,26 @@ To get started with Argus:
 
 1. **Install the package**: See the [Getting Started](getting_started.md) guide
 2. **Run example workflows**: Try `workflows/example_workflow_lite` for rapid prototyping
-3. **Run your first analysis**: Check out the [examples](examples/index.md)
-4. **Explore the API**: Browse the workflow and API examples
-5. **Contribute**: Read our [Contributing Guide](contributing.md)
+3. **Explore the API**: Browse the [API Reference](api/index.md) for detailed documentation
+4. **Contribute**: Read our [Contributing Guide](contributing.md)
+
+---
 
 
 ## Example Usage
 
-### Example Workflows
-
-Argus includes complete example workflows in the `workflows/` directory:
+Argus includes two example workflows in the `workflows/` directory:
 
 - **`workflows/example_workflow_lite/`** 
-  - Lightweight workflow for rapid prototyping
-  - Reduced MCMC samples for faster execution
-  - Perfect for testing and development
-  - Run with: `python run_analysis.py configs/example_config.ini`
+    - Lightweight workflow for rapid prototyping
+    - Reduced MCMC samples for faster execution
+    - Perfect for testing and development
+    - Run with: `python run_analysis.py configs/example_config.ini`
 
-- **`workflows/example_workflow/`** 
-  - Full production workflow
-  - Complete MCMC sampling for convergence
-  - Multiple chains for diagnostics
-  - Recommended for publication-quality results
+- **`workflows/example_workflow/`** - Full production workflow
+    - Complete MCMC sampling for convergence
+    - Multiple chains for diagnostics
+    - Recommended for publication-quality results
 
 ---
 
@@ -52,16 +51,13 @@ Argus includes complete example workflows in the `workflows/` directory:
 - 💬 **Discussions**: [GitHub Discussions](https://github.com/ADACS-Australia/tkimpson_2025a/discussions)
 - 📧 **Contact**: [University of Melbourne NSGW](https://github.com/UniMelb-NSGW)
 
+---
 
-For the accompanying papers please see:
+## Literature
 
-- [Kimpson et al. 2024a](https://arxiv.org/abs/2409.14613)
-- [Kimpson et al. 2024b](https://arxiv.org/abs/2410.10087)
-- [Kimpson et al. 2025](https://arxiv.org/abs/2501.06990)
+Argus builds off of proof of concept work described in:
 
-
-## Etymology
-
-The project is named **Argus**, after the hundred-eyed giant of Greek mythology, who could see in all directions simultaneously. In a pulsar timing array, multiple pulsars across the sky act as a network of cosmic "eyes". Just as Argus's hundred eyes gave him an omniscient view of his surroundings, a PTA's distributed array of millisecond pulsars creates an all-sky monitoring system capable of detecting gravitational waves through correlated timing residuals.
-
+- [arXiv:2409.14613](https://arxiv.org/abs/2409.14613)
+- [arXiv:2410.10087](https://arxiv.org/abs/2410.10087)
+- [arXiv:2501.06990](https://arxiv.org/abs/2501.06990)
 
