@@ -128,15 +128,17 @@ class TestProcessPulsarResidualsByEpoch:
 class TestGetProcessedResiduals:
     """Tests for get_processed_residuals static method."""
 
+    @patch('os.path.isdir')
     @patch('os.path.exists')
     @patch('argus.data_loader.LoadWidebandPulsarData.read_multiple_par_tim')
     @patch('argus.gravitational_waves.pairwise_angular_separation')
     @patch('argus.gravitational_waves.hellings_downs')
     @patch('glob.glob')
-    def test_basic_functionality(self, mock_glob, mock_hd, mock_sep, mock_read, mock_exists):
+    def test_basic_functionality(self, mock_glob, mock_hd, mock_sep, mock_read, mock_exists, mock_isdir):
         """Test basic get_processed_residuals functionality."""
         # Setup mocks
         mock_exists.return_value = True
+        mock_isdir.return_value = True
         mock_glob.side_effect = [
             ['/data/psr1.par', '/data/psr2.par'],
             ['/data/psr1.tim', '/data/psr2.tim']
@@ -181,21 +183,25 @@ class TestGetProcessedResiduals:
         with pytest.raises(FileNotFoundError):
             data_loader.LoadWidebandPulsarData.get_processed_residuals("/nonexistent/path")
 
+    @patch('os.path.isdir')
     @patch('os.path.exists')
     @patch('glob.glob')
-    def test_no_files_error(self, mock_glob, mock_exists):
+    def test_no_files_error(self, mock_glob, mock_exists, mock_isdir):
         """Test error when no par/tim files found."""
         mock_exists.return_value = True
+        mock_isdir.return_value = True
         mock_glob.side_effect = [[], []]
 
         with pytest.raises(FileNotFoundError, match="No .par or .tim files found"):
             data_loader.LoadWidebandPulsarData.get_processed_residuals('/data')
 
+    @patch('os.path.isdir')
     @patch('os.path.exists')
     @patch('glob.glob')
-    def test_file_count_mismatch_error(self, mock_glob, mock_exists):
+    def test_file_count_mismatch_error(self, mock_glob, mock_exists, mock_isdir):
         """Test error when par and tim file counts don't match."""
         mock_exists.return_value = True
+        mock_isdir.return_value = True
         mock_glob.side_effect = [
             ['/data/psr1.par'],
             ['/data/psr1.tim', '/data/psr2.tim']
@@ -204,12 +210,14 @@ class TestGetProcessedResiduals:
         with pytest.raises(ValueError, match="Mismatch"):
             data_loader.LoadWidebandPulsarData.get_processed_residuals('/data')
 
+    @patch('os.path.isdir')
     @patch('os.path.exists')
     @patch('argus.data_loader.LoadWidebandPulsarData.read_multiple_par_tim')
     @patch('glob.glob')
-    def test_pulsar_exclusion(self, mock_glob, mock_read, mock_exists):
+    def test_pulsar_exclusion(self, mock_glob, mock_read, mock_exists, mock_isdir):
         """Test that excluded pulsars are filtered out."""
         mock_exists.return_value = True
+        mock_isdir.return_value = True
         mock_glob.side_effect = [
             ['/data/psr1.par', '/data/J1640+2224.par'],
             ['/data/psr1.tim', '/data/J1640+2224.tim']
