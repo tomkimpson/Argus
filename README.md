@@ -7,3 +7,6 @@ Welcome to **Argus**!
 This package focuses on Bayesian inference for pulsar timing array data using JAX-accelerated Kalman filtering techniques.
 
 Please see the [documentation](https://tomkimpson.github.io/Argus/).
+
+![Corner plot showing posterior distributions from Bayesian parameter estimation using Argus on the IPTA mock data challenge. The plot demonstrates the recovery of gravitational wave background parameters and pulsar noise characteristics using state-space Kalman filtering.](docs/joss/images/example_corner_plot.png)
+
