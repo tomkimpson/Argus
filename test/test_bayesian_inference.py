@@ -160,7 +160,11 @@ class TestSetupNutsKernel:
 
         prior_specs = {
             "log10_ha_transform_params": {"mean": -15.0, "std": 0.33},
-            "log10_gamma_a_spec": tfpd.Uniform(-10.0, -8.0)
+            "log10_gamma_a_spec": tfpd.Uniform(-10.0, -8.0),
+            "log10_gamma_p_spec": None,
+            "log10_sigma_p_spec": None,
+            "efac_spec": jnp.ones(2),
+            "equad_spec": jnp.full(2, 1e-7)
         }
 
         kernel, nuts_info = bayesian_inference.setup_nuts_kernel(
@@ -170,14 +174,20 @@ class TestSetupNutsKernel:
         assert nuts_info["total_params"] == 10
         assert nuts_info["target_accept_prob"] == 0.95
 
-    def test_custom_nuts_params(self, mock_config):
+    @patch('argus.parameter_sampling.count_free_parameters')
+    def test_custom_nuts_params(self, mock_count, mock_config):
         """Test NUTS with custom parameters."""
+        mock_count.return_value = 5
         mock_config.set("NUTS", "target_accept_prob", "0.90")
         mock_config.set("NUTS", "max_tree_depth", "15")
 
         prior_specs = {
             "log10_ha_transform_params": None,
-            "log10_gamma_a_spec": -9.0
+            "log10_gamma_a_spec": -9.0,
+            "log10_gamma_p_spec": None,
+            "log10_sigma_p_spec": None,
+            "efac_spec": jnp.ones(2),
+            "equad_spec": jnp.full(2, 1e-7)
         }
 
         kernel, nuts_info = bayesian_inference.setup_nuts_kernel(
@@ -220,8 +230,14 @@ class TestTestLikelihoodPerformance:
     @patch('argus.utils.get_noise_parameters')
     def test_performance_test(self, mock_get_noise, mock_config, mock_logger):
         """Test likelihood performance testing."""
+        # Create a mock that returns a JAX array-like value
+        mock_result = Mock()
+        mock_result.block_until_ready = Mock(return_value=None)
+        # Make the mock convertible to float
+        mock_ll_value = jnp.array(-100.5)
+
         mock_kf = Mock()
-        mock_kf.get_likelihood = Mock(return_value=Mock(block_until_ready=Mock()))
+        mock_kf.get_likelihood = Mock(return_value=mock_ll_value)
 
         mock_get_noise.return_value = (
             jnp.ones(2),
@@ -242,8 +258,11 @@ class TestTestLikelihoodPerformance:
     @patch('argus.utils.get_noise_parameters')
     def test_with_none_noise_params(self, mock_get_noise, mock_config, mock_logger):
         """Test with None noise parameters (creates defaults)."""
+        # Make the mock convertible to float
+        mock_ll_value = jnp.array(-100.5)
+
         mock_kf = Mock()
-        mock_kf.get_likelihood = Mock(return_value=Mock(block_until_ready=Mock()))
+        mock_kf.get_likelihood = Mock(return_value=mock_ll_value)
 
         # Return None for all noise params
         mock_get_noise.return_value = (None, None, None, None)
@@ -259,12 +278,14 @@ class TestTestLikelihoodPerformance:
 class TestNumpyroModel:
     """Tests for numpyro_model function."""
 
-    @patch('argus.parameter_sampling.sample_gw_parameters')
-    @patch('argus.parameter_sampling.sample_pulsar_noise_parameters')
-    @patch('argus.parameter_sampling.sample_measurement_noise_parameters')
-    @patch('numpyro.factor')
-    def test_model_structure(self, mock_factor, mock_meas, mock_psr, mock_gw):
+    @patch('argus.bayesian_inference.sample_gw_parameters')
+    @patch('argus.bayesian_inference.sample_pulsar_noise_parameters')
+    @patch('argus.bayesian_inference.sample_measurement_noise_parameters')
+    def test_model_structure(self, mock_meas, mock_psr, mock_gw):
         """Test NumPyro model structure."""
+        import numpyro
+        import jax.random as random
+
         # Setup mocks
         mock_gw.return_value = (-15.0, -9.0, 1e-9)
         mock_psr.return_value = (jnp.array([-8.0]), jnp.array([-15.0]))
@@ -273,14 +294,26 @@ class TestNumpyroModel:
         mock_kf = Mock()
         mock_kf.get_likelihood = Mock(return_value=100.0)
 
-        prior_specs = {}
+        prior_specs = {
+            "log10_ha_transform_params": None,
+            "log10_ha_spec": -15.0,
+            "log10_gamma_a_spec": -9.0,
+            "log10_gamma_p_spec": None,
+            "log10_sigma_p_spec": None,
+            "efac_spec": jnp.ones(1),
+            "equad_spec": jnp.full(1, 1e-7)
+        }
 
-        bayesian_inference.numpyro_model(mock_kf, prior_specs, n_pulsars=1)
+        # Run model in NumPyro context with seed
+        rng_key = random.PRNGKey(0)
+        with numpyro.handlers.seed(rng_seed=0):
+            with numpyro.handlers.trace() as trace:
+                bayesian_inference.numpyro_model(mock_kf, prior_specs, n_pulsars=1)
 
         # Should sample all parameter groups
         mock_gw.assert_called_once()
         mock_psr.assert_called_once()
         mock_meas.assert_called_once()
 
-        # Should add likelihood factor
-        mock_factor.assert_called_once_with("likelihood", 100.0)
+        # Should have likelihood in trace
+        assert "likelihood" in trace

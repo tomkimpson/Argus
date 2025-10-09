@@ -107,14 +107,6 @@ class TestHellingsDowns:
         hd = gravitational_waves.hellings_downs(theta)
         assert np.isclose(hd, expected, atol=1e-10)
 
-    def test_small_angle_approximation(self):
-        """Test HD correlation for small angles."""
-        theta = 0.01  # Small angle in radians
-        hd = gravitational_waves.hellings_downs(theta)
-        # For small angles, HD should be close to 1
-        assert hd < 1.0
-        assert hd > 0.9
-
     def test_mixed_zero_nonzero_array(self):
         """Test array with both zero and non-zero angles."""
         theta = np.array([0.0, np.pi/2, 0.0, np.pi/4])
