@@ -1,4 +1,4 @@
-# Kalman Filter Mathematics for PTA Analysis
+# State Space Mathematics for PTA Analysis
 
 This document provides the detailed mathematical formulation of the Kalman filter applied to pulsar timing array (PTA) analysis in the context of timing residuals. This builds upon the general [state-space methods](state_space.md) overview by providing the specific mathematical framework used in Argus.
 
@@ -10,7 +10,7 @@ This document provides the detailed mathematical formulation of the Kalman filte
 For the purposes of running state-space algorithms on PTA data, we define the following fundamental matrices and vectors:
 
 - $\boldsymbol{X}$ : the state vector, dimension $n_X$
-- $\boldsymbol{Y}$ : the observation vector, dimension $n_Y$  
+- $\boldsymbol{Y}$ : the observation vector, dimension $n_Y$
 - $\boldsymbol{F}$ : the state transition matrix, dimension $n_X \times n_X$
 - $\boldsymbol{H}$ : the measurement matrix, dimension $n_Y \times n_X$
 - $\boldsymbol{Q}$ : the process noise covariance matrix, dimension $n_X \times n_X$
@@ -239,19 +239,43 @@ $$P_{\mathrm{GW},\,\phi/f}^+ = P_{\mathrm{GW},\,\phi/f} - \alpha\,u_{\mathrm{GW}
 
 and similarly for all remaining blocks.
 
-!!! tip "Computational Efficiency" 
+!!! tip "Computational Efficiency"
     The sparse structure of $H$ allows for significant computational savings - only the pulsar-relevant components of the state vector need to be updated for each measurement.
 
 ---
 
-## Summary
+## Further Reading
 
-This mathematical framework provides the foundation for efficient Kalman filtering in PTA analysis by:
+### Documentation
 
-1. **Exploiting block structure** to reduce computational complexity
-2. **Handling correlations** through the Hellings-Downs GW correlation pattern
-3. **Separating physical processes** into distinct, manageable blocks
-4. **Leveraging sparsity** in measurement matrices for efficient updates
+- [State-Space Methods](state_space.md) - Conceptual overview of the state-space framework
+- [Bayesian Inference](bayesian_inference.md) - How this mathematics enables efficient parameter estimation
+- [Bayesian Implementation](bayesian_implementation.md) - Practical implementation details and parameterizations
+- [Getting Started](getting_started.md) - Apply these methods to real PTA data
 
-*Developer notes: Nice to have API reference documentation*
-For implementation details and code examples, see the [examples](examples/index.md).
+### Academic Papers
+
+#### Kalman Filtering Foundations
+
+- [Kalman (1960)](https://doi.org/10.1115/1.3662552) - "A New Approach to Linear Filtering and Prediction Problems"
+- [Rauch et al. (1965)](https://doi.org/10.2514/3.3166) - "Maximum likelihood estimates of linear dynamic systems"
+- [Anderson & Moore (1979)](https://doi.org/10.1109/TAC.1979.1102124) - "Optimal Filtering" (comprehensive textbook)
+
+#### State-Space Mathematics
+
+- [Särkkä (2013)](https://doi.org/10.1017/CBO9781139344203) - "Bayesian Filtering and Smoothing"
+- [Grewal & Andrews (2014)](https://doi.org/10.1002/9781118984987) - "Kalman Filtering: Theory and Practice Using MATLAB"
+- [Bar-Shalom et al. (2001)](https://doi.org/10.1002/0471221279) - "Estimation with Applications to Tracking and Navigation"
+
+#### PTA-Specific Implementations
+
+- [arXiv:2409.14613](https://arxiv.org/abs/2409.14613) - State-space methods for pulsar timing arrays
+- [arXiv:2501.06990](https://arxiv.org/abs/2501.06990) - Computational implementation and benchmarks
+- [Vallisneri (2020)](https://doi.org/10.3847/1538-4357/ab7b67) - "Modeling the uncertainties of solar system ephemerides for robust gravitational-wave searches with pulsar-timing arrays"
+
+#### Stochastic Processes and Continuous-Time Systems
+
+- [Øksendal (2003)](https://doi.org/10.1007/978-3-642-14394-6) - "Stochastic Differential Equations: An Introduction with Applications"
+- [Van Loan (1978)](https://doi.org/10.1109/TAC.1978.1101743) - "Computing integrals involving the matrix exponential"
+
+---

@@ -4,6 +4,9 @@ Thank you for your interest in contributing to **Argus**!
 
 This project is an ongoing open-source effort to support cutting-edge research in gravitational wave detection with pulsar timing arrays. Contributions from the community are very welcome.
 
+
+---
+
 ## How to Contribute
 
 Whether you're fixing bugs, improving documentation, adding features, or suggesting ideas — all contributions are appreciated!
@@ -68,6 +71,28 @@ If you find a bug or have a feature request, please [open an issue](https://gith
 
 ---
 
-We’re grateful for your support and contributions!
+We're grateful for your support and contributions!
 
 – The Argus Team
+
+---
+
+## Further Reading
+
+### Documentation
+
+- [Getting Started](getting_started.md) - Installation and setup guide for development
+- [API Reference](api/index.md) - Complete API documentation
+- [State-Space Methods](state_space.md) - Learn about the core algorithms
+
+### Development Resources
+
+- [PEP 8 Style Guide](https://peps.python.org/pep-0008/) - Python code style conventions
+- [Google Python Style Guide](https://google.github.io/styleguide/pyguide.html) - Additional Python best practices
+- [NumPy Docstring Guide](https://numpydoc.readthedocs.io/en/latest/format.html) - Documentation standards
+- [pytest Documentation](https://docs.pytest.org/) - Testing framework used by Argus
+
+### Scientific Software Development
+
+- [Wilson et al. (2014)](https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.1001745) - "Best Practices for Scientific Computing"
+- [Taschuk & Wilson (2017)](https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005412) - "Ten simple rules for making research software more robust"
