@@ -8,6 +8,9 @@
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=2
 
+# Create output directories if they don't exist
+mkdir -p outputs/logfiles
+
 source ~/.bashrc
 conda activate argus-env
 time python -u run_analysis.py configs/example_config.ini

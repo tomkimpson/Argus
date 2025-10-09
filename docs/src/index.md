@@ -47,8 +47,8 @@ Argus includes two example workflows in the `workflows/` directory:
 
 ## Support
 
-- 🐛 **Bug reports**: [GitHub Issues](https://github.com/ADACS-Australia/tkimpson_2025a/issues)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/ADACS-Australia/tkimpson_2025a/discussions)
+- 🐛 **Bug reports**: [GitHub Issues](https://github.com/tomkimpson/Argus/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/tomkimpson/Argus/discussions)
 - 📧 **Contact**: [University of Melbourne NSGW](https://github.com/UniMelb-NSGW)
 
 ---
