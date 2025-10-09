@@ -72,12 +72,14 @@ class TestGetPulsarNoisePriors:
 
         # Create mock spin injection file
         spin_file = tmp_path / "spin.pkl"
-        df = pd.DataFrame({
-            'psr': ['PSR1', 'PSR2'],
-            'optimal_sigma': [1e-15, 2e-15],
-            'optimal_gamma': [1e-8, 2e-8]
-        })
-        with open(spin_file, 'wb') as f:
+        df = pd.DataFrame(
+            {
+                "psr": ["PSR1", "PSR2"],
+                "optimal_sigma": [1e-15, 2e-15],
+                "optimal_gamma": [1e-8, 2e-8],
+            }
+        )
+        with open(spin_file, "wb") as f:
             pickle.dump(df, f)
 
         mock_config.set("PriorModel", "spin_injections_path", str(spin_file))
@@ -85,9 +87,7 @@ class TestGetPulsarNoisePriors:
         sigma_p = jnp.array([1e-15, 2e-15])
         gamma_p = jnp.array([1e-8, 2e-8])
 
-        priors = prior_models.get_pulsar_noise_priors(
-            mock_config, 2, sigma_p, gamma_p
-        )
+        priors = prior_models.get_pulsar_noise_priors(mock_config, 2, sigma_p, gamma_p)
 
         # Should use injected values (log10)
         assert priors["log10_gamma_p_spec"] is not None
@@ -97,9 +97,7 @@ class TestGetPulsarNoisePriors:
         """Test when no spin injections provided (hierarchical)."""
         mock_config.set("PriorModel", "spin_injections_path", "")
 
-        priors = prior_models.get_pulsar_noise_priors(
-            mock_config, 2, None, None
-        )
+        priors = prior_models.get_pulsar_noise_priors(mock_config, 2, None, None)
 
         # Should be None (will use hierarchical)
         assert priors["log10_gamma_p_spec"] is None
@@ -110,9 +108,7 @@ class TestGetPulsarNoisePriors:
         """Test that hierarchical specs are always created."""
         mock_config.set("PriorModel", "spin_injections_path", "")
 
-        priors = prior_models.get_pulsar_noise_priors(
-            mock_config, 2, None, None
-        )
+        priors = prior_models.get_pulsar_noise_priors(mock_config, 2, None, None)
 
         hier_specs = priors["hierarchical_specs"]
         assert hier_specs["hierarchical_noise"] is True
@@ -131,18 +127,16 @@ class TestGetMeasurementNoisePriors:
         noise_file = tmp_path / "noise.json"
         noise_data = {
             "PSR1": {"efac": 1.0, "equad": -7.0},
-            "PSR2": {"efac": 1.2, "equad": -6.5}
+            "PSR2": {"efac": 1.2, "equad": -6.5},
         }
         noise_file.write_text(json.dumps(noise_data))
 
         mock_config.set("PriorModel", "noise_params_path", str(noise_file))
 
         efac = jnp.array([1.0, 1.2])
-        equad = jnp.array([1e-7, 10**(-6.5)])
+        equad = jnp.array([1e-7, 10 ** (-6.5)])
 
-        priors = prior_models.get_measurement_noise_priors(
-            mock_config, 2, efac, equad
-        )
+        priors = prior_models.get_measurement_noise_priors(mock_config, 2, efac, equad)
 
         # Should use injected values
         assert jnp.allclose(priors["efac_spec"], efac)
@@ -152,9 +146,7 @@ class TestGetMeasurementNoisePriors:
         """Test when no noise parameters provided (use priors)."""
         mock_config.set("PriorModel", "noise_params_path", "")
 
-        priors = prior_models.get_measurement_noise_priors(
-            mock_config, 2, None, None
-        )
+        priors = prior_models.get_measurement_noise_priors(mock_config, 2, None, None)
 
         # Should create distributions
         assert isinstance(priors["efac_spec"], tfpd.Distribution)
@@ -167,9 +159,7 @@ class TestGetMeasurementNoisePriors:
         mock_config.set("PriorModel", "log10_equad_min", "-8.0")
         mock_config.set("PriorModel", "log10_equad_max", "-6.0")
 
-        priors = prior_models.get_measurement_noise_priors(
-            mock_config, 2, None, None
-        )
+        priors = prior_models.get_measurement_noise_priors(mock_config, 2, None, None)
 
         equad_spec = priors["equad_spec"]
         assert equad_spec["use_log10"] is True

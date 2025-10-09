@@ -77,15 +77,17 @@ def mock_logger():
 @pytest.fixture
 def sample_pulsar_metadata():
     """Create sample pulsar metadata for testing."""
-    return pd.DataFrame({
-        'name': ['PSR_J0030+0451', 'PSR_J0613-0200'],
-        'dim_M': [5, 6],
-        'RA': [0.5, 1.2],
-        'DEC': [0.3, -0.1],
-        'F0': [200.0, 150.0],
-        'par_file': ['/path/to/J0030.par', '/path/to/J0613.par'],
-        'tim_file': ['/path/to/J0030.tim', '/path/to/J0613.tim'],
-    })
+    return pd.DataFrame(
+        {
+            "name": ["PSR_J0030+0451", "PSR_J0613-0200"],
+            "dim_M": [5, 6],
+            "RA": [0.5, 1.2],
+            "DEC": [0.3, -0.1],
+            "F0": [200.0, 150.0],
+            "par_file": ["/path/to/J0030.par", "/path/to/J0613.par"],
+            "tim_file": ["/path/to/J0030.tim", "/path/to/J0613.tim"],
+        }
+    )
 
 
 @pytest.fixture
@@ -95,9 +97,9 @@ def sample_pulsar_residuals():
     n_pulsars = 2
 
     return {
-        'toas': np.linspace(0, 1000, n_epochs),
-        'residuals': np.random.randn(n_epochs, n_pulsars) * 1e-6,
-        'errors': np.ones((n_epochs, n_pulsars)) * 1e-7,
+        "toas": np.linspace(0, 1000, n_epochs),
+        "residuals": np.random.randn(n_epochs, n_pulsars) * 1e-6,
+        "errors": np.ones((n_epochs, n_pulsars)) * 1e-7,
     }
 
 
@@ -139,16 +141,20 @@ def sample_hd_correlation():
 
 
 @pytest.fixture
-def sample_pulsar_data(sample_pulsar_residuals, sample_pulsar_metadata,
-                       sample_design_matrices, sample_covariance_matrices,
-                       sample_hd_correlation):
+def sample_pulsar_data(
+    sample_pulsar_residuals,
+    sample_pulsar_metadata,
+    sample_design_matrices,
+    sample_covariance_matrices,
+    sample_hd_correlation,
+):
     """Create complete sample pulsar data dictionary."""
     return {
-        'processed_residuals': sample_pulsar_residuals,
-        'metadata': sample_pulsar_metadata,
-        'design_matrices': sample_design_matrices,
-        'parameter_covariances': sample_covariance_matrices,
-        'hd_correlation': sample_hd_correlation,
+        "processed_residuals": sample_pulsar_residuals,
+        "metadata": sample_pulsar_metadata,
+        "design_matrices": sample_design_matrices,
+        "parameter_covariances": sample_covariance_matrices,
+        "hd_correlation": sample_hd_correlation,
     }
 
 
@@ -157,10 +163,10 @@ def sample_noise_parameters():
     """Create sample noise parameters for testing."""
     n_pulsars = 2
     return {
-        'efac': jnp.ones(n_pulsars),
-        'equad': jnp.full(n_pulsars, 1e-7),
-        'gamma_p': jnp.full(n_pulsars, 1e-8),
-        'sigma_p': jnp.full(n_pulsars, 1e-15),
+        "efac": jnp.ones(n_pulsars),
+        "equad": jnp.full(n_pulsars, 1e-7),
+        "gamma_p": jnp.full(n_pulsars, 1e-8),
+        "sigma_p": jnp.full(n_pulsars, 1e-15),
     }
 
 
@@ -172,7 +178,7 @@ def mock_enterprise_pulsar():
     pulsar.toas = np.linspace(0, 1000, 10)
     pulsar.toaerrs = np.ones(10) * 1e-7
     pulsar.residuals = np.random.randn(10) * 1e-6
-    pulsar.fitpars = ['F0', 'F1', 'RAJ', 'DECJ', 'DM']
+    pulsar.fitpars = ["F0", "F1", "RAJ", "DECJ", "DM"]
     pulsar.Mmat = np.random.randn(10, 5)
     pulsar._raj = 0.5
     pulsar._decj = 0.3

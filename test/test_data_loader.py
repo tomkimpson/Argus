@@ -44,7 +44,7 @@ class TestLoadWidebandPulsarData:
 
         # Error should be sqrt of sum of squares
         expected_errors = np.sqrt(
-            psr_data.toaerrs[1:]**2 + psr_data.toaerrs[:-1]**2
+            psr_data.toaerrs[1:] ** 2 + psr_data.toaerrs[:-1] ** 2
         )
         assert np.allclose(psr_data.toa_diff_errors, expected_errors)
 
@@ -67,30 +67,36 @@ class TestProcessPulsarResidualsByEpoch:
     def test_basic_processing(self):
         """Test basic residual processing."""
         # Create sample dataframes
-        df1 = pd.DataFrame({
-            'toas': [100.0, 200.0, 300.0],
-            'residuals': [1e-6, 2e-6, 3e-6],
-            'error': [1e-7, 1e-7, 1e-7]
-        })
-        df2 = pd.DataFrame({
-            'toas': [101.0, 201.0, 301.0],
-            'residuals': [1.5e-6, 2.5e-6, 3.5e-6],
-            'error': [1.5e-7, 1.5e-7, 1.5e-7]
-        })
+        df1 = pd.DataFrame(
+            {
+                "toas": [100.0, 200.0, 300.0],
+                "residuals": [1e-6, 2e-6, 3e-6],
+                "error": [1e-7, 1e-7, 1e-7],
+            }
+        )
+        df2 = pd.DataFrame(
+            {
+                "toas": [101.0, 201.0, 301.0],
+                "residuals": [1.5e-6, 2.5e-6, 3.5e-6],
+                "error": [1.5e-7, 1.5e-7, 1.5e-7],
+            }
+        )
 
-        result = data_loader.LoadWidebandPulsarData.process_pulsar_residuals_by_epoch([df1, df2])
+        result = data_loader.LoadWidebandPulsarData.process_pulsar_residuals_by_epoch(
+            [df1, df2]
+        )
 
-        assert 'toas' in result
-        assert 'residuals' in result
-        assert 'errors' in result
+        assert "toas" in result
+        assert "residuals" in result
+        assert "errors" in result
 
         # TOAs should be averaged
         expected_toas = np.array([100.5, 200.5, 300.5])
-        assert np.allclose(result['toas'], expected_toas)
+        assert np.allclose(result["toas"], expected_toas)
 
         # Residuals and errors should be matrices
-        assert result['residuals'].shape == (3, 2)
-        assert result['errors'].shape == (3, 2)
+        assert result["residuals"].shape == (3, 2)
+        assert result["errors"].shape == (3, 2)
 
     def test_empty_list_error(self):
         """Test that empty list raises ValueError."""
@@ -99,27 +105,31 @@ class TestProcessPulsarResidualsByEpoch:
 
     def test_shape_mismatch_error(self):
         """Test that mismatched shapes raise ValueError."""
-        df1 = pd.DataFrame({
-            'toas': [100.0, 200.0],
-            'residuals': [1e-6, 2e-6],
-            'error': [1e-7, 1e-7]
-        })
-        df2 = pd.DataFrame({
-            'toas': [101.0, 201.0, 301.0],
-            'residuals': [1.5e-6, 2.5e-6, 3.5e-6],
-            'error': [1.5e-7, 1.5e-7, 1.5e-7]
-        })
+        df1 = pd.DataFrame(
+            {"toas": [100.0, 200.0], "residuals": [1e-6, 2e-6], "error": [1e-7, 1e-7]}
+        )
+        df2 = pd.DataFrame(
+            {
+                "toas": [101.0, 201.0, 301.0],
+                "residuals": [1.5e-6, 2.5e-6, 3.5e-6],
+                "error": [1.5e-7, 1.5e-7, 1.5e-7],
+            }
+        )
 
         with pytest.raises(ValueError, match="shape"):
-            data_loader.LoadWidebandPulsarData.process_pulsar_residuals_by_epoch([df1, df2])
+            data_loader.LoadWidebandPulsarData.process_pulsar_residuals_by_epoch(
+                [df1, df2]
+            )
 
     def test_missing_column_error(self):
         """Test that missing columns raise ValueError."""
-        df1 = pd.DataFrame({
-            'toas': [100.0, 200.0],
-            'residuals': [1e-6, 2e-6]
-            # Missing 'error' column
-        })
+        df1 = pd.DataFrame(
+            {
+                "toas": [100.0, 200.0],
+                "residuals": [1e-6, 2e-6],
+                # Missing 'error' column
+            }
+        )
 
         with pytest.raises(ValueError, match="missing required columns"):
             data_loader.LoadWidebandPulsarData.process_pulsar_residuals_by_epoch([df1])
@@ -128,50 +138,55 @@ class TestProcessPulsarResidualsByEpoch:
 class TestGetProcessedResiduals:
     """Tests for get_processed_residuals static method."""
 
-    @patch('os.path.isdir')
-    @patch('os.path.exists')
-    @patch('argus.data_loader.LoadWidebandPulsarData.read_multiple_par_tim')
-    @patch('argus.gravitational_waves.pairwise_angular_separation')
-    @patch('argus.gravitational_waves.hellings_downs')
-    @patch('glob.glob')
-    def test_basic_functionality(self, mock_glob, mock_hd, mock_sep, mock_read, mock_exists, mock_isdir):
+    @patch("os.path.isdir")
+    @patch("os.path.exists")
+    @patch("argus.data_loader.LoadWidebandPulsarData.read_multiple_par_tim")
+    @patch("argus.gravitational_waves.pairwise_angular_separation")
+    @patch("argus.gravitational_waves.hellings_downs")
+    @patch("glob.glob")
+    def test_basic_functionality(
+        self, mock_glob, mock_hd, mock_sep, mock_read, mock_exists, mock_isdir
+    ):
         """Test basic get_processed_residuals functionality."""
         # Setup mocks
         mock_exists.return_value = True
         mock_isdir.return_value = True
         mock_glob.side_effect = [
-            ['/data/psr1.par', '/data/psr2.par'],
-            ['/data/psr1.tim', '/data/psr2.tim']
+            ["/data/psr1.par", "/data/psr2.par"],
+            ["/data/psr1.tim", "/data/psr2.tim"],
         ]
 
-        df1 = pd.DataFrame({
-            'toas': [100.0, 200.0],
-            'residuals': [1e-6, 2e-6],
-            'error': [1e-7, 1e-7]
-        })
-        df2 = pd.DataFrame({
-            'toas': [100.0, 200.0],
-            'residuals': [1.5e-6, 2.5e-6],
-            'error': [1.5e-7, 1.5e-7]
-        })
+        df1 = pd.DataFrame(
+            {"toas": [100.0, 200.0], "residuals": [1e-6, 2e-6], "error": [1e-7, 1e-7]}
+        )
+        df2 = pd.DataFrame(
+            {
+                "toas": [100.0, 200.0],
+                "residuals": [1.5e-6, 2.5e-6],
+                "error": [1.5e-7, 1.5e-7],
+            }
+        )
 
-        metadata = pd.DataFrame({
-            'name': ['PSR1', 'PSR2'],
-            'RA': [0.5, 1.0],
-            'DEC': [0.3, 0.6]
-        })
+        metadata = pd.DataFrame(
+            {"name": ["PSR1", "PSR2"], "RA": [0.5, 1.0], "DEC": [0.3, 0.6]}
+        )
 
-        mock_read.return_value = ([df1, df2], metadata, [np.eye(5), np.eye(5)], [np.eye(5), np.eye(5)])
+        mock_read.return_value = (
+            [df1, df2],
+            metadata,
+            [np.eye(5), np.eye(5)],
+            [np.eye(5), np.eye(5)],
+        )
         mock_sep.return_value = np.array([[0, 1], [1, 0]])
         mock_hd.return_value = np.array([[1.0, 0.5], [0.5, 1.0]])
 
-        result = data_loader.LoadWidebandPulsarData.get_processed_residuals('/data')
+        result = data_loader.LoadWidebandPulsarData.get_processed_residuals("/data")
 
-        assert 'processed_residuals' in result
-        assert 'metadata' in result
-        assert 'design_matrices' in result
-        assert 'parameter_covariances' in result
-        assert 'hd_correlation' in result
+        assert "processed_residuals" in result
+        assert "metadata" in result
+        assert "design_matrices" in result
+        assert "parameter_covariances" in result
+        assert "hd_correlation" in result
 
     def test_directory_validation_empty(self):
         """Test that empty directory raises ValueError."""
@@ -181,11 +196,13 @@ class TestGetProcessedResiduals:
     def test_directory_validation_nonexistent(self):
         """Test that nonexistent directory raises FileNotFoundError."""
         with pytest.raises(FileNotFoundError):
-            data_loader.LoadWidebandPulsarData.get_processed_residuals("/nonexistent/path")
+            data_loader.LoadWidebandPulsarData.get_processed_residuals(
+                "/nonexistent/path"
+            )
 
-    @patch('os.path.isdir')
-    @patch('os.path.exists')
-    @patch('glob.glob')
+    @patch("os.path.isdir")
+    @patch("os.path.exists")
+    @patch("glob.glob")
     def test_no_files_error(self, mock_glob, mock_exists, mock_isdir):
         """Test error when no par/tim files found."""
         mock_exists.return_value = True
@@ -193,34 +210,34 @@ class TestGetProcessedResiduals:
         mock_glob.side_effect = [[], []]
 
         with pytest.raises(FileNotFoundError, match="No .par or .tim files found"):
-            data_loader.LoadWidebandPulsarData.get_processed_residuals('/data')
+            data_loader.LoadWidebandPulsarData.get_processed_residuals("/data")
 
-    @patch('os.path.isdir')
-    @patch('os.path.exists')
-    @patch('glob.glob')
+    @patch("os.path.isdir")
+    @patch("os.path.exists")
+    @patch("glob.glob")
     def test_file_count_mismatch_error(self, mock_glob, mock_exists, mock_isdir):
         """Test error when par and tim file counts don't match."""
         mock_exists.return_value = True
         mock_isdir.return_value = True
         mock_glob.side_effect = [
-            ['/data/psr1.par'],
-            ['/data/psr1.tim', '/data/psr2.tim']
+            ["/data/psr1.par"],
+            ["/data/psr1.tim", "/data/psr2.tim"],
         ]
 
         with pytest.raises(ValueError, match="Mismatch"):
-            data_loader.LoadWidebandPulsarData.get_processed_residuals('/data')
+            data_loader.LoadWidebandPulsarData.get_processed_residuals("/data")
 
-    @patch('os.path.isdir')
-    @patch('os.path.exists')
-    @patch('argus.data_loader.LoadWidebandPulsarData.read_multiple_par_tim')
-    @patch('glob.glob')
+    @patch("os.path.isdir")
+    @patch("os.path.exists")
+    @patch("argus.data_loader.LoadWidebandPulsarData.read_multiple_par_tim")
+    @patch("glob.glob")
     def test_pulsar_exclusion(self, mock_glob, mock_read, mock_exists, mock_isdir):
         """Test that excluded pulsars are filtered out."""
         mock_exists.return_value = True
         mock_isdir.return_value = True
         mock_glob.side_effect = [
-            ['/data/psr1.par', '/data/J1640+2224.par'],
-            ['/data/psr1.tim', '/data/J1640+2224.tim']
+            ["/data/psr1.par", "/data/J1640+2224.par"],
+            ["/data/psr1.tim", "/data/J1640+2224.tim"],
         ]
 
         # read_multiple_par_tim should only be called with non-excluded files
@@ -228,13 +245,12 @@ class TestGetProcessedResiduals:
 
         with pytest.raises(Exception):  # Will fail due to empty return, but that's ok
             data_loader.LoadWidebandPulsarData.get_processed_residuals(
-                '/data',
-                excluded_psrs=['J1640+2224']
+                "/data", excluded_psrs=["J1640+2224"]
             )
 
         # Check that J1640+2224 was filtered out
         called_par_files = mock_read.call_args[0][0]
-        assert not any('J1640+2224' in f for f in called_par_files)
+        assert not any("J1640+2224" in f for f in called_par_files)
 
 
 class TestGetParValue:
@@ -243,28 +259,28 @@ class TestGetParValue:
     def test_get_existing_parameter(self, tmp_path):
         """Test getting an existing parameter."""
         par_file = tmp_path / "test.par"
-        par_file.write_text("""PSR J0030+0451
+        par_file.write_text(
+            """PSR J0030+0451
 F0 200.12345
 F1 -1.2e-15
 RAJ 00:30:27.4
-""")
-
-        value = data_loader.LoadWidebandPulsarData.get_par_value(
-            str(par_file), "F0"
+"""
         )
+
+        value = data_loader.LoadWidebandPulsarData.get_par_value(str(par_file), "F0")
 
         assert value == 200.12345
 
     def test_get_nonexistent_parameter(self, tmp_path):
         """Test getting a parameter that doesn't exist."""
         par_file = tmp_path / "test.par"
-        par_file.write_text("""PSR J0030+0451
+        par_file.write_text(
+            """PSR J0030+0451
 F0 200.12345
-""")
-
-        value = data_loader.LoadWidebandPulsarData.get_par_value(
-            str(par_file), "PBDOT"
+"""
         )
+
+        value = data_loader.LoadWidebandPulsarData.get_par_value(str(par_file), "PBDOT")
 
         assert value is None
 
@@ -278,36 +294,36 @@ F0 200.12345
     def test_skip_comments(self, tmp_path):
         """Test that comments are skipped."""
         par_file = tmp_path / "test.par"
-        par_file.write_text("""# This is a comment
+        par_file.write_text(
+            """# This is a comment
 PSR J0030+0451
 # F0 100.0  (commented out)
 F0 200.0
-""")
-
-        value = data_loader.LoadWidebandPulsarData.get_par_value(
-            str(par_file), "F0"
+"""
         )
+
+        value = data_loader.LoadWidebandPulsarData.get_par_value(str(par_file), "F0")
 
         assert value == 200.0
 
     def test_invalid_value_error(self, tmp_path):
         """Test ValueError for invalid parameter value."""
         par_file = tmp_path / "test.par"
-        par_file.write_text("""PSR J0030+0451
+        par_file.write_text(
+            """PSR J0030+0451
 F0 not_a_number
-""")
+"""
+        )
 
         with pytest.raises(ValueError, match="Invalid parameter value"):
-            data_loader.LoadWidebandPulsarData.get_par_value(
-                str(par_file), "F0"
-            )
+            data_loader.LoadWidebandPulsarData.get_par_value(str(par_file), "F0")
 
 
 class TestReadMultipleParTim:
     """Tests for read_multiple_par_tim classmethod."""
 
-    @patch('argus.data_loader.LoadWidebandPulsarData.read_par_tim')
-    @patch('argus.data_loader.LoadWidebandPulsarData.get_par_value')
+    @patch("argus.data_loader.LoadWidebandPulsarData.read_par_tim")
+    @patch("argus.data_loader.LoadWidebandPulsarData.get_par_value")
     def test_basic_reading(self, mock_get_par, mock_read):
         """Test basic reading of multiple par/tim pairs."""
         # Setup mock pulsar
@@ -321,8 +337,8 @@ class TestReadMultipleParTim:
         mock_read.return_value = mock_psr
         mock_get_par.return_value = 200.0
 
-        par_files = ['/data/psr1.par']
-        tim_files = ['/data/psr1.tim']
+        par_files = ["/data/psr1.par"]
+        tim_files = ["/data/psr1.tim"]
 
         result = data_loader.LoadWidebandPulsarData.read_multiple_par_tim(
             par_files, tim_files
@@ -339,12 +355,11 @@ class TestReadMultipleParTim:
         """Test error when par and tim file counts don't match."""
         with pytest.raises(ValueError, match="must match"):
             data_loader.LoadWidebandPulsarData.read_multiple_par_tim(
-                ['/data/psr1.par'],
-                ['/data/psr1.tim', '/data/psr2.tim']
+                ["/data/psr1.par"], ["/data/psr1.tim", "/data/psr2.tim"]
             )
 
-    @patch('argus.data_loader.LoadWidebandPulsarData.read_par_tim')
-    @patch('argus.data_loader.LoadWidebandPulsarData.get_par_value')
+    @patch("argus.data_loader.LoadWidebandPulsarData.read_par_tim")
+    @patch("argus.data_loader.LoadWidebandPulsarData.get_par_value")
     def test_max_files_limit(self, mock_get_par, mock_read):
         """Test that max_files parameter limits processing."""
         mock_psr = Mock()
@@ -361,8 +376,8 @@ class TestReadMultipleParTim:
         mock_read.return_value = mock_psr
         mock_get_par.return_value = 200.0
 
-        par_files = [f'/data/psr{i}.par' for i in range(5)]
-        tim_files = [f'/data/psr{i}.tim' for i in range(5)]
+        par_files = [f"/data/psr{i}.par" for i in range(5)]
+        tim_files = [f"/data/psr{i}.tim" for i in range(5)]
 
         result = data_loader.LoadWidebandPulsarData.read_multiple_par_tim(
             par_files, tim_files, max_files=2

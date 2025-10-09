@@ -17,13 +17,15 @@ class TestLoadConfig:
     def test_load_valid_config(self, tmp_path):
         """Test loading a valid configuration file."""
         config_file = tmp_path / "test_config.ini"
-        config_file.write_text("""[Data]
+        config_file.write_text(
+            """[Data]
 data_path = /path/to/data
 excluded_psrs = J1640+2224
 
 [Output]
 output_id = test
-""")
+"""
+        )
 
         config = utils.load_config(str(config_file))
         assert config.get("Data", "data_path") == "/path/to/data"
@@ -44,12 +46,14 @@ class TestResolveConfigPaths:
         config_dir.mkdir()
         config_file = config_dir / "config.ini"
 
-        config_file.write_text("""[Data]
+        config_file.write_text(
+            """[Data]
 data_path = ../data
 
 [PriorModel]
 noise_params_path = params/noise.json
-""")
+"""
+        )
 
         config = utils.load_config(str(config_file))
         resolved_config = utils.resolve_config_paths(config, str(config_file))
@@ -63,9 +67,11 @@ noise_params_path = params/noise.json
         config_file = tmp_path / "config.ini"
         abs_path = "/absolute/path/to/data"
 
-        config_file.write_text(f"""[Data]
+        config_file.write_text(
+            f"""[Data]
 data_path = {abs_path}
-""")
+"""
+        )
 
         config = utils.load_config(str(config_file))
         resolved_config = utils.resolve_config_paths(config, str(config_file))
@@ -82,18 +88,20 @@ class TestGetNoiseParameters:
         noise_file = tmp_path / "noise_params.json"
         noise_data = {
             "PSR_J0030": {"efac": 1.0, "equad": -7.0},
-            "PSR_J0613": {"efac": 1.2, "equad": -6.5}
+            "PSR_J0613": {"efac": 1.2, "equad": -6.5},
         }
         noise_file.write_text(json.dumps(noise_data))
 
         # Create mock spin injections file
         spin_file = tmp_path / "spin_injections.pkl"
-        spin_df = pd.DataFrame({
-            'psr': ['PSR_J0030', 'PSR_J0613'],
-            'optimal_sigma': [1e-15, 2e-15],
-            'optimal_gamma': [1e-8, 2e-8]
-        })
-        with open(spin_file, 'wb') as f:
+        spin_df = pd.DataFrame(
+            {
+                "psr": ["PSR_J0030", "PSR_J0613"],
+                "optimal_sigma": [1e-15, 2e-15],
+                "optimal_gamma": [1e-8, 2e-8],
+            }
+        )
+        with open(spin_file, "wb") as f:
             pickle.dump(spin_df, f)
 
         mock_config.set("PriorModel", "noise_params_path", str(noise_file))
@@ -129,13 +137,12 @@ class TestGetEfacEquadInjections:
         noise_data = {
             "PSR_J0030": {"efac": 1.0, "equad": -7.0},
             "PSR_J0613": {"efac": 1.2, "equad": -6.8},
-            "J1640+2224": {"efac": 0.9, "equad": -7.2}  # Will be excluded
+            "J1640+2224": {"efac": 0.9, "equad": -7.2},  # Will be excluded
         }
         noise_file.write_text(json.dumps(noise_data))
 
         efac, equad = utils.get_efac_equad_injections(
-            str(noise_file),
-            excluded_psrs=["J1640+2224"]
+            str(noise_file), excluded_psrs=["J1640+2224"]
         )
 
         # Should have 2 pulsars (third excluded)
@@ -146,7 +153,7 @@ class TestGetEfacEquadInjections:
         assert jnp.allclose(efac, jnp.array([1.0, 1.2]))
 
         # Check EQUAD values (10^equad_log10)
-        expected_equad = jnp.array([10**(-7.0), 10**(-6.8)])
+        expected_equad = jnp.array([10 ** (-7.0), 10 ** (-6.8)])
         assert jnp.allclose(equad, expected_equad)
 
     def test_empty_exclusions(self, tmp_path):
@@ -154,7 +161,7 @@ class TestGetEfacEquadInjections:
         noise_file = tmp_path / "noise_params.json"
         noise_data = {
             "PSR_J0030": {"efac": 1.0, "equad": -7.0},
-            "PSR_J0613": {"efac": 1.2, "equad": -6.8}
+            "PSR_J0613": {"efac": 1.2, "equad": -6.8},
         }
         noise_file.write_text(json.dumps(noise_data))
 
@@ -170,17 +177,18 @@ class TestGetPsrNoiseInjections:
     def test_load_pulsar_noise(self, tmp_path):
         """Test loading pulsar noise parameters."""
         spin_file = tmp_path / "spin_injections.pkl"
-        spin_df = pd.DataFrame({
-            'psr': ['PSR_J0030', 'PSR_J0613', 'J1640+2224'],
-            'optimal_sigma': [1e-15, 2e-15, 3e-15],
-            'optimal_gamma': [1e-8, 2e-8, 3e-8]
-        })
-        with open(spin_file, 'wb') as f:
+        spin_df = pd.DataFrame(
+            {
+                "psr": ["PSR_J0030", "PSR_J0613", "J1640+2224"],
+                "optimal_sigma": [1e-15, 2e-15, 3e-15],
+                "optimal_gamma": [1e-8, 2e-8, 3e-8],
+            }
+        )
+        with open(spin_file, "wb") as f:
             pickle.dump(spin_df, f)
 
         sigma_p, gamma_p = utils.get_psr_noise_injections(
-            str(spin_file),
-            excluded_psrs=["J1640+2224"]
+            str(spin_file), excluded_psrs=["J1640+2224"]
         )
 
         # Should have 2 pulsars (third excluded)
@@ -196,17 +204,18 @@ class TestGetPsrNoiseInjections:
     def test_multiple_exclusions(self, tmp_path):
         """Test excluding multiple pulsars."""
         spin_file = tmp_path / "spin_injections.pkl"
-        spin_df = pd.DataFrame({
-            'psr': ['PSR_J0030', 'J1640+2224', 'PSR_J0613', 'PSR_J1234'],
-            'optimal_sigma': [1e-15, 2e-15, 3e-15, 4e-15],
-            'optimal_gamma': [1e-8, 2e-8, 3e-8, 4e-8]
-        })
-        with open(spin_file, 'wb') as f:
+        spin_df = pd.DataFrame(
+            {
+                "psr": ["PSR_J0030", "J1640+2224", "PSR_J0613", "PSR_J1234"],
+                "optimal_sigma": [1e-15, 2e-15, 3e-15, 4e-15],
+                "optimal_gamma": [1e-8, 2e-8, 3e-8, 4e-8],
+            }
+        )
+        with open(spin_file, "wb") as f:
             pickle.dump(spin_df, f)
 
         sigma_p, gamma_p = utils.get_psr_noise_injections(
-            str(spin_file),
-            excluded_psrs=["J1640+2224", "PSR_J1234"]
+            str(spin_file), excluded_psrs=["J1640+2224", "PSR_J1234"]
         )
 
         # Should have 2 pulsars remaining
@@ -217,17 +226,17 @@ class TestGetPsrNoiseInjections:
 class TestCheckGpuAvailability:
     """Tests for check_gpu_availability function."""
 
-    @patch('jax.devices')
+    @patch("jax.devices")
     def test_gpu_available(self, mock_devices):
         """Test when GPU is available."""
-        mock_devices.return_value = [Mock(device_kind='gpu')]
+        mock_devices.return_value = [Mock(device_kind="gpu")]
 
         result = utils.check_gpu_availability()
 
         assert result is True
         mock_devices.assert_called_once_with("gpu")
 
-    @patch('jax.devices')
+    @patch("jax.devices")
     def test_gpu_not_available(self, mock_devices):
         """Test when GPU is not available."""
         mock_devices.return_value = []
@@ -236,7 +245,7 @@ class TestCheckGpuAvailability:
 
         assert result is False
 
-    @patch('jax.devices')
+    @patch("jax.devices")
     def test_gpu_check_error(self, mock_devices):
         """Test when GPU check raises an error."""
         mock_devices.side_effect = Exception("GPU error")

@@ -114,8 +114,7 @@ class TestUpdate:
         """Test basic Kalman filter update step."""
         xp = jnp.zeros((4, 1))
         Pp = jnp.eye(4)
-        H = jnp.array([[1.0, 0.0, 0.0, 0.0],
-                       [0.0, 1.0, 0.0, 0.0]])
+        H = jnp.array([[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0]])
         R = jnp.eye(2) * 0.01
         z = jnp.array([0.1, 0.2])
 
@@ -145,56 +144,44 @@ class TestUpdate:
 class TestJaxKalmanFilterInitialization:
     """Tests for JaxKalmanFilter initialization."""
 
-    @patch('argus.io_manager.get_argus_logger')
+    @patch("argus.io_manager.get_argus_logger")
     def test_basic_initialization(self, mock_logger, sample_pulsar_data):
         """Test basic Kalman filter initialization."""
         mock_logger.return_value = Mock()
 
-        kf = jax_kalman_filter.JaxKalmanFilter(
-            data=sample_pulsar_data,
-            use_gw=True
-        )
+        kf = jax_kalman_filter.JaxKalmanFilter(data=sample_pulsar_data, use_gw=True)
 
         assert kf.Npsr == 2
         assert kf.use_gw is True
         assert kf.nx > 0
 
-    @patch('argus.io_manager.get_argus_logger')
+    @patch("argus.io_manager.get_argus_logger")
     def test_no_gw_initialization(self, mock_logger, sample_pulsar_data):
         """Test initialization without GW."""
         mock_logger.return_value = Mock()
 
-        kf = jax_kalman_filter.JaxKalmanFilter(
-            data=sample_pulsar_data,
-            use_gw=False
-        )
+        kf = jax_kalman_filter.JaxKalmanFilter(data=sample_pulsar_data, use_gw=False)
 
         assert kf.use_gw is False
 
-    @patch('argus.io_manager.get_argus_logger')
+    @patch("argus.io_manager.get_argus_logger")
     def test_jax_array_conversion(self, mock_logger, sample_pulsar_data):
         """Test that numpy arrays are converted to JAX arrays."""
         mock_logger.return_value = Mock()
 
-        kf = jax_kalman_filter.JaxKalmanFilter(
-            data=sample_pulsar_data,
-            use_gw=True
-        )
+        kf = jax_kalman_filter.JaxKalmanFilter(data=sample_pulsar_data, use_gw=True)
 
         # Check JAX array types
         assert isinstance(kf.jax_data, jnp.ndarray)
         assert isinstance(kf.jax_data_errors, jnp.ndarray)
         assert isinstance(kf.jax_t_diffs, jnp.ndarray)
 
-    @patch('argus.io_manager.get_argus_logger')
+    @patch("argus.io_manager.get_argus_logger")
     def test_float64_precision(self, mock_logger, sample_pulsar_data):
         """Test that arrays are 64-bit precision."""
         mock_logger.return_value = Mock()
 
-        kf = jax_kalman_filter.JaxKalmanFilter(
-            data=sample_pulsar_data,
-            use_gw=True
-        )
+        kf = jax_kalman_filter.JaxKalmanFilter(data=sample_pulsar_data, use_gw=True)
 
         # All arrays should be float64
         assert kf.jax_data.dtype == jnp.float64
@@ -205,25 +192,24 @@ class TestJaxKalmanFilterInitialization:
 class TestGetLikelihood:
     """Tests for get_likelihood method."""
 
-    @patch('argus.io_manager.get_argus_logger')
-    def test_likelihood_computation(self, mock_logger, sample_pulsar_data, sample_noise_parameters):
+    @patch("argus.io_manager.get_argus_logger")
+    def test_likelihood_computation(
+        self, mock_logger, sample_pulsar_data, sample_noise_parameters
+    ):
         """Test basic likelihood computation."""
         mock_logger.return_value = Mock()
 
-        kf = jax_kalman_filter.JaxKalmanFilter(
-            data=sample_pulsar_data,
-            use_gw=True
-        )
+        kf = jax_kalman_filter.JaxKalmanFilter(data=sample_pulsar_data, use_gw=True)
 
         # Create test parameters
         params = bayesian_inference.Parameters(
             log10_gamma_a=-9.0,
             γa=1e-9,
             ha=1e-15,
-            γp=sample_noise_parameters['gamma_p'],
-            σp=sample_noise_parameters['sigma_p'],
-            EFAC=sample_noise_parameters['efac'],
-            EQUAD=sample_noise_parameters['equad']
+            γp=sample_noise_parameters["gamma_p"],
+            σp=sample_noise_parameters["sigma_p"],
+            EFAC=sample_noise_parameters["efac"],
+            EQUAD=sample_noise_parameters["equad"],
         )
 
         ll = kf.get_likelihood(params)

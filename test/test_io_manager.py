@@ -18,12 +18,14 @@ class TestSetupOutputDirectory:
         mock_config.set("Output", "base_dir", "outputs_{output_id}")
 
         # Mock the project root detection
-        with patch('os.path.abspath', return_value=str(tmp_path / "project")):
-            with patch('os.path.dirname', return_value=str(tmp_path)):
+        with patch("os.path.abspath", return_value=str(tmp_path / "project")):
+            with patch("os.path.dirname", return_value=str(tmp_path)):
                 output_dir = io_manager.setup_output_directory(
                     mock_config,
                     use_gw=True,
-                    config_path=str(tmp_path / "workflows/test_workflow/configs/config.ini")
+                    config_path=str(
+                        tmp_path / "workflows/test_workflow/configs/config.ini"
+                    ),
                 )
 
         assert "test_run_123" in output_dir
@@ -33,12 +35,10 @@ class TestSetupOutputDirectory:
         mock_config.set("Output", "output_id", "")
         mock_config.set("Output", "base_dir", "outputs_{timestamp}")
 
-        with patch('os.path.abspath', return_value=str(tmp_path / "project")):
-            with patch('os.path.dirname', return_value=str(tmp_path)):
+        with patch("os.path.abspath", return_value=str(tmp_path / "project")):
+            with patch("os.path.dirname", return_value=str(tmp_path)):
                 output_dir = io_manager.setup_output_directory(
-                    mock_config,
-                    use_gw=True,
-                    timestamp="20240101_120000"
+                    mock_config, use_gw=True, timestamp="20240101_120000"
                 )
 
         assert "20240101_120000" in output_dir
@@ -48,12 +48,14 @@ class TestSetupOutputDirectory:
         mock_config.set("Output", "output_id", "test_run")
         mock_config.set("Output", "base_dir", "outputs_{output_id}")
 
-        with patch('os.path.abspath', return_value=str(tmp_path / "project")):
-            with patch('os.path.dirname', return_value=str(tmp_path)):
+        with patch("os.path.abspath", return_value=str(tmp_path / "project")):
+            with patch("os.path.dirname", return_value=str(tmp_path)):
                 output_dir = io_manager.setup_output_directory(
                     mock_config,
                     use_gw=False,
-                    config_path=str(tmp_path / "workflows/test_workflow/configs/config.ini")
+                    config_path=str(
+                        tmp_path / "workflows/test_workflow/configs/config.ini"
+                    ),
                 )
 
         assert "no_gw" in output_dir
@@ -63,12 +65,14 @@ class TestSetupOutputDirectory:
         mock_config.set("Output", "output_id", "test_run")
         mock_config.set("Output", "base_dir", "outputs_{output_id}")
 
-        with patch('os.path.abspath', return_value=str(tmp_path / "project")):
-            with patch('os.path.dirname', return_value=str(tmp_path)):
+        with patch("os.path.abspath", return_value=str(tmp_path / "project")):
+            with patch("os.path.dirname", return_value=str(tmp_path)):
                 output_dir = io_manager.setup_output_directory(
                     mock_config,
                     use_gw=True,
-                    config_path=str(tmp_path / "workflows/test_workflow/configs/config.ini")
+                    config_path=str(
+                        tmp_path / "workflows/test_workflow/configs/config.ini"
+                    ),
                 )
 
         assert "no_gw" not in output_dir
@@ -89,9 +93,7 @@ class TestCopyConfigFile:
 
         # Copy config
         copied_path = io_manager.copy_config_file(
-            str(config_file),
-            str(output_dir),
-            mock_logger
+            str(config_file), str(output_dir), mock_logger
         )
 
         # Verify file was copied
@@ -110,9 +112,7 @@ class TestCopyConfigFile:
         output_dir.mkdir()
 
         copied_path = io_manager.copy_config_file(
-            str(config_file),
-            str(output_dir),
-            mock_logger
+            str(config_file), str(output_dir), mock_logger
         )
 
         assert "my_special_config.ini" in copied_path
@@ -132,10 +132,7 @@ class TestSaveNumpyroResults:
         output_id = "test_run"
 
         results_path = io_manager.save_numpyro_results(
-            mock_inf_data,
-            output_dir,
-            output_id,
-            mock_logger
+            mock_inf_data, output_dir, output_id, mock_logger
         )
 
         # Verify to_netcdf was called
@@ -156,9 +153,7 @@ class TestSetupSingleLogger:
         os.makedirs(output_dir, exist_ok=True)
 
         logger = io_manager.setup_single_logger(
-            mock_config,
-            output_dir=output_dir,
-            enable_file_logging=False
+            mock_config, output_dir=output_dir, enable_file_logging=False
         )
 
         assert logger.name == "argus"
@@ -172,9 +167,7 @@ class TestSetupSingleLogger:
         mock_config.set("Logging", "enable_file_logging", "True")
 
         logger = io_manager.setup_single_logger(
-            mock_config,
-            output_dir=output_dir,
-            enable_file_logging=True
+            mock_config, output_dir=output_dir, enable_file_logging=True
         )
 
         # Should have both console and file handlers
@@ -186,10 +179,7 @@ class TestSetupSingleLogger:
 
     def test_file_logging_disabled(self, mock_config):
         """Test logger with file logging disabled."""
-        logger = io_manager.setup_single_logger(
-            mock_config,
-            enable_file_logging=False
-        )
+        logger = io_manager.setup_single_logger(mock_config, enable_file_logging=False)
 
         # Should have only console handler
         assert len(logger.handlers) == 1
@@ -198,9 +188,7 @@ class TestSetupSingleLogger:
         """Test that file logging requires output_dir."""
         with pytest.raises(ValueError, match="output_dir must be provided"):
             io_manager.setup_single_logger(
-                mock_config,
-                output_dir=None,
-                enable_file_logging=True
+                mock_config, output_dir=None, enable_file_logging=True
             )
 
     def test_logger_level_setting(self, mock_config, tmp_path):
@@ -210,19 +198,14 @@ class TestSetupSingleLogger:
         os.makedirs(output_dir, exist_ok=True)
 
         logger = io_manager.setup_single_logger(
-            mock_config,
-            output_dir=output_dir,
-            enable_file_logging=False
+            mock_config, output_dir=output_dir, enable_file_logging=False
         )
 
         assert logger.level == logging.DEBUG
 
     def test_no_propagation(self, mock_config):
         """Test that logger doesn't propagate to prevent duplicates."""
-        logger = io_manager.setup_single_logger(
-            mock_config,
-            enable_file_logging=False
-        )
+        logger = io_manager.setup_single_logger(mock_config, enable_file_logging=False)
 
         assert logger.propagate is False
 
@@ -267,8 +250,7 @@ class TestGetOutputIdFromConfig:
         mock_config.set("Output", "output_id", "")
 
         output_id = io_manager.get_output_id_from_config(
-            mock_config,
-            timestamp="20240101_120000"
+            mock_config, timestamp="20240101_120000"
         )
 
         assert output_id == "20240101_120000"

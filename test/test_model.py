@@ -215,8 +215,8 @@ class TestPrecomputeRMatrices:
         R = model.precompute_R_matrices(σ, EFAC, EQUAD)
 
         # R[i,i] = (EFAC[i] * σ[i])^2 + EQUAD[i]^2
-        expected_r00 = (EFAC[0] * σ[0, 0])**2 + EQUAD[0]**2
-        expected_r11 = (EFAC[1] * σ[0, 1])**2 + EQUAD[1]**2
+        expected_r00 = (EFAC[0] * σ[0, 0]) ** 2 + EQUAD[0] ** 2
+        expected_r11 = (EFAC[1] * σ[0, 1]) ** 2 + EQUAD[1] ** 2
 
         assert jnp.isclose(R[0, 0, 0], expected_r00)
         assert jnp.isclose(R[0, 1, 1], expected_r11)
@@ -240,7 +240,7 @@ class TestComputeHMatrixForStep:
             M_start_indices=M_start_indices,
             pulsar_design_matrices=design_matrices,
             use_gw=True,
-            f0=f0
+            f0=f0,
         )
 
         assert H.shape == (Npsr, nx)
@@ -260,7 +260,7 @@ class TestComputeHMatrixForStep:
             M_start_indices=M_start_indices,
             pulsar_design_matrices=design_matrices,
             use_gw=True,
-            f0=f0
+            f0=f0,
         )
 
         # Redshift coefficient should be -1.0
@@ -281,7 +281,7 @@ class TestComputeHMatrixForStep:
             M_start_indices=M_start_indices,
             pulsar_design_matrices=design_matrices,
             use_gw=False,
-            f0=f0
+            f0=f0,
         )
 
         # Redshift coefficient should be 0.0
@@ -302,7 +302,7 @@ class TestComputeHMatrixForStep:
             M_start_indices=M_start_indices,
             pulsar_design_matrices=design_matrices,
             use_gw=True,
-            f0=f0
+            f0=f0,
         )
 
         # Spin coefficient should be 1/f0
@@ -328,7 +328,7 @@ class TestPrecomputeHMatrix:
             M_start_indices=M_start_indices,
             pulsar_design_matrices=design_matrices,
             use_gw=True,
-            f0=f0
+            f0=f0,
         )
 
         # Should have H matrix for each time step
@@ -349,7 +349,7 @@ class TestPrecomputeHMatrix:
             M_start_indices=M_start_indices,
             pulsar_design_matrices=design_matrices,
             use_gw=True,
-            f0=f0
+            f0=f0,
         )
 
         # Check first step matches
@@ -360,7 +360,7 @@ class TestPrecomputeHMatrix:
             M_start_indices=M_start_indices,
             pulsar_design_matrices=design_matrices,
             use_gw=True,
-            f0=f0
+            f0=f0,
         )
 
         assert np.allclose(H_all[0], H_0)
