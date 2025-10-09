@@ -30,8 +30,6 @@ def setup_data_and_kalman_filter(config, logger, use_gw):
         excluded_psrs=[psr.strip() for psr in excluded_psrs if psr.strip()],
     )
 
-    print("THE FOLLOWIUNG IS THE PULSAR IS EXCLUDED PSRS")
-    print(excluded_psrs)
     logger.info("Initializing Kalman filter...")
     KF = jax_kalman_filter.JaxKalmanFilter(data=pulsar_data, use_gw=use_gw)
 

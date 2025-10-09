@@ -78,5 +78,8 @@ htmlcov
 # MkDocs build output
 site/
 
-#claude stuff
+# Workflow outputs
+workflows/**/outputs/
+
+# Claude stuff
 .claude
