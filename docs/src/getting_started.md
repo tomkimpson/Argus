@@ -25,15 +25,18 @@ $ git clone https://github.com/tomkimpson/Argus.git
 $ cd Argus
 $ conda create -n argus-env python=3.11
 $ conda activate argus-env
-$ conda install -c conda-forge enterprise-pulsar
+$ conda install -c conda-forge enterprise-pulsar libstempo
 $ pip install -e .
 ```
 
 This workflow:
 
 1. Creates a fresh conda environment with Python 3.11
-2. Installs `enterprise-pulsar` via conda to handle its complex dependencies
+2. Installs `enterprise-pulsar` and `libstempo` via conda to handle their complex dependencies
 3. Uses pip to install Argus and all remaining dependencies from `pyproject.toml`
+
+!!! note "libstempo dependency"
+    The `libstempo` package is required as a dependency for `enterprise-pulsar` to function correctly. See [issue #83](https://github.com/tomkimpson/Argus/issues/83) for more details.
 
 ### Development Installation
 
@@ -44,7 +47,7 @@ $ git clone https://github.com/tomkimpson/Argus.git
 $ cd Argus
 $ conda create -n argus-env python=3.11
 $ conda activate argus-env
-$ conda install -c conda-forge enterprise-pulsar
+$ conda install -c conda-forge enterprise-pulsar libstempo
 $ pip install -e ".[dev]"
 ```
 

@@ -26,8 +26,8 @@ Whether you're fixing bugs, improving documentation, adding features, or suggest
    conda create -n argus-dev python=3.11
    conda activate argus-dev
 
-   # Install enterprise-pulsar via conda
-   conda install -c conda-forge enterprise-pulsar
+   # Install enterprise-pulsar and libstempo via conda
+   conda install -c conda-forge enterprise-pulsar libstempo
 
    # Install Argus in editable mode with dev dependencies
    pip install -e ".[dev]"

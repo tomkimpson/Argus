@@ -32,6 +32,7 @@ __pycache__
 *.pkl
 !test/data/spin_injections.pkl
 !test/data/processed_pulsar_data.pkl
+!workflows/example_workflow_lite/data_files/approximate_spin_injections.pkl
 
 # Virtual env stuff
 venv
