@@ -13,10 +13,6 @@
   \usepackage[T1]{fontenc}
   \usepackage[utf8]{inputenc}
   \usepackage{textcomp} % provide euro and other symbols
-\else % if luatex or xetex
-  \usepackage{unicode-math}
-  \defaultfontfeatures{Scale=MatchLowercase}
-  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
 \fi
 % Use upquote if available, for straight quotes in verbatim environments
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
@@ -85,26 +81,20 @@
 \newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{\strut#1\strut}}
 \newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{\strut#1\strut}}
 \newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
-\ifLuaTeX
-\usepackage[bidi=basic]{babel}
-\else
-\usepackage[bidi=default]{babel}
-\fi
-\babelprovide[main,import]{american}
+
+
 % get rid of language-specific shorthands (see #6817):
 \let\LanguageShortHands\languageshorthands
 \def\languageshorthands#1{}
-\ifLuaTeX
-  \usepackage{selnolig}  % disable illegal ligatures
-\fi
+
 \IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
 \IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
 \urlstyle{same} % disable monospaced font for URLs
 \hypersetup{
   pdftitle={Argus: JAX state-space filtering for gravitational wave
 detection with a pulsar timing array},
-  pdfauthor={Tom Kimpson, Nicholas O'Neill, Andrew Melatos, Patrick M.
-Meyers},
+  pdfauthor={Tom Kimpson, Nicholas O'Neill, Patrick M.
+Meyers, Andrew Melatos},
   pdflang={en-US},
   colorlinks=true,
   linkcolor={Maroon},
@@ -131,21 +121,10 @@ with a pulsar timing array}
 
 %% \renewcommand\Authsep{, }
 \setlength{\affilsep}{1em}
-\author[1,2%
-  %
-  \ensuremath\mathparagraph]{Tom Kimpson}
-\author[1,2%
-  %
-  ]{Nicholas O'Neill%
-    }
-\author[1,2%
-  %
-  ]{Andrew Melatos%
-    }
-\author[3%
-  %
-  ]{Patrick M. Meyers%
-    }
+\author[1,2]{Tom Kimpson}
+\author[1,2]{Nicholas O'Neill}
+\author[3]{Patrick M. Meyers}
+\author[1,2]{Andrew Melatos}
 
 \affil[1]{School of Physics, University of Melbourne, Parkville, VIC
 3010, Australia%
@@ -159,9 +138,7 @@ Gravitational Wave Discovery (OzGrav),Parkville, VIC 3010, Australia%
 Technology, Pasadena, CA 91125, USA%
     \,\protect\href{https://ror.org/05dxps055}{}\,%
   }
-\affil[$\mathparagraph$]{Corresponding author:  tom %
-   %
-}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \date{13 October 2025}
 
@@ -170,7 +147,7 @@ Technology, Pasadena, CA 91125, USA%
 
 \section{Summary}\label{summary}
 
-\texttt{Argus} is a high-performance Python package for detecting and
+\texttt{Argus}\footnote{\href{https://github.com/tomkimpson/Argus}{github.com/tomkimpson/Argus}} is a high-performance Python package for detecting and
 characterizing nanohertz gravitational waves in pulsar timing array
 (PTA) data. The package provides a complete Bayesian inference framework
 based on state-space models, using Kalman filtering for efficient

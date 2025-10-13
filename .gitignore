@@ -84,3 +84,5 @@ workflows/**/outputs/
 
 # Claude stuff
 .claude
+docs/arxiv/joss-9179.preprint.aux
+docs/arxiv/Archive.zip
