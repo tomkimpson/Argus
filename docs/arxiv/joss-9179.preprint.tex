@@ -1,0 +1,511 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{arxiv}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+% definitions for citeproc citations
+\NewDocumentCommand\citeproctext{}{}
+\NewDocumentCommand\citeproc{mm}{%
+  \begingroup\def\citeproctext{#2}\cite{#1}\endgroup}
+\makeatletter
+ % allow citations to break across lines
+ \let\@cite@ofmt\@firstofone
+ % avoid brackets around text for \cite:
+ \def\@biblabel#1{}
+ \def\@cite#1#2{{#1\if@tempswa , #2\fi}}
+\makeatother
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}
+\setlength{\csllabelwidth}{3em}
+\newenvironment{CSLReferences}[2] % #1 hanging-indent, #2 entry-spacing
+ {\begin{list}{}{%
+  \setlength{\itemindent}{0pt}
+  \setlength{\leftmargin}{0pt}
+  \setlength{\parsep}{0pt}
+  % turn on hanging indent if param 1 is 1
+  \ifodd #1
+   \setlength{\leftmargin}{\cslhangindent}
+   \setlength{\itemindent}{-1\cslhangindent}
+  \fi
+  % set entry spacing
+  \setlength{\itemsep}{#2\baselineskip}}}
+ {\end{list}}
+\usepackage{calc}
+\newcommand{\CSLBlock}[1]{\hfill\break\parbox[t]{\linewidth}{\strut\ignorespaces#1\strut}}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
+\ifLuaTeX
+\usepackage[bidi=basic]{babel}
+\else
+\usepackage[bidi=default]{babel}
+\fi
+\babelprovide[main,import]{american}
+% get rid of language-specific shorthands (see #6817):
+\let\LanguageShortHands\languageshorthands
+\def\languageshorthands#1{}
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Argus: JAX state-space filtering for gravitational wave
+detection with a pulsar timing array},
+  pdfauthor={Tom Kimpson, Nicholas O'Neill, Andrew Melatos, Patrick M.
+Meyers},
+  pdflang={en-US},
+  colorlinks=true,
+  linkcolor={Maroon},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Argus: JAX state-space filtering for gravitational wave detection
+with a pulsar timing array}
+\renewcommand{\headeright}{}
+\renewcommand{\shorttitle}{Argus}
+
+\definecolor{c53baa1}{RGB}{83,186,161}
+\definecolor{c202826}{RGB}{32,40,38}
+\def \rorglobalscale {0.1}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Authors and Affiliations
+
+\usepackage[affil-it]{authblk}
+%\usepackage{orcidlink}
+
+%% \renewcommand\Authsep{, }
+\setlength{\affilsep}{1em}
+\author[1,2%
+  %
+  \ensuremath\mathparagraph]{Tom Kimpson}
+\author[1,2%
+  %
+  ]{Nicholas O'Neill%
+    }
+\author[1,2%
+  %
+  ]{Andrew Melatos%
+    }
+\author[3%
+  %
+  ]{Patrick M. Meyers%
+    }
+
+\affil[1]{School of Physics, University of Melbourne, Parkville, VIC
+3010, Australia%
+    \,\protect\href{https://ror.org/01ej9dk98}{}\,%
+  }
+\affil[2]{Australian Research Council Centre of Excellence for
+Gravitational Wave Discovery (OzGrav),Parkville, VIC 3010, Australia%
+    \,\protect\href{https://ror.org/02zp3yd51}{}\,%
+  }
+\affil[3]{Theoretical Astrophysics Group, California Institute of
+Technology, Pasadena, CA 91125, USA%
+    \,\protect\href{https://ror.org/05dxps055}{}\,%
+  }
+\affil[$\mathparagraph$]{Corresponding author:  tom %
+   %
+}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\date{13 October 2025}
+
+\begin{document}
+\maketitle
+
+\section{Summary}\label{summary}
+
+\texttt{Argus} is a high-performance Python package for detecting and
+characterizing nanohertz gravitational waves in pulsar timing array
+(PTA) data. The package provides a complete Bayesian inference framework
+based on state-space models, using Kalman filtering for efficient
+likelihood evaluation. \texttt{Argus} leverages the JAX library
+(\citeproc{ref-jax2018github}{Bradbury et al., 2018}) for just-in-time
+(JIT) compilation, GPU acceleration, and end-to-end automatic
+differentiation, facilitating rapid Bayesian inference with
+gradient-based samplers. The state-space approach provides a
+computationally efficient alternative to traditional frequency-domain
+methods, offering linear scaling with the number of pulse
+times-of-arrival, and natural handling of non-stationary processes.
+
+\section{Statement of Need}\label{statement-of-need}
+
+PTAs monitor the precise arrival times of radio pulses from a collection
+of millisecond pulsars distributed across the sky. By measuring the
+correlated variations in these pulse arrival times PTAs are senstive to
+gravitational-waves in a frequency band inaccessible to ground-based
+interferometers. The possible discovery of a nanohertz stochastic
+gravitational-wave background (GWB) by PTA collaborations
+(\citeproc{ref-nanograv2023pta}{NANOGrav Collaboration, 2023})
+(\citeproc{ref-EPTA}{EPTA Collaboration et al., 2023})
+(\citeproc{ref-ParkesPPTA2023}{Reardon et al., 2023}) through measuring
+the spatial correlation of the variations between different pulsars -
+the characteristic Hellings-Downs curve
+(\citeproc{ref-hellings1983gravitational}{Hellings \& Downs, 1983}) -
+represents a landmark achievement in gravitational wave astronomy.
+
+Traditional PTA data-analysis methods operate in the frequency domain.
+The various noise processes are treated as Gaussian stationary
+processes, characterised by their power spectral densities (PSDs). These
+noise sources generally fall into two categories: uncorrelated white
+noise and time-correlated red noise. White noise sources include
+measurement noise from telescope receivers, while red noise components
+include pulsar spin noise (intrinsic to the neutron star) and dispersion
+measure (DM) variations (from electron density fluctuations in the
+interstellar medium). The GWB signal itself is also modeled as a red
+noise process with a characteristic power-law PSD
+(\citeproc{ref-Goncharov2021}{Goncharov et al., 2021}), distinguished
+from the other noise components by its specific spatial correlation, the
+Hellings-Downs correlation. Frequency domain modelling is the foundation
+for widely used packages such as ENTERPRISE
+(\citeproc{ref-enterprise2020}{Ellis et al., 2020}) and TempoNest
+(\citeproc{ref-lentati2013hyper}{Lentati et al., 2014}) and is typically
+combined with standard Bayesian inference methods
+(\citeproc{ref-2009MNRAS.395.1005V}{van Haasteren et al., 2009}), such
+Markov Chain Monte Carlo (MCMC) algorithms for parameter estimation and
+model selection.
+
+State-space methods provide a novel, powerful and complementary
+framework for PTA data analysis. The approach features a time-domain
+version of the Gaussian processes framework, offering an alternative
+computational structure to traditional frequency-domain modeling.
+Instead of relying on full matrix inversions of the covariance matrix,
+state-space methods model the temporal evolution of hidden states (such
+as pulsar spin fluctuations and gravitational-wave effects) using Kalman
+filtering (\citeproc{ref-kalman1960new}{Kalman, 1960}) for recursive
+state estimation. This approach exhibits linear scaling
+\(\mathcal{O}(N)\) with the number of observations \(N\). State-space
+methods can easily incorporate physical knowledge about how different
+stochastic processes evolve over time directly into the model structure,
+naturally accommodating non-stationary processes. Additionally, the
+method tracks the actual, measured, time-ordered realization of
+intrinsic timing noise in each pulsar, rather than averaging over
+ensemble realizations, and can readily handle non-Gaussian statistics
+(\citeproc{ref-2024arXiv240500058U}{Uhlmann \& Julier, 2024}).
+
+Despite their theoretical advantages, state-space methods have seen
+limited adoption in PTA research, partly due to their recency, and
+partly due to the lack of accessible, high-performance implementations.
+\texttt{Argus} provides a modern, science-ready implementation of
+state-space methods for gravitational-wave detection in PTA data. Argus
+leverages JAX's just-in-time compilation, automatic differentiation, and
+GPU acceleration capabilities to handle the computational demands of
+Bayesian inference at PTA scales. Argus consolidates and formalises the
+state-space methodology applied in prior work
+(\citeproc{ref-kimpson2024a}{Kimpson et al., 2024a},
+\citeproc{ref-kimpson2024b}{2024b}, \citeproc{ref-kimpson2025c}{2025}),
+transforming proof-of-concept implementations into a tool ready for
+scientific analysis.
+
+\section{Relation to Existing Work}\label{relation-to-existing-work}
+
+Frequency-domain PTA packages such as ENTERPRISE
+(\citeproc{ref-enterprise2020}{Ellis et al., 2020}) and TempoNest
+(\citeproc{ref-lentati2013hyper}{Lentati et al., 2014}) represent timing
+noise and GW signals as Gaussian processes specified by power spectra.
+In contrast, \texttt{Argus} adopts a time-domain, state-space
+formulation in which latent variables describe the pulsar rotational
+states and other stochastic processes (e.g., DM variations), and the
+likelihood is evaluated via a Kalman filter, with
+\(\mathcal{O}\left(N\right)\) complexity
+(\citeproc{ref-kalman1960new}{Kalman, 1960}). The Kalman filter tracks
+the actual, measured, time-ordered realization of intrinsic, achromatic
+timing noise in each pulsar, effectively following the specific random
+draw of noise present in the data, which allows the method to separate
+and identify GW-induced timing perturbations from this intrinsic noise.
+This differs from frequency-domain approaches that characterise timing
+noise statistically by fitting a power spectral density, effectively
+averaging over an ensemble of admissible noise realizations through a
+PSD fit (e.g., Goncharov et al. (\citeproc{ref-Goncharov2021}{2021})).
+Prior PTA state-space prototypes established feasibility on mock
+datasets (\citeproc{ref-kimpson2024a}{Kimpson et al., 2024a},
+\citeproc{ref-kimpson2024b}{2024b}). \texttt{Argus} consolidates this
+methodology into a production-ready JAX implementation with JIT/GPU
+acceleration and end-to-end automatic differentiation, which enables
+gradient-based samplers. As such, the package is complementary to
+ENTERPRISE/TempoNest: it offers an independent cross-check with
+different numerical/systematic failure modes, while retaining parity in
+astrophysical content (white/red noise, DM, and a GWB with
+Hellings--Downs correlations). While \texttt{Argus} currently focuses on
+the stochastic GWB, the same state-space machinery naturally extends to
+deterministic sources such as individual supermassive black hole
+binaries (see Future Directions).
+
+\section{Functionality}\label{functionality}
+
+\texttt{Argus} is built on JAX, enabling high-throughput computation on
+CPUs/GPUs/TPUs with JIT compilation and end-to-end automatic
+differentiation. Its core deliverable is a JAX-jittable log-likelihood
+for PTA datasets, making it directly suitable for gradient-based
+Bayesian inference.
+
+\textbf{Core functionality}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{State-space model construction:} Stochastic processes like
+  pulsar-intrinsic red noise (modeled as an Ornstein-Uhlenbeck process)
+  and the stochastic GWB are specified in the time domain as linear
+  stochastic differential equations (SDEs). The package compiles these
+  into a single state-space model, which naturally separates process
+  noise (e.g., physical spin wandering and GWB fluctuations) from
+  measurement noise (EFAC, EQUAD). Hellings-Downs spatial correlations
+  are implemented through the covariance structure that couples the
+  stochastic processes across pulsars.
+
+
+\item \textbf{Kalman filter likelihood evaluation:} The core of the package is
+an optimised Kalman filter (\citeproc{ref-kalman1960new}{Kalman, 1960}).
+The filter evaluates the likelihood of the time-of-arrival data in the
+time domain and achieves a computational complexity that scales linearly
+with the number of observations, \(\mathcal{O}(N)\).
+
+
+\item
+  \textbf{Sampler Integration:} The likelihood and its gradients
+  (provided by JAX's autodiff capabilities) integrate directly with
+  JAX-native samplers such as those in \texttt{numpyro}
+  (\citeproc{ref-phan2019composable}{Phan et al., 2019}) or
+  \texttt{blackjax}(\citeproc{ref-cabezas2024blackjax}{Cabezas \&
+  others, 2024}). This enables the use of efficient gradient-based
+  algorithms like Hamiltonian Monte Carlo (HMC).
+\item
+  \textbf{Standardized Data Input:} \texttt{Argus} ingests pulsar timing
+  data through an interface with \texttt{libstempo}
+  (\citeproc{ref-vallisneri2020libstempo}{Vallisneri, 2020}), ensuring
+  compatibility with standard PTA data formats.
+\end{itemize}
+
+\begin{figure}
+\centering
+\includegraphics{images/example_corner_plot.png}
+\caption{Corner plot showing posterior distributions from Bayesian
+parameter estimation using Argus on the second IPTA mock data challenge
+(\citeproc{ref-2018arXiv181010527H}{Hazboun et al., 2018}). The first
+two parameters \(h_{\rm a}\), \(\gamma_{\rm a}\) describe the amplitude
+and turnover frequency of the GWB. The middle two parameters
+\(\sigma_{\rm p,0}\), \(\gamma_{\rm p,0}\) characterise the red timing
+noise for an arbitrary pulsar in the array (indexed by 0). The final two
+parameters, EFAC, EQUAD are the standard white measurement noise
+parameters for the arbitrary pulsar. The posteriors were obtained using
+the No-U-Turn Sampler (NUTS) (\citeproc{ref-hoffman2014no}{Hoffman \&
+Gelman, 2014}) from \texttt{numpyro}
+(\citeproc{ref-phan2019composable}{Phan et al., 2019}), leveraging
+Argus's JAX-native log-likelihood and automatic differentiation for
+gradient-based sampling. The unimodal marginalised posteriors
+demonstrate the effectiveness of the state-space Kalman filtering
+approach for parameter estimation in pulsar timing array
+analysis.\label{fig:corner}}
+\end{figure}
+
+\section{Future Directions}\label{future-directions}
+
+Planned extensions to \texttt{Argus} include: model selection via Bayes
+factors, deterministic signals from continuous gravitational waves,
+advanced noise modeling (chromatic noise, non-Gaussian components),
+enhanced modularity for custom state-space models, performance
+optimization for next-generation PTAs like SKA, and integration with
+pipelines such as ENTERPRISE (\citeproc{ref-enterprise2020}{Ellis et
+al., 2020}). We release Argus in its current form as it successfully
+addresses the core challenge of Bayesian parameter estimation for PTA
+analysis using state-space methods, providing a well-tested,
+production-ready implementation. We encourage contributions from the PTA
+community to help implement these extensions.
+
+\section{Acknowledgements}\label{acknowledgements}
+
+We acknowledge support from the Australian Research Council Centre of
+Excellence for Gravitational Wave Discovery (OzGrav) under grant
+CE170100004. NJO is the recipient of a Melbourne Research Scholarship.
+This work was performed on the OzSTAR national facility at Swinburne
+University of Technology. The OzSTAR program receives funding in part
+from the Astronomy National Collaborative Research Infrastructure
+Strategy (NCRIS) allocation provided by the Australian Government, and
+from the Victorian Higher Education State Investment Fund (VHESIF)
+provided by the Victorian Government. This work was supported by
+software support resources awarded under the Astronomy Data and
+Computing Services (ADACS) Merit Allocation Program. ADACS is funded
+from the Astronomy National Collaborative Research Infrastructure
+Strategy (NCRIS) allocation provided by the Australian Government and
+managed by Astronomy Australia Limited (AAL). We thank the International
+Pulsar Timing Array collaboration for providing mock data challenges
+that aided in the development and validation of this software.
+
+\section*{References}\label{references}
+\addcontentsline{toc}{section}{References}
+
+\phantomsection\label{refs}
+\begin{CSLReferences}{1}{0}
+\bibitem[\citeproctext]{ref-jax2018github}
+Bradbury, J., Frostig, R., Hawkins, P., Johnson, M. J., Leary, C.,
+Maclaurin, D., Necula, G., Paszke, A., VanderPlas, J., Wanderman-Milne,
+S., \& Zhang, Q. (2018). \emph{{JAX}: Composable transformations of
+{P}ython+{N}um{P}y programs} (Version 0.3.13).
+\url{http://github.com/google/jax}
+
+\bibitem[\citeproctext]{ref-cabezas2024blackjax}
+Cabezas, A., \& others. (2024). \emph{BlackJAX: Composable bayesian
+inference in JAX}. \url{https://arxiv.org/abs/2402.10797}
+
+\bibitem[\citeproctext]{ref-enterprise2020}
+Ellis, J. A., Vallisneri, M., Taylor, S. R., \& others. (2020).
+ENTERPRISE: Enhanced numerical toolbox enabling a robust PulsaR
+inference SuitE. \emph{The Astrophysical Journal Supplement Series},
+\emph{244}(1), 4. \url{https://doi.org/10.5281/zenodo.4059815}
+
+\bibitem[\citeproctext]{ref-EPTA}
+EPTA Collaboration, InPTA Collaboration, \& others. (2023). {The second
+data release from the European Pulsar Timing Array. III. Search for
+gravitational wave signals}. \emph{Astronomy and Astrophysics},
+\emph{678}, A50. \url{https://doi.org/10.1051/0004-6361/202346844}
+
+\bibitem[\citeproctext]{ref-Goncharov2021}
+Goncharov, B., Shannon, R. M., Reardon, D. J., Hobbs, G., Zic, A.,
+Bailes, M., Curyło, M., Dai, S., Kerr, M., Lower, M. E., Manchester, R.
+N., Mandow, R., Middleton, H., Miles, M. T., Parthasarathy, A., Thrane,
+E., Thyagarajan, N., Xue, X., Zhu, X.-J., \ldots{} Zhang, S. (2021). {On
+the Evidence for a Common-spectrum Process in the Search for the
+Nanohertz Gravitational-wave Background with the Parkes Pulsar Timing
+Array}. \emph{The Astrophysical Journal Letters}, \emph{917}(2), L19.
+\url{https://doi.org/10.3847/2041-8213/ac17f4}
+
+\bibitem[\citeproctext]{ref-2018arXiv181010527H}
+Hazboun, J. S., Mingarelli, C. M. F., \& Lee, K. (2018). {The Second
+International Pulsar Timing Array Mock Data Challenge}. \emph{arXiv
+e-Prints}, arXiv:1810.10527.
+\url{https://doi.org/10.48550/arXiv.1810.10527}
+
+\bibitem[\citeproctext]{ref-hellings1983gravitational}
+Hellings, R. W., \& Downs, G. S. (1983). Upper limits on the isotropic
+gravitational radiation background from pulsar timing analysis.
+\emph{Astrophysical Journal Letters}, \emph{265}, L39--L42.
+\url{https://doi.org/10.1086/183954}
+
+\bibitem[\citeproctext]{ref-hoffman2014no}
+Hoffman, M. D., \& Gelman, A. (2014). The no-u-turn sampler: Adaptively
+setting path lengths in hamiltonian monte carlo. \emph{Journal of
+Machine Learning Research}, \emph{15}(1), 1593--1623.
+
+\bibitem[\citeproctext]{ref-kalman1960new}
+Kalman, R. E. (1960). A new approach to linear filtering and prediction
+problems. \emph{Transactions of the ASME--Journal of Basic Engineering},
+\emph{82}(Series D), 35--45. \url{https://doi.org/10.1115/1.3662552}
+
+\bibitem[\citeproctext]{ref-kimpson2024a}
+Kimpson, T., Melatos, A., \& others. (2024a). {Kalman tracking and
+parameter estimation of continuous gravitational waves with a pulsar
+timing array}. \emph{Monthly Notices of the Royal Astronomical Society},
+\emph{534}(3), 1844--1867. \url{https://doi.org/10.1093/mnras/stae2197}
+
+\bibitem[\citeproctext]{ref-kimpson2024b}
+Kimpson, T., Melatos, A., \& others. (2024b). {State-space analysis of a
+continuous gravitational wave source with a pulsar timing array:
+inclusion of the pulsar terms}. \emph{Monthly Notices of the Royal
+Astronomical Society}, \emph{535}(1), 132--154.
+\url{https://doi.org/10.1093/mnras/stae2360}
+
+\bibitem[\citeproctext]{ref-kimpson2025c}
+Kimpson, T., Melatos, A., \& others. (2025). {State-space algorithm for
+detecting the nanohertz gravitational wave background}. \emph{Monthly
+Notices of the Royal Astronomical Society}, \emph{537}(2), 1282--1304.
+\url{https://doi.org/10.1093/mnras/staf068}
+
+\bibitem[\citeproctext]{ref-lentati2013hyper}
+Lentati, L., Alexander, P., Hobson, M., \& others. (2014). TEMPONEST: A
+bayesian approach to pulsar timing analysis. \emph{Monthly Notices of
+the Royal Astronomical Society}, \emph{437}(4), 3004--3023.
+\url{https://doi.org/10.1093/mnras/stt2122}
+
+\bibitem[\citeproctext]{ref-nanograv2023pta}
+NANOGrav Collaboration. (2023). The NANOGrav 15-year data set: Evidence
+for a gravitational-wave background. \emph{The Astrophysical Journal
+Letters}, \emph{951}(1), L8.
+\url{https://doi.org/10.3847/2041-8213/acdac6}
+
+\bibitem[\citeproctext]{ref-phan2019composable}
+Phan, D., Pradhan, N., \& Jankowiak, M. (2019). Composable effects for
+flexible and accelerated probabilistic programming in NumPyro.
+\emph{arXiv Preprint arXiv:1912.11554}.
+\url{https://arxiv.org/abs/1912.11554}
+
+\bibitem[\citeproctext]{ref-ParkesPPTA2023}
+Reardon, D. J., Zic, \& others. (2023). {Search for an Isotropic
+Gravitational-wave Background with the Parkes Pulsar Timing Array}.
+\emph{The Astrophysical Journal Letters}, \emph{951}(1), L6.
+\url{https://doi.org/10.3847/2041-8213/acdd02}
+
+\bibitem[\citeproctext]{ref-2024arXiv240500058U}
+Uhlmann, J., \& Julier, S. (2024). {Gaussianity and the Kalman Filter: A
+Simple Yet Complicated Relationship}. \emph{arXiv e-Prints},
+arXiv:2405.00058. \url{https://doi.org/10.48550/arXiv.2405.00058}
+
+\bibitem[\citeproctext]{ref-vallisneri2020libstempo}
+Vallisneri, M. (2020). Libstempo: Python bindings for TEMPO2. \emph{The
+Astrophysical Journal Supplement Series}, \emph{251}(1), 6.
+\url{https://arxiv.org/abs/2002.02151}
+
+\bibitem[\citeproctext]{ref-2009MNRAS.395.1005V}
+van Haasteren, R., Levin, Y., McDonald, P., \& Lu, T. (2009). {On
+measuring the gravitational-wave background using Pulsar Timing Arrays}.
+\emph{Monthly Notices of the Royal Astronomical Society}, \emph{395}(2),
+1005--1014. \url{https://doi.org/10.1111/j.1365-2966.2009.14590.x}
+
+\end{CSLReferences}
+
+\end{document}
