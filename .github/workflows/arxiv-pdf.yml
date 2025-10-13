@@ -13,6 +13,7 @@ jobs:
             --volume ${{ github.workspace }}:/data \
             --user $(id -u):$(id -g) \
             --env JOURNAL=joss \
+            --env PUBLISHED_DATE="2024-10-13" \
             openjournals/inara \
             -p -o pdf \
             docs/joss/paper.md
