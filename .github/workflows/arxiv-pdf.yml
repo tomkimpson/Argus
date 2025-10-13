@@ -1,0 +1,27 @@
+on: [push]
+
+jobs:
+  paper:
+    runs-on: ubuntu-latest
+    name: Generate Paper Draft for arXiv
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      - name: Build production PDF
+        run: |
+          docker run --rm \
+            --volume ${{ github.workspace }}:/data \
+            --user $(id -u):$(id -g) \
+            --env JOURNAL=joss \
+            openjournals/inara \
+            -p -o pdf \
+            docs/joss/paper.md
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: paper
+          path: docs/joss/paper.pdf
+
+
+
+
