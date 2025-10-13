@@ -33,7 +33,6 @@ affiliations:
 date: 13 October 2025
 bibliography: paper.bib
 draft: false
-repository: https://github.com/yourusername/yourrepo
 ---
 
 # Summary

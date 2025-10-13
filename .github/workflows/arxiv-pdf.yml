@@ -13,9 +13,8 @@ jobs:
             --volume ${{ github.workspace }}:/data \
             --user $(id -u):$(id -g) \
             --env JOURNAL=joss \
-            --env PUBLISHED_DATE="2024-10-13" \
             openjournals/inara \
-            -p -o pdf \
+            -o preprint \
             docs/joss/paper.md
       - name: Upload
         uses: actions/upload-artifact@v4
