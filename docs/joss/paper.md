@@ -30,8 +30,9 @@ affiliations:
   - name: "Theoretical Astrophysics Group, California Institute of Technology, Pasadena, CA 91125, USA"
     index: 3
     ror: 05dxps055
-date: 29 September 2025
+date: 13 October 2025
 bibliography: paper.bib
+draft: false
 ---
 
 # Summary
