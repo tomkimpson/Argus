@@ -85,7 +85,7 @@ PTA collaborations worldwide -- NANOGrav, the European PTA (EPTA), the Parkes PT
 
 # AI Usage Disclosure
 
-Generative AI tools were used during the development of `Argus` to assist with software infrastructure tasks, including setting up the documentation website, configuring automated CI/CD workflow testing, and scaffolding boilerplate configuration files. All scientific methodology, algorithm design, core implementation, and numerical validation were carried out by the authors.
+Generative AI tools were used during the development of `Argus` to assist with software infrastructure tasks, including setting up the documentation website, configuring automated CI/CD workflow testing, and scaffolding boilerplate configuration files. All scientific methodology, algorithm design, core implementation, and numerical validation were carried out by the authors. We affirm that human team members thoroughly reviewed, modified, and validated all AI-generated content while making primary architectural and design decisions.
 
 
 # Acknowledgements
