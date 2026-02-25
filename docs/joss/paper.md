@@ -16,10 +16,10 @@ authors:
     corresponding: true
   - name: Nicholas O'Neill
     affiliation: "1, 2"
-  - name: Andrew Melatos
-    affiliation: "1, 2"
   - name: Patrick M. Meyers
     affiliation: "3"
+  - name: Andrew Melatos
+    affiliation: "1, 2"
 affiliations:
   - name: School of Physics, University of Melbourne, Parkville, VIC 3010, Australia
     index: 1
