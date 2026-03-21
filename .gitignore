@@ -81,5 +81,8 @@ site/
 # Workflow outputs
 workflows/**/outputs/
 
+# IPTA Mock Data Challenge data files (downloaded separately)
+workflows/data/IPTA_MockDataChallenge2/dataset_*/
+
 # Claude stuff
 .claude

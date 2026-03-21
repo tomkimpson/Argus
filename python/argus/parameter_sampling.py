@@ -317,6 +317,91 @@ def sample_measurement_noise_parameters(prior_specs, n_pulsars):
     return efac, equad
 
 
+def sample_cw_parameters(prior_specs):
+    """Sample continuous wave source parameters from their priors.
+
+    Parameters
+    ----------
+    prior_specs : dict
+        Prior distributions dictionary containing CW parameter specs.
+
+    Returns
+    -------
+    tuple
+        (log10_h0, alpha_gw, delta_gw, log10_f_gw, cos_iota, psi, Phi0)
+    """
+    cw_specs = prior_specs["cw_specs"]
+
+    # log10_h0: strain amplitude (reparameterized)
+    if cw_specs["log10_h0_transform_params"] is not None:
+        tp = cw_specs["log10_h0_transform_params"]
+        log10_h0_prime = numpyro.sample("log10_h0_prime", dist.Normal(0.0, 1.0))
+        log10_h0 = numpyro.deterministic(
+            "log10_h0", tp["mean"] + log10_h0_prime * tp["std"]
+        )
+    else:
+        log10_h0 = numpyro.deterministic("log10_h0", cw_specs["log10_h0_spec"])
+
+    # alpha_gw: source RA (reparameterized)
+    if cw_specs["alpha_gw_transform_params"] is not None:
+        tp = cw_specs["alpha_gw_transform_params"]
+        alpha_gw_prime = numpyro.sample("alpha_gw_prime", dist.Normal(0.0, 1.0))
+        alpha_gw = numpyro.deterministic(
+            "alpha_gw", tp["mean"] + alpha_gw_prime * tp["std"]
+        )
+    else:
+        alpha_gw = numpyro.deterministic("alpha_gw", cw_specs["alpha_gw_spec"])
+
+    # delta_gw: source DEC via sin(delta) for isotropic sky coverage
+    if cw_specs["sin_delta_gw_transform_params"] is not None:
+        tp = cw_specs["sin_delta_gw_transform_params"]
+        sin_delta_prime = numpyro.sample("sin_delta_gw_prime", dist.Normal(0.0, 1.0))
+        sin_delta_gw = numpyro.deterministic(
+            "sin_delta_gw", tp["mean"] + sin_delta_prime * tp["std"]
+        )
+        delta_gw = numpyro.deterministic("delta_gw", jnp.arcsin(sin_delta_gw))
+    else:
+        delta_gw = numpyro.deterministic("delta_gw", cw_specs["delta_gw_spec"])
+
+    # log10_f_gw: GW frequency (reparameterized)
+    if cw_specs["log10_f_gw_transform_params"] is not None:
+        tp = cw_specs["log10_f_gw_transform_params"]
+        log10_f_gw_prime = numpyro.sample("log10_f_gw_prime", dist.Normal(0.0, 1.0))
+        log10_f_gw = numpyro.deterministic(
+            "log10_f_gw", tp["mean"] + log10_f_gw_prime * tp["std"]
+        )
+    else:
+        log10_f_gw = numpyro.deterministic("log10_f_gw", cw_specs["log10_f_gw_spec"])
+
+    # cos_iota: inclination (reparameterized)
+    if cw_specs["cos_iota_transform_params"] is not None:
+        tp = cw_specs["cos_iota_transform_params"]
+        cos_iota_prime = numpyro.sample("cos_iota_prime", dist.Normal(0.0, 1.0))
+        cos_iota = numpyro.deterministic(
+            "cos_iota", tp["mean"] + cos_iota_prime * tp["std"]
+        )
+    else:
+        cos_iota = numpyro.deterministic("cos_iota", cw_specs["cos_iota_spec"])
+
+    # psi: polarization angle (reparameterized)
+    if cw_specs["psi_transform_params"] is not None:
+        tp = cw_specs["psi_transform_params"]
+        psi_prime = numpyro.sample("psi_prime", dist.Normal(0.0, 1.0))
+        psi = numpyro.deterministic("psi", tp["mean"] + psi_prime * tp["std"])
+    else:
+        psi = numpyro.deterministic("psi", cw_specs["psi_spec"])
+
+    # Phi0: initial phase (reparameterized)
+    if cw_specs["Phi0_transform_params"] is not None:
+        tp = cw_specs["Phi0_transform_params"]
+        Phi0_prime = numpyro.sample("Phi0_prime", dist.Normal(0.0, 1.0))
+        Phi0 = numpyro.deterministic("Phi0", tp["mean"] + Phi0_prime * tp["std"])
+    else:
+        Phi0 = numpyro.deterministic("Phi0", cw_specs["Phi0_spec"])
+
+    return log10_h0, alpha_gw, delta_gw, log10_f_gw, cos_iota, psi, Phi0
+
+
 def count_free_parameters(prior_specs, n_pulsars):
     """Count the total number of free (non-fixed) parameters for NUTS sampling.
 
@@ -334,13 +419,30 @@ def count_free_parameters(prior_specs, n_pulsars):
     """
     count = 0
 
-    # GW amplitude parameter - free if reparameterization is used
-    if prior_specs["log10_ha_transform_params"] is not None:
-        count += 1
+    # CW parameters (if CW mode)
+    cw_specs = prior_specs.get("cw_specs")
+    if cw_specs is not None:
+        # Count each CW parameter that has transform_params (i.e., is sampled)
+        for key in [
+            "log10_h0_transform_params",
+            "alpha_gw_transform_params",
+            "sin_delta_gw_transform_params",
+            "log10_f_gw_transform_params",
+            "cos_iota_transform_params",
+            "psi_transform_params",
+            "Phi0_transform_params",
+        ]:
+            if cw_specs.get(key) is not None:
+                count += 1
+    else:
+        # GWB parameters
+        # GW amplitude parameter - free if reparameterization is used
+        if prior_specs["log10_ha_transform_params"] is not None:
+            count += 1
 
-    # GW spectral index parameter - free if it's a distribution (not fixed)
-    if isinstance(prior_specs["log10_gamma_a_spec"], tfpd.Distribution):
-        count += 1
+        # GW spectral index parameter - free if it's a distribution (not fixed)
+        if isinstance(prior_specs["log10_gamma_a_spec"], tfpd.Distribution):
+            count += 1
 
     # Pulsar red noise parameters - always hierarchical unless fixed
     prior_specs.get("hierarchical_specs")

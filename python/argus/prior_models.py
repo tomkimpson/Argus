@@ -259,8 +259,84 @@ def create_hierarchical_priors(config):
     return hierarchical_specs
 
 
+def _make_reparameterized_prior(config, section, param_name):
+    """Helper to create a reparameterized prior from config settings.
+
+    Returns (spec, transform_params) tuple. If fixed, transform_params is None.
+    """
+    is_fixed = config.getboolean(section, f"{param_name}_fixed")
+    if is_fixed:
+        return config.getfloat(section, f"{param_name}_value"), None
+    else:
+        min_val = config.getfloat(section, f"{param_name}_min")
+        max_val = config.getfloat(section, f"{param_name}_max")
+        mean = (min_val + max_val) / 2.0
+        std = (max_val - min_val) / 6.0
+        return None, {"mean": mean, "std": std, "min": min_val, "max": max_val}
+
+
+def get_cw_parameter_priors(config):
+    """Extract CW source parameter prior distributions from config.
+
+    Parameters
+    ----------
+    config : ConfigParser
+        Configuration object containing [CWModel] section.
+
+    Returns
+    -------
+    dict
+        Dictionary containing CW parameter prior specifications.
+    """
+    section = "CWModel"
+    cw_specs = {}
+
+    # log10_h0: strain amplitude
+    spec, tp = _make_reparameterized_prior(config, section, "log10_h0")
+    cw_specs["log10_h0_spec"] = spec
+    cw_specs["log10_h0_transform_params"] = tp
+
+    # alpha_gw: source RA
+    spec, tp = _make_reparameterized_prior(config, section, "alpha_gw")
+    cw_specs["alpha_gw_spec"] = spec
+    cw_specs["alpha_gw_transform_params"] = tp
+
+    # sin_delta_gw: for isotropic sky coverage (sample in sin(delta), convert to delta)
+    spec, tp = _make_reparameterized_prior(config, section, "sin_delta_gw")
+    cw_specs["sin_delta_gw_spec"] = spec
+    cw_specs["sin_delta_gw_transform_params"] = tp
+    # Also store delta_gw_spec for fixed case (direct declination)
+    if config.getboolean(section, "sin_delta_gw_fixed"):
+        cw_specs["delta_gw_spec"] = config.getfloat(section, "delta_gw_value")
+    else:
+        cw_specs["delta_gw_spec"] = None
+
+    # log10_f_gw: GW frequency
+    spec, tp = _make_reparameterized_prior(config, section, "log10_f_gw")
+    cw_specs["log10_f_gw_spec"] = spec
+    cw_specs["log10_f_gw_transform_params"] = tp
+
+    # cos_iota: inclination
+    spec, tp = _make_reparameterized_prior(config, section, "cos_iota")
+    cw_specs["cos_iota_spec"] = spec
+    cw_specs["cos_iota_transform_params"] = tp
+
+    # psi: polarization angle
+    spec, tp = _make_reparameterized_prior(config, section, "psi")
+    cw_specs["psi_spec"] = spec
+    cw_specs["psi_transform_params"] = tp
+
+    # Phi0: initial phase
+    spec, tp = _make_reparameterized_prior(config, section, "Phi0")
+    cw_specs["Phi0_spec"] = spec
+    cw_specs["Phi0_transform_params"] = tp
+
+    return cw_specs
+
+
 def get_prior_model_specs(
-    config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array
+    config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array,
+    mode="gwb",
 ):
     """Create prior model distributions based on config settings.
 
@@ -271,38 +347,24 @@ def get_prior_model_specs(
     n_pulsars : int
         Number of pulsars
     sigma_p_array : array
-        Array of pulsar red noise sigma values, only used if psr_noise_fixed=true in config
+        Array of pulsar red noise sigma values
     gamma_p_array : array
-        Array of pulsar red noise gamma values, only used if psr_noise_fixed=true in config
+        Array of pulsar red noise gamma values
     efac_array : array
-        Array of EFAC values, only used if efac_equad_fixed=true in config
+        Array of EFAC values
     equad_array : array
-        Array of EQUAD values, only used if efac_equad_fixed=true in config
+        Array of EQUAD values
+    mode : str
+        Signal model mode: 'gwb' or 'cw'.
 
     Returns
     -------
     dict
-        Dictionary containing all prior distributions with the following keys:
-        - log10_ha_spec: Prior distribution for log10 of GW amplitude (fixed value or Uniform)
-        - log10_gamma_a_spec: Prior distribution for log10(GW spectral index) (fixed value or Uniform)
-        - log10_gamma_p_spec: Prior distribution for log10 of pulsar red noise gamma (Uniform)
-        - log10_sigma_p_spec: Prior distribution for log10 of pulsar red noise sigma (Uniform)
-        - efac_spec: Prior distribution for EFAC (fixed array or Uniform)
-        - equad_spec: Prior distribution for EQUAD (fixed array or Uniform)
-
-    Notes
-    -----
-    For each parameter, the prior type (fixed or Uniform) is determined by the
-    corresponding *_fixed setting in the config file. If fixed=true, the *_value
-    is used; if fixed=false, a Uniform distribution is created using *_min and *_max.
-    For EFAC and EQUAD, if efac_equad_fixed=true, the provided arrays are used;
-    otherwise, Uniform distributions are created using efac_min/max and equad_min/max.
-    The same logic applies to the pulsar red noise parameters.
+        Dictionary containing all prior distributions.
     """
-    print("Getting prior model specs...")
+    print(f"Getting prior model specs (mode={mode})...")
 
-    # Get parameter prior distributions from specialized functions
-    gw_specs = get_gw_parameter_priors(config)
+    # Pulsar noise and measurement noise priors are shared between modes
     pulsar_noise_specs = get_pulsar_noise_priors(
         config, n_pulsars, sigma_p_array, gamma_p_array
     )
@@ -310,13 +372,27 @@ def get_prior_model_specs(
         config, n_pulsars, efac_array, equad_array
     )
 
-    return {
-        "log10_ha_spec": gw_specs["log10_ha_spec"],
-        "log10_ha_transform_params": gw_specs["log10_ha_transform_params"],
-        "log10_gamma_a_spec": gw_specs["log10_gamma_a_spec"],
+    result = {
         "log10_gamma_p_spec": pulsar_noise_specs["log10_gamma_p_spec"],
         "log10_sigma_p_spec": pulsar_noise_specs["log10_sigma_p_spec"],
         "efac_spec": measurement_noise_specs["efac_spec"],
         "equad_spec": measurement_noise_specs["equad_spec"],
         "hierarchical_specs": pulsar_noise_specs["hierarchical_specs"],
     }
+
+    if mode == "cw":
+        # CW-specific priors (no GWB amplitude/spectral index)
+        cw_specs = get_cw_parameter_priors(config)
+        result["cw_specs"] = cw_specs
+        # Dummy GWB entries for backward compatibility with count_free_parameters
+        result["log10_ha_spec"] = None
+        result["log10_ha_transform_params"] = None
+        result["log10_gamma_a_spec"] = None
+    else:
+        # GWB-specific priors
+        gw_specs = get_gw_parameter_priors(config)
+        result["log10_ha_spec"] = gw_specs["log10_ha_spec"]
+        result["log10_ha_transform_params"] = gw_specs["log10_ha_transform_params"]
+        result["log10_gamma_a_spec"] = gw_specs["log10_gamma_a_spec"]
+
+    return result

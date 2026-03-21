@@ -26,6 +26,7 @@ import time
 
 from .parameter_sampling import (
     sample_gw_parameters,
+    sample_cw_parameters,
     sample_pulsar_noise_parameters,
     sample_measurement_noise_parameters,
     count_free_parameters,
@@ -53,6 +54,26 @@ class Parameters:
     EQUAD: jnp.ndarray  # Extra quadrature noise
 
 
+@struct.dataclass
+class CWParameters:
+    """Parameter struct for the CW signal model and per-pulsar noise."""
+
+    # CW source parameters
+    alpha_gw: float  # Source right ascension (radians)
+    delta_gw: float  # Source declination (radians)
+    f_gw: float  # GW frequency (Hz)
+    h0: float  # Strain amplitude
+    cos_iota: float  # Cosine of inclination angle
+    psi: float  # Polarization angle (radians)
+    Phi0: float  # Initial GW phase (radians)
+
+    # Pulsar noise parameters (same as GWB mode)
+    gamma_p: jnp.ndarray  # Per-pulsar OU damping rates
+    sigma_p: jnp.ndarray  # Per-pulsar OU driving amplitudes
+    EFAC: jnp.ndarray  # Per-pulsar error scale factors
+    EQUAD: jnp.ndarray  # Per-pulsar quadrature noise
+
+
 def display_prior_summary(prior_specs, n_pulsars, logger=None):
     """Display a readable summary of all prior distributions.
 
@@ -77,43 +98,68 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
     log_or_print("PRIOR SPECIFICATIONS SUMMARY")
     log_or_print("=" * 60)
 
-    # GW background parameters
-    log_or_print("\n--- Gravitational Wave Background Parameters ---")
+    # CW parameters (if CW mode)
+    cw_specs = prior_specs.get("cw_specs")
+    if cw_specs is not None:
+        log_or_print("\n--- Continuous Wave Source Parameters ---")
+        for param_name, transform_key, spec_key in [
+            ("log10(h₀)", "log10_h0_transform_params", "log10_h0_spec"),
+            ("α_gw (RA)", "alpha_gw_transform_params", "alpha_gw_spec"),
+            ("sin(δ_gw)", "sin_delta_gw_transform_params", "sin_delta_gw_spec"),
+            ("log10(f_gw)", "log10_f_gw_transform_params", "log10_f_gw_spec"),
+            ("cos(ι)", "cos_iota_transform_params", "cos_iota_spec"),
+            ("ψ", "psi_transform_params", "psi_spec"),
+            ("Φ₀", "Phi0_transform_params", "Phi0_spec"),
+        ]:
+            tp = cw_specs.get(transform_key)
+            if tp is not None:
+                log_or_print(
+                    f"{param_name}: Uniform({tp['min']:.3f}, {tp['max']:.3f}) [reparameterized]"
+                )
+            else:
+                spec = cw_specs.get(spec_key)
+                if spec is not None:
+                    log_or_print(f"{param_name}: FIXED at {float(spec):.4f}")
+                else:
+                    log_or_print(f"{param_name}: Not configured")
+    else:
+        # GW background parameters
+        log_or_print("\n--- Gravitational Wave Background Parameters ---")
 
-    # log10_ha parameter
-    ha_spec = prior_specs["log10_ha_spec"]
-    ha_transform = prior_specs["log10_ha_transform_params"]
+        # log10_ha parameter
+        ha_spec = prior_specs["log10_ha_spec"]
+        ha_transform = prior_specs["log10_ha_transform_params"]
 
-    if ha_transform is not None:
-        # Reparameterized case
-        log_or_print("log10(h_a): REPARAMETERIZED for better NUTS sampling")
-        log_or_print("  - Sampling: log10_ha_prime ~ N(0, 1)")
-        log_or_print(
-            f"  - Transform: log10_ha = {ha_transform['mean']:.2f} + log10_ha_prime * {ha_transform['std']:.3f}"
-        )
-        log_or_print(
-            f"  - Equivalent to: Uniform({ha_transform['min']:.1f}, {ha_transform['max']:.1f})"
-        )
-    elif isinstance(ha_spec, tfpd.Distribution):
-        # Direct distribution case (backward compatibility)
-        if hasattr(ha_spec, "low"):
+        if ha_transform is not None:
+            # Reparameterized case
+            log_or_print("log10(h_a): REPARAMETERIZED for better NUTS sampling")
+            log_or_print("  - Sampling: log10_ha_prime ~ N(0, 1)")
             log_or_print(
-                f"log10(h_a): Uniform({float(ha_spec.low):.1f}, {float(ha_spec.high):.1f})"
+                f"  - Transform: log10_ha = {ha_transform['mean']:.2f} + log10_ha_prime * {ha_transform['std']:.3f}"
+            )
+            log_or_print(
+                f"  - Equivalent to: Uniform({ha_transform['min']:.1f}, {ha_transform['max']:.1f})"
+            )
+        elif isinstance(ha_spec, tfpd.Distribution):
+            # Direct distribution case (backward compatibility)
+            if hasattr(ha_spec, "low"):
+                log_or_print(
+                    f"log10(h_a): Uniform({float(ha_spec.low):.1f}, {float(ha_spec.high):.1f})"
+                )
+            else:
+                log_or_print(f"log10(h_a): {type(ha_spec).__name__} distribution")
+        else:
+            # Fixed value case
+            log_or_print(f"log10(h_a): FIXED at {float(ha_spec):.1f}")
+
+        # log10_gamma_a parameter
+        log10_gamma_spec = prior_specs["log10_gamma_a_spec"]
+        if isinstance(log10_gamma_spec, tfpd.Distribution):
+            log_or_print(
+                f"log10(γ_a): Uniform({float(log10_gamma_spec.low):.1f}, {float(log10_gamma_spec.high):.1f})"
             )
         else:
-            log_or_print(f"log10(h_a): {type(ha_spec).__name__} distribution")
-    else:
-        # Fixed value case
-        log_or_print(f"log10(h_a): FIXED at {float(ha_spec):.1f}")
-
-    # log10_gamma_a parameter
-    log10_gamma_spec = prior_specs["log10_gamma_a_spec"]
-    if isinstance(log10_gamma_spec, tfpd.Distribution):
-        log_or_print(
-            f"log10(γ_a): Uniform({float(log10_gamma_spec.low):.1f}, {float(log10_gamma_spec.high):.1f})"
-        )
-    else:
-        log_or_print(f"log10(γ_a): FIXED at {float(log10_gamma_spec):.1f}")
+            log_or_print(f"log10(γ_a): FIXED at {float(log10_gamma_spec):.1f}")
 
     # Pulsar red noise parameters
     log_or_print(f"\n--- Pulsar Red Noise Parameters ({n_pulsars} pulsars) ---")
@@ -304,6 +350,96 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
     numpyro.factor("likelihood", log_likelihood)
 
 
+def cw_log_likelihood_fn(
+    kalman_filter, log10_h0, alpha_gw, delta_gw, log10_f_gw,
+    cos_iota, psi, Phi0, log10_γp, log10_σp, efac, equad,
+):
+    """Calculate CW log likelihood for NumPyro sampling.
+
+    Parameters
+    ----------
+    kalman_filter : CWKalmanFilter
+        CW Kalman filter instance.
+    log10_h0 : float
+        Log10 of strain amplitude.
+    alpha_gw : float
+        Source right ascension (radians).
+    delta_gw : float
+        Source declination (radians).
+    log10_f_gw : float
+        Log10 of GW frequency (Hz).
+    cos_iota : float
+        Cosine of inclination angle.
+    psi : float
+        Polarization angle (radians).
+    Phi0 : float
+        Initial GW phase (radians).
+    log10_γp : jax.Array
+        Log10 of pulsar gamma values.
+    log10_σp : jax.Array
+        Log10 of pulsar sigma values.
+    efac : jax.Array
+        EFAC values.
+    equad : jax.Array
+        EQUAD values.
+
+    Returns
+    -------
+    float
+        Log likelihood value.
+    """
+    h0 = 10.0**log10_h0
+    f_gw = 10.0**log10_f_gw
+    gamma_p = 10.0**log10_γp
+    sigma_p = 10.0**log10_σp
+
+    params = CWParameters(
+        alpha_gw=alpha_gw,
+        delta_gw=delta_gw,
+        f_gw=f_gw,
+        h0=h0,
+        cos_iota=cos_iota,
+        psi=psi,
+        Phi0=Phi0,
+        gamma_p=gamma_p,
+        sigma_p=sigma_p,
+        EFAC=efac,
+        EQUAD=equad,
+    )
+
+    return kalman_filter.get_likelihood(params)
+
+
+def numpyro_model_cw(kalman_filter, prior_specs, n_pulsars):
+    """NumPyro model for CW signal inference.
+
+    Parameters
+    ----------
+    kalman_filter : CWKalmanFilter
+        CW Kalman filter instance.
+    prior_specs : dict
+        Dictionary containing prior distributions.
+    n_pulsars : int
+        Number of pulsars.
+    """
+    # Sample CW source parameters
+    log10_h0, alpha_gw, delta_gw, log10_f_gw, cos_iota, psi, Phi0 = (
+        sample_cw_parameters(prior_specs)
+    )
+
+    # Sample noise parameters (shared with GWB mode)
+    log10_γp, log10_σp = sample_pulsar_noise_parameters(prior_specs, n_pulsars)
+    efac, equad = sample_measurement_noise_parameters(prior_specs, n_pulsars)
+
+    # Calculate CW log likelihood
+    log_likelihood = cw_log_likelihood_fn(
+        kalman_filter, log10_h0, alpha_gw, delta_gw, log10_f_gw,
+        cos_iota, psi, Phi0, log10_γp, log10_σp, efac, equad,
+    )
+
+    numpyro.factor("likelihood", log_likelihood)
+
+
 def setup_nuts_kernel(prior_specs, n_pulsars, config):
     """Set up NUTS kernel with optimized parameters.
 
@@ -428,6 +564,7 @@ def run_nuts_sampling(
     gamma_p_array,
     efac_array,
     equad_array,
+    mode="gwb",
 ):
     """Run NumPyro NUTS inference with optimizations for high-dimensional sampling.
 
@@ -447,6 +584,8 @@ def run_nuts_sampling(
         EFAC values
     equad_array : jnp.ndarray
         EQUAD values
+    mode : str
+        Signal model mode: 'gwb' or 'cw'.
 
     Returns
     -------
@@ -457,7 +596,8 @@ def run_nuts_sampling(
 
     # Get prior model distributions
     prior_specs = get_prior_model_specs(
-        config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array
+        config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array,
+        mode=mode,
     )
 
     # Get NUTS parameters from config
@@ -472,8 +612,12 @@ def run_nuts_sampling(
     print_nuts_diagnostics(prior_specs, nuts_info, config)
 
     # Create the actual model function bound to the Kalman filter
-    def bound_model():
-        return numpyro_model(kalman_filter, prior_specs, n_pulsars)
+    if mode == "cw":
+        def bound_model():
+            return numpyro_model_cw(kalman_filter, prior_specs, n_pulsars)
+    else:
+        def bound_model():
+            return numpyro_model(kalman_filter, prior_specs, n_pulsars)
 
     # Create NUTS kernel with bound model
     kernel = NUTS(
@@ -488,11 +632,23 @@ def run_nuts_sampling(
     )
 
     # Set up MCMC sampler
+    # Use parallel chains across devices when multiple GPUs are available
+    chain_method = "sequential"
+    if num_chains > 1:
+        import jax
+        n_devices = jax.local_device_count()
+        if n_devices >= num_chains:
+            chain_method = "parallel"
+            print(f"Running {num_chains} chains in parallel across {n_devices} devices")
+        else:
+            print(f"Running {num_chains} chains sequentially ({n_devices} device(s) available)")
+
     sampler = MCMC(
         kernel,
         num_samples=num_samples,
         num_warmup=num_warmup,
         num_chains=num_chains,
+        chain_method=chain_method,
         progress_bar=True,
     )
 
