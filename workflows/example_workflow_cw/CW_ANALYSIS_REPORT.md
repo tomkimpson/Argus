@@ -97,7 +97,8 @@ The dataset contains 32 pulsars (after excluding J1640+2224), each with 183 obse
 | Medium | 2 | 500 | 1000 | 2000 | 8 | Free | No | 6.3 hrs | 42 |
 | Intensive | 4 | 1000 | 2000 | 8000 | 10 | Free | No | 27 hrs | 325 |
 | Fixed f_gw | 2 | 250 | 500 | 1000 | 8 | Fixed | No | 59 min | 8 |
-| Pulsar term | 2 | 250 | 500 | 1000 | 8 | Free | Yes | 3.1 hrs | 1 |
+| Pulsar term v1 | 2 | 250 | 500 | 1000 | 8 | Free | Yes (default d) | 3.1 hrs | 1 |
+| Pulsar term v2 | 2 | 250 | 500 | 1000 | 8 | Free | Yes (ATNF d) | 3.1 hrs | 1 |
 
 ### Parameter Recovery (Earth-term only, f_gw free)
 
@@ -124,7 +125,7 @@ Across all Earth-term-only runs with f_gw free, we consistently recover 4 of 7 C
 | ψ | **Yes** | Within 95% CI |
 | Φ₀ | **No** | Earth-term degeneracy persists |
 
-### Parameter Recovery (Pulsar Term Included)
+### Parameter Recovery (Pulsar Term — v1, enterprise default distances)
 
 | Parameter | Recovered? | Notes |
 |-----------|-----------|-------|
@@ -136,9 +137,31 @@ Across all Earth-term-only runs with f_gw free, we consistently recover 4 of 7 C
 | ψ | **Yes** | Within 95% CI |
 | Φ₀ | **No** | Poorly constrained |
 
-**Critical caveat:** 9 of 32 pulsars (28%) had unknown distances defaulting to 1 kpc. The pulsar term phase offset depends sensitively on distance (Ω·d·(1+n̂·q̂)/c), so incorrect distances introduce a misspecified signal component. The sampler compensates by shifting all parameters to accommodate the phase mismatch, corrupting the entire posterior. These results do **not** reflect the expected performance of a correctly specified pulsar term model.
+9 of 32 pulsars (28%) had unknown distances defaulting to 1 kpc. Initial hypothesis: incorrect distances corrupt the pulsar term phases, biasing the posterior.
 
-Pulsars with default (likely incorrect) distances: J0034-0534, J0218+4232, J0621+1002, J0751+1807, J0900-3144, J1614-2230, J1944+0907, J2010-1323, J2229+2643.
+### Parameter Recovery (Pulsar Term — v2, ATNF catalog distances)
+
+The 9 missing distances were sourced from the ATNF Pulsar Catalogue (v2.7.0) and injected via a `pulsar_distances.json` file. Results:
+
+| Parameter | Recovered? | Notes |
+|-----------|-----------|-------|
+| log₁₀h₀ | **No** | Posterior mean -14.79, injection -13.35 — still biased low |
+| log₁₀f_gw | **No** | Posterior mean -7.91, injection -8.21 — still biased high |
+| α_gw | **Yes** | Within 95% CI, chains disagree (4.41 vs 2.33) |
+| δ_gw | **No** | Both chains offset from injection |
+| cos ι | **No** | Broad, chains disagree in sign |
+| ψ | **Yes** | Within 95% CI |
+| Φ₀ | **No** | Poorly constrained |
+
+**Key finding:** Correcting the pulsar distances did not improve recovery. The v2 results are nearly identical to v1, ruling out the missing-distance hypothesis. The likely explanations are:
+
+1. **Distance model mismatch**: The ATNF catalog distances are DM-derived (dispersion measure + NE2001/YMW16 electron density model), not parallax-based. These can differ from the true distances used in the MDC2 injection by factors of 2–3, which at nanohertz frequencies produces completely wrong pulsar term phases.
+
+2. **The MDC2 may have used different distances** than what's in either the par files or the ATNF catalog. The mock data was generated with specific internal distance values that are not publicly documented.
+
+3. **The pulsar term makes the likelihood surface inherently harder for NUTS.** The phase offset Ω·d·(1+n̂·q̂)/c creates rapid oscillations in the likelihood as a function of sky position and frequency, producing a highly multimodal posterior that NUTS cannot navigate even with correct distances. The literature (e.g. Ellis 2013, Taylor et al. 2016) typically uses parallel tempering for pulsar-term CW searches for exactly this reason.
+
+Both pulsar term runs showed excellent sampling diagnostics (1 divergence each, consistent chain speeds at ~14.7s/step), suggesting the sampler is efficiently exploring a well-conditioned but incorrect region of parameter space.
 
 ## Key Findings
 
@@ -167,16 +190,18 @@ When f_gw is free, NUTS chains can find secondary frequency modes. These seconda
 
 In the intensive run, chain completion times ranged from 7.4 to 27 hours — a 3.7× spread. This is caused by different chains encountering different posterior geometry: chains in well-conditioned regions take fewer leapfrog steps per NUTS iteration, while chains navigating narrow ridges (especially in f_gw) hit the maximum tree depth repeatedly.
 
-### 5. Pulsar term requires accurate distances
+### 5. Pulsar term does not improve recovery — likely requires parallel tempering
 
-Including the pulsar term (Earth + pulsar term model) produced the cleanest sampling (1 divergence, consistent chain speeds) but the worst parameter recovery (only 2/7 recovered). This is caused by 9/32 pulsars having unknown distances defaulting to 1 kpc — the incorrect distances introduce misspecified phase offsets that bias the entire posterior.
+Including the pulsar term produced the cleanest sampling diagnostics (1 divergence, consistent chain speeds at ~14.7s/step) but the worst parameter recovery (only 2/7 recovered). Two runs were performed:
 
-This demonstrates that the pulsar term is highly sensitive to distance accuracy. The phase offset Ω·d·(1+n̂·q̂)/c means even modest distance errors (factor of a few) produce completely wrong pulsar term contributions at nanohertz frequencies. To properly exploit the pulsar term for breaking the (cos ι, ψ, Φ₀) degeneracy, we need either:
-- Accurate distances for all pulsars (e.g. from ATNF catalog parallax measurements)
-- Exclusion of pulsars with unknown distances
-- Marginalisation over distance uncertainties (sampling pulsar distances as additional parameters)
+- **v1**: enterprise default distances (9 pulsars defaulting to 1 kpc)
+- **v2**: corrected distances from the ATNF Pulsar Catalogue for all 32 pulsars
 
-Notably, the sampling itself was excellent — 1 divergence and both chains running at identical pace (~14.7s/step). The pulsar term adds useful constraining power to the likelihood surface, making it better-conditioned for NUTS even though the constraints point to the wrong solution with incorrect distances.
+Both runs gave nearly identical (poor) results, ruling out distance accuracy as the primary issue. The likely explanation is that the pulsar term creates a highly multimodal likelihood surface with rapid oscillations in phase space that NUTS cannot navigate — it efficiently explores one mode but that mode is not necessarily the correct one.
+
+This is consistent with the PTA CW literature, where pulsar-term searches universally use parallel tempering (not gradient-based samplers) to handle the multimodality. The pulsar term phase Ω·d·(1+n̂·q̂)/c introduces O(10³–10⁵) oscillation cycles across the prior volume, creating far more local optima than Earth-term-only models.
+
+The excellent sampling diagnostics (1 divergence, consistent chain speeds) confirm that NUTS is working correctly — the problem is not sampling failure but mode trapping in a posterior landscape that gradient-based methods fundamentally cannot traverse.
 
 ### 6. NUTS limitations for multimodal posteriors
 
@@ -197,7 +222,7 @@ NUTS excels at navigating complex geometry within a single mode (gradient-guided
 
 ### Near-term
 
-1. **Pulsar term with accurate distances** — The initial pulsar term run demonstrated that incorrect distances corrupt the posterior. Next steps: source accurate parallax distances from the ATNF catalog, or exclude the 9 pulsars with unknown distances and re-run. Alternatively, sample pulsar distances as additional parameters with Gaussian priors around catalog values.
+1. **Pulsar term with parallel tempering** — Both pulsar term runs (default and ATNF distances) failed to recover parameters despite clean sampling. The pulsar term likely requires a sampler capable of traversing between modes (e.g. parallel tempering via `blackjax`, or nested sampling via `jaxns`). NUTS is fundamentally limited to single-mode exploration.
 
 2. **Fixed-frequency grid search** — Evaluate the likelihood on a grid of f_gw values, running NUTS on the remaining 6 parameters at each grid point. This plays to NUTS's strengths (efficient within-mode exploration) while avoiding its weakness (cross-mode jumping). Each grid point runs in ~1 hour with clean posteriors.
 

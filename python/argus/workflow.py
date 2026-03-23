@@ -35,6 +35,25 @@ def setup_data_and_kalman_filter(config, logger, use_gw, signal_model="gwb"):
 
     if signal_model == "cw":
         include_pulsar_term = config.getboolean("CWModel", "include_pulsar_term", fallback=False)
+
+        # Override pulsar distances from JSON file if provided
+        if include_pulsar_term:
+            distance_file = config.get("CWModel", "pulsar_distances_path", fallback="")
+            if distance_file.strip():
+                import json
+                import os
+                if not os.path.isabs(distance_file):
+                    config_dir = os.path.dirname(os.path.abspath(config.get("Data", "data_path")))
+                    distance_file = os.path.join(config_dir, distance_file)
+                with open(distance_file) as f:
+                    dist_data = json.load(f)
+                metadata = pulsar_data["metadata"]
+                for idx, row in metadata.iterrows():
+                    psr_name = row["name"]
+                    if psr_name in dist_data:
+                        metadata.at[idx, "distance_kpc"] = dist_data[psr_name]["distance_kpc"]
+                logger.info(f"Loaded pulsar distances from {distance_file}")
+
         logger.info(f"Initializing CW per-pulsar Kalman filter (pulsar_term={include_pulsar_term})...")
         KF = cw_kalman_filter.CWKalmanFilter(data=pulsar_data, include_pulsar_term=include_pulsar_term)
     else:
