@@ -71,6 +71,12 @@ class LoadWidebandPulsarData:
         self.RA = ds_psr._raj
         self.DEC = ds_psr._decj
 
+        # Pulsar distance in kpc: (distance, uncertainty)
+        # enterprise returns (1.0, 0.2) as default if not found in par file
+        pdist = ds_psr._pdist
+        self.distance_kpc = pdist[0] if pdist is not None else 1.0
+        self.distance_err_kpc = pdist[1] if pdist is not None else 0.2
+
         # Scale the M matrix columns to have unit norm
         col_scales = np.sqrt(np.sum(self.M_matrix**2, axis=0))
         self.M_scaled = self.M_matrix / col_scales
@@ -456,6 +462,7 @@ class LoadWidebandPulsarData:
                         "RA": [psr.RA],
                         "DEC": [psr.DEC],
                         "F0": [f0],
+                        "distance_kpc": [psr.distance_kpc],
                         "par_file": [par_file],
                         "tim_file": [tim_file],
                     }

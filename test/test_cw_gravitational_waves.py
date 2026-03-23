@@ -251,3 +251,31 @@ class TestComputeCWSignalSinglePulsar:
         toas = jnp.array([1e8, 2e8, 3e8])
         result = jitted_fn(toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2)
         assert jnp.all(jnp.isfinite(result))
+
+    def test_pulsar_term_differs_from_earth_only(self):
+        """With nonzero pulsar distance, signal should differ from Earth-term only."""
+        toas = jnp.array([1e8, 2e8, 3e8, 4e8])
+        f_gw, h0, cos_iota, Phi0 = 1e-8, 1e-14, 0.5, 0.3
+        F_plus, F_cross = 0.1, -0.2
+
+        earth_only = compute_cw_signal_single_pulsar(
+            toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross,
+            pulsar_distance=0.0, geometric_factor=0.5,
+        )
+        with_pulsar = compute_cw_signal_single_pulsar(
+            toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross,
+            pulsar_distance=1e10, geometric_factor=0.5,
+        )
+        assert not jnp.allclose(earth_only, with_pulsar)
+
+    def test_pulsar_term_zero_distance_matches_earth(self):
+        """With zero distance, result should match Earth-term only."""
+        toas = jnp.array([1e8, 2e8, 3e8])
+        earth = compute_cw_signal_single_pulsar(
+            toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2,
+        )
+        zero_dist = compute_cw_signal_single_pulsar(
+            toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2,
+            pulsar_distance=0.0, geometric_factor=1.5,
+        )
+        assert jnp.allclose(earth, zero_dist, atol=1e-20)

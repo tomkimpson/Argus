@@ -34,8 +34,9 @@ def setup_data_and_kalman_filter(config, logger, use_gw, signal_model="gwb"):
     )
 
     if signal_model == "cw":
-        logger.info("Initializing CW per-pulsar Kalman filter...")
-        KF = cw_kalman_filter.CWKalmanFilter(data=pulsar_data)
+        include_pulsar_term = config.getboolean("CWModel", "include_pulsar_term", fallback=False)
+        logger.info(f"Initializing CW per-pulsar Kalman filter (pulsar_term={include_pulsar_term})...")
+        KF = cw_kalman_filter.CWKalmanFilter(data=pulsar_data, include_pulsar_term=include_pulsar_term)
     else:
         logger.info("Initializing joint GWB Kalman filter...")
         KF = jax_kalman_filter.JaxKalmanFilter(data=pulsar_data, use_gw=use_gw)

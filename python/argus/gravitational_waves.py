@@ -305,8 +305,13 @@ def cw_timing_residual(t, f_gw, h0, cos_iota, Phi0, F_plus, F_cross):
     return F_plus * Delta_s_plus + F_cross * Delta_s_cross
 
 
-def compute_cw_signal_single_pulsar(toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross):
+def compute_cw_signal_single_pulsar(toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross,
+                                     pulsar_distance=0.0, geometric_factor=0.0):
     """Compute CW timing residuals for all observation times of a single pulsar.
+
+    Computes Earth term, and optionally the pulsar term if pulsar_distance > 0.
+    The pulsar term uses the same waveform evaluated at the retarded time
+    t_p = t - tau_a, where tau_a = d_a * (1 + n_hat . q_hat) / c.
 
     Parameters
     ----------
@@ -324,6 +329,10 @@ def compute_cw_signal_single_pulsar(toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cr
         Plus antenna pattern function value for this pulsar.
     F_cross : float
         Cross antenna pattern function value for this pulsar.
+    pulsar_distance : float, optional
+        Pulsar distance in seconds (d/c). Default 0.0 (Earth-term only).
+    geometric_factor : float, optional
+        Geometric delay factor (1 + n_hat . q_hat). Default 0.0.
 
     Returns
     -------
@@ -331,9 +340,20 @@ def compute_cw_signal_single_pulsar(toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cr
         CW timing residuals, shape (nobs,).
     """
     Omega = 2.0 * jnp.pi * f_gw
-    phase = Omega * toas + Phi0
+    amp_plus = h0 * (1.0 + cos_iota**2) / (2.0 * Omega)
+    amp_cross = -h0 * cos_iota / Omega
 
-    Delta_s_plus = h0 * (1.0 + cos_iota**2) / (2.0 * Omega) * jnp.sin(phase)
-    Delta_s_cross = -h0 * cos_iota / Omega * jnp.cos(phase)
+    # Earth term
+    phase_e = Omega * toas + Phi0
+    earth_term = F_plus * amp_plus * jnp.sin(phase_e) + F_cross * amp_cross * jnp.cos(phase_e)
 
-    return F_plus * Delta_s_plus + F_cross * Delta_s_cross
+    # Pulsar term: subtract signal at retarded time t_p = t - tau_a
+    # tau_a = pulsar_distance * geometric_factor
+    # When pulsar_distance=0, pulsar term contribution is zero (Earth-term only)
+    tau_a = pulsar_distance * geometric_factor
+    phase_p = Omega * (toas - tau_a) + Phi0
+    pulsar_term = F_plus * amp_plus * jnp.sin(phase_p) + F_cross * amp_cross * jnp.cos(phase_p)
+
+    # Use pulsar_distance as a switch: when 0, no pulsar term subtracted
+    has_pulsar_term = jnp.where(pulsar_distance > 0.0, 1.0, 0.0)
+    return earth_term - has_pulsar_term * pulsar_term
