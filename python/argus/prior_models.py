@@ -331,6 +331,22 @@ def get_cw_parameter_priors(config):
     cw_specs["Phi0_spec"] = spec
     cw_specs["Phi0_transform_params"] = tp
 
+    # Per-pulsar phase parameters (phase reparameterization of pulsar term)
+    include_pulsar_term = config.getboolean(section, "include_pulsar_term", fallback=False)
+    phase_parameterization = config.getboolean(section, "phase_parameterization", fallback=True)
+
+    if include_pulsar_term and phase_parameterization:
+        import math
+        chi_min = 0.0
+        chi_max = 2.0 * math.pi
+        mean = (chi_min + chi_max) / 2.0
+        std = (chi_max - chi_min) / 6.0
+        cw_specs["chi_transform_params"] = {
+            "mean": mean, "std": std, "min": chi_min, "max": chi_max,
+        }
+    else:
+        cw_specs["chi_transform_params"] = None
+
     return cw_specs
 
 

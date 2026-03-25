@@ -16,6 +16,7 @@ from argus.gravitational_waves import (
     compute_antenna_patterns,
     cw_timing_residual,
     compute_cw_signal_single_pulsar,
+    compute_cw_signal_single_pulsar_phase,
 )
 
 
@@ -279,3 +280,97 @@ class TestComputeCWSignalSinglePulsar:
             pulsar_distance=0.0, geometric_factor=1.5,
         )
         assert jnp.allclose(earth, zero_dist, atol=1e-20)
+
+
+class TestComputeCWSignalSinglePulsarPhase:
+    """Tests for phase-parameterized CW signal computation (arXiv 2410.10087)."""
+
+    def test_output_shape(self):
+        """Output shape should match toas shape."""
+        toas = jnp.linspace(0, 1e9, 100)
+        result = compute_cw_signal_single_pulsar_phase(
+            toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2, 1.0,
+        )
+        assert result.shape == toas.shape
+
+    def test_equivalence_with_distance_based(self):
+        """Phase-param and distance-based should agree when chi = Omega*d*g mod 2pi."""
+        toas = jnp.linspace(0, 1e9, 50)
+        f_gw = 1e-8
+        h0 = 1e-14
+        cos_iota = 0.5
+        Phi0 = 0.3
+        F_plus = 0.15
+        F_cross = -0.08
+        distance = 3e10  # seconds
+        geometric_factor = 1.3
+
+        Omega = 2.0 * jnp.pi * f_gw
+        chi = (Omega * distance * geometric_factor) % (2.0 * jnp.pi)
+
+        from_distance = compute_cw_signal_single_pulsar(
+            toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross,
+            pulsar_distance=distance, geometric_factor=geometric_factor,
+        )
+        from_phase = compute_cw_signal_single_pulsar_phase(
+            toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross, chi,
+        )
+        assert jnp.allclose(from_distance, from_phase, atol=1e-20)
+
+    def test_chi_periodicity(self):
+        """Signal should be 2pi-periodic in chi."""
+        toas = jnp.linspace(0, 1e9, 30)
+        chi = 1.5
+        s1 = compute_cw_signal_single_pulsar_phase(
+            toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2, chi,
+        )
+        s2 = compute_cw_signal_single_pulsar_phase(
+            toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2, chi + 2 * jnp.pi,
+        )
+        assert jnp.allclose(s1, s2, atol=1e-20)
+
+    def test_differentiable_wrt_chi(self):
+        """Gradient w.r.t. chi should be finite (required for NUTS)."""
+        toas = jnp.linspace(0, 1e9, 20)
+
+        def signal_sum(chi):
+            return jnp.sum(compute_cw_signal_single_pulsar_phase(
+                toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2, chi,
+            ))
+
+        grad = jax.grad(signal_sum)(1.5)
+        assert jnp.isfinite(grad)
+
+    def test_jit_compatible(self):
+        """Function should be JIT-compilable."""
+        toas = jnp.linspace(0, 1e9, 20)
+        jitted = jax.jit(compute_cw_signal_single_pulsar_phase)
+        result = jitted(toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2, 1.0)
+        assert jnp.all(jnp.isfinite(result))
+
+    def test_vmap_over_pulsars(self):
+        """Should be vmappable across pulsars with different chi values."""
+        Npsr = 5
+        toas = jnp.tile(jnp.linspace(0, 1e9, 20), (Npsr, 1))
+        F_plus = jnp.array([0.1, 0.15, -0.05, 0.2, -0.1])
+        F_cross = jnp.array([-0.08, 0.1, 0.12, -0.15, 0.05])
+        chi = jnp.linspace(0, 2 * jnp.pi, Npsr)
+
+        result = jax.vmap(
+            lambda t, fp, fc, ch: compute_cw_signal_single_pulsar_phase(
+                t, 1e-8, 1e-14, 0.5, 0.3, fp, fc, ch,
+            )
+        )(toas, F_plus, F_cross, chi)
+        assert result.shape == (Npsr, 20)
+        assert jnp.all(jnp.isfinite(result))
+
+    def test_nonzero_chi_differs_from_zero(self):
+        """Nonzero chi should produce a different signal than chi=0."""
+        toas = jnp.linspace(0, 1e9, 30)
+        s_zero = compute_cw_signal_single_pulsar_phase(
+            toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2, 0.0,
+        )
+        s_nonzero = compute_cw_signal_single_pulsar_phase(
+            toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2, 1.5,
+        )
+        assert not jnp.allclose(s_zero, s_nonzero)

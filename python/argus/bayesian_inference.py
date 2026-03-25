@@ -27,6 +27,7 @@ import time
 from .parameter_sampling import (
     sample_gw_parameters,
     sample_cw_parameters,
+    sample_chi_parameters,
     sample_pulsar_noise_parameters,
     sample_measurement_noise_parameters,
     count_free_parameters,
@@ -66,6 +67,9 @@ class CWParameters:
     cos_iota: float  # Cosine of inclination angle
     psi: float  # Polarization angle (radians)
     Phi0: float  # Initial GW phase (radians)
+
+    # Per-pulsar phase parameters (phase reparameterization of pulsar term)
+    chi: jnp.ndarray  # Per-pulsar phase offsets in [0, 2pi), shape (Npsr,)
 
     # Pulsar noise parameters (same as GWB mode)
     gamma_p: jnp.ndarray  # Per-pulsar OU damping rates
@@ -122,6 +126,13 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
                     log_or_print(f"{param_name}: FIXED at {float(spec):.4f}")
                 else:
                     log_or_print(f"{param_name}: Not configured")
+
+        chi_tp = cw_specs.get("chi_transform_params")
+        if chi_tp is not None:
+            log_or_print(
+                f"χ (per-pulsar phase): Uniform({chi_tp['min']:.3f}, {chi_tp['max']:.3f}) "
+                f"× {n_pulsars} pulsars [phase reparameterization]"
+            )
     else:
         # GW background parameters
         log_or_print("\n--- Gravitational Wave Background Parameters ---")
@@ -352,7 +363,7 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
 
 def cw_log_likelihood_fn(
     kalman_filter, log10_h0, alpha_gw, delta_gw, log10_f_gw,
-    cos_iota, psi, Phi0, log10_γp, log10_σp, efac, equad,
+    cos_iota, psi, Phi0, chi, log10_γp, log10_σp, efac, equad,
 ):
     """Calculate CW log likelihood for NumPyro sampling.
 
@@ -374,6 +385,8 @@ def cw_log_likelihood_fn(
         Polarization angle (radians).
     Phi0 : float
         Initial GW phase (radians).
+    chi : jax.Array
+        Per-pulsar phase parameters, shape (Npsr,).
     log10_γp : jax.Array
         Log10 of pulsar gamma values.
     log10_σp : jax.Array
@@ -401,6 +414,7 @@ def cw_log_likelihood_fn(
         cos_iota=cos_iota,
         psi=psi,
         Phi0=Phi0,
+        chi=chi,
         gamma_p=gamma_p,
         sigma_p=sigma_p,
         EFAC=efac,
@@ -427,6 +441,9 @@ def numpyro_model_cw(kalman_filter, prior_specs, n_pulsars):
         sample_cw_parameters(prior_specs)
     )
 
+    # Sample per-pulsar phase parameters (for phase-reparameterized pulsar term)
+    chi = sample_chi_parameters(prior_specs, n_pulsars)
+
     # Sample noise parameters (shared with GWB mode)
     log10_γp, log10_σp = sample_pulsar_noise_parameters(prior_specs, n_pulsars)
     efac, equad = sample_measurement_noise_parameters(prior_specs, n_pulsars)
@@ -434,7 +451,7 @@ def numpyro_model_cw(kalman_filter, prior_specs, n_pulsars):
     # Calculate CW log likelihood
     log_likelihood = cw_log_likelihood_fn(
         kalman_filter, log10_h0, alpha_gw, delta_gw, log10_f_gw,
-        cos_iota, psi, Phi0, log10_γp, log10_σp, efac, equad,
+        cos_iota, psi, Phi0, chi, log10_γp, log10_σp, efac, equad,
     )
 
     numpyro.factor("likelihood", log_likelihood)
@@ -663,6 +680,167 @@ def run_nuts_sampling(
     inf_data = az.from_numpyro(sampler)
 
     return inf_data
+
+
+def _jaxns_results_to_arviz(results, num_posterior_samples=10000):
+    """Convert jaxns nested sampling results to ArviZ InferenceData.
+
+    jaxns produces weighted samples. We resample to get unweighted
+    posterior samples compatible with ArviZ and downstream diagnostics.
+
+    Parameters
+    ----------
+    results : jaxns.NestedSamplerResults
+        Results from jaxns nested sampling.
+    num_posterior_samples : int
+        Number of unweighted posterior samples to generate.
+
+    Returns
+    -------
+    arviz.InferenceData
+        ArviZ InferenceData object with posterior samples.
+    """
+    # Get weighted samples and log posterior mass
+    samples = results.samples
+    log_dp_mean = results.log_dp_mean
+
+    # Resample to get unweighted posterior samples
+    key = jax.random.PRNGKey(0)
+    indices = jax.random.categorical(key, log_dp_mean, shape=(num_posterior_samples,))
+
+    posterior_dict = {}
+    for param_name, values in samples.items():
+        resampled = values[indices]
+        # ArviZ expects shape (chains, draws, ...) — single chain for nested sampling
+        posterior_dict[param_name] = jnp.expand_dims(resampled, axis=0)
+
+    # Add derived delta_gw from sin_delta_gw if present
+    if "sin_delta_gw" in posterior_dict:
+        posterior_dict["delta_gw"] = jnp.arcsin(posterior_dict["sin_delta_gw"])
+
+    # Convert JAX arrays to numpy for ArviZ
+    import numpy as np
+    posterior_np = {k: np.asarray(v) for k, v in posterior_dict.items()}
+
+    inf_data = az.from_dict(posterior=posterior_np)
+    return inf_data
+
+
+def run_nested_sampling(
+    kalman_filter,
+    config,
+    n_pulsars,
+    sigma_p_array,
+    gamma_p_array,
+    efac_array,
+    equad_array,
+    mode="cw",
+):
+    """Run jaxns nested sampling inference for CW signal analysis.
+
+    Nested sampling handles multimodal posteriors natively and computes
+    Bayesian evidence as a byproduct, making it suitable for CW pulsar-term
+    searches where NUTS gets trapped in local modes.
+
+    Parameters
+    ----------
+    kalman_filter : CWKalmanFilter
+        CW Kalman filter instance.
+    config : configparser.ConfigParser
+        Configuration object.
+    n_pulsars : int
+        Number of pulsars.
+    sigma_p_array : jnp.ndarray
+        Pulsar red noise sigma values.
+    gamma_p_array : jnp.ndarray
+        Pulsar red noise gamma values.
+    efac_array : jnp.ndarray
+        EFAC values.
+    equad_array : jnp.ndarray
+        EQUAD values.
+    mode : str
+        Signal model mode. Currently only 'cw' is supported.
+
+    Returns
+    -------
+    tuple
+        (arviz.InferenceData, (log_Z_mean, log_Z_uncert))
+    """
+    if mode != "cw":
+        raise NotImplementedError(
+            "Nested sampling is currently only supported for CW mode. "
+            "Use NUTS for GWB inference."
+        )
+
+    from jaxns import Model, NestedSampler
+    from .prior_models import get_prior_model_specs
+    from .parameter_sampling import build_jaxns_cw_prior_model
+
+    # Build prior specs (same as NUTS path)
+    prior_specs = get_prior_model_specs(
+        config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array,
+        mode=mode,
+    )
+
+    # Build jaxns prior model
+    prior_model_fn = build_jaxns_cw_prior_model(prior_specs, n_pulsars)
+
+    # Build log-likelihood wrapper that calls existing cw_log_likelihood_fn
+    def log_likelihood(log10_h0, alpha_gw, delta_gw, log10_f_gw,
+                       cos_iota, psi, Phi0, chi,
+                       log10_gamma_p, log10_sigma_p, efac, equad):
+        return cw_log_likelihood_fn(
+            kalman_filter, log10_h0, alpha_gw, delta_gw, log10_f_gw,
+            cos_iota, psi, Phi0, chi, log10_gamma_p, log10_sigma_p,
+            efac, equad,
+        )
+
+    # Create jaxns Model
+    model = Model(prior_model=prior_model_fn, log_likelihood=log_likelihood)
+
+    # Read nested sampler config
+    max_samples = config.getint("NestedSampler", "max_samples", fallback=100000)
+    num_live_points = config.getint("NestedSampler", "num_live_points", fallback=1000)
+    s = config.getint("NestedSampler", "s", fallback=5)
+    k = config.getint("NestedSampler", "k", fallback=0)
+    num_posterior_samples = config.getint(
+        "NestedSampler", "num_posterior_samples", fallback=10000
+    )
+
+    print("Running jaxns nested sampling...")
+    print(f"  max_samples: {max_samples}")
+    print(f"  num_live_points: {num_live_points}")
+    print(f"  s (num slices): {s}")
+    print(f"  k (phantom samples): {k}")
+    print(f"  Model dimensions: {model.U_ndims}")
+
+    # Create and run sampler
+    sampler = NestedSampler(
+        model=model,
+        max_samples=max_samples,
+        num_live_points=num_live_points,
+        s=s,
+        k=k,
+    )
+
+    rng_key = jax.random.PRNGKey(42)
+    termination_reason, state = sampler(rng_key)
+    results = sampler.to_results(
+        termination_reason=termination_reason, state=state
+    )
+
+    # Log evidence
+    log_Z_mean = float(results.log_Z_mean)
+    log_Z_uncert = float(results.log_Z_uncert)
+    print(f"\nLog-evidence: {log_Z_mean:.2f} +/- {log_Z_uncert:.2f}")
+
+    # Print summary
+    sampler.summary(results)
+
+    # Convert to ArviZ
+    inf_data = _jaxns_results_to_arviz(results, num_posterior_samples)
+
+    return inf_data, (log_Z_mean, log_Z_uncert)
 
 
 def test_likelihood_performance(kalman_filter, config, n_pulsars, logger):

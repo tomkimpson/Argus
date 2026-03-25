@@ -330,7 +330,8 @@ class CWKalmanFilter:
         containing per-pulsar observations, metadata, design matrices, and covariances.
     """
 
-    def __init__(self, data: dict, include_pulsar_term: bool = False):
+    def __init__(self, data: dict, include_pulsar_term: bool = False,
+                 phase_parameterization: bool = True):
         """Initialize the CW Kalman filter.
 
         Parameters
@@ -339,7 +340,11 @@ class CWKalmanFilter:
             Data dictionary from LoadWidebandPulsarData.get_processed_residuals(mode='cw').
         include_pulsar_term : bool
             If True, include the pulsar term in the CW signal model.
-            Requires pulsar distances in metadata. Default False (Earth-term only).
+            Default False (Earth-term only).
+        phase_parameterization : bool
+            If True (default), use per-pulsar phase parameters chi instead of
+            physical distances for the pulsar term (arXiv 2410.10087).
+            Only relevant when include_pulsar_term=True.
         """
         get_logger().info("Initializing CWKalmanFilter...")
 
@@ -350,8 +355,10 @@ class CWKalmanFilter:
 
         self.Npsr = len(df_psr)
         self.include_pulsar_term = include_pulsar_term
+        self.phase_parameterization = phase_parameterization
         get_logger().info(f"Number of pulsars: {self.Npsr}")
         get_logger().info(f"Include pulsar term: {self.include_pulsar_term}")
+        get_logger().info(f"Phase parameterization: {self.phase_parameterization}")
 
         # Per-pulsar metadata
         self.M = df_psr["dim_M"].values.astype(int)
@@ -363,13 +370,15 @@ class CWKalmanFilter:
         self.pulsar_ra = jnp.array(df_psr["RA"].values.astype(float))
         self.pulsar_dec = jnp.array(df_psr["DEC"].values.astype(float))
 
-        # Pulsar distances in seconds (d/c) for pulsar term
-        if include_pulsar_term:
+        # Pulsar distances in seconds (d/c) for distance-based pulsar term
+        if include_pulsar_term and not phase_parameterization:
             KPC_TO_SECONDS = 3.0857e19 / 2.9979e8  # kpc -> meters -> seconds
             distances_kpc = df_psr["distance_kpc"].values.astype(float)
             self.pulsar_distances = jnp.array(distances_kpc * KPC_TO_SECONDS)
             get_logger().info(f"Pulsar distances (kpc): min={distances_kpc.min():.2f}, max={distances_kpc.max():.2f}")
         else:
+            # Not needed for phase parameterization (chi replaces distance)
+            # or Earth-term only mode
             self.pulsar_distances = jnp.zeros(self.Npsr)
 
         # Per-pulsar observation data
@@ -452,14 +461,15 @@ class CWKalmanFilter:
             Npsr=self.Npsr,
             state_dim=self.state_dim,
             include_pulsar_term=self.include_pulsar_term,
+            phase_parameterization=self.phase_parameterization,
         )
 
 
-@partial(jax.jit, static_argnames=("Npsr", "state_dim", "include_pulsar_term"))
+@partial(jax.jit, static_argnames=("Npsr", "state_dim", "include_pulsar_term", "phase_parameterization"))
 def _cw_likelihood(
     theta, toas, residuals, errors, mask, dt, H, P_eps,
     pulsar_ra, pulsar_dec, pulsar_distances, Npsr, state_dim,
-    include_pulsar_term,
+    include_pulsar_term, phase_parameterization,
 ):
     """Compute CW log-likelihood using vmapped per-pulsar scalar Kalman filters.
 
@@ -485,10 +495,17 @@ def _cw_likelihood(
         Pulsar right ascensions, shape (Npsr,).
     pulsar_dec : jax.Array
         Pulsar declinations, shape (Npsr,).
+    pulsar_distances : jax.Array
+        Pulsar distances in seconds, shape (Npsr,). Only used when
+        include_pulsar_term=True and phase_parameterization=False.
     Npsr : int
         Number of pulsars.
     state_dim : int
         State vector dimension (2 + max_M).
+    include_pulsar_term : bool
+        Whether to include the pulsar term.
+    phase_parameterization : bool
+        If True, use theta.chi for pulsar term phase instead of distances.
 
     Returns
     -------
@@ -500,23 +517,34 @@ def _cw_likelihood(
         pulsar_ra, pulsar_dec, theta.alpha_gw, theta.delta_gw, theta.psi
     )
 
-    # 2. Compute geometric factors for pulsar term: (1 + n_hat . q_hat) per pulsar
-    if include_pulsar_term:
+    # 2. Compute CW signal — three-way branch (resolved at JIT compile time)
+    if include_pulsar_term and phase_parameterization:
+        # Phase reparameterization: use per-pulsar chi from theta
+        from argus.gravitational_waves import compute_cw_signal_single_pulsar_phase
+        cw_signal = jax.vmap(
+            lambda t, fp, fc, ch: compute_cw_signal_single_pulsar_phase(
+                t, theta.f_gw, theta.h0, theta.cos_iota, theta.Phi0, fp, fc, ch
+            )
+        )(toas, F_plus, F_cross, theta.chi)
+    elif include_pulsar_term:
+        # Distance-based pulsar term (original implementation)
         from argus.gravitational_waves import gw_propagation_direction, pulsar_direction
         n_hat = gw_propagation_direction(theta.alpha_gw, theta.delta_gw)
         geometric_factors = jax.vmap(
             lambda ra, dec: 1.0 + jnp.dot(n_hat, pulsar_direction(ra, dec))
         )(pulsar_ra, pulsar_dec)
+        cw_signal = jax.vmap(
+            lambda t, fp, fc, d, g: compute_cw_signal_single_pulsar(
+                t, theta.f_gw, theta.h0, theta.cos_iota, theta.Phi0, fp, fc, d, g
+            )
+        )(toas, F_plus, F_cross, pulsar_distances, geometric_factors)
     else:
-        geometric_factors = jnp.zeros(Npsr)
-
-    # 3. Compute CW signal at all observation times for all pulsars
-    # vmap over pulsars, passing distance and geometric factor
-    cw_signal = jax.vmap(
-        lambda t, fp, fc, d, g: compute_cw_signal_single_pulsar(
-            t, theta.f_gw, theta.h0, theta.cos_iota, theta.Phi0, fp, fc, d, g
-        )
-    )(toas, F_plus, F_cross, pulsar_distances, geometric_factors)
+        # Earth-term only (no pulsar term)
+        cw_signal = jax.vmap(
+            lambda t, fp, fc, d, g: compute_cw_signal_single_pulsar(
+                t, theta.f_gw, theta.h0, theta.cos_iota, theta.Phi0, fp, fc, d, g
+            )
+        )(toas, F_plus, F_cross, pulsar_distances, jnp.zeros(Npsr))
 
     # 3. Subtract CW signal from observations
     z_tilde = residuals - cw_signal

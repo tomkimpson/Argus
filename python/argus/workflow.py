@@ -1,5 +1,7 @@
 """Workflow orchestration and high-level functions for the argus package."""
 
+import os
+
 from argus import (
     data_loader,
     jax_kalman_filter,
@@ -35,9 +37,11 @@ def setup_data_and_kalman_filter(config, logger, use_gw, signal_model="gwb"):
 
     if signal_model == "cw":
         include_pulsar_term = config.getboolean("CWModel", "include_pulsar_term", fallback=False)
+        phase_parameterization = config.getboolean("CWModel", "phase_parameterization", fallback=True)
 
         # Override pulsar distances from JSON file if provided
-        if include_pulsar_term:
+        # Only needed for distance-based pulsar term (not phase parameterization)
+        if include_pulsar_term and not phase_parameterization:
             distance_file = config.get("CWModel", "pulsar_distances_path", fallback="")
             if distance_file.strip():
                 import json
@@ -54,8 +58,12 @@ def setup_data_and_kalman_filter(config, logger, use_gw, signal_model="gwb"):
                         metadata.at[idx, "distance_kpc"] = dist_data[psr_name]["distance_kpc"]
                 logger.info(f"Loaded pulsar distances from {distance_file}")
 
-        logger.info(f"Initializing CW per-pulsar Kalman filter (pulsar_term={include_pulsar_term})...")
-        KF = cw_kalman_filter.CWKalmanFilter(data=pulsar_data, include_pulsar_term=include_pulsar_term)
+        logger.info(f"Initializing CW per-pulsar Kalman filter (pulsar_term={include_pulsar_term}, phase_param={phase_parameterization})...")
+        KF = cw_kalman_filter.CWKalmanFilter(
+            data=pulsar_data,
+            include_pulsar_term=include_pulsar_term,
+            phase_parameterization=phase_parameterization,
+        )
     else:
         logger.info("Initializing joint GWB Kalman filter...")
         KF = jax_kalman_filter.JaxKalmanFilter(data=pulsar_data, use_gw=use_gw)
@@ -124,26 +132,55 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     else:
         bayesian_inference.test_likelihood_performance(KF, config, n_pulsars, logger)
 
-    # Run NumPyro NUTS inference
-    logger.info(f"Running NUMPYRO inference (mode={signal_model})...")
-    results = bayesian_inference.run_nuts_sampling(
-        KF,
-        config,
-        len(pulsar_data["metadata"]),
-        sigma_p_array,
-        gamma_p_array,
-        efac_array,
-        equad_array,
-        mode=signal_model,
-    )
+    # Select sampler and run inference
+    sampler_method = config.get("Data", "sampler", fallback="nuts").strip().lower()
+    log_evidence = None
+
+    if sampler_method in ("nested", "jaxns"):
+        logger.info(f"Running jaxns nested sampling (mode={signal_model})...")
+        results, log_evidence = bayesian_inference.run_nested_sampling(
+            KF,
+            config,
+            len(pulsar_data["metadata"]),
+            sigma_p_array,
+            gamma_p_array,
+            efac_array,
+            equad_array,
+            mode=signal_model,
+        )
+        logger.info(
+            f"Bayesian evidence: log_Z = {log_evidence[0]:.2f} +/- {log_evidence[1]:.2f}"
+        )
+    else:
+        logger.info(f"Running NUMPYRO NUTS inference (mode={signal_model})...")
+        results = bayesian_inference.run_nuts_sampling(
+            KF,
+            config,
+            len(pulsar_data["metadata"]),
+            sigma_p_array,
+            gamma_p_array,
+            efac_array,
+            equad_array,
+            mode=signal_model,
+        )
 
     # Save results
     results_path = io_manager.save_numpyro_results(
         results, output_dir, output_id, logger
     )
 
-    # Create plots and diagnostics for NUTS
-    logger.info("Creating corner plot and diagnostics for NUTS results...")
+    # Save evidence if nested sampling was used
+    if log_evidence is not None:
+        import json
+        evidence_path = os.path.join(output_dir, f"{output_id}_evidence.json")
+        with open(evidence_path, "w") as f:
+            json.dump(
+                {"log_Z_mean": log_evidence[0], "log_Z_uncert": log_evidence[1]}, f
+            )
+        logger.info(f"Evidence saved to {evidence_path}")
+
+    # Create plots and diagnostics
+    logger.info("Creating corner plot and diagnostics...")
 
     # Create corner plot
     try:

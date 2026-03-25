@@ -357,3 +357,54 @@ def compute_cw_signal_single_pulsar(toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cr
     # Use pulsar_distance as a switch: when 0, no pulsar term subtracted
     has_pulsar_term = jnp.where(pulsar_distance > 0.0, 1.0, 0.0)
     return earth_term - has_pulsar_term * pulsar_term
+
+
+def compute_cw_signal_single_pulsar_phase(toas, f_gw, h0, cos_iota, Phi0,
+                                           F_plus, F_cross, chi):
+    """Compute CW timing residuals using phase-parameterized pulsar term.
+
+    Instead of computing the pulsar term from physical distance, uses a
+    per-pulsar phase parameter chi that absorbs the distance-dependent delay:
+    chi = Omega * (1 + n_hat . q_hat) * d mod 2pi  (arXiv 2410.10087).
+
+    This eliminates the highly multimodal likelihood surface caused by
+    distance-dependent phase oscillations, enabling efficient NUTS sampling.
+
+    Parameters
+    ----------
+    toas : jax.Array
+        Observation times for this pulsar, shape (nobs,).
+    f_gw : float
+        Gravitational wave frequency in Hz.
+    h0 : float
+        Strain amplitude.
+    cos_iota : float
+        Cosine of the inclination angle.
+    Phi0 : float
+        Initial GW phase in radians.
+    F_plus : float
+        Plus antenna pattern function value for this pulsar.
+    F_cross : float
+        Cross antenna pattern function value for this pulsar.
+    chi : float
+        Per-pulsar phase parameter in [0, 2pi), replacing the
+        distance-based pulsar term delay.
+
+    Returns
+    -------
+    jax.Array
+        CW timing residuals (earth - pulsar), shape (nobs,).
+    """
+    Omega = 2.0 * jnp.pi * f_gw
+    amp_plus = h0 * (1.0 + cos_iota**2) / (2.0 * Omega)
+    amp_cross = -h0 * cos_iota / Omega
+
+    # Earth term
+    phase_e = Omega * toas + Phi0
+    earth_term = F_plus * amp_plus * jnp.sin(phase_e) + F_cross * amp_cross * jnp.cos(phase_e)
+
+    # Pulsar term with phase reparameterization
+    phase_p = Omega * toas + Phi0 - chi
+    pulsar_term = F_plus * amp_plus * jnp.sin(phase_p) + F_cross * amp_cross * jnp.cos(phase_p)
+
+    return earth_term - pulsar_term

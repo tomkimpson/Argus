@@ -38,6 +38,7 @@ dependencies = [
     "corner>=2.2.0",
     "flax>=0.8.0",
     "tensorflow-probability>=0.24.0",
+    "jaxns>=2.6.0",
 ]
 
 [project.optional-dependencies]

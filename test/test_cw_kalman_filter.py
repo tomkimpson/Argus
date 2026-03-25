@@ -109,6 +109,7 @@ def sample_cw_params():
         cos_iota=0.5,
         psi=0.7,
         Phi0=0.3,
+        chi=jnp.zeros(3),
         gamma_p=jnp.array([1e-8, 1e-8, 1e-8]),
         sigma_p=jnp.array([1e-15, 1e-15, 1e-15]),
         EFAC=jnp.ones(3),
@@ -258,6 +259,7 @@ class TestCWKalmanFilter:
             cos_iota=0.5,
             psi=0.7,
             Phi0=0.3,
+            chi=jnp.zeros(3),
             gamma_p=jnp.array([1e-8, 1e-8, 1e-8]),
             sigma_p=jnp.array([1e-15, 1e-15, 1e-15]),
             EFAC=jnp.ones(3),
@@ -272,6 +274,7 @@ class TestCWKalmanFilter:
             cos_iota=0.5,
             psi=0.7,
             Phi0=1.5,  # Different phase, but h0=0 so doesn't matter
+            chi=jnp.zeros(3),
             gamma_p=jnp.array([1e-8, 1e-8, 1e-8]),
             sigma_p=jnp.array([1e-15, 1e-15, 1e-15]),
             EFAC=jnp.ones(3),
@@ -296,6 +299,7 @@ class TestCWKalmanFilter:
                 cos_iota=0.5,
                 psi=0.7,
                 Phi0=0.3,
+                chi=jnp.zeros(3),
                 gamma_p=jnp.array([1e-8, 1e-8, 1e-8]),
                 sigma_p=jnp.array([1e-15, 1e-15, 1e-15]),
                 EFAC=jnp.ones(3),
@@ -321,6 +325,7 @@ class TestCWKalmanFilter:
                 cos_iota=0.5,
                 psi=0.7,
                 Phi0=0.3,
+                chi=jnp.zeros(3),
                 gamma_p=jnp.array([1e-8, 1e-8, 1e-8]),
                 sigma_p=jnp.array([1e-15, 1e-15, 1e-15]),
                 EFAC=jnp.ones(3),
@@ -329,6 +334,64 @@ class TestCWKalmanFilter:
 
         ll1 = kf.get_likelihood(make_params(0.0))
         ll2 = kf.get_likelihood(make_params(1e-5))  # Large amplitude to ensure measurable difference
+        assert not jnp.allclose(ll1, ll2)
+
+
+class TestPhaseParameterizedLikelihood:
+    """Tests for phase-reparameterized pulsar term likelihood."""
+
+    def test_phase_param_likelihood_finite(self, simple_cw_data):
+        """Likelihood with phase parameterization should return finite value."""
+        kf = CWKalmanFilter(
+            simple_cw_data, include_pulsar_term=True, phase_parameterization=True,
+        )
+        params = CWParameters(
+            alpha_gw=2.0, delta_gw=0.5, f_gw=1e-8, h0=1e-15,
+            cos_iota=0.5, psi=0.7, Phi0=0.3,
+            chi=jnp.array([1.0, 2.0, 3.0]),
+            gamma_p=jnp.array([1e-8, 1e-8, 1e-8]),
+            sigma_p=jnp.array([1e-15, 1e-15, 1e-15]),
+            EFAC=jnp.ones(3), EQUAD=jnp.full(3, 1e-8),
+        )
+        ll = kf.get_likelihood(params)
+        assert jnp.isfinite(ll)
+
+    def test_phase_param_gradient_wrt_chi(self, simple_cw_data):
+        """Gradients w.r.t. chi elements should be finite (required for NUTS)."""
+        kf = CWKalmanFilter(
+            simple_cw_data, include_pulsar_term=True, phase_parameterization=True,
+        )
+
+        def ll_fn(chi):
+            params = CWParameters(
+                alpha_gw=2.0, delta_gw=0.5, f_gw=1e-8, h0=1e-15,
+                cos_iota=0.5, psi=0.7, Phi0=0.3, chi=chi,
+                gamma_p=jnp.array([1e-8, 1e-8, 1e-8]),
+                sigma_p=jnp.array([1e-15, 1e-15, 1e-15]),
+                EFAC=jnp.ones(3), EQUAD=jnp.full(3, 1e-8),
+            )
+            return kf.get_likelihood(params)
+
+        grad = jax.grad(ll_fn)(jnp.array([1.0, 2.0, 3.0]))
+        assert jnp.all(jnp.isfinite(grad))
+
+    def test_phase_param_chi_changes_likelihood(self, simple_cw_data):
+        """Different chi values should produce different likelihoods."""
+        kf = CWKalmanFilter(
+            simple_cw_data, include_pulsar_term=True, phase_parameterization=True,
+        )
+
+        def make_params(chi):
+            return CWParameters(
+                alpha_gw=2.0, delta_gw=0.5, f_gw=1e-8, h0=1e-5,
+                cos_iota=0.5, psi=0.7, Phi0=0.3, chi=chi,
+                gamma_p=jnp.array([1e-8, 1e-8, 1e-8]),
+                sigma_p=jnp.array([1e-15, 1e-15, 1e-15]),
+                EFAC=jnp.ones(3), EQUAD=jnp.full(3, 1e-8),
+            )
+
+        ll1 = kf.get_likelihood(make_params(jnp.zeros(3)))
+        ll2 = kf.get_likelihood(make_params(jnp.array([1.0, 2.0, 3.0])))
         assert not jnp.allclose(ll1, ll2)
 
 
