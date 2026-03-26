@@ -42,7 +42,8 @@ INJECTION = {
 }
 
 
-def load_data_and_filter(config_path):
+def load_data_and_filter(config_path, include_pulsar_term=False,
+                         phase_parameterization=False):
     """Load data and initialize the CW Kalman filter."""
     config = configparser.ConfigParser()
     config.read(config_path)
@@ -67,8 +68,12 @@ def load_data_and_filter(config_path):
     n_pulsars = len(pulsar_data["metadata"])
     print(f"Loaded {n_pulsars} pulsars")
 
-    # Earth-term only filter (no pulsar term complications)
-    kf = cw_kalman_filter.CWKalmanFilter(data=pulsar_data, include_pulsar_term=False)
+    kf = cw_kalman_filter.CWKalmanFilter(
+        data=pulsar_data,
+        include_pulsar_term=include_pulsar_term,
+        phase_parameterization=phase_parameterization,
+    )
+    print(f"Kalman filter: pulsar_term={include_pulsar_term}, phase_param={phase_parameterization}")
 
     # Resolve relative paths in config before loading noise
     config_dir = os.path.dirname(os.path.abspath(config_path))
@@ -115,10 +120,14 @@ def make_params(kf, n_pulsars, efac_array, equad_array, sigma_p_array, gamma_p_a
     else:
         equad = jnp.full(n_pulsars, 1e-8)
 
+    chi = overrides.get("chi", jnp.zeros(n_pulsars))
+    if not isinstance(chi, jnp.ndarray):
+        chi = jnp.array(chi)
+
     return CWParameters(
         alpha_gw=alpha_gw, delta_gw=delta_gw, f_gw=f_gw, h0=h0,
         cos_iota=cos_iota, psi=psi, Phi0=Phi0,
-        chi=jnp.zeros(n_pulsars),
+        chi=chi,
         gamma_p=gamma_p, sigma_p=sigma_p, EFAC=efac, EQUAD=equad,
     )
 
@@ -455,13 +464,211 @@ def ablation_test():
         print("\nmatplotlib not available, skipping plot")
 
 
+def pulsar_term_profiles():
+    """Profile likelihood with phase-reparameterized pulsar term.
+
+    Compares Earth-term-only vs pulsar-term profiles to show how the
+    pulsar term constrains (cos_iota, psi, Phi0) and whether it
+    introduces new multimodal structure.
+
+    Chi values are set to zero (uniform prior midpoint) for the sweep.
+    A separate chi sweep is also performed for a representative pulsar.
+    """
+    config_path = "configs/phase_reparam_config.ini"
+
+    # Load both filters
+    print("=" * 60)
+    print("PULSAR TERM LIKELIHOOD PROFILES")
+    print("=" * 60)
+
+    print("\nLoading Earth-term-only filter...")
+    kf_earth, n_pulsars, efac_array, equad_array, sigma_p_array, gamma_p_array = (
+        load_data_and_filter(config_path, include_pulsar_term=False)
+    )
+
+    print("\nLoading phase-reparam pulsar term filter...")
+    kf_pt, _, _, _, _, _ = load_data_and_filter(
+        config_path, include_pulsar_term=True, phase_parameterization=True,
+    )
+
+    # Override noise with posterior medians if available
+    nc_path = "outputs/cw_fixed_fgw_pt_intensive/no_gw/cw_fixed_fgw_pt_intensive_results.nc"
+    if os.path.exists(nc_path):
+        print(f"\nLoading posterior noise params from: {nc_path}")
+        efac_array, equad_array, sigma_p_array, gamma_p_array = (
+            load_noise_from_posterior(nc_path)
+        )
+
+    # CW parameter sweeps
+    sweeps = [
+        ("log10_h0", r"$\log_{10} h_0$",
+         np.linspace(-16, -12, 200), INJECTION["log10_h0"]),
+        ("log10_f_gw", r"$\log_{10} f_{\rm gw}$",
+         np.linspace(-9, -7, 200), INJECTION["log10_f_gw"]),
+        ("alpha_gw", r"$\alpha_{\rm gw}$ (rad)",
+         np.linspace(0, 2 * np.pi, 200), INJECTION["alpha_gw"]),
+        ("delta_gw", r"$\delta_{\rm gw}$ (rad)",
+         np.linspace(-np.pi / 2, np.pi / 2, 200), INJECTION["delta_gw"]),
+        ("cos_iota", r"$\cos \iota$",
+         np.linspace(-1, 1, 200), INJECTION["cos_iota"]),
+        ("psi", r"$\psi$ (rad)",
+         np.linspace(0, np.pi, 200), INJECTION["psi"]),
+        ("Phi0", r"$\Phi_0$ (rad)",
+         np.linspace(0, 2 * np.pi, 200), INJECTION["Phi0"]),
+    ]
+
+    # True chi values computed from injection: chi = Omega * d/c * (1 + n.q) mod 2pi
+    # Using actual pulsar distances from enterprise/ATNF catalog
+    chi_true = np.array([
+        3.139269, 1.549192, 0.446919, 1.083533, 3.976382, 1.487481,
+        4.819644, 3.133895, 0.439529, 3.555301, 2.880136, 2.758805,
+        5.106338, 3.914459, 3.426965, 6.216748, 5.671295, 5.818327,
+        4.352608, 0.033926, 5.018742, 3.342722, 1.709409, 2.923958,
+        0.937368, 2.824957, 0.243224, 0.537355, 0.439499, 4.706732,
+        5.779778, 5.354631,
+    ])
+
+    chi_true_jax = jnp.array(chi_true)
+    print(f"\nComputed true chi values from injection (range: [{chi_true.min():.3f}, {chi_true.max():.3f}])")
+
+    # Warmup JIT for both filters
+    print("\nWarming up JIT (Earth-term)...")
+    params = make_params(kf_earth, n_pulsars, efac_array, equad_array,
+                         sigma_p_array, gamma_p_array)
+    ll_earth_inj = float(kf_earth.get_likelihood(params))
+    print(f"  Earth-term LL at injection: {ll_earth_inj:.2f}")
+
+    print("Warming up JIT (pulsar term, true chi)...")
+    params_pt = make_params(kf_pt, n_pulsars, efac_array, equad_array,
+                            sigma_p_array, gamma_p_array, chi=chi_true_jax)
+    ll_pt_inj = float(kf_pt.get_likelihood(params_pt))
+    print(f"  Pulsar-term LL at injection (true chi): {ll_pt_inj:.2f}")
+
+    # Run sweeps for both
+    results_earth = {}
+    results_pt = {}
+
+    for param_name, display_name, grid, inj_val in sweeps:
+        print(f"\nSweeping {param_name}...")
+
+        ll_earth = sweep_parameter(
+            kf_earth, n_pulsars, efac_array, equad_array, sigma_p_array, gamma_p_array,
+            param_name, grid,
+        )
+        ll_pt = sweep_parameter(
+            kf_pt, n_pulsars, efac_array, equad_array, sigma_p_array, gamma_p_array,
+            param_name, grid, chi=chi_true_jax,
+        )
+
+        peak_earth = grid[np.argmax(ll_earth)]
+        peak_pt = grid[np.argmax(ll_pt)]
+
+        results_earth[param_name] = {
+            "grid": grid, "ll": ll_earth, "peak_val": peak_earth,
+            "inj_val": inj_val, "display_name": display_name,
+        }
+        results_pt[param_name] = {
+            "grid": grid, "ll": ll_pt, "peak_val": peak_pt,
+            "inj_val": inj_val, "display_name": display_name,
+        }
+
+        print(f"  Earth-term peak: {peak_earth:.4f} (offset: {peak_earth - inj_val:.4f})")
+        print(f"  Pulsar-term peak: {peak_pt:.4f} (offset: {peak_pt - inj_val:.4f})")
+
+    # Chi sweep for a representative pulsar (pulsar 0)
+    # Hold all other chi at their true values, sweep chi[0]
+    print(f"\nSweeping chi[0] (pulsar 0, true chi[0]={chi_true[0]:.4f})...")
+    chi_grid = np.linspace(0, 2 * np.pi, 200)
+    ll_chi = []
+    for chi_val in chi_grid:
+        chi_arr = chi_true_jax.at[0].set(chi_val)
+        params = make_params(
+            kf_pt, n_pulsars, efac_array, equad_array, sigma_p_array, gamma_p_array,
+            chi=chi_arr,
+        )
+        ll_chi.append(float(kf_pt.get_likelihood(params)))
+    ll_chi = np.array(ll_chi)
+
+    # Plot
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    matplotlib.rcParams.update({
+        "font.family": "serif", "font.size": 11,
+        "axes.labelsize": 12, "savefig.dpi": 300,
+    })
+
+    fig, axes = plt.subplots(2, 4, figsize=(18, 9))
+    axes = axes.flatten()
+
+    for i, (param_name, display_name, _, _) in enumerate(sweeps):
+        ax = axes[i]
+        re = results_earth[param_name]
+        rp = results_pt[param_name]
+
+        # Normalize to peak
+        ll_e_norm = re["ll"] - re["ll"].max()
+        ll_p_norm = rp["ll"] - rp["ll"].max()
+
+        ax.plot(re["grid"], ll_e_norm, "b-", lw=1.2, alpha=0.8, label="Earth-term")
+        ax.plot(rp["grid"], ll_p_norm, "r-", lw=1.2, alpha=0.8, label="Pulsar-term")
+        ax.axvline(re["inj_val"], color="green", ls="--", lw=1.5, label="Injection")
+        ax.set_xlabel(re["display_name"])
+        ax.set_ylabel(r"$\Delta \ln \mathcal{L}$")
+        # Auto-scale to show all data with 5% padding
+        ymin = min(ll_e_norm.min(), ll_p_norm.min())
+        ax.set_ylim(bottom=ymin * 1.05, top=max(ll_e_norm.max(), ll_p_norm.max()) * 1.1 + 1)
+        ax.legend(fontsize=8)
+
+    # Chi panel
+    ax = axes[7]
+    ll_chi_norm = ll_chi - ll_chi.max()
+    ax.plot(chi_grid, ll_chi_norm, "r-", lw=1.2)
+    ax.axvline(chi_true[0], color="green", ls="--", lw=1.5, label="True chi")
+    ax.set_xlabel(r"$\chi_0$ (rad)")
+    ax.set_ylabel(r"$\Delta \ln \mathcal{L}$")
+    ax.set_title("chi[0] (pulsar 0)")
+    ax.set_ylim(bottom=ll_chi_norm.min() * 1.05, top=ll_chi_norm.max() * 1.1 + 0.01)
+    ax.legend(fontsize=8)
+
+    fig.suptitle(
+        "Likelihood Profiles: Earth-term vs Phase-Reparam Pulsar Term\n"
+        r"(all other params at injection, $\chi$ at true values)",
+        fontsize=13, y=1.02,
+    )
+    plt.tight_layout()
+
+    outdir = "outputs"
+    os.makedirs(outdir, exist_ok=True)
+    outpath = os.path.join(outdir, "likelihood_profiles_pulsar_term.png")
+    fig.savefig(outpath, dpi=300, bbox_inches="tight")
+    print(f"\nPlot saved to: {outpath}")
+
+    # Summary table
+    print("\n" + "=" * 80)
+    print("PULSAR TERM PROFILE SUMMARY")
+    print("=" * 80)
+    print(f"{'Parameter':<15} {'Injection':>10} {'Earth peak':>12} {'PT peak':>12} {'Earth off':>10} {'PT off':>10}")
+    print("-" * 80)
+    for param_name, _, _, _ in sweeps:
+        re = results_earth[param_name]
+        rp = results_pt[param_name]
+        print(f"{param_name:<15} {re['inj_val']:>10.4f} {re['peak_val']:>12.4f} {rp['peak_val']:>12.4f} "
+              f"{re['peak_val'] - re['inj_val']:>10.4f} {rp['peak_val'] - rp['inj_val']:>10.4f}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="CW likelihood profiling")
     parser.add_argument("--ablation", action="store_true",
                         help="Run M-matrix ablation test for delta_gw")
+    parser.add_argument("--pulsar-term", action="store_true",
+                        help="Compare Earth-term vs pulsar-term profiles")
     args = parser.parse_args()
 
     if args.ablation:
         ablation_test()
+    elif args.pulsar_term:
+        pulsar_term_profiles()
     else:
         main()
