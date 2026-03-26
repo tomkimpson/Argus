@@ -39,6 +39,8 @@ dependencies = [
     "flax>=0.8.0",
     "tensorflow-probability>=0.24.0",
     "jaxns>=2.6.0",
+    "blackjax>=1.2.0",
+    "dynesty>=2.1.0",
 ]
 
 [project.optional-dependencies]

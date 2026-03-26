@@ -843,6 +843,191 @@ def run_nested_sampling(
     return inf_data, (log_Z_mean, log_Z_uncert)
 
 
+def run_tempered_smc(
+    kalman_filter,
+    config,
+    n_pulsars,
+    sigma_p_array,
+    gamma_p_array,
+    efac_array,
+    equad_array,
+    mode="cw",
+):
+    """Run blackjax tempered SMC inference for CW signal analysis.
+
+    Tempered SMC moves particles from the prior to the posterior through
+    tempered distributions, handling multimodal posteriors and providing
+    evidence estimates as a byproduct.
+
+    Parameters
+    ----------
+    kalman_filter : CWKalmanFilter
+        CW Kalman filter instance.
+    config : configparser.ConfigParser
+        Configuration object.
+    n_pulsars : int
+        Number of pulsars.
+    sigma_p_array : jnp.ndarray
+        Pulsar red noise sigma values.
+    gamma_p_array : jnp.ndarray
+        Pulsar red noise gamma values.
+    efac_array : jnp.ndarray
+        EFAC values.
+    equad_array : jnp.ndarray
+        EQUAD values.
+    mode : str
+        Signal model mode. Currently only 'cw' is supported.
+
+    Returns
+    -------
+    tuple
+        (arviz.InferenceData, smc_results_dict)
+        smc_results_dict contains log_evidence, intermediate_states, etc.
+    """
+    if mode != "cw":
+        raise NotImplementedError(
+            "Tempered SMC is currently only supported for CW mode. "
+            "Use NUTS for GWB inference."
+        )
+
+    from . import tempered_smc as tsmc
+    from .prior_models import get_prior_model_specs
+
+    # Build prior specs (same as NUTS/nested path)
+    prior_specs = get_prior_model_specs(
+        config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array,
+        mode=mode,
+    )
+
+    # Build parameter registry and log-probability functions
+    registry = tsmc.build_parameter_registry(prior_specs, n_pulsars)
+    logprior_fn = tsmc.build_logprior_fn(registry)
+    loglikelihood_fn = tsmc.build_loglikelihood_fn(kalman_filter, registry, n_pulsars)
+
+    # Read SMC config
+    num_particles = config.getint("TemperedSMC", "num_particles", fallback=2000)
+    num_mcmc_steps = config.getint("TemperedSMC", "num_mcmc_steps", fallback=50)
+    adaptive = config.getboolean("TemperedSMC", "adaptive", fallback=True)
+    target_ess = config.getfloat("TemperedSMC", "target_ess", fallback=0.5)
+    num_temps = config.getint("TemperedSMC", "num_temps", fallback=20)
+    temp_spacing = config.get("TemperedSMC", "temp_spacing", fallback="geometric")
+    step_size = config.getfloat("TemperedSMC", "step_size", fallback=0.1)
+    seed = config.getint("TemperedSMC", "seed", fallback=42)
+
+    print(f"Running blackjax tempered SMC...")
+    print(f"  num_particles: {num_particles}")
+    print(f"  num_mcmc_steps: {num_mcmc_steps}")
+    print(f"  adaptive: {adaptive}")
+    print(f"  ndim: {registry.ndim}")
+    print(f"  step_size: {step_size}")
+
+    # Diagonal inverse mass matrix (identity — will be adapted if using inner_kernel_tuning)
+    inverse_mass_matrix = jnp.ones(registry.ndim)
+
+    # Run tempered SMC
+    smc_results = tsmc.run_tempered_smc(
+        logprior_fn=logprior_fn,
+        loglikelihood_fn=loglikelihood_fn,
+        ndim=registry.ndim,
+        num_particles=num_particles,
+        num_mcmc_steps=num_mcmc_steps,
+        adaptive=adaptive,
+        target_ess=target_ess,
+        num_temps=num_temps,
+        temp_spacing=temp_spacing,
+        step_size=step_size,
+        inverse_mass_matrix=inverse_mass_matrix,
+        seed=seed,
+    )
+
+    # Convert to ArviZ
+    inf_data = tsmc.smc_results_to_arviz(
+        smc_results["particles"], registry, n_pulsars
+    )
+
+    return inf_data, smc_results
+
+
+def run_dynesty(
+    kalman_filter,
+    config,
+    n_pulsars,
+    sigma_p_array,
+    gamma_p_array,
+    efac_array,
+    equad_array,
+    mode="cw",
+):
+    """Run dynesty nested sampling inference for CW signal analysis.
+
+    Dynesty is a pure Python nested sampler that avoids JAX JIT compilation
+    overhead by calling the likelihood as a black box. Provides evidence
+    estimates and handles multimodal posteriors.
+
+    Parameters
+    ----------
+    kalman_filter : CWKalmanFilter
+        CW Kalman filter instance.
+    config : configparser.ConfigParser
+        Configuration object.
+    n_pulsars : int
+        Number of pulsars.
+    sigma_p_array : jnp.ndarray
+        Pulsar red noise sigma values.
+    gamma_p_array : jnp.ndarray
+        Pulsar red noise gamma values.
+    efac_array : jnp.ndarray
+        EFAC values.
+    equad_array : jnp.ndarray
+        EQUAD values.
+    mode : str
+        Signal model mode. Currently only 'cw' is supported.
+
+    Returns
+    -------
+    tuple
+        (arviz.InferenceData, (log_Z, log_Z_err))
+    """
+    if mode != "cw":
+        raise NotImplementedError(
+            "Dynesty sampling is currently only supported for CW mode. "
+            "Use NUTS for GWB inference."
+        )
+
+    from . import dynesty_sampler as ds
+    from .prior_models import get_prior_model_specs
+
+    # Build prior specs (same as all other samplers)
+    prior_specs = get_prior_model_specs(
+        config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array,
+        mode=mode,
+    )
+
+    # Build parameter layout, prior transform, and likelihood
+    layout = ds.build_param_layout(prior_specs, n_pulsars)
+    prior_transform = ds.build_prior_transform(layout)
+    log_likelihood = ds.build_likelihood_fn(kalman_filter, layout)
+
+    num_posterior_samples = config.getint(
+        "Dynesty", "num_posterior_samples", fallback=10000
+    )
+
+    # Run dynesty
+    results = ds.run_dynesty_sampling(
+        log_likelihood, prior_transform, layout["ndim"], config,
+    )
+
+    # Evidence
+    log_Z = float(results.logz[-1])
+    log_Z_err = float(results.logzerr[-1])
+    print(f"\nLog-evidence: {log_Z:.2f} +/- {log_Z_err:.2f}")
+
+    # Convert to ArviZ
+    inf_data = ds.dynesty_results_to_arviz(results, layout, num_posterior_samples)
+
+    return inf_data, (log_Z, log_Z_err)
+
+
 def test_likelihood_performance(kalman_filter, config, n_pulsars, logger):
     """Test likelihood evaluation performance using known parameter values.
 

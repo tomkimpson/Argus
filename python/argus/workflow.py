@@ -151,6 +151,37 @@ def run_inference(config_path, use_gw=True, timestamp=None):
         logger.info(
             f"Bayesian evidence: log_Z = {log_evidence[0]:.2f} +/- {log_evidence[1]:.2f}"
         )
+    elif sampler_method in ("smc", "tempered_smc"):
+        logger.info(f"Running blackjax tempered SMC (mode={signal_model})...")
+        results, smc_results = bayesian_inference.run_tempered_smc(
+            KF,
+            config,
+            len(pulsar_data["metadata"]),
+            sigma_p_array,
+            gamma_p_array,
+            efac_array,
+            equad_array,
+            mode=signal_model,
+        )
+        log_evidence = (smc_results["log_evidence"], 0.0)
+        logger.info(
+            f"SMC evidence: log_Z = {smc_results['log_evidence']:.2f}"
+        )
+    elif sampler_method == "dynesty":
+        logger.info(f"Running dynesty nested sampling (mode={signal_model})...")
+        results, log_evidence = bayesian_inference.run_dynesty(
+            KF,
+            config,
+            len(pulsar_data["metadata"]),
+            sigma_p_array,
+            gamma_p_array,
+            efac_array,
+            equad_array,
+            mode=signal_model,
+        )
+        logger.info(
+            f"Bayesian evidence: log_Z = {log_evidence[0]:.2f} +/- {log_evidence[1]:.2f}"
+        )
     else:
         logger.info(f"Running NUMPYRO NUTS inference (mode={signal_model})...")
         results = bayesian_inference.run_nuts_sampling(
@@ -178,6 +209,15 @@ def run_inference(config_path, use_gw=True, timestamp=None):
                 {"log_Z_mean": log_evidence[0], "log_Z_uncert": log_evidence[1]}, f
             )
         logger.info(f"Evidence saved to {evidence_path}")
+
+    # Save SMC diagnostics if tempered SMC was used
+    if sampler_method in ("smc", "tempered_smc"):
+        try:
+            from argus import tempered_smc as tsmc
+            tsmc.save_smc_diagnostics(smc_results, output_dir, output_id)
+            tsmc.plot_smc_diagnostics(smc_results, output_dir, output_id)
+        except Exception as e:
+            logger.error(f"Error saving SMC diagnostics: {e}")
 
     # Create plots and diagnostics
     logger.info("Creating corner plot and diagnostics...")
