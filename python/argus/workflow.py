@@ -182,6 +182,22 @@ def run_inference(config_path, use_gw=True, timestamp=None):
         logger.info(
             f"Bayesian evidence: log_Z = {log_evidence[0]:.2f} +/- {log_evidence[1]:.2f}"
         )
+    elif sampler_method in ("replica_exchange", "pt", "parallel_tempering"):
+        logger.info(f"Running replica exchange MCMC (mode={signal_model})...")
+        results, re_results = bayesian_inference.run_replica_exchange(
+            KF,
+            config,
+            len(pulsar_data["metadata"]),
+            sigma_p_array,
+            gamma_p_array,
+            efac_array,
+            equad_array,
+            mode=signal_model,
+        )
+        logger.info(
+            f"Replica exchange completed: {re_results['num_samples']} samples, "
+            f"wall_time={re_results['wall_time']:.1f}s"
+        )
     else:
         logger.info(f"Running NUMPYRO NUTS inference (mode={signal_model})...")
         results = bayesian_inference.run_nuts_sampling(
@@ -218,6 +234,14 @@ def run_inference(config_path, use_gw=True, timestamp=None):
             tsmc.plot_smc_diagnostics(smc_results, output_dir, output_id)
         except Exception as e:
             logger.error(f"Error saving SMC diagnostics: {e}")
+
+    if sampler_method in ("replica_exchange", "pt", "parallel_tempering"):
+        try:
+            from argus import replica_exchange as re_mod
+            re_mod.save_re_diagnostics(re_results, output_dir, output_id)
+            re_mod.plot_re_diagnostics(re_results, output_dir, output_id)
+        except Exception as e:
+            logger.error(f"Error saving RE diagnostics: {e}")
 
     # Create plots and diagnostics
     logger.info("Creating corner plot and diagnostics...")

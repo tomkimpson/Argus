@@ -670,7 +670,8 @@ def run_nuts_sampling(
     )
 
     # Run sampling
-    rng_key = random.PRNGKey(42)  # Fixed seed for reproducibility
+    seed = config.getint("NUTS", "seed", fallback=42)
+    rng_key = random.PRNGKey(seed)
     sampler.run(rng_key)
 
     # Print summary
@@ -946,6 +947,102 @@ def run_tempered_smc(
     )
 
     return inf_data, smc_results
+
+
+def run_replica_exchange(
+    kalman_filter,
+    config,
+    n_pulsars,
+    sigma_p_array,
+    gamma_p_array,
+    efac_array,
+    equad_array,
+    mode="cw",
+):
+    """Run replica exchange MCMC (parallel tempering) for CW signal analysis.
+
+    Uses HMC within-chain proposals with temperature-based replica exchange
+    to handle multimodal posteriors. The standard approach for PTA CW searches.
+
+    Parameters
+    ----------
+    kalman_filter : CWKalmanFilter
+        CW Kalman filter instance.
+    config : configparser.ConfigParser
+        Configuration object.
+    n_pulsars : int
+        Number of pulsars.
+    sigma_p_array, gamma_p_array, efac_array, equad_array : jnp.ndarray
+        Noise parameter arrays.
+    mode : str
+        Signal model mode. Currently only 'cw' is supported.
+
+    Returns
+    -------
+    tuple
+        (arviz.InferenceData, re_results_dict)
+    """
+    if mode != "cw":
+        raise NotImplementedError(
+            "Replica exchange is currently only supported for CW mode."
+        )
+
+    from . import tempered_smc as tsmc
+    from . import replica_exchange as re
+    from .prior_models import get_prior_model_specs
+
+    prior_specs = get_prior_model_specs(
+        config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array,
+        mode=mode,
+    )
+
+    registry = tsmc.build_parameter_registry(prior_specs, n_pulsars)
+    logprior_fn = tsmc.build_logprior_fn(registry)
+    loglikelihood_fn = tsmc.build_loglikelihood_fn(kalman_filter, registry, n_pulsars)
+
+    # Read [ReplicaExchange] config
+    num_chains = config.getint("ReplicaExchange", "num_chains", fallback=8)
+    num_samples = config.getint("ReplicaExchange", "num_samples", fallback=5000)
+    num_warmup = config.getint("ReplicaExchange", "num_warmup", fallback=500)
+    num_hmc_steps = config.getint("ReplicaExchange", "num_hmc_steps", fallback=10)
+    num_integration_steps = config.getint("ReplicaExchange", "num_integration_steps", fallback=20)
+    beta_hot = config.getfloat("ReplicaExchange", "beta_hot", fallback=0.01)
+    beta_spacing = config.get("ReplicaExchange", "beta_spacing", fallback="geometric")
+    step_size = config.getfloat("ReplicaExchange", "step_size", fallback=-1.0)
+    thin = config.getint("ReplicaExchange", "thin", fallback=1)
+    seed = config.getint("ReplicaExchange", "seed", fallback=42)
+
+    inverse_mass_matrix = None if step_size <= 0 else jnp.ones(registry.ndim)
+
+    print(f"Running replica exchange MCMC...")
+    print(f"  num_chains: {num_chains}")
+    print(f"  num_samples: {num_samples}")
+    print(f"  num_hmc_steps: {num_hmc_steps}")
+    print(f"  num_integration_steps: {num_integration_steps}")
+    print(f"  ndim: {registry.ndim}")
+
+    re_results = re.run_replica_exchange(
+        logprior_fn=logprior_fn,
+        loglikelihood_fn=loglikelihood_fn,
+        ndim=registry.ndim,
+        num_chains=num_chains,
+        num_samples=num_samples,
+        num_warmup=num_warmup,
+        num_hmc_steps=num_hmc_steps,
+        num_integration_steps=num_integration_steps,
+        beta_hot=beta_hot,
+        beta_spacing=beta_spacing,
+        step_size=step_size,
+        inverse_mass_matrix=inverse_mass_matrix,
+        seed=seed,
+        thin=thin,
+    )
+
+    inf_data = re.re_results_to_arviz(
+        re_results["cold_chain_samples"], registry, n_pulsars,
+    )
+
+    return inf_data, re_results
 
 
 def run_dynesty(

@@ -465,6 +465,7 @@ class CWKalmanFilter:
         )
 
 
+
 @partial(jax.jit, static_argnames=("Npsr", "state_dim", "include_pulsar_term", "phase_parameterization"))
 def _cw_likelihood(
     theta, toas, residuals, errors, mask, dt, H, P_eps,

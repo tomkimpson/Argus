@@ -18,6 +18,7 @@ from . import (
     model,
     parameter_sampling,
     prior_models,
+    replica_exchange,
     utils,
     workflow,
 )
@@ -36,6 +37,7 @@ __all__ = [
     "model",
     "parameter_sampling",
     "prior_models",
+    "replica_exchange",
     "utils",
     "workflow",
     # Key functions

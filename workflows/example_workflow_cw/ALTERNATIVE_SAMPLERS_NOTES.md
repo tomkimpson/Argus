@@ -149,6 +149,43 @@ QuickCW achieves a ~10,000× speedup for extrinsic parameter updates by caching 
 | **Development effort** | Medium (already started) | Medium | Low (NumPyro built-in) | Low (scripting only) |
 | **f_gw treatment** | Continuous | Continuous | Continuous | Discrete grid |
 
+## Option 5: Laplace Marginalisation of Noise Parameters (Attempted, Archived)
+
+**Status:** Implemented 2026-03-26, tested with NUTS and dynesty, archived 2026-03-27.
+
+**Approach:** Analytically marginalise the 62 per-pulsar red noise parameters (gamma_p, sigma_p) via Laplace approximation, reducing the sampled dimensionality from ~107 to ~43. For each pulsar, a 2D Newton solve finds the MAP of (log10_gamma_p, log10_ratio) and a Hessian-based Gaussian integral replaces explicit sampling. All 32 pulsars are vmapped in parallel.
+
+**Why it didn't work in practice:**
+
+- **NUTS:** Each leapfrog step requires backpropagating through the Newton iterations (nested autodiff through `jax.grad`/`jax.hessian` of `lax.scan`). Per-step cost ~4.5s vs 0.02s for the standard likelihood (~200x slower). A 500-sample run would take ~67 hours per chain.
+
+- **Dynesty:** Each likelihood evaluation runs 32 × 8 Newton steps with grad + Hessian through the KF scan. Per-eval cost ~250s vs ~5s. The 107-dim standard dynesty-500 run converges faster in wall time despite the higher dimensionality.
+
+The per-likelihood cost increase of 50–200x dominates over sampling efficiency gains from halving the dimensions. The concept of reducing dimensionality is sound, but the inner optimisation cost is prohibitive with current implementation.
+
+**Possible future improvements:** Implicit differentiation via `jax.custom_jvp` at the Newton solution would eliminate nested autodiff for gradient-based samplers, potentially making this viable. The core code is preserved in `archive/laplace_marginalisation/`.
+
+## Option 6: Replica Exchange MCMC with HMC (Implemented 2026-03-27)
+
+**Status:** Implemented, first run in progress (job 10831402).
+
+**Approach:** K=8 persistent chains at fixed inverse temperatures (geometric ladder from β=1 to β=0.01), each running HMC proposals (fixed trajectory, not NUTS). Periodic swap proposals between adjacent temperatures via Metropolis-Hastings acceptance. NUTS warmup on the cold chain adapts step size + diagonal mass matrix; hot chain step sizes scaled by β^(-0.25).
+
+**Implementation:** `python/argus/replica_exchange.py`. Config via `[ReplicaExchange]` section, `sampler = replica_exchange` or `pt`.
+
+**First-run observations (2026-03-27):**
+
+- NUTS warmup took ~1.8 hours (includes JIT of NUTS kernel). Adapted step size: 0.048.
+- JIT compilation of the main `lax.scan` loop is very slow (~2+ hours). This is because the entire 5000-iteration loop with nested `vmap(scan(hmc))` inside an outer `scan` is compiled as a single XLA program.
+
+**Known issue — JIT compilation time:**
+
+The current implementation puts the entire sampling loop inside `jax.lax.scan`, creating a massive XLA graph. This contrasts with NumPyro's NUTS which uses a Python outer loop calling a JIT-compiled single-step kernel — fast compile (~seconds), negligible Python overhead per iteration given the ~5-10s/step cost.
+
+**Proposed fix — hybrid Python/JAX loop:**
+
+Refactor to JIT-compile only one iteration (10 HMC steps + swap = small graph, fast compile) and use a Python loop for the outer 5000-iteration sample collection. This is the same pattern NumPyro uses. Expected impact: compilation drops from hours to minutes, with ~10-20% slower sampling from Python loop overhead — a clear net win. The inner `vmap(scan(10 × hmc_step))` stays fully compiled for GPU efficiency.
+
 ## Recommended Priority
 
 1. **Parallel tempering** — highest priority, already in development, proven approach for this exact problem in the PTA literature
