@@ -81,7 +81,8 @@ site/
 # Workflow outputs
 workflows/**/outputs/
 
-# CW comparison workflows and legacy (kept locally, not tracked)
+# Exploratory work (kept locally, not tracked)
+archive/
 workflows/cw_*/
 workflows/legacy/
 
