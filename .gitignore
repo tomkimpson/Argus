@@ -81,6 +81,10 @@ site/
 # Workflow outputs
 workflows/**/outputs/
 
+# CW comparison workflows and legacy (kept locally, not tracked)
+workflows/cw_*/
+workflows/legacy/
+
 # IPTA Mock Data Challenge data files (downloaded separately)
 workflows/data/IPTA_MockDataChallenge2/dataset_*/
 
