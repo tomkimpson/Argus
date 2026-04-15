@@ -151,53 +151,6 @@ def run_inference(config_path, use_gw=True, timestamp=None):
         logger.info(
             f"Bayesian evidence: log_Z = {log_evidence[0]:.2f} +/- {log_evidence[1]:.2f}"
         )
-    elif sampler_method in ("smc", "tempered_smc"):
-        logger.info(f"Running blackjax tempered SMC (mode={signal_model})...")
-        results, smc_results = bayesian_inference.run_tempered_smc(
-            KF,
-            config,
-            len(pulsar_data["metadata"]),
-            sigma_p_array,
-            gamma_p_array,
-            efac_array,
-            equad_array,
-            mode=signal_model,
-        )
-        log_evidence = (smc_results["log_evidence"], 0.0)
-        logger.info(
-            f"SMC evidence: log_Z = {smc_results['log_evidence']:.2f}"
-        )
-    elif sampler_method == "dynesty":
-        logger.info(f"Running dynesty nested sampling (mode={signal_model})...")
-        results, log_evidence = bayesian_inference.run_dynesty(
-            KF,
-            config,
-            len(pulsar_data["metadata"]),
-            sigma_p_array,
-            gamma_p_array,
-            efac_array,
-            equad_array,
-            mode=signal_model,
-        )
-        logger.info(
-            f"Bayesian evidence: log_Z = {log_evidence[0]:.2f} +/- {log_evidence[1]:.2f}"
-        )
-    elif sampler_method in ("replica_exchange", "pt", "parallel_tempering"):
-        logger.info(f"Running replica exchange MCMC (mode={signal_model})...")
-        results, re_results = bayesian_inference.run_replica_exchange(
-            KF,
-            config,
-            len(pulsar_data["metadata"]),
-            sigma_p_array,
-            gamma_p_array,
-            efac_array,
-            equad_array,
-            mode=signal_model,
-        )
-        logger.info(
-            f"Replica exchange completed: {re_results['num_samples']} samples, "
-            f"wall_time={re_results['wall_time']:.1f}s"
-        )
     else:
         logger.info(f"Running NUMPYRO NUTS inference (mode={signal_model})...")
         results = bayesian_inference.run_nuts_sampling(
