@@ -91,3 +91,4 @@ workflows/data/IPTA_MockDataChallenge2/dataset_*/
 
 # Claude stuff
 .claude
+CLAUDE.md
