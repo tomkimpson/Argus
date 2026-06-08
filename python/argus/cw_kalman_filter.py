@@ -21,7 +21,13 @@ from argus.model import get_F_block, get_Q_block
 from argus.gravitational_waves import (
     compute_antenna_patterns,
     compute_cw_signal_single_pulsar,
+    compute_cw_signal_single_pulsar_phase,
+    gw_propagation_direction,
+    pulsar_direction,
 )
+
+# kpc -> seconds (light travel time): kpc in metres / c in m/s.
+KPC_TO_SECONDS = 3.0857e19 / 2.9979e8
 
 
 def get_logger():
@@ -372,7 +378,6 @@ class CWKalmanFilter:
 
         # Pulsar distances in seconds (d/c) for distance-based pulsar term
         if include_pulsar_term and not phase_parameterization:
-            KPC_TO_SECONDS = 3.0857e19 / 2.9979e8  # kpc -> meters -> seconds
             distances_kpc = df_psr["distance_kpc"].values.astype(float)
             self.pulsar_distances = jnp.array(distances_kpc * KPC_TO_SECONDS)
             get_logger().info(f"Pulsar distances (kpc): min={distances_kpc.min():.2f}, max={distances_kpc.max():.2f}")
@@ -521,7 +526,6 @@ def _cw_likelihood(
     # 2. Compute CW signal — three-way branch (resolved at JIT compile time)
     if include_pulsar_term and phase_parameterization:
         # Phase reparameterization: use per-pulsar chi from theta
-        from argus.gravitational_waves import compute_cw_signal_single_pulsar_phase
         cw_signal = jax.vmap(
             lambda t, fp, fc, ch: compute_cw_signal_single_pulsar_phase(
                 t, theta.f_gw, theta.h0, theta.cos_iota, theta.Phi0, fp, fc, ch
@@ -529,7 +533,6 @@ def _cw_likelihood(
         )(toas, F_plus, F_cross, theta.chi)
     elif include_pulsar_term:
         # Distance-based pulsar term (original implementation)
-        from argus.gravitational_waves import gw_propagation_direction, pulsar_direction
         n_hat = gw_propagation_direction(theta.alpha_gw, theta.delta_gw)
         geometric_factors = jax.vmap(
             lambda ra, dec: 1.0 + jnp.dot(n_hat, pulsar_direction(ra, dec))

@@ -13,6 +13,47 @@ import tensorflow_probability.substrates.jax as tfp
 tfpd = tfp.distributions
 
 
+# Single source of truth for the CW source scalars. Each entry is
+# (name, fixed_spec_key, derived):
+#   - name           -> the "<name>_transform_params" / "<name>_spec" keys and
+#                        the sample-site name; preserved exactly so results
+#                        parsing (utils.corner_plot, count_free_parameters) keeps
+#                        keying off the same names.
+#   - fixed_spec_key -> spec key holding the fixed value when not reparameterized.
+#   - derived        -> (det_name, fn) when the sampled quantity is transformed
+#                        into a second deterministic (sin_delta_gw -> delta_gw).
+CW_SCALAR_PARAMS = [
+    ("log10_h0", "log10_h0_spec", None),
+    ("alpha_gw", "alpha_gw_spec", None),
+    ("sin_delta_gw", "delta_gw_spec", ("delta_gw", jnp.arcsin)),
+    ("log10_f_gw", "log10_f_gw_spec", None),
+    ("cos_iota", "cos_iota_spec", None),
+    ("psi", "psi_spec", None),
+    ("Phi0", "Phi0_spec", None),
+]
+
+
+def _sample_cw_scalar_numpyro(cw_specs, name, fixed_spec_key, derived):
+    """Sample (or fix) one CW scalar in the numpyro path.
+
+    Reparameterized: x_prime ~ Normal(0,1), x = mean + std * x_prime, both
+    registered as deterministics. Fixed: a single deterministic at the fixed
+    value. The ``derived`` transform (sin_delta_gw -> delta_gw) is applied only
+    to the sampled value; when fixed, the spec already holds the derived
+    quantity. Returns the final value used by the likelihood.
+    """
+    tp = cw_specs[f"{name}_transform_params"]
+    if tp is not None:
+        prime = numpyro.sample(f"{name}_prime", dist.Normal(0.0, 1.0))
+        value = numpyro.deterministic(name, tp["mean"] + prime * tp["std"])
+        if derived is not None:
+            det_name, fn = derived
+            value = numpyro.deterministic(det_name, fn(value))
+        return value
+    out_name = derived[0] if derived is not None else name
+    return numpyro.deterministic(out_name, cw_specs[fixed_spec_key])
+
+
 def sample_gw_parameters(prior_specs):
     """Sample gravitational wave parameters from their priors.
 
@@ -332,74 +373,13 @@ def sample_cw_parameters(prior_specs):
     """
     cw_specs = prior_specs["cw_specs"]
 
-    # log10_h0: strain amplitude (reparameterized)
-    if cw_specs["log10_h0_transform_params"] is not None:
-        tp = cw_specs["log10_h0_transform_params"]
-        log10_h0_prime = numpyro.sample("log10_h0_prime", dist.Normal(0.0, 1.0))
-        log10_h0 = numpyro.deterministic(
-            "log10_h0", tp["mean"] + log10_h0_prime * tp["std"]
-        )
-    else:
-        log10_h0 = numpyro.deterministic("log10_h0", cw_specs["log10_h0_spec"])
-
-    # alpha_gw: source RA (reparameterized)
-    if cw_specs["alpha_gw_transform_params"] is not None:
-        tp = cw_specs["alpha_gw_transform_params"]
-        alpha_gw_prime = numpyro.sample("alpha_gw_prime", dist.Normal(0.0, 1.0))
-        alpha_gw = numpyro.deterministic(
-            "alpha_gw", tp["mean"] + alpha_gw_prime * tp["std"]
-        )
-    else:
-        alpha_gw = numpyro.deterministic("alpha_gw", cw_specs["alpha_gw_spec"])
-
-    # delta_gw: source DEC via sin(delta) for isotropic sky coverage
-    if cw_specs["sin_delta_gw_transform_params"] is not None:
-        tp = cw_specs["sin_delta_gw_transform_params"]
-        sin_delta_prime = numpyro.sample("sin_delta_gw_prime", dist.Normal(0.0, 1.0))
-        sin_delta_gw = numpyro.deterministic(
-            "sin_delta_gw", tp["mean"] + sin_delta_prime * tp["std"]
-        )
-        delta_gw = numpyro.deterministic("delta_gw", jnp.arcsin(sin_delta_gw))
-    else:
-        delta_gw = numpyro.deterministic("delta_gw", cw_specs["delta_gw_spec"])
-
-    # log10_f_gw: GW frequency (reparameterized)
-    if cw_specs["log10_f_gw_transform_params"] is not None:
-        tp = cw_specs["log10_f_gw_transform_params"]
-        log10_f_gw_prime = numpyro.sample("log10_f_gw_prime", dist.Normal(0.0, 1.0))
-        log10_f_gw = numpyro.deterministic(
-            "log10_f_gw", tp["mean"] + log10_f_gw_prime * tp["std"]
-        )
-    else:
-        log10_f_gw = numpyro.deterministic("log10_f_gw", cw_specs["log10_f_gw_spec"])
-
-    # cos_iota: inclination (reparameterized)
-    if cw_specs["cos_iota_transform_params"] is not None:
-        tp = cw_specs["cos_iota_transform_params"]
-        cos_iota_prime = numpyro.sample("cos_iota_prime", dist.Normal(0.0, 1.0))
-        cos_iota = numpyro.deterministic(
-            "cos_iota", tp["mean"] + cos_iota_prime * tp["std"]
-        )
-    else:
-        cos_iota = numpyro.deterministic("cos_iota", cw_specs["cos_iota_spec"])
-
-    # psi: polarization angle (reparameterized)
-    if cw_specs["psi_transform_params"] is not None:
-        tp = cw_specs["psi_transform_params"]
-        psi_prime = numpyro.sample("psi_prime", dist.Normal(0.0, 1.0))
-        psi = numpyro.deterministic("psi", tp["mean"] + psi_prime * tp["std"])
-    else:
-        psi = numpyro.deterministic("psi", cw_specs["psi_spec"])
-
-    # Phi0: initial phase (reparameterized)
-    if cw_specs["Phi0_transform_params"] is not None:
-        tp = cw_specs["Phi0_transform_params"]
-        Phi0_prime = numpyro.sample("Phi0_prime", dist.Normal(0.0, 1.0))
-        Phi0 = numpyro.deterministic("Phi0", tp["mean"] + Phi0_prime * tp["std"])
-    else:
-        Phi0 = numpyro.deterministic("Phi0", cw_specs["Phi0_spec"])
-
-    return log10_h0, alpha_gw, delta_gw, log10_f_gw, cos_iota, psi, Phi0
+    # Each CW source scalar is reparameterized (or fixed) identically; drive them
+    # from the shared CW_SCALAR_PARAMS spec. Order matches the documented return
+    # tuple (log10_h0, alpha_gw, delta_gw, log10_f_gw, cos_iota, psi, Phi0) and
+    # the sample-site PRNG order, so seeded draws are unchanged.
+    return tuple(
+        _sample_cw_scalar_numpyro(cw_specs, *spec) for spec in CW_SCALAR_PARAMS
+    )
 
 
 def sample_chi_parameters(prior_specs, n_pulsars):
@@ -459,16 +439,8 @@ def count_free_parameters(prior_specs, n_pulsars):
     cw_specs = prior_specs.get("cw_specs")
     if cw_specs is not None:
         # Count each CW parameter that has transform_params (i.e., is sampled)
-        for key in [
-            "log10_h0_transform_params",
-            "alpha_gw_transform_params",
-            "sin_delta_gw_transform_params",
-            "log10_f_gw_transform_params",
-            "cos_iota_transform_params",
-            "psi_transform_params",
-            "Phi0_transform_params",
-        ]:
-            if cw_specs.get(key) is not None:
+        for name, _, _ in CW_SCALAR_PARAMS:
+            if cw_specs.get(f"{name}_transform_params") is not None:
                 count += 1
         # Per-pulsar phase parameters (phase reparameterization)
         if cw_specs.get("chi_transform_params") is not None:
@@ -539,84 +511,38 @@ def build_jaxns_cw_prior_model(prior_specs, n_pulsars):
         Generator function compatible with jaxns.Model.
     """
     from jaxns.framework.prior import Prior
-    import math
 
     cw_specs = prior_specs["cw_specs"]
     hierarchical_specs = prior_specs.get("hierarchical_specs")
 
     def prior_model():
         # --- CW source parameters (7 scalars) ---
+        # Driven from the shared CW_SCALAR_PARAMS spec. jaxns samples each prior
+        # directly as Uniform(min, max) (no Normal(0,1) reparameterization); the
+        # sin_delta_gw -> delta_gw transform is applied to the sampled value.
+        # Prior names match the NUTS path exactly so results parsing is unaffected.
+        cw_vals = {}
+        for name, fixed_spec_key, derived in CW_SCALAR_PARAMS:
+            tp = cw_specs[f"{name}_transform_params"]
+            out_name = derived[0] if derived is not None else name
+            if tp is not None:
+                value = yield Prior(
+                    tfpd.Uniform(low=tp["min"], high=tp["max"]),
+                    name=name,
+                )
+                if derived is not None:
+                    value = derived[1](value)
+            else:
+                value = jnp.asarray(cw_specs[fixed_spec_key])
+            cw_vals[out_name] = value
 
-        # log10_h0
-        if cw_specs["log10_h0_transform_params"] is not None:
-            tp = cw_specs["log10_h0_transform_params"]
-            log10_h0 = yield Prior(
-                tfpd.Uniform(low=tp["min"], high=tp["max"]),
-                name="log10_h0",
-            )
-        else:
-            log10_h0 = jnp.asarray(cw_specs["log10_h0_spec"])
-
-        # alpha_gw
-        if cw_specs["alpha_gw_transform_params"] is not None:
-            tp = cw_specs["alpha_gw_transform_params"]
-            alpha_gw = yield Prior(
-                tfpd.Uniform(low=tp["min"], high=tp["max"]),
-                name="alpha_gw",
-            )
-        else:
-            alpha_gw = jnp.asarray(cw_specs["alpha_gw_spec"])
-
-        # delta_gw via sin(delta) for isotropic sky coverage
-        if cw_specs["sin_delta_gw_transform_params"] is not None:
-            tp = cw_specs["sin_delta_gw_transform_params"]
-            sin_delta_gw = yield Prior(
-                tfpd.Uniform(low=tp["min"], high=tp["max"]),
-                name="sin_delta_gw",
-            )
-            delta_gw = jnp.arcsin(sin_delta_gw)
-        else:
-            delta_gw = jnp.asarray(cw_specs["delta_gw_spec"])
-
-        # log10_f_gw
-        if cw_specs["log10_f_gw_transform_params"] is not None:
-            tp = cw_specs["log10_f_gw_transform_params"]
-            log10_f_gw = yield Prior(
-                tfpd.Uniform(low=tp["min"], high=tp["max"]),
-                name="log10_f_gw",
-            )
-        else:
-            log10_f_gw = jnp.asarray(cw_specs["log10_f_gw_spec"])
-
-        # cos_iota
-        if cw_specs["cos_iota_transform_params"] is not None:
-            tp = cw_specs["cos_iota_transform_params"]
-            cos_iota = yield Prior(
-                tfpd.Uniform(low=tp["min"], high=tp["max"]),
-                name="cos_iota",
-            )
-        else:
-            cos_iota = jnp.asarray(cw_specs["cos_iota_spec"])
-
-        # psi
-        if cw_specs["psi_transform_params"] is not None:
-            tp = cw_specs["psi_transform_params"]
-            psi = yield Prior(
-                tfpd.Uniform(low=tp["min"], high=tp["max"]),
-                name="psi",
-            )
-        else:
-            psi = jnp.asarray(cw_specs["psi_spec"])
-
-        # Phi0
-        if cw_specs["Phi0_transform_params"] is not None:
-            tp = cw_specs["Phi0_transform_params"]
-            Phi0 = yield Prior(
-                tfpd.Uniform(low=tp["min"], high=tp["max"]),
-                name="Phi0",
-            )
-        else:
-            Phi0 = jnp.asarray(cw_specs["Phi0_spec"])
+        log10_h0 = cw_vals["log10_h0"]
+        alpha_gw = cw_vals["alpha_gw"]
+        delta_gw = cw_vals["delta_gw"]
+        log10_f_gw = cw_vals["log10_f_gw"]
+        cos_iota = cw_vals["cos_iota"]
+        psi = cw_vals["psi"]
+        Phi0 = cw_vals["Phi0"]
 
         # --- Per-pulsar chi parameters ---
         if cw_specs.get("chi_transform_params") is not None:

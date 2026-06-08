@@ -179,23 +179,6 @@ def run_inference(config_path, use_gw=True, timestamp=None):
             )
         logger.info(f"Evidence saved to {evidence_path}")
 
-    # Save SMC diagnostics if tempered SMC was used
-    if sampler_method in ("smc", "tempered_smc"):
-        try:
-            from argus import tempered_smc as tsmc
-            tsmc.save_smc_diagnostics(smc_results, output_dir, output_id)
-            tsmc.plot_smc_diagnostics(smc_results, output_dir, output_id)
-        except Exception as e:
-            logger.error(f"Error saving SMC diagnostics: {e}")
-
-    if sampler_method in ("replica_exchange", "pt", "parallel_tempering"):
-        try:
-            from argus import replica_exchange as re_mod
-            re_mod.save_re_diagnostics(re_results, output_dir, output_id)
-            re_mod.plot_re_diagnostics(re_results, output_dir, output_id)
-        except Exception as e:
-            logger.error(f"Error saving RE diagnostics: {e}")
-
     # Create plots and diagnostics
     logger.info("Creating corner plot and diagnostics...")
 

@@ -280,10 +280,11 @@ def corner_plot(
 
     # Extract parameters - detect GWB vs CW mode
     posterior_vars = set(results_obj.posterior.data_vars)
+    is_cw = "log10_h0" in posterior_vars
     samples_list = []
     labels = []
 
-    if "log10_h0" in posterior_vars:
+    if is_cw:
         # CW mode - only include parameters with nonzero variance (i.e. sampled, not fixed)
         cw_params = [
             ("log10_h0", r"$\log_{10} h_0$"),
@@ -332,7 +333,6 @@ def corner_plot(
 
     # Define plot ranges - let corner auto-range for CW (many params),
     # use fixed ranges only for GWB mode
-    is_cw = "log10_h0" in posterior_vars
     if is_cw:
         plot_ranges = None  # Auto-range for CW parameters
     elif len(labels) == 1:

@@ -1,5 +1,45 @@
 # Research log
 
+## 2026-06-09 — /simplify pass on the CW inference PR (quality only, behavior-preserving)
+
+**Goal.** Reduce duplication/complexity in the continuous-waves branch's CW additions
+(~2.5k lines across `python/argus/`) without changing numerical results, inference, or speed.
+
+**What was tried.** Ran a 4-angle review (reuse / simplification / efficiency / altitude) over
+`git diff main...HEAD`, verified every finding against the live source, then applied only the
+safe, behavior-preserving ones. Built a strict equivalence harness that captured 21 reference
+arrays before any edit (both `compute_cw_signal_single_pulsar` variants × 3 branches, all
+numpyro sample-site values from a seeded `Predictive` draw, and the jaxns CW prior-name order
+obtained by manually driving the generator and intercepting `yield`ed `Prior.name`s).
+
+Changes applied: (1) collapsed the CW scalar reparameterize-or-fix block — copy-pasted 3× in
+`parameter_sampling.py` (numpyro `sample_cw_parameters`, jaxns `build_jaxns_cw_prior_model`,
+and the key list in `count_free_parameters`) — into one module-level `CW_SCALAR_PARAMS` spec +
+a `_sample_cw_scalar_numpyro` helper; removed a dead `import math`. (2) Extracted shared
+`_cw_earth_term` from the two CW waveform functions in `gravitational_waves.py`. (3) Deleted the
+dead SMC / replica-exchange diagnostics block in `workflow.py` (modules removed in c553794;
+`smc_results`/`re_results` never assigned). (4) Minor: `KPC_TO_SECONDS` → module constant,
+hoisted two in-`@jax.jit`-body imports, deduped `is_cw` in `utils.py`.
+
+**What was learned.** Equivalence held exactly (21/21 arrays at rtol=1e-12, atol=0); full test
+suite 227 passed (CW subset 62). Warm-jit A/B microbenchmark of the waveform functions:
+before 259.8/255.3 µs, after 259.3/264.0 µs per call — within ±2-3% run-to-run noise, i.e. no
+hot-path cost (jit inlines the helper to the same XLA graph).
+
+**Decisions / dead ends.** Deliberately shipped **none** of the efficiency-agent's hot-path
+rewrites. Precomputing polarization tensors is a no-op (XLA LICM already hoists the
+loop-invariant out of the antenna vmap). Precomputing `n_hat`/`geometric_factors` at init is
+impossible — they depend on `alpha_gw`/`delta_gw`, which are *sampled*, so they change every
+likelihood call (the efficiency agent's premise was wrong). `R_scalars` masking and
+`pulsar_direction` precompute are immeasurable against the per-pulsar Kalman core that
+dominates `_cw_likelihood`. Doing nothing there is what guarantees "as fast or faster." Larger
+altitude ideas (a `KalmanFilter`/`Likelihood` base class, a `PriorSpecification` dataclass)
+were left out as out-of-scope architecture.
+
+**Open threads.** Pre-existing working-tree edits to `test/conftest.py` and
+`test/test_data_loader.py` were present at session start and are unrelated to this pass. PR on
+`continuous-waves` not yet merged to main.
+
 ## 2026-06-02 — Validated the Argus CW likelihood; f_gw grid recovers the injection
 
 **Goal.** Settle whether the Argus Kalman-filter CW likelihood agrees with the standard

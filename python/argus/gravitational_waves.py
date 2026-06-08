@@ -305,6 +305,29 @@ def cw_timing_residual(t, f_gw, h0, cos_iota, Phi0, F_plus, F_cross):
     return F_plus * Delta_s_plus + F_cross * Delta_s_cross
 
 
+def _cw_earth_term(toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross):
+    """Shared CW waveform core: frequency, polarization amplitudes, Earth term.
+
+    Both pulsar-term variants (distance-based and phase-parameterized) reuse the
+    same angular frequency, polarization amplitudes, and Earth-term residual;
+    they differ only in how the pulsar-term phase is formed.
+
+    Returns
+    -------
+    tuple
+        (Omega, amp_plus, amp_cross, earth_term). ``earth_term`` has the shape
+        of ``toas``; the amplitudes and Omega are reused for the pulsar term.
+    """
+    Omega = 2.0 * jnp.pi * f_gw
+    amp_plus = h0 * (1.0 + cos_iota**2) / (2.0 * Omega)
+    amp_cross = -h0 * cos_iota / Omega
+
+    phase_e = Omega * toas + Phi0
+    earth_term = F_plus * amp_plus * jnp.sin(phase_e) + F_cross * amp_cross * jnp.cos(phase_e)
+
+    return Omega, amp_plus, amp_cross, earth_term
+
+
 def compute_cw_signal_single_pulsar(toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross,
                                      pulsar_distance=0.0, geometric_factor=0.0):
     """Compute CW timing residuals for all observation times of a single pulsar.
@@ -339,13 +362,9 @@ def compute_cw_signal_single_pulsar(toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cr
     jax.Array
         CW timing residuals, shape (nobs,).
     """
-    Omega = 2.0 * jnp.pi * f_gw
-    amp_plus = h0 * (1.0 + cos_iota**2) / (2.0 * Omega)
-    amp_cross = -h0 * cos_iota / Omega
-
-    # Earth term
-    phase_e = Omega * toas + Phi0
-    earth_term = F_plus * amp_plus * jnp.sin(phase_e) + F_cross * amp_cross * jnp.cos(phase_e)
+    Omega, amp_plus, amp_cross, earth_term = _cw_earth_term(
+        toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross
+    )
 
     # Pulsar term: subtract signal at retarded time t_p = t - tau_a
     # tau_a = pulsar_distance * geometric_factor
@@ -395,13 +414,9 @@ def compute_cw_signal_single_pulsar_phase(toas, f_gw, h0, cos_iota, Phi0,
     jax.Array
         CW timing residuals (earth - pulsar), shape (nobs,).
     """
-    Omega = 2.0 * jnp.pi * f_gw
-    amp_plus = h0 * (1.0 + cos_iota**2) / (2.0 * Omega)
-    amp_cross = -h0 * cos_iota / Omega
-
-    # Earth term
-    phase_e = Omega * toas + Phi0
-    earth_term = F_plus * amp_plus * jnp.sin(phase_e) + F_cross * amp_cross * jnp.cos(phase_e)
+    Omega, amp_plus, amp_cross, earth_term = _cw_earth_term(
+        toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross
+    )
 
     # Pulsar term with phase reparameterization
     phase_p = Omega * toas + Phi0 - chi
