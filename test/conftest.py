@@ -182,4 +182,5 @@ def mock_enterprise_pulsar():
     pulsar.Mmat = np.random.randn(10, 5)
     pulsar._raj = 0.5
     pulsar._decj = 0.3
+    pulsar._pdist = (1.0, 0.2)  # enterprise (distance_kpc, uncertainty); subscriptable
     return pulsar

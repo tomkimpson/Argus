@@ -19,6 +19,10 @@ class TestLoadWidebandPulsarData:
         assert len(psr_data.toaerrs) == 10
         assert len(psr_data.residuals) == 10
 
+        # Pulsar distance is read from enterprise's _pdist = (distance, uncertainty)
+        assert psr_data.distance_kpc == 1.0
+        assert psr_data.distance_err_kpc == 0.2
+
     def test_m_matrix_scaling(self, mock_enterprise_pulsar):
         """Test that M matrix is scaled to unit norm."""
         psr_data = data_loader.LoadWidebandPulsarData(mock_enterprise_pulsar)
