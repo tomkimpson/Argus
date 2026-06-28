@@ -1,6 +1,8 @@
 """Module which holds all functions which are related to the properties of the gravitational wave."""
 
 import numpy as np
+import jax
+import jax.numpy as jnp
 
 
 def pairwise_angular_separation(ra_rad, dec_rad):
@@ -88,3 +90,362 @@ def hellings_downs(θ):
             return 1.0
         x = (1 - np.cos(θ)) / 2.0
         return (3 / 2) * x * np.log(x) - x / 4 + 0.5
+
+
+# =============================================================================
+# Continuous Wave (CW) signal model functions
+# All implemented in JAX for autodiff/JIT compatibility
+# =============================================================================
+
+
+def gw_propagation_direction(alpha_gw, delta_gw):
+    """Compute the GW propagation direction unit vector.
+
+    Parameters
+    ----------
+    alpha_gw : float
+        Right ascension of the GW source in radians.
+    delta_gw : float
+        Declination of the GW source in radians.
+
+    Returns
+    -------
+    jax.Array
+        Unit vector n_hat of shape (3,) pointing in the GW propagation direction.
+    """
+    return -jnp.array(
+        [
+            jnp.cos(alpha_gw) * jnp.cos(delta_gw),
+            jnp.sin(alpha_gw) * jnp.cos(delta_gw),
+            jnp.sin(delta_gw),
+        ]
+    )
+
+
+def pulsar_direction(ra, dec):
+    """Compute the pulsar direction unit vector.
+
+    Parameters
+    ----------
+    ra : float
+        Right ascension of the pulsar in radians.
+    dec : float
+        Declination of the pulsar in radians.
+
+    Returns
+    -------
+    jax.Array
+        Unit vector q_hat of shape (3,).
+    """
+    return jnp.array(
+        [
+            jnp.cos(ra) * jnp.cos(dec),
+            jnp.sin(ra) * jnp.cos(dec),
+            jnp.sin(dec),
+        ]
+    )
+
+
+def polarization_vectors(alpha_gw, delta_gw):
+    """Compute the orthonormal polarization basis vectors m_hat and l_hat.
+
+    Parameters
+    ----------
+    alpha_gw : float
+        Right ascension of the GW source in radians.
+    delta_gw : float
+        Declination of the GW source in radians.
+
+    Returns
+    -------
+    tuple[jax.Array, jax.Array]
+        (m_hat, l_hat), each of shape (3,).
+    """
+    m_hat = jnp.array(
+        [
+            jnp.sin(alpha_gw),
+            -jnp.cos(alpha_gw),
+            0.0,
+        ]
+    )
+    l_hat = jnp.array(
+        [
+            -jnp.cos(alpha_gw) * jnp.sin(delta_gw),
+            -jnp.sin(alpha_gw) * jnp.sin(delta_gw),
+            jnp.cos(delta_gw),
+        ]
+    )
+    return m_hat, l_hat
+
+
+def polarization_tensors(alpha_gw, delta_gw, psi):
+    """Compute the plus and cross polarization tensors rotated by angle psi.
+
+    Parameters
+    ----------
+    alpha_gw : float
+        Right ascension of the GW source in radians.
+    delta_gw : float
+        Declination of the GW source in radians.
+    psi : float
+        Polarization angle in radians.
+
+    Returns
+    -------
+    tuple[jax.Array, jax.Array]
+        (e_plus, e_cross), each of shape (3, 3).
+    """
+    m_hat, l_hat = polarization_vectors(alpha_gw, delta_gw)
+
+    # Outer products
+    mm = jnp.outer(m_hat, m_hat)
+    ll = jnp.outer(l_hat, l_hat)
+    ml = jnp.outer(m_hat, l_hat)
+    lm = jnp.outer(l_hat, m_hat)
+
+    cos2psi = jnp.cos(2.0 * psi)
+    sin2psi = jnp.sin(2.0 * psi)
+
+    e_plus = (mm - ll) * cos2psi + (ml + lm) * sin2psi
+    e_cross = (mm - ll) * sin2psi - (ml + lm) * cos2psi
+
+    return e_plus, e_cross
+
+
+def antenna_pattern_single(pulsar_ra, pulsar_dec, alpha_gw, delta_gw, psi):
+    """Compute antenna pattern functions F_plus and F_cross for a single pulsar.
+
+    Parameters
+    ----------
+    pulsar_ra : float
+        Right ascension of the pulsar in radians.
+    pulsar_dec : float
+        Declination of the pulsar in radians.
+    alpha_gw : float
+        Right ascension of the GW source in radians.
+    delta_gw : float
+        Declination of the GW source in radians.
+    psi : float
+        Polarization angle in radians.
+
+    Returns
+    -------
+    tuple[float, float]
+        (F_plus, F_cross) antenna pattern values.
+    """
+    n_hat = gw_propagation_direction(alpha_gw, delta_gw)
+    q_hat = pulsar_direction(pulsar_ra, pulsar_dec)
+    e_plus, e_cross = polarization_tensors(alpha_gw, delta_gw, psi)
+
+    # Denominator with numerical guard: clip to avoid divergence
+    denominator = 1.0 + jnp.dot(n_hat, q_hat)
+    denominator = jnp.maximum(denominator, 1e-10)
+
+    # Quadratic form: q^i q^j e_ij = q^T @ e @ q
+    numerator_plus = q_hat @ e_plus @ q_hat
+    numerator_cross = q_hat @ e_cross @ q_hat
+
+    F_plus = numerator_plus / (2.0 * denominator)
+    F_cross = numerator_cross / (2.0 * denominator)
+
+    return F_plus, F_cross
+
+
+def compute_antenna_patterns(
+    pulsar_ra_array, pulsar_dec_array, alpha_gw, delta_gw, psi
+):
+    """Compute antenna pattern functions for all pulsars (vectorized).
+
+    Parameters
+    ----------
+    pulsar_ra_array : jax.Array
+        Right ascensions of pulsars in radians, shape (Npsr,).
+    pulsar_dec_array : jax.Array
+        Declinations of pulsars in radians, shape (Npsr,).
+    alpha_gw : float
+        Right ascension of the GW source in radians.
+    delta_gw : float
+        Declination of the GW source in radians.
+    psi : float
+        Polarization angle in radians.
+
+    Returns
+    -------
+    tuple[jax.Array, jax.Array]
+        (F_plus, F_cross), each of shape (Npsr,).
+    """
+    vmapped_fn = jax.vmap(
+        lambda ra, dec: antenna_pattern_single(ra, dec, alpha_gw, delta_gw, psi)
+    )
+    return vmapped_fn(pulsar_ra_array, pulsar_dec_array)
+
+
+def cw_timing_residual(t, f_gw, h0, cos_iota, Phi0, F_plus, F_cross):
+    """Compute the Earth-term-only CW timing residual for a single observation.
+
+    Parameters
+    ----------
+    t : float
+        Observation time in seconds.
+    f_gw : float
+        Gravitational wave frequency in Hz.
+    h0 : float
+        Strain amplitude.
+    cos_iota : float
+        Cosine of the inclination angle.
+    Phi0 : float
+        Initial GW phase in radians.
+    F_plus : float
+        Plus antenna pattern function value.
+    F_cross : float
+        Cross antenna pattern function value.
+
+    Returns
+    -------
+    float
+        GW-induced timing residual in seconds.
+    """
+    Omega = 2.0 * jnp.pi * f_gw
+    phase = Omega * t + Phi0
+
+    # Integrated Earth-term GW responses
+    Delta_s_plus = h0 * (1.0 + cos_iota**2) / (2.0 * Omega) * jnp.sin(phase)
+    Delta_s_cross = -h0 * cos_iota / Omega * jnp.cos(phase)
+
+    return F_plus * Delta_s_plus + F_cross * Delta_s_cross
+
+
+def _cw_earth_term(toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross):
+    """Shared CW waveform core: frequency, polarization amplitudes, Earth term.
+
+    Both pulsar-term variants (distance-based and phase-parameterized) reuse the
+    same angular frequency, polarization amplitudes, and Earth-term residual;
+    they differ only in how the pulsar-term phase is formed.
+
+    Returns
+    -------
+    tuple
+        (Omega, amp_plus, amp_cross, earth_term). ``earth_term`` has the shape
+        of ``toas``; the amplitudes and Omega are reused for the pulsar term.
+    """
+    Omega = 2.0 * jnp.pi * f_gw
+    amp_plus = h0 * (1.0 + cos_iota**2) / (2.0 * Omega)
+    amp_cross = -h0 * cos_iota / Omega
+
+    phase_e = Omega * toas + Phi0
+    earth_term = F_plus * amp_plus * jnp.sin(phase_e) + F_cross * amp_cross * jnp.cos(
+        phase_e
+    )
+
+    return Omega, amp_plus, amp_cross, earth_term
+
+
+def compute_cw_signal_single_pulsar(
+    toas,
+    f_gw,
+    h0,
+    cos_iota,
+    Phi0,
+    F_plus,
+    F_cross,
+    pulsar_distance=0.0,
+    geometric_factor=0.0,
+):
+    """Compute CW timing residuals for all observation times of a single pulsar.
+
+    Computes Earth term, and optionally the pulsar term if pulsar_distance > 0.
+    The pulsar term uses the same waveform evaluated at the retarded time
+    t_p = t - tau_a, where tau_a = d_a * (1 + n_hat . q_hat) / c.
+
+    Parameters
+    ----------
+    toas : jax.Array
+        Observation times for this pulsar, shape (nobs,).
+    f_gw : float
+        Gravitational wave frequency in Hz.
+    h0 : float
+        Strain amplitude.
+    cos_iota : float
+        Cosine of the inclination angle.
+    Phi0 : float
+        Initial GW phase in radians.
+    F_plus : float
+        Plus antenna pattern function value for this pulsar.
+    F_cross : float
+        Cross antenna pattern function value for this pulsar.
+    pulsar_distance : float, optional
+        Pulsar distance in seconds (d/c). Default 0.0 (Earth-term only).
+    geometric_factor : float, optional
+        Geometric delay factor (1 + n_hat . q_hat). Default 0.0.
+
+    Returns
+    -------
+    jax.Array
+        CW timing residuals, shape (nobs,).
+    """
+    Omega, amp_plus, amp_cross, earth_term = _cw_earth_term(
+        toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross
+    )
+
+    # Pulsar term: subtract signal at retarded time t_p = t - tau_a
+    # tau_a = pulsar_distance * geometric_factor
+    # When pulsar_distance=0, pulsar term contribution is zero (Earth-term only)
+    tau_a = pulsar_distance * geometric_factor
+    phase_p = Omega * (toas - tau_a) + Phi0
+    pulsar_term = F_plus * amp_plus * jnp.sin(phase_p) + F_cross * amp_cross * jnp.cos(
+        phase_p
+    )
+
+    # Use pulsar_distance as a switch: when 0, no pulsar term subtracted
+    has_pulsar_term = jnp.where(pulsar_distance > 0.0, 1.0, 0.0)
+    return earth_term - has_pulsar_term * pulsar_term
+
+
+def compute_cw_signal_single_pulsar_phase(
+    toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross, chi
+):
+    """Compute CW timing residuals using phase-parameterized pulsar term.
+
+    Instead of computing the pulsar term from physical distance, uses a
+    per-pulsar phase parameter chi that absorbs the distance-dependent delay:
+    chi = Omega * (1 + n_hat . q_hat) * d mod 2pi  (arXiv 2410.10087).
+
+    This eliminates the highly multimodal likelihood surface caused by
+    distance-dependent phase oscillations, enabling efficient NUTS sampling.
+
+    Parameters
+    ----------
+    toas : jax.Array
+        Observation times for this pulsar, shape (nobs,).
+    f_gw : float
+        Gravitational wave frequency in Hz.
+    h0 : float
+        Strain amplitude.
+    cos_iota : float
+        Cosine of the inclination angle.
+    Phi0 : float
+        Initial GW phase in radians.
+    F_plus : float
+        Plus antenna pattern function value for this pulsar.
+    F_cross : float
+        Cross antenna pattern function value for this pulsar.
+    chi : float
+        Per-pulsar phase parameter in [0, 2pi), replacing the
+        distance-based pulsar term delay.
+
+    Returns
+    -------
+    jax.Array
+        CW timing residuals (earth - pulsar), shape (nobs,).
+    """
+    Omega, amp_plus, amp_cross, earth_term = _cw_earth_term(
+        toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross
+    )
+
+    # Pulsar term with phase reparameterization
+    phase_p = Omega * toas + Phi0 - chi
+    pulsar_term = F_plus * amp_plus * jnp.sin(phase_p) + F_cross * amp_cross * jnp.cos(
+        phase_p
+    )
+
+    return earth_term - pulsar_term

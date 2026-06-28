@@ -71,6 +71,12 @@ class LoadWidebandPulsarData:
         self.RA = ds_psr._raj
         self.DEC = ds_psr._decj
 
+        # Pulsar distance in kpc: (distance, uncertainty)
+        # enterprise returns (1.0, 0.2) as default if not found in par file
+        pdist = ds_psr._pdist
+        self.distance_kpc = pdist[0] if pdist is not None else 1.0
+        self.distance_err_kpc = pdist[1] if pdist is not None else 0.2
+
         # Scale the M matrix columns to have unit norm
         col_scales = np.sqrt(np.sum(self.M_matrix**2, axis=0))
         self.M_scaled = self.M_matrix / col_scales
@@ -159,18 +165,80 @@ class LoadWidebandPulsarData:
         }
 
     @staticmethod
-    def get_processed_residuals(directory, excluded_psrs=[]):
+    def process_pulsar_residuals_per_pulsar(list_of_dfs):
+        """Process residuals keeping per-pulsar observation times (no epoch alignment).
+
+        Each pulsar retains its own observation times, residuals, and errors.
+        This is used for CW mode where pulsars are processed independently.
+
+        Args:
+            list_of_dfs: A list of pandas DataFrames, each containing
+                        'toas', 'residuals', and 'error' columns.
+
+        Returns
+        -------
+            A dictionary containing:
+            - 'toas': list of 1D numpy arrays, one per pulsar.
+            - 'residuals': list of 1D numpy arrays, one per pulsar.
+            - 'errors': list of 1D numpy arrays, one per pulsar.
+            - 'n_obs': 1D numpy array of observation counts per pulsar.
+
+        Raises
+        ------
+            ValueError: If the input list is empty.
+            ValueError: If any DataFrame is missing required columns.
+        """
+        if not list_of_dfs:
+            raise ValueError("Input list of DataFrames cannot be empty.")
+
+        required_cols = ["toas", "residuals", "error"]
+        toas_list = []
+        residuals_list = []
+        errors_list = []
+        n_obs_list = []
+
+        for i, df in enumerate(list_of_dfs):
+            missing_cols = [col for col in required_cols if col not in df.columns]
+            if missing_cols:
+                raise ValueError(
+                    f"DataFrame at index {i} is missing required columns: {missing_cols}"
+                )
+
+            toas_list.append(df["toas"].to_numpy())
+            residuals_list.append(df["residuals"].to_numpy())
+            errors_list.append(df["error"].to_numpy())
+            n_obs_list.append(len(df))
+
+        return {
+            "toas": toas_list,
+            "residuals": residuals_list,
+            "errors": errors_list,
+            "n_obs": np.array(n_obs_list),
+        }
+
+    @staticmethod
+    def get_processed_residuals(directory, excluded_psrs=[], mode="gwb"):
         """Get the processed residuals from the data.
+
+        Parameters
+        ----------
+        directory : str
+            Path to data directory containing .par and .tim files.
+        excluded_psrs : list of str
+            Pulsar names to exclude from the analysis.
+        mode : str
+            Signal model mode: 'gwb' for epoch-aligned processing (default),
+            'cw' for per-pulsar processing.
 
         Returns
         -------
         dict
             A dictionary containing:
-            - 'processed_residuals': tuple of (average_toas_array, residuals_array, errors_array)
+            - 'processed_residuals': epoch-aligned dict (gwb) or per-pulsar dict (cw)
             - 'metadata': DataFrame containing pulsar metadata
             - 'design_matrices': list of design matrices for each pulsar
             - 'parameter_covariances': list of parameter covariance matrices
-            - 'hd_correlation': matrix of Hellings-Downs correlations
+            - 'hd_correlation': Hellings-Downs correlation matrix (gwb) or None (cw)
         """
         # Validate directory path
         if not directory:
@@ -206,28 +274,49 @@ class LoadWidebandPulsarData:
             LoadWidebandPulsarData.read_multiple_par_tim(par_files, tim_files)
         )
 
-        # Get the separation angles and compute HD correlation
-        ra = pulsar_metadata["RA"].to_numpy(dtype=float)
-        dec = pulsar_metadata["DEC"].to_numpy(dtype=float)
-        angular_separation_matrix = gravitational_waves.pairwise_angular_separation(
-            ra, dec
-        )
-        hd_correlation_matrix = gravitational_waves.hellings_downs(
-            angular_separation_matrix
-        )
+        if mode == "gwb":
+            # GWB mode: epoch-aligned processing with Hellings-Downs correlation
+            ra = pulsar_metadata["RA"].to_numpy(dtype=float)
+            dec = pulsar_metadata["DEC"].to_numpy(dtype=float)
+            angular_separation_matrix = gravitational_waves.pairwise_angular_separation(
+                ra, dec
+            )
+            hd_correlation_matrix = gravitational_waves.hellings_downs(
+                angular_separation_matrix
+            )
 
-        # Post-process the residuals
-        processed_pulsar_residuals = (
-            LoadWidebandPulsarData.process_pulsar_residuals_by_epoch(pulsar_residuals)
-        )
+            processed_pulsar_residuals = (
+                LoadWidebandPulsarData.process_pulsar_residuals_by_epoch(
+                    pulsar_residuals
+                )
+            )
 
-        return {
-            "processed_residuals": processed_pulsar_residuals,
-            "metadata": pulsar_metadata,
-            "design_matrices": pulsar_design_matrices,
-            "parameter_covariances": P_eps_matrices,
-            "hd_correlation": hd_correlation_matrix,
-        }
+            return {
+                "processed_residuals": processed_pulsar_residuals,
+                "metadata": pulsar_metadata,
+                "design_matrices": pulsar_design_matrices,
+                "parameter_covariances": P_eps_matrices,
+                "hd_correlation": hd_correlation_matrix,
+            }
+        elif mode == "cw":
+            # CW mode: per-pulsar processing, no HD correlation needed
+            processed_pulsar_residuals = (
+                LoadWidebandPulsarData.process_pulsar_residuals_per_pulsar(
+                    pulsar_residuals
+                )
+            )
+
+            return {
+                "processed_residuals": processed_pulsar_residuals,
+                "metadata": pulsar_metadata,
+                "design_matrices": pulsar_design_matrices,
+                "parameter_covariances": P_eps_matrices,
+                "hd_correlation": None,
+            }
+        else:
+            raise ValueError(
+                f"Unknown signal model mode: '{mode}'. Must be 'gwb' or 'cw'."
+            )
 
     @staticmethod
     def get_par_value(filename: str, parameter: str) -> float | None:
@@ -373,6 +462,7 @@ class LoadWidebandPulsarData:
                         "RA": [psr.RA],
                         "DEC": [psr.DEC],
                         "F0": [f0],
+                        "distance_kpc": [psr.distance_kpc],
                         "par_file": [par_file],
                         "tim_file": [tim_file],
                     }

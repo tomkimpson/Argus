@@ -17,15 +17,13 @@ class TestLoadConfig:
     def test_load_valid_config(self, tmp_path):
         """Test loading a valid configuration file."""
         config_file = tmp_path / "test_config.ini"
-        config_file.write_text(
-            """[Data]
+        config_file.write_text("""[Data]
 data_path = /path/to/data
 excluded_psrs = J1640+2224
 
 [Output]
 output_id = test
-"""
-        )
+""")
 
         config = utils.load_config(str(config_file))
         assert config.get("Data", "data_path") == "/path/to/data"
@@ -46,14 +44,12 @@ class TestResolveConfigPaths:
         config_dir.mkdir()
         config_file = config_dir / "config.ini"
 
-        config_file.write_text(
-            """[Data]
+        config_file.write_text("""[Data]
 data_path = ../data
 
 [PriorModel]
 noise_params_path = params/noise.json
-"""
-        )
+""")
 
         config = utils.load_config(str(config_file))
         resolved_config = utils.resolve_config_paths(config, str(config_file))
@@ -67,11 +63,9 @@ noise_params_path = params/noise.json
         config_file = tmp_path / "config.ini"
         abs_path = "/absolute/path/to/data"
 
-        config_file.write_text(
-            f"""[Data]
+        config_file.write_text(f"""[Data]
 data_path = {abs_path}
-"""
-        )
+""")
 
         config = utils.load_config(str(config_file))
         resolved_config = utils.resolve_config_paths(config, str(config_file))

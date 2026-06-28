@@ -13,6 +13,47 @@ import tensorflow_probability.substrates.jax as tfp
 tfpd = tfp.distributions
 
 
+# Single source of truth for the CW source scalars. Each entry is
+# (name, fixed_spec_key, derived):
+#   - name           -> the "<name>_transform_params" / "<name>_spec" keys and
+#                        the sample-site name; preserved exactly so results
+#                        parsing (utils.corner_plot, count_free_parameters) keeps
+#                        keying off the same names.
+#   - fixed_spec_key -> spec key holding the fixed value when not reparameterized.
+#   - derived        -> (det_name, fn) when the sampled quantity is transformed
+#                        into a second deterministic (sin_delta_gw -> delta_gw).
+CW_SCALAR_PARAMS = [
+    ("log10_h0", "log10_h0_spec", None),
+    ("alpha_gw", "alpha_gw_spec", None),
+    ("sin_delta_gw", "delta_gw_spec", ("delta_gw", jnp.arcsin)),
+    ("log10_f_gw", "log10_f_gw_spec", None),
+    ("cos_iota", "cos_iota_spec", None),
+    ("psi", "psi_spec", None),
+    ("Phi0", "Phi0_spec", None),
+]
+
+
+def _sample_cw_scalar_numpyro(cw_specs, name, fixed_spec_key, derived):
+    """Sample (or fix) one CW scalar in the numpyro path.
+
+    Reparameterized: x_prime ~ Normal(0,1), x = mean + std * x_prime, both
+    registered as deterministics. Fixed: a single deterministic at the fixed
+    value. The ``derived`` transform (sin_delta_gw -> delta_gw) is applied only
+    to the sampled value; when fixed, the spec already holds the derived
+    quantity. Returns the final value used by the likelihood.
+    """
+    tp = cw_specs[f"{name}_transform_params"]
+    if tp is not None:
+        prime = numpyro.sample(f"{name}_prime", dist.Normal(0.0, 1.0))
+        value = numpyro.deterministic(name, tp["mean"] + prime * tp["std"])
+        if derived is not None:
+            det_name, fn = derived
+            value = numpyro.deterministic(det_name, fn(value))
+        return value
+    out_name = derived[0] if derived is not None else name
+    return numpyro.deterministic(out_name, cw_specs[fixed_spec_key])
+
+
 def sample_gw_parameters(prior_specs):
     """Sample gravitational wave parameters from their priors.
 
@@ -317,6 +358,64 @@ def sample_measurement_noise_parameters(prior_specs, n_pulsars):
     return efac, equad
 
 
+def sample_cw_parameters(prior_specs):
+    """Sample continuous wave source parameters from their priors.
+
+    Parameters
+    ----------
+    prior_specs : dict
+        Prior distributions dictionary containing CW parameter specs.
+
+    Returns
+    -------
+    tuple
+        (log10_h0, alpha_gw, delta_gw, log10_f_gw, cos_iota, psi, Phi0)
+    """
+    cw_specs = prior_specs["cw_specs"]
+
+    # Each CW source scalar is reparameterized (or fixed) identically; drive them
+    # from the shared CW_SCALAR_PARAMS spec. Order matches the documented return
+    # tuple (log10_h0, alpha_gw, delta_gw, log10_f_gw, cos_iota, psi, Phi0) and
+    # the sample-site PRNG order, so seeded draws are unchanged.
+    return tuple(
+        _sample_cw_scalar_numpyro(cw_specs, *spec) for spec in CW_SCALAR_PARAMS
+    )
+
+
+def sample_chi_parameters(prior_specs, n_pulsars):
+    """Sample per-pulsar phase parameters for phase-reparameterized pulsar term.
+
+    When phase parameterization is active, samples chi^(n) ~ Uniform(0, 2pi)
+    for each pulsar using Normal(0,1) -> affine reparameterization.
+    When inactive, returns zeros (no pulsar term phase contribution).
+
+    Parameters
+    ----------
+    prior_specs : dict
+        Prior distributions dictionary containing CW parameter specs.
+    n_pulsars : int
+        Number of pulsars.
+
+    Returns
+    -------
+    jax.Array
+        Per-pulsar phase parameters, shape (n_pulsars,).
+    """
+    cw_specs = prior_specs.get("cw_specs", {})
+
+    if cw_specs.get("chi_transform_params") is not None:
+        tp = cw_specs["chi_transform_params"]
+        chi_prime = numpyro.sample(
+            "chi_prime",
+            dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars)),
+        )
+        chi = numpyro.deterministic("chi", tp["mean"] + chi_prime * tp["std"])
+    else:
+        chi = numpyro.deterministic("chi", jnp.zeros(n_pulsars))
+
+    return chi
+
+
 def count_free_parameters(prior_specs, n_pulsars):
     """Count the total number of free (non-fixed) parameters for NUTS sampling.
 
@@ -334,13 +433,25 @@ def count_free_parameters(prior_specs, n_pulsars):
     """
     count = 0
 
-    # GW amplitude parameter - free if reparameterization is used
-    if prior_specs["log10_ha_transform_params"] is not None:
-        count += 1
+    # CW parameters (if CW mode)
+    cw_specs = prior_specs.get("cw_specs")
+    if cw_specs is not None:
+        # Count each CW parameter that has transform_params (i.e., is sampled)
+        for name, _, _ in CW_SCALAR_PARAMS:
+            if cw_specs.get(f"{name}_transform_params") is not None:
+                count += 1
+        # Per-pulsar phase parameters (phase reparameterization)
+        if cw_specs.get("chi_transform_params") is not None:
+            count += n_pulsars
+    else:
+        # GWB parameters
+        # GW amplitude parameter - free if reparameterization is used
+        if prior_specs["log10_ha_transform_params"] is not None:
+            count += 1
 
-    # GW spectral index parameter - free if it's a distribution (not fixed)
-    if isinstance(prior_specs["log10_gamma_a_spec"], tfpd.Distribution):
-        count += 1
+        # GW spectral index parameter - free if it's a distribution (not fixed)
+        if isinstance(prior_specs["log10_gamma_a_spec"], tfpd.Distribution):
+            count += 1
 
     # Pulsar red noise parameters - always hierarchical unless fixed
     prior_specs.get("hierarchical_specs")
@@ -376,3 +487,198 @@ def count_free_parameters(prior_specs, n_pulsars):
         count += n_pulsars  # Regular EQUAD parameters
 
     return count
+
+
+def build_jaxns_cw_prior_model(prior_specs, n_pulsars):
+    """Build a jaxns-compatible prior model generator for CW inference.
+
+    Creates a generator function that yields jaxns Prior objects using native
+    TFP distributions. Unlike the NUTS path, no Normal(0,1) reparameterization
+    is applied — jaxns samples the prior directly via unit hypercube mapping.
+
+    Parameters
+    ----------
+    prior_specs : dict
+        Prior specifications dictionary (same format as used by NUTS path).
+    n_pulsars : int
+        Number of pulsars.
+
+    Returns
+    -------
+    callable
+        Generator function compatible with jaxns.Model.
+    """
+    from jaxns.framework.prior import Prior
+
+    cw_specs = prior_specs["cw_specs"]
+    hierarchical_specs = prior_specs.get("hierarchical_specs")
+
+    def prior_model():
+        # --- CW source parameters (7 scalars) ---
+        # Driven from the shared CW_SCALAR_PARAMS spec. jaxns samples each prior
+        # directly as Uniform(min, max) (no Normal(0,1) reparameterization); the
+        # sin_delta_gw -> delta_gw transform is applied to the sampled value.
+        # Prior names match the NUTS path exactly so results parsing is unaffected.
+        cw_vals = {}
+        for name, fixed_spec_key, derived in CW_SCALAR_PARAMS:
+            tp = cw_specs[f"{name}_transform_params"]
+            out_name = derived[0] if derived is not None else name
+            if tp is not None:
+                value = yield Prior(
+                    tfpd.Uniform(low=tp["min"], high=tp["max"]),
+                    name=name,
+                )
+                if derived is not None:
+                    value = derived[1](value)
+            else:
+                value = jnp.asarray(cw_specs[fixed_spec_key])
+            cw_vals[out_name] = value
+
+        log10_h0 = cw_vals["log10_h0"]
+        alpha_gw = cw_vals["alpha_gw"]
+        delta_gw = cw_vals["delta_gw"]
+        log10_f_gw = cw_vals["log10_f_gw"]
+        cos_iota = cw_vals["cos_iota"]
+        psi = cw_vals["psi"]
+        Phi0 = cw_vals["Phi0"]
+
+        # --- Per-pulsar chi parameters ---
+        if cw_specs.get("chi_transform_params") is not None:
+            tp = cw_specs["chi_transform_params"]
+            chi = yield Prior(
+                tfpd.Uniform(
+                    low=jnp.full(n_pulsars, tp["min"]),
+                    high=jnp.full(n_pulsars, tp["max"]),
+                ),
+                name="chi",
+            )
+        else:
+            chi = jnp.zeros(n_pulsars)
+
+        # --- Pulsar noise parameters ---
+
+        # log10_gamma_p: hierarchical or fixed
+        if isinstance(prior_specs["log10_gamma_p_spec"], tfpd.Distribution):
+            # Fallback: direct uniform prior
+            spec = prior_specs["log10_gamma_p_spec"]
+            log10_gamma_p = yield Prior(
+                tfpd.Uniform(
+                    low=jnp.full(n_pulsars, spec.low),
+                    high=jnp.full(n_pulsars, spec.high),
+                ),
+                name="log10_gamma_p",
+            )
+        elif prior_specs["log10_gamma_p_spec"] is not None:
+            # Fixed value (from injections)
+            log10_gamma_p = jnp.asarray(prior_specs["log10_gamma_p_spec"])
+        else:
+            # Hierarchical modeling
+            gp_mean_spec = hierarchical_specs["log10_gamma_p_mean_spec"]
+            log10_gamma_p_mean = yield Prior(
+                tfpd.Uniform(low=gp_mean_spec.low, high=gp_mean_spec.high),
+                name="log10_gamma_p_mean",
+            )
+            gp_std_spec = hierarchical_specs["log10_gamma_p_std_spec"]
+            log10_gamma_p_std = yield Prior(
+                tfpd.Uniform(low=gp_std_spec.low, high=gp_std_spec.high),
+                name="log10_gamma_p_std",
+            )
+            log10_gamma_p = yield Prior(
+                tfpd.Normal(
+                    loc=jnp.full(n_pulsars, log10_gamma_p_mean),
+                    scale=jnp.full(n_pulsars, log10_gamma_p_std),
+                ),
+                name="log10_gamma_p",
+            )
+
+        # log10_sigma_p: log-ratio or fixed
+        if isinstance(prior_specs["log10_sigma_p_spec"], tfpd.Distribution):
+            # Fallback: direct uniform prior
+            spec = prior_specs["log10_sigma_p_spec"]
+            log10_sigma_p = yield Prior(
+                tfpd.Uniform(
+                    low=jnp.full(n_pulsars, spec.low),
+                    high=jnp.full(n_pulsars, spec.high),
+                ),
+                name="log10_sigma_p",
+            )
+        elif prior_specs["log10_sigma_p_spec"] is not None:
+            # Fixed value (from injections)
+            log10_sigma_p = jnp.asarray(prior_specs["log10_sigma_p_spec"])
+        else:
+            # Log-ratio parameterization
+            ratio_mean_spec = hierarchical_specs["log10_ratio_mean_spec"]
+            log10_ratio_mean = yield Prior(
+                tfpd.Uniform(low=ratio_mean_spec.low, high=ratio_mean_spec.high),
+                name="log10_ratio_mean",
+            )
+            ratio_std_spec = hierarchical_specs["log10_ratio_std_spec"]
+            log10_ratio_std = yield Prior(
+                tfpd.Uniform(low=ratio_std_spec.low, high=ratio_std_spec.high),
+                name="log10_ratio_std",
+            )
+            log10_ratio = yield Prior(
+                tfpd.Normal(
+                    loc=jnp.full(n_pulsars, log10_ratio_mean),
+                    scale=jnp.full(n_pulsars, log10_ratio_std),
+                ),
+                name="log10_ratio",
+            )
+            log10_sigma_p = log10_gamma_p + log10_ratio
+
+        # --- Measurement noise parameters ---
+
+        # EFAC
+        if isinstance(prior_specs["efac_spec"], tfpd.Distribution):
+            spec = prior_specs["efac_spec"]
+            efac = yield Prior(
+                tfpd.Uniform(
+                    low=jnp.full(n_pulsars, spec.low),
+                    high=jnp.full(n_pulsars, spec.high),
+                ),
+                name="efac",
+            )
+        else:
+            efac = jnp.asarray(prior_specs["efac_spec"])
+
+        # EQUAD
+        if isinstance(prior_specs["equad_spec"], dict) and prior_specs[
+            "equad_spec"
+        ].get("use_log10", False):
+            log10_equad_spec = prior_specs["equad_spec"]["log10_equad_spec"]
+            log10_equad = yield Prior(
+                tfpd.Uniform(
+                    low=jnp.full(n_pulsars, log10_equad_spec.low),
+                    high=jnp.full(n_pulsars, log10_equad_spec.high),
+                ),
+                name="log10_equad",
+            )
+            equad = 10.0**log10_equad
+        elif isinstance(prior_specs["equad_spec"], tfpd.Distribution):
+            spec = prior_specs["equad_spec"]
+            equad = yield Prior(
+                tfpd.Uniform(
+                    low=jnp.full(n_pulsars, spec.low),
+                    high=jnp.full(n_pulsars, spec.high),
+                ),
+                name="equad",
+            )
+        else:
+            equad = jnp.asarray(prior_specs["equad_spec"])
+
+        return (
+            log10_h0,
+            alpha_gw,
+            delta_gw,
+            log10_f_gw,
+            cos_iota,
+            psi,
+            Phi0,
+            chi,
+            log10_gamma_p,
+            log10_sigma_p,
+            efac,
+            equad,
+        )
+
+    return prior_model

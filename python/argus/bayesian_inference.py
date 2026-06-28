@@ -26,6 +26,8 @@ import time
 
 from .parameter_sampling import (
     sample_gw_parameters,
+    sample_cw_parameters,
+    sample_chi_parameters,
     sample_pulsar_noise_parameters,
     sample_measurement_noise_parameters,
     count_free_parameters,
@@ -53,6 +55,29 @@ class Parameters:
     EQUAD: jnp.ndarray  # Extra quadrature noise
 
 
+@struct.dataclass
+class CWParameters:
+    """Parameter struct for the CW signal model and per-pulsar noise."""
+
+    # CW source parameters
+    alpha_gw: float  # Source right ascension (radians)
+    delta_gw: float  # Source declination (radians)
+    f_gw: float  # GW frequency (Hz)
+    h0: float  # Strain amplitude
+    cos_iota: float  # Cosine of inclination angle
+    psi: float  # Polarization angle (radians)
+    Phi0: float  # Initial GW phase (radians)
+
+    # Per-pulsar phase parameters (phase reparameterization of pulsar term)
+    chi: jnp.ndarray  # Per-pulsar phase offsets in [0, 2pi), shape (Npsr,)
+
+    # Pulsar noise parameters (same as GWB mode)
+    gamma_p: jnp.ndarray  # Per-pulsar OU damping rates
+    sigma_p: jnp.ndarray  # Per-pulsar OU driving amplitudes
+    EFAC: jnp.ndarray  # Per-pulsar error scale factors
+    EQUAD: jnp.ndarray  # Per-pulsar quadrature noise
+
+
 def display_prior_summary(prior_specs, n_pulsars, logger=None):
     """Display a readable summary of all prior distributions.
 
@@ -77,43 +102,75 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
     log_or_print("PRIOR SPECIFICATIONS SUMMARY")
     log_or_print("=" * 60)
 
-    # GW background parameters
-    log_or_print("\n--- Gravitational Wave Background Parameters ---")
+    # CW parameters (if CW mode)
+    cw_specs = prior_specs.get("cw_specs")
+    if cw_specs is not None:
+        log_or_print("\n--- Continuous Wave Source Parameters ---")
+        for param_name, transform_key, spec_key in [
+            ("log10(h₀)", "log10_h0_transform_params", "log10_h0_spec"),
+            ("α_gw (RA)", "alpha_gw_transform_params", "alpha_gw_spec"),
+            ("sin(δ_gw)", "sin_delta_gw_transform_params", "sin_delta_gw_spec"),
+            ("log10(f_gw)", "log10_f_gw_transform_params", "log10_f_gw_spec"),
+            ("cos(ι)", "cos_iota_transform_params", "cos_iota_spec"),
+            ("ψ", "psi_transform_params", "psi_spec"),
+            ("Φ₀", "Phi0_transform_params", "Phi0_spec"),
+        ]:
+            tp = cw_specs.get(transform_key)
+            if tp is not None:
+                log_or_print(
+                    f"{param_name}: Uniform({tp['min']:.3f}, {tp['max']:.3f}) [reparameterized]"
+                )
+            else:
+                spec = cw_specs.get(spec_key)
+                if spec is not None:
+                    log_or_print(f"{param_name}: FIXED at {float(spec):.4f}")
+                else:
+                    log_or_print(f"{param_name}: Not configured")
 
-    # log10_ha parameter
-    ha_spec = prior_specs["log10_ha_spec"]
-    ha_transform = prior_specs["log10_ha_transform_params"]
-
-    if ha_transform is not None:
-        # Reparameterized case
-        log_or_print("log10(h_a): REPARAMETERIZED for better NUTS sampling")
-        log_or_print("  - Sampling: log10_ha_prime ~ N(0, 1)")
-        log_or_print(
-            f"  - Transform: log10_ha = {ha_transform['mean']:.2f} + log10_ha_prime * {ha_transform['std']:.3f}"
-        )
-        log_or_print(
-            f"  - Equivalent to: Uniform({ha_transform['min']:.1f}, {ha_transform['max']:.1f})"
-        )
-    elif isinstance(ha_spec, tfpd.Distribution):
-        # Direct distribution case (backward compatibility)
-        if hasattr(ha_spec, "low"):
+        chi_tp = cw_specs.get("chi_transform_params")
+        if chi_tp is not None:
             log_or_print(
-                f"log10(h_a): Uniform({float(ha_spec.low):.1f}, {float(ha_spec.high):.1f})"
+                f"χ (per-pulsar phase): Uniform({chi_tp['min']:.3f}, {chi_tp['max']:.3f}) "
+                f"× {n_pulsars} pulsars [phase reparameterization]"
+            )
+    else:
+        # GW background parameters
+        log_or_print("\n--- Gravitational Wave Background Parameters ---")
+
+        # log10_ha parameter
+        ha_spec = prior_specs["log10_ha_spec"]
+        ha_transform = prior_specs["log10_ha_transform_params"]
+
+        if ha_transform is not None:
+            # Reparameterized case
+            log_or_print("log10(h_a): REPARAMETERIZED for better NUTS sampling")
+            log_or_print("  - Sampling: log10_ha_prime ~ N(0, 1)")
+            log_or_print(
+                f"  - Transform: log10_ha = {ha_transform['mean']:.2f} + log10_ha_prime * {ha_transform['std']:.3f}"
+            )
+            log_or_print(
+                f"  - Equivalent to: Uniform({ha_transform['min']:.1f}, {ha_transform['max']:.1f})"
+            )
+        elif isinstance(ha_spec, tfpd.Distribution):
+            # Direct distribution case (backward compatibility)
+            if hasattr(ha_spec, "low"):
+                log_or_print(
+                    f"log10(h_a): Uniform({float(ha_spec.low):.1f}, {float(ha_spec.high):.1f})"
+                )
+            else:
+                log_or_print(f"log10(h_a): {type(ha_spec).__name__} distribution")
+        else:
+            # Fixed value case
+            log_or_print(f"log10(h_a): FIXED at {float(ha_spec):.1f}")
+
+        # log10_gamma_a parameter
+        log10_gamma_spec = prior_specs["log10_gamma_a_spec"]
+        if isinstance(log10_gamma_spec, tfpd.Distribution):
+            log_or_print(
+                f"log10(γ_a): Uniform({float(log10_gamma_spec.low):.1f}, {float(log10_gamma_spec.high):.1f})"
             )
         else:
-            log_or_print(f"log10(h_a): {type(ha_spec).__name__} distribution")
-    else:
-        # Fixed value case
-        log_or_print(f"log10(h_a): FIXED at {float(ha_spec):.1f}")
-
-    # log10_gamma_a parameter
-    log10_gamma_spec = prior_specs["log10_gamma_a_spec"]
-    if isinstance(log10_gamma_spec, tfpd.Distribution):
-        log_or_print(
-            f"log10(γ_a): Uniform({float(log10_gamma_spec.low):.1f}, {float(log10_gamma_spec.high):.1f})"
-        )
-    else:
-        log_or_print(f"log10(γ_a): FIXED at {float(log10_gamma_spec):.1f}")
+            log_or_print(f"log10(γ_a): FIXED at {float(log10_gamma_spec):.1f}")
 
     # Pulsar red noise parameters
     log_or_print(f"\n--- Pulsar Red Noise Parameters ({n_pulsars} pulsars) ---")
@@ -304,6 +361,124 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
     numpyro.factor("likelihood", log_likelihood)
 
 
+def cw_log_likelihood_fn(
+    kalman_filter,
+    log10_h0,
+    alpha_gw,
+    delta_gw,
+    log10_f_gw,
+    cos_iota,
+    psi,
+    Phi0,
+    chi,
+    log10_γp,
+    log10_σp,
+    efac,
+    equad,
+):
+    """Calculate CW log likelihood for NumPyro sampling.
+
+    Parameters
+    ----------
+    kalman_filter : CWKalmanFilter
+        CW Kalman filter instance.
+    log10_h0 : float
+        Log10 of strain amplitude.
+    alpha_gw : float
+        Source right ascension (radians).
+    delta_gw : float
+        Source declination (radians).
+    log10_f_gw : float
+        Log10 of GW frequency (Hz).
+    cos_iota : float
+        Cosine of inclination angle.
+    psi : float
+        Polarization angle (radians).
+    Phi0 : float
+        Initial GW phase (radians).
+    chi : jax.Array
+        Per-pulsar phase parameters, shape (Npsr,).
+    log10_γp : jax.Array
+        Log10 of pulsar gamma values.
+    log10_σp : jax.Array
+        Log10 of pulsar sigma values.
+    efac : jax.Array
+        EFAC values.
+    equad : jax.Array
+        EQUAD values.
+
+    Returns
+    -------
+    float
+        Log likelihood value.
+    """
+    h0 = 10.0**log10_h0
+    f_gw = 10.0**log10_f_gw
+    gamma_p = 10.0**log10_γp
+    sigma_p = 10.0**log10_σp
+
+    params = CWParameters(
+        alpha_gw=alpha_gw,
+        delta_gw=delta_gw,
+        f_gw=f_gw,
+        h0=h0,
+        cos_iota=cos_iota,
+        psi=psi,
+        Phi0=Phi0,
+        chi=chi,
+        gamma_p=gamma_p,
+        sigma_p=sigma_p,
+        EFAC=efac,
+        EQUAD=equad,
+    )
+
+    return kalman_filter.get_likelihood(params)
+
+
+def numpyro_model_cw(kalman_filter, prior_specs, n_pulsars):
+    """NumPyro model for CW signal inference.
+
+    Parameters
+    ----------
+    kalman_filter : CWKalmanFilter
+        CW Kalman filter instance.
+    prior_specs : dict
+        Dictionary containing prior distributions.
+    n_pulsars : int
+        Number of pulsars.
+    """
+    # Sample CW source parameters
+    log10_h0, alpha_gw, delta_gw, log10_f_gw, cos_iota, psi, Phi0 = (
+        sample_cw_parameters(prior_specs)
+    )
+
+    # Sample per-pulsar phase parameters (for phase-reparameterized pulsar term)
+    chi = sample_chi_parameters(prior_specs, n_pulsars)
+
+    # Sample noise parameters (shared with GWB mode)
+    log10_γp, log10_σp = sample_pulsar_noise_parameters(prior_specs, n_pulsars)
+    efac, equad = sample_measurement_noise_parameters(prior_specs, n_pulsars)
+
+    # Calculate CW log likelihood
+    log_likelihood = cw_log_likelihood_fn(
+        kalman_filter,
+        log10_h0,
+        alpha_gw,
+        delta_gw,
+        log10_f_gw,
+        cos_iota,
+        psi,
+        Phi0,
+        chi,
+        log10_γp,
+        log10_σp,
+        efac,
+        equad,
+    )
+
+    numpyro.factor("likelihood", log_likelihood)
+
+
 def setup_nuts_kernel(prior_specs, n_pulsars, config):
     """Set up NUTS kernel with optimized parameters.
 
@@ -428,6 +603,7 @@ def run_nuts_sampling(
     gamma_p_array,
     efac_array,
     equad_array,
+    mode="gwb",
 ):
     """Run NumPyro NUTS inference with optimizations for high-dimensional sampling.
 
@@ -447,6 +623,8 @@ def run_nuts_sampling(
         EFAC values
     equad_array : jnp.ndarray
         EQUAD values
+    mode : str
+        Signal model mode: 'gwb' or 'cw'.
 
     Returns
     -------
@@ -457,7 +635,13 @@ def run_nuts_sampling(
 
     # Get prior model distributions
     prior_specs = get_prior_model_specs(
-        config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array
+        config,
+        n_pulsars,
+        sigma_p_array,
+        gamma_p_array,
+        efac_array,
+        equad_array,
+        mode=mode,
     )
 
     # Get NUTS parameters from config
@@ -472,8 +656,15 @@ def run_nuts_sampling(
     print_nuts_diagnostics(prior_specs, nuts_info, config)
 
     # Create the actual model function bound to the Kalman filter
-    def bound_model():
-        return numpyro_model(kalman_filter, prior_specs, n_pulsars)
+    if mode == "cw":
+
+        def bound_model():
+            return numpyro_model_cw(kalman_filter, prior_specs, n_pulsars)
+
+    else:
+
+        def bound_model():
+            return numpyro_model(kalman_filter, prior_specs, n_pulsars)
 
     # Create NUTS kernel with bound model
     kernel = NUTS(
@@ -488,16 +679,32 @@ def run_nuts_sampling(
     )
 
     # Set up MCMC sampler
+    # Use parallel chains across devices when multiple GPUs are available
+    chain_method = "sequential"
+    if num_chains > 1:
+        import jax
+
+        n_devices = jax.local_device_count()
+        if n_devices >= num_chains:
+            chain_method = "parallel"
+            print(f"Running {num_chains} chains in parallel across {n_devices} devices")
+        else:
+            print(
+                f"Running {num_chains} chains sequentially ({n_devices} device(s) available)"
+            )
+
     sampler = MCMC(
         kernel,
         num_samples=num_samples,
         num_warmup=num_warmup,
         num_chains=num_chains,
+        chain_method=chain_method,
         progress_bar=True,
     )
 
     # Run sampling
-    rng_key = random.PRNGKey(42)  # Fixed seed for reproducibility
+    seed = config.getint("NUTS", "seed", fallback=42)
+    rng_key = random.PRNGKey(seed)
     sampler.run(rng_key)
 
     # Print summary
@@ -507,6 +714,192 @@ def run_nuts_sampling(
     inf_data = az.from_numpyro(sampler)
 
     return inf_data
+
+
+def _jaxns_results_to_arviz(results, num_posterior_samples=10000):
+    """Convert jaxns nested sampling results to ArviZ InferenceData.
+
+    jaxns produces weighted samples. We resample to get unweighted
+    posterior samples compatible with ArviZ and downstream diagnostics.
+
+    Parameters
+    ----------
+    results : jaxns.NestedSamplerResults
+        Results from jaxns nested sampling.
+    num_posterior_samples : int
+        Number of unweighted posterior samples to generate.
+
+    Returns
+    -------
+    arviz.InferenceData
+        ArviZ InferenceData object with posterior samples.
+    """
+    # Get weighted samples and log posterior mass
+    samples = results.samples
+    log_dp_mean = results.log_dp_mean
+
+    # Resample to get unweighted posterior samples
+    key = jax.random.PRNGKey(0)
+    indices = jax.random.categorical(key, log_dp_mean, shape=(num_posterior_samples,))
+
+    posterior_dict = {}
+    for param_name, values in samples.items():
+        resampled = values[indices]
+        # ArviZ expects shape (chains, draws, ...) — single chain for nested sampling
+        posterior_dict[param_name] = jnp.expand_dims(resampled, axis=0)
+
+    # Add derived delta_gw from sin_delta_gw if present
+    if "sin_delta_gw" in posterior_dict:
+        posterior_dict["delta_gw"] = jnp.arcsin(posterior_dict["sin_delta_gw"])
+
+    # Convert JAX arrays to numpy for ArviZ
+    import numpy as np
+
+    posterior_np = {k: np.asarray(v) for k, v in posterior_dict.items()}
+
+    inf_data = az.from_dict(posterior=posterior_np)
+    return inf_data
+
+
+def run_nested_sampling(
+    kalman_filter,
+    config,
+    n_pulsars,
+    sigma_p_array,
+    gamma_p_array,
+    efac_array,
+    equad_array,
+    mode="cw",
+):
+    """Run jaxns nested sampling inference for CW signal analysis.
+
+    Nested sampling handles multimodal posteriors natively and computes
+    Bayesian evidence as a byproduct, making it suitable for CW pulsar-term
+    searches where NUTS gets trapped in local modes.
+
+    Parameters
+    ----------
+    kalman_filter : CWKalmanFilter
+        CW Kalman filter instance.
+    config : configparser.ConfigParser
+        Configuration object.
+    n_pulsars : int
+        Number of pulsars.
+    sigma_p_array : jnp.ndarray
+        Pulsar red noise sigma values.
+    gamma_p_array : jnp.ndarray
+        Pulsar red noise gamma values.
+    efac_array : jnp.ndarray
+        EFAC values.
+    equad_array : jnp.ndarray
+        EQUAD values.
+    mode : str
+        Signal model mode. Currently only 'cw' is supported.
+
+    Returns
+    -------
+    tuple
+        (arviz.InferenceData, (log_Z_mean, log_Z_uncert))
+    """
+    if mode != "cw":
+        raise NotImplementedError(
+            "Nested sampling is currently only supported for CW mode. "
+            "Use NUTS for GWB inference."
+        )
+
+    from jaxns import Model, NestedSampler
+    from .prior_models import get_prior_model_specs
+    from .parameter_sampling import build_jaxns_cw_prior_model
+
+    # Build prior specs (same as NUTS path)
+    prior_specs = get_prior_model_specs(
+        config,
+        n_pulsars,
+        sigma_p_array,
+        gamma_p_array,
+        efac_array,
+        equad_array,
+        mode=mode,
+    )
+
+    # Build jaxns prior model
+    prior_model_fn = build_jaxns_cw_prior_model(prior_specs, n_pulsars)
+
+    # Build log-likelihood wrapper that calls existing cw_log_likelihood_fn
+    def log_likelihood(
+        log10_h0,
+        alpha_gw,
+        delta_gw,
+        log10_f_gw,
+        cos_iota,
+        psi,
+        Phi0,
+        chi,
+        log10_gamma_p,
+        log10_sigma_p,
+        efac,
+        equad,
+    ):
+        return cw_log_likelihood_fn(
+            kalman_filter,
+            log10_h0,
+            alpha_gw,
+            delta_gw,
+            log10_f_gw,
+            cos_iota,
+            psi,
+            Phi0,
+            chi,
+            log10_gamma_p,
+            log10_sigma_p,
+            efac,
+            equad,
+        )
+
+    # Create jaxns Model
+    model = Model(prior_model=prior_model_fn, log_likelihood=log_likelihood)
+
+    # Read nested sampler config
+    max_samples = config.getint("NestedSampler", "max_samples", fallback=100000)
+    num_live_points = config.getint("NestedSampler", "num_live_points", fallback=1000)
+    s = config.getint("NestedSampler", "s", fallback=5)
+    k = config.getint("NestedSampler", "k", fallback=0)
+    num_posterior_samples = config.getint(
+        "NestedSampler", "num_posterior_samples", fallback=10000
+    )
+
+    print("Running jaxns nested sampling...")
+    print(f"  max_samples: {max_samples}")
+    print(f"  num_live_points: {num_live_points}")
+    print(f"  s (num slices): {s}")
+    print(f"  k (phantom samples): {k}")
+    print(f"  Model dimensions: {model.U_ndims}")
+
+    # Create and run sampler
+    sampler = NestedSampler(
+        model=model,
+        max_samples=max_samples,
+        num_live_points=num_live_points,
+        s=s,
+        k=k,
+    )
+
+    rng_key = jax.random.PRNGKey(42)
+    termination_reason, state = sampler(rng_key)
+    results = sampler.to_results(termination_reason=termination_reason, state=state)
+
+    # Log evidence
+    log_Z_mean = float(results.log_Z_mean)
+    log_Z_uncert = float(results.log_Z_uncert)
+    print(f"\nLog-evidence: {log_Z_mean:.2f} +/- {log_Z_uncert:.2f}")
+
+    # Print summary
+    sampler.summary(results)
+
+    # Convert to ArviZ
+    inf_data = _jaxns_results_to_arviz(results, num_posterior_samples)
+
+    return inf_data, (log_Z_mean, log_Z_uncert)
 
 
 def test_likelihood_performance(kalman_filter, config, n_pulsars, logger):

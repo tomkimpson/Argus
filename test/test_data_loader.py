@@ -19,6 +19,10 @@ class TestLoadWidebandPulsarData:
         assert len(psr_data.toaerrs) == 10
         assert len(psr_data.residuals) == 10
 
+        # Pulsar distance is read from enterprise's _pdist = (distance, uncertainty)
+        assert psr_data.distance_kpc == 1.0
+        assert psr_data.distance_err_kpc == 0.2
+
     def test_m_matrix_scaling(self, mock_enterprise_pulsar):
         """Test that M matrix is scaled to unit norm."""
         psr_data = data_loader.LoadWidebandPulsarData(mock_enterprise_pulsar)
@@ -259,13 +263,11 @@ class TestGetParValue:
     def test_get_existing_parameter(self, tmp_path):
         """Test getting an existing parameter."""
         par_file = tmp_path / "test.par"
-        par_file.write_text(
-            """PSR J0030+0451
+        par_file.write_text("""PSR J0030+0451
 F0 200.12345
 F1 -1.2e-15
 RAJ 00:30:27.4
-"""
-        )
+""")
 
         value = data_loader.LoadWidebandPulsarData.get_par_value(str(par_file), "F0")
 
@@ -274,11 +276,9 @@ RAJ 00:30:27.4
     def test_get_nonexistent_parameter(self, tmp_path):
         """Test getting a parameter that doesn't exist."""
         par_file = tmp_path / "test.par"
-        par_file.write_text(
-            """PSR J0030+0451
+        par_file.write_text("""PSR J0030+0451
 F0 200.12345
-"""
-        )
+""")
 
         value = data_loader.LoadWidebandPulsarData.get_par_value(str(par_file), "PBDOT")
 
@@ -294,13 +294,11 @@ F0 200.12345
     def test_skip_comments(self, tmp_path):
         """Test that comments are skipped."""
         par_file = tmp_path / "test.par"
-        par_file.write_text(
-            """# This is a comment
+        par_file.write_text("""# This is a comment
 PSR J0030+0451
 # F0 100.0  (commented out)
 F0 200.0
-"""
-        )
+""")
 
         value = data_loader.LoadWidebandPulsarData.get_par_value(str(par_file), "F0")
 
@@ -309,11 +307,9 @@ F0 200.0
     def test_invalid_value_error(self, tmp_path):
         """Test ValueError for invalid parameter value."""
         par_file = tmp_path / "test.par"
-        par_file.write_text(
-            """PSR J0030+0451
+        par_file.write_text("""PSR J0030+0451
 F0 not_a_number
-"""
-        )
+""")
 
         with pytest.raises(ValueError, match="Invalid parameter value"):
             data_loader.LoadWidebandPulsarData.get_par_value(str(par_file), "F0")

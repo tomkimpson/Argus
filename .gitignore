@@ -82,5 +82,15 @@ site/
 # Workflow outputs
 workflows/**/outputs/
 
+# Exploratory work (kept locally, not tracked)
+archive/
+workflows/cw_*/
+workflows/legacy/
+
+# IPTA Mock Data Challenge data files (downloaded separately)
+workflows/data/IPTA_MockDataChallenge2/dataset_*/
+
 # Claude stuff
 .claude
+CLAUDE.md
+handoff.md

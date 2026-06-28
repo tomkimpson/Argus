@@ -1,0 +1,130 @@
+{
+    "J0030+0451": {
+        "distance_kpc": 0.3516,
+        "source": "parallax"
+    },
+    "J0034-0534": {
+        "distance_kpc": 1.349,
+        "source": "ATNF_catalog"
+    },
+    "J0218+4232": {
+        "distance_kpc": 3.15,
+        "source": "ATNF_catalog"
+    },
+    "J0437-4715": {
+        "distance_kpc": 0.16,
+        "source": "parallax"
+    },
+    "J0613-0200": {
+        "distance_kpc": 0.7671,
+        "source": "parallax"
+    },
+    "J0621+1002": {
+        "distance_kpc": 1.351,
+        "source": "ATNF_catalog"
+    },
+    "J0711-6830": {
+        "distance_kpc": 0.106,
+        "source": "ATNF_catalog"
+    },
+    "J0751+1807": {
+        "distance_kpc": 1.3369,
+        "source": "parallax"
+    },
+    "J0900-3144": {
+        "distance_kpc": 1.6249,
+        "source": "parallax"
+    },
+    "J1012+5307": {
+        "distance_kpc": 1.6123,
+        "source": "parallax"
+    },
+    "J1022+1001": {
+        "distance_kpc": 0.6037,
+        "source": "parallax"
+    },
+    "J1024-0719": {
+        "distance_kpc": 1.6582,
+        "source": "parallax"
+    },
+    "J1045-4509": {
+        "distance_kpc": 0.34,
+        "source": "ATNF_catalog"
+    },
+    "J1455-3330": {
+        "distance_kpc": 0.5506,
+        "source": "parallax"
+    },
+    "J1600-3053": {
+        "distance_kpc": 1.1532,
+        "source": "parallax"
+    },
+    "J1603-7202": {
+        "distance_kpc": 3.7,
+        "source": "ATNF_catalog"
+    },
+    "J1614-2230": {
+        "distance_kpc": 0.6846,
+        "source": "parallax"
+    },
+    "J1643-1224": {
+        "distance_kpc": 1.1713,
+        "source": "parallax"
+    },
+    "J1713+0747": {
+        "distance_kpc": 0.6638,
+        "source": "parallax"
+    },
+    "J1730-2304": {
+        "distance_kpc": 0.5369,
+        "source": "parallax"
+    },
+    "J1744-1134": {
+        "distance_kpc": 0.3841,
+        "source": "parallax"
+    },
+    "J1857+0943": {
+        "distance_kpc": 1.6286,
+        "source": "parallax"
+    },
+    "J1909-3744": {
+        "distance_kpc": 1.1229,
+        "source": "parallax"
+    },
+    "J1918-0642": {
+        "distance_kpc": 0.9749,
+        "source": "parallax"
+    },
+    "J1939+2134": {
+        "distance_kpc": 4.9316,
+        "source": "parallax"
+    },
+    "J1944+0907": {
+        "distance_kpc": 3.366,
+        "source": "parallax"
+    },
+    "J2010-1323": {
+        "distance_kpc": 1.162,
+        "source": "ATNF_catalog"
+    },
+    "J2124-3358": {
+        "distance_kpc": 0.4364,
+        "source": "parallax"
+    },
+    "J2129-5721": {
+        "distance_kpc": 3.2,
+        "source": "ATNF_catalog"
+    },
+    "J2145-0750": {
+        "distance_kpc": 0.6009,
+        "source": "parallax"
+    },
+    "J2229+2643": {
+        "distance_kpc": 1.8,
+        "source": "ATNF_catalog"
+    },
+    "J2317+1439": {
+        "distance_kpc": 2.5029,
+        "source": "parallax"
+    }
+}

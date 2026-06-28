@@ -244,7 +244,11 @@ def corner_plot(
     - Includes minor ticks, grids, and enhanced typography
     """
     # Set up professional styling
-    plt.style.use(["science", "no-latex"])  # Add 'no-latex' if LaTeX not available
+    try:
+        plt.style.use(["science", "no-latex"])
+    except OSError:
+        # scienceplots styles may not be registered with this matplotlib version
+        pass
     plt.rcParams.update(
         {
             "font.size": 12,
@@ -274,22 +278,47 @@ def corner_plot(
         results_obj = results
         results_path = None
 
-    # Extract parameters
-    if "log10_ha" not in results_obj.posterior:
-        raise ValueError("Parameter 'log10_ha' not found in results")
+    # Extract parameters - detect GWB vs CW mode
+    posterior_vars = set(results_obj.posterior.data_vars)
+    is_cw = "log10_h0" in posterior_vars
+    samples_list = []
+    labels = []
 
-    log10_ha = results_obj.posterior["log10_ha"].values.flatten()
-    samples_list = [log10_ha]
-    labels = [r"$\log_{10} h_a$"]
+    if is_cw:
+        # CW mode - only include parameters with nonzero variance (i.e. sampled, not fixed)
+        cw_params = [
+            ("log10_h0", r"$\log_{10} h_0$"),
+            ("log10_f_gw", r"$\log_{10} f_{\rm gw}$"),
+            ("alpha_gw", r"$\alpha_{\rm gw}$"),
+            ("delta_gw", r"$\delta_{\rm gw}$"),
+            ("cos_iota", r"$\cos \iota$"),
+            ("psi", r"$\psi$"),
+            ("Phi0", r"$\Phi_0$"),
+        ]
+        for var_name, label in cw_params:
+            if var_name in posterior_vars:
+                vals = results_obj.posterior[var_name].values.flatten()
+                if np.std(vals) > 1e-12:  # skip fixed (zero-variance) params
+                    samples_list.append(vals)
+                    labels.append(label)
+        print(f"CW mode - creating corner plot with {len(labels)} sampled parameters")
+    elif "log10_ha" in posterior_vars:
+        # GWB mode
+        log10_ha = results_obj.posterior["log10_ha"].values.flatten()
+        samples_list.append(log10_ha)
+        labels.append(r"$\log_{10} h_a$")
 
-    # Extract log10_gamma_a if available
-    if "log10_gamma_a" in results_obj.posterior.data_vars:
-        log10_gamma_a = results_obj.posterior["log10_gamma_a"].values.flatten()
-        samples_list.append(log10_gamma_a)
-        labels.append(r"$\log_{10} \gamma_a$")
-        print("Found log10_gamma_a parameter - creating 2D corner plot")
+        if "log10_gamma_a" in posterior_vars:
+            log10_gamma_a = results_obj.posterior["log10_gamma_a"].values.flatten()
+            samples_list.append(log10_gamma_a)
+            labels.append(r"$\log_{10} \gamma_a$")
+            print("Found log10_gamma_a parameter - creating 2D corner plot")
+        else:
+            print("log10_gamma_a not found - creating 1D plot for log10_ha only")
     else:
-        print("log10_gamma_a not found - creating 1D plot for log10_ha only")
+        raise ValueError(
+            "Neither 'log10_ha' (GWB) nor 'log10_h0' (CW) found in results"
+        )
 
     # Combine parameters
     samples = np.column_stack(samples_list)
@@ -302,11 +331,14 @@ def corner_plot(
     # Print parameter information
     _print_parameter_ranges(samples, labels, config)
 
-    # Define plot ranges (slightly extended from typical prior ranges)
-    if len(labels) == 1:
+    # Define plot ranges - let corner auto-range for CW (many params),
+    # use fixed ranges only for GWB mode
+    if is_cw:
+        plot_ranges = None  # Auto-range for CW parameters
+    elif len(labels) == 1:
         plot_ranges = [(-17.5, -13.5)]  # log10_ha
     else:
-        plot_ranges = [(-17.5, -13.5), (-10.5, -7.5)]  # log10_ha  # log10_gamma_a
+        plot_ranges = [(-17.5, -13.5), (-10.5, -7.5)]  # log10_ha, log10_gamma_a
 
     # Professional color scheme
     posterior_color = "#2E86C1"  # Professional blue
@@ -667,8 +699,11 @@ def diagnostics(fname, output_dir=None):
 
         # --- 4. Trace Plots for Filtered Parameters ---
         log_and_print("\n--- Generating Trace Plots (Filtered Parameters) ---")
-        # Get the names of the variables to plot from the filtered summary index
-        var_names_to_plot = sampled_summary_df.index.tolist()
+        # Get the names of the variables to plot from the filtered summary index,
+        # but only include those present in posterior (not deterministic-only vars)
+        all_var_names = sampled_summary_df.index.tolist()
+        posterior_vars = set(inf_data.posterior.data_vars)
+        var_names_to_plot = [v for v in all_var_names if v in posterior_vars]
 
         if var_names_to_plot:
             try:
@@ -706,7 +741,7 @@ def diagnostics(fname, output_dir=None):
             inf_data.sample_stats["diverging"].sum().item()
         )  # .item() gets scalar value
         total_samples = (
-            inf_data.posterior.dims["chain"] * inf_data.posterior.dims["draw"]
+            inf_data.posterior.sizes["chain"] * inf_data.posterior.sizes["draw"]
         )
         log_and_print(f"Total number of divergent transitions: {divergences}")
         log_and_print(f"Total post-warmup samples: {total_samples}")
