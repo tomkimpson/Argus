@@ -21,7 +21,6 @@ from argus.cw_kalman_filter import (
 )
 from argus.bayesian_inference import CWParameters
 
-
 # ============================================================
 # Setup logger for tests
 # ============================================================
@@ -60,13 +59,15 @@ def simple_cw_data():
     # Metadata
     import pandas as pd
 
-    metadata = pd.DataFrame({
-        "name": ["J0001+0001", "J0002+0002", "J0003+0003"],
-        "dim_M": [5, 6, 5],
-        "RA": [0.5, 1.5, 3.0],
-        "DEC": [0.3, -0.2, 0.8],
-        "F0": [200.0, 300.0, 150.0],
-    })
+    metadata = pd.DataFrame(
+        {
+            "name": ["J0001+0001", "J0002+0002", "J0003+0003"],
+            "dim_M": [5, 6, 5],
+            "RA": [0.5, 1.5, 3.0],
+            "DEC": [0.3, -0.2, 0.8],
+            "F0": [200.0, 300.0, 150.0],
+        }
+    )
 
     # Design matrices (random for testing)
     design_matrices = []
@@ -130,9 +131,15 @@ class TestBuildPerPulsarHVectors:
         Npsr, max_nobs, max_M = 3, 50, 6
         f0 = np.array([200.0, 300.0, 150.0])
         M_dims = np.array([5, 6, 5])
-        design_matrices = [np.random.randn(50, 5), np.random.randn(50, 6), np.random.randn(50, 5)]
+        design_matrices = [
+            np.random.randn(50, 5),
+            np.random.randn(50, 6),
+            np.random.randn(50, 5),
+        ]
 
-        H = _build_per_pulsar_H_vectors(Npsr, max_nobs, max_M, f0, design_matrices, M_dims)
+        H = _build_per_pulsar_H_vectors(
+            Npsr, max_nobs, max_M, f0, design_matrices, M_dims
+        )
         assert H.shape == (Npsr, max_nobs, 2 + max_M)
 
     def test_spin_coefficient(self):
@@ -142,7 +149,9 @@ class TestBuildPerPulsarHVectors:
         M_dims = np.array([3, 3])
         design_matrices = [np.zeros((10, 3)), np.zeros((10, 3))]
 
-        H = _build_per_pulsar_H_vectors(Npsr, max_nobs, max_M, f0, design_matrices, M_dims)
+        H = _build_per_pulsar_H_vectors(
+            Npsr, max_nobs, max_M, f0, design_matrices, M_dims
+        )
         assert np.allclose(H[0, 0, 0], 1.0 / 200.0)
         assert np.allclose(H[1, 0, 0], 1.0 / 300.0)
 
@@ -153,9 +162,11 @@ class TestBuildPerPulsarHVectors:
         M_dims = np.array([3, 5])
         design_matrices = [np.random.randn(8, 3), np.random.randn(10, 5)]
 
-        H = _build_per_pulsar_H_vectors(Npsr, max_nobs, max_M, f0, design_matrices, M_dims)
+        H = _build_per_pulsar_H_vectors(
+            Npsr, max_nobs, max_M, f0, design_matrices, M_dims
+        )
         # Pulsar 0 has M=3, so entries for M indices 3,4 should be zero
-        assert np.allclose(H[0, :, 2 + 3:], 0.0)
+        assert np.allclose(H[0, :, 2 + 3 :], 0.0)
         # Pulsar 0 has 8 obs, so entries beyond index 8 should be zero
         assert np.allclose(H[0, 8:, :], 0.0)
 
@@ -333,7 +344,9 @@ class TestCWKalmanFilter:
             )
 
         ll1 = kf.get_likelihood(make_params(0.0))
-        ll2 = kf.get_likelihood(make_params(1e-5))  # Large amplitude to ensure measurable difference
+        ll2 = kf.get_likelihood(
+            make_params(1e-5)
+        )  # Large amplitude to ensure measurable difference
         assert not jnp.allclose(ll1, ll2)
 
 
@@ -343,15 +356,23 @@ class TestPhaseParameterizedLikelihood:
     def test_phase_param_likelihood_finite(self, simple_cw_data):
         """Likelihood with phase parameterization should return finite value."""
         kf = CWKalmanFilter(
-            simple_cw_data, include_pulsar_term=True, phase_parameterization=True,
+            simple_cw_data,
+            include_pulsar_term=True,
+            phase_parameterization=True,
         )
         params = CWParameters(
-            alpha_gw=2.0, delta_gw=0.5, f_gw=1e-8, h0=1e-15,
-            cos_iota=0.5, psi=0.7, Phi0=0.3,
+            alpha_gw=2.0,
+            delta_gw=0.5,
+            f_gw=1e-8,
+            h0=1e-15,
+            cos_iota=0.5,
+            psi=0.7,
+            Phi0=0.3,
             chi=jnp.array([1.0, 2.0, 3.0]),
             gamma_p=jnp.array([1e-8, 1e-8, 1e-8]),
             sigma_p=jnp.array([1e-15, 1e-15, 1e-15]),
-            EFAC=jnp.ones(3), EQUAD=jnp.full(3, 1e-8),
+            EFAC=jnp.ones(3),
+            EQUAD=jnp.full(3, 1e-8),
         )
         ll = kf.get_likelihood(params)
         assert jnp.isfinite(ll)
@@ -359,16 +380,25 @@ class TestPhaseParameterizedLikelihood:
     def test_phase_param_gradient_wrt_chi(self, simple_cw_data):
         """Gradients w.r.t. chi elements should be finite (required for NUTS)."""
         kf = CWKalmanFilter(
-            simple_cw_data, include_pulsar_term=True, phase_parameterization=True,
+            simple_cw_data,
+            include_pulsar_term=True,
+            phase_parameterization=True,
         )
 
         def ll_fn(chi):
             params = CWParameters(
-                alpha_gw=2.0, delta_gw=0.5, f_gw=1e-8, h0=1e-15,
-                cos_iota=0.5, psi=0.7, Phi0=0.3, chi=chi,
+                alpha_gw=2.0,
+                delta_gw=0.5,
+                f_gw=1e-8,
+                h0=1e-15,
+                cos_iota=0.5,
+                psi=0.7,
+                Phi0=0.3,
+                chi=chi,
                 gamma_p=jnp.array([1e-8, 1e-8, 1e-8]),
                 sigma_p=jnp.array([1e-15, 1e-15, 1e-15]),
-                EFAC=jnp.ones(3), EQUAD=jnp.full(3, 1e-8),
+                EFAC=jnp.ones(3),
+                EQUAD=jnp.full(3, 1e-8),
             )
             return kf.get_likelihood(params)
 
@@ -378,16 +408,25 @@ class TestPhaseParameterizedLikelihood:
     def test_phase_param_chi_changes_likelihood(self, simple_cw_data):
         """Different chi values should produce different likelihoods."""
         kf = CWKalmanFilter(
-            simple_cw_data, include_pulsar_term=True, phase_parameterization=True,
+            simple_cw_data,
+            include_pulsar_term=True,
+            phase_parameterization=True,
         )
 
         def make_params(chi):
             return CWParameters(
-                alpha_gw=2.0, delta_gw=0.5, f_gw=1e-8, h0=1e-5,
-                cos_iota=0.5, psi=0.7, Phi0=0.3, chi=chi,
+                alpha_gw=2.0,
+                delta_gw=0.5,
+                f_gw=1e-8,
+                h0=1e-5,
+                cos_iota=0.5,
+                psi=0.7,
+                Phi0=0.3,
+                chi=chi,
                 gamma_p=jnp.array([1e-8, 1e-8, 1e-8]),
                 sigma_p=jnp.array([1e-15, 1e-15, 1e-15]),
-                EFAC=jnp.ones(3), EQUAD=jnp.full(3, 1e-8),
+                EFAC=jnp.ones(3),
+                EQUAD=jnp.full(3, 1e-8),
             )
 
         ll1 = kf.get_likelihood(make_params(jnp.zeros(3)))

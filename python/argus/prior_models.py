@@ -260,7 +260,7 @@ def create_hierarchical_priors(config):
 
 
 def _make_reparameterized_prior(config, section, param_name):
-    """Helper to create a reparameterized prior from config settings.
+    """Create a reparameterized prior from config settings.
 
     Returns (spec, transform_params) tuple. If fixed, transform_params is None.
     """
@@ -332,17 +332,25 @@ def get_cw_parameter_priors(config):
     cw_specs["Phi0_transform_params"] = tp
 
     # Per-pulsar phase parameters (phase reparameterization of pulsar term)
-    include_pulsar_term = config.getboolean(section, "include_pulsar_term", fallback=False)
-    phase_parameterization = config.getboolean(section, "phase_parameterization", fallback=True)
+    include_pulsar_term = config.getboolean(
+        section, "include_pulsar_term", fallback=False
+    )
+    phase_parameterization = config.getboolean(
+        section, "phase_parameterization", fallback=True
+    )
 
     if include_pulsar_term and phase_parameterization:
         import math
+
         chi_min = 0.0
         chi_max = 2.0 * math.pi
         mean = (chi_min + chi_max) / 2.0
         std = (chi_max - chi_min) / 6.0
         cw_specs["chi_transform_params"] = {
-            "mean": mean, "std": std, "min": chi_min, "max": chi_max,
+            "mean": mean,
+            "std": std,
+            "min": chi_min,
+            "max": chi_max,
         }
     else:
         cw_specs["chi_transform_params"] = None
@@ -351,7 +359,12 @@ def get_cw_parameter_priors(config):
 
 
 def get_prior_model_specs(
-    config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array,
+    config,
+    n_pulsars,
+    sigma_p_array,
+    gamma_p_array,
+    efac_array,
+    equad_array,
     mode="gwb",
 ):
     """Create prior model distributions based on config settings.

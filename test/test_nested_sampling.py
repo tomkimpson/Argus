@@ -29,21 +29,61 @@ def cw_prior_specs_all_sampled():
 
     cw_specs = {
         "log10_h0_spec": None,
-        "log10_h0_transform_params": {"mean": -14.0, "std": 0.667, "min": -16.0, "max": -12.0},
+        "log10_h0_transform_params": {
+            "mean": -14.0,
+            "std": 0.667,
+            "min": -16.0,
+            "max": -12.0,
+        },
         "alpha_gw_spec": None,
-        "alpha_gw_transform_params": {"mean": 3.1416, "std": 1.0472, "min": 0.0, "max": 6.2832},
+        "alpha_gw_transform_params": {
+            "mean": 3.1416,
+            "std": 1.0472,
+            "min": 0.0,
+            "max": 6.2832,
+        },
         "sin_delta_gw_spec": None,
-        "sin_delta_gw_transform_params": {"mean": 0.0, "std": 0.333, "min": -1.0, "max": 1.0},
+        "sin_delta_gw_transform_params": {
+            "mean": 0.0,
+            "std": 0.333,
+            "min": -1.0,
+            "max": 1.0,
+        },
         "delta_gw_spec": None,
         "log10_f_gw_spec": None,
-        "log10_f_gw_transform_params": {"mean": -8.0, "std": 0.333, "min": -9.0, "max": -7.0},
+        "log10_f_gw_transform_params": {
+            "mean": -8.0,
+            "std": 0.333,
+            "min": -9.0,
+            "max": -7.0,
+        },
         "cos_iota_spec": None,
-        "cos_iota_transform_params": {"mean": 0.0, "std": 0.333, "min": -1.0, "max": 1.0},
+        "cos_iota_transform_params": {
+            "mean": 0.0,
+            "std": 0.333,
+            "min": -1.0,
+            "max": 1.0,
+        },
         "psi_spec": None,
-        "psi_transform_params": {"mean": 1.5708, "std": 0.5236, "min": 0.0, "max": 3.14159},
+        "psi_transform_params": {
+            "mean": 1.5708,
+            "std": 0.5236,
+            "min": 0.0,
+            "max": 3.14159,
+        },
         "Phi0_spec": None,
-        "Phi0_transform_params": {"mean": 3.1416, "std": 1.0472, "min": 0.0, "max": 6.2832},
-        "chi_transform_params": {"mean": 3.1416, "std": 1.0472, "min": 0.0, "max": 6.2832},
+        "Phi0_transform_params": {
+            "mean": 3.1416,
+            "std": 1.0472,
+            "min": 0.0,
+            "max": 6.2832,
+        },
+        "chi_transform_params": {
+            "mean": 3.1416,
+            "std": 1.0472,
+            "min": 0.0,
+            "max": 6.2832,
+        },
     }
 
     prior_specs = {
@@ -62,7 +102,12 @@ def cw_prior_specs_some_fixed():
     """Prior specs with some CW parameters fixed."""
     cw_specs = {
         "log10_h0_spec": None,
-        "log10_h0_transform_params": {"mean": -14.0, "std": 0.667, "min": -16.0, "max": -12.0},
+        "log10_h0_transform_params": {
+            "mean": -14.0,
+            "std": 0.667,
+            "min": -16.0,
+            "max": -12.0,
+        },
         "alpha_gw_spec": 4.067,  # Fixed
         "alpha_gw_transform_params": None,
         "sin_delta_gw_spec": 0.14,  # Fixed
@@ -71,11 +116,26 @@ def cw_prior_specs_some_fixed():
         "log10_f_gw_spec": -8.215,  # Fixed
         "log10_f_gw_transform_params": None,
         "cos_iota_spec": None,
-        "cos_iota_transform_params": {"mean": 0.0, "std": 0.333, "min": -1.0, "max": 1.0},
+        "cos_iota_transform_params": {
+            "mean": 0.0,
+            "std": 0.333,
+            "min": -1.0,
+            "max": 1.0,
+        },
         "psi_spec": None,
-        "psi_transform_params": {"mean": 1.5708, "std": 0.5236, "min": 0.0, "max": 3.14159},
+        "psi_transform_params": {
+            "mean": 1.5708,
+            "std": 0.5236,
+            "min": 0.0,
+            "max": 3.14159,
+        },
         "Phi0_spec": None,
-        "Phi0_transform_params": {"mean": 3.1416, "std": 1.0472, "min": 0.0, "max": 6.2832},
+        "Phi0_transform_params": {
+            "mean": 3.1416,
+            "std": 1.0472,
+            "min": 0.0,
+            "max": 6.2832,
+        },
         "chi_transform_params": None,  # No pulsar term
     }
 
@@ -99,20 +159,55 @@ def cw_prior_specs_hierarchical():
 
     cw_specs = {
         "log10_h0_spec": None,
-        "log10_h0_transform_params": {"mean": -14.0, "std": 0.667, "min": -16.0, "max": -12.0},
+        "log10_h0_transform_params": {
+            "mean": -14.0,
+            "std": 0.667,
+            "min": -16.0,
+            "max": -12.0,
+        },
         "alpha_gw_spec": None,
-        "alpha_gw_transform_params": {"mean": 3.1416, "std": 1.0472, "min": 0.0, "max": 6.2832},
+        "alpha_gw_transform_params": {
+            "mean": 3.1416,
+            "std": 1.0472,
+            "min": 0.0,
+            "max": 6.2832,
+        },
         "sin_delta_gw_spec": None,
-        "sin_delta_gw_transform_params": {"mean": 0.0, "std": 0.333, "min": -1.0, "max": 1.0},
+        "sin_delta_gw_transform_params": {
+            "mean": 0.0,
+            "std": 0.333,
+            "min": -1.0,
+            "max": 1.0,
+        },
         "delta_gw_spec": None,
         "log10_f_gw_spec": None,
-        "log10_f_gw_transform_params": {"mean": -8.0, "std": 0.333, "min": -9.0, "max": -7.0},
+        "log10_f_gw_transform_params": {
+            "mean": -8.0,
+            "std": 0.333,
+            "min": -9.0,
+            "max": -7.0,
+        },
         "cos_iota_spec": None,
-        "cos_iota_transform_params": {"mean": 0.0, "std": 0.333, "min": -1.0, "max": 1.0},
+        "cos_iota_transform_params": {
+            "mean": 0.0,
+            "std": 0.333,
+            "min": -1.0,
+            "max": 1.0,
+        },
         "psi_spec": None,
-        "psi_transform_params": {"mean": 1.5708, "std": 0.5236, "min": 0.0, "max": 3.14159},
+        "psi_transform_params": {
+            "mean": 1.5708,
+            "std": 0.5236,
+            "min": 0.0,
+            "max": 3.14159,
+        },
         "Phi0_spec": None,
-        "Phi0_transform_params": {"mean": 3.1416, "std": 1.0472, "min": 0.0, "max": 6.2832},
+        "Phi0_transform_params": {
+            "mean": 3.1416,
+            "std": 1.0472,
+            "min": 0.0,
+            "max": 6.2832,
+        },
         "chi_transform_params": None,
     }
 
@@ -148,7 +243,9 @@ class TestBuildJaxnsCWPriorModel:
         """Prior model builder should return a callable generator function."""
         from argus.parameter_sampling import build_jaxns_cw_prior_model
 
-        prior_model = build_jaxns_cw_prior_model(cw_prior_specs_all_sampled, n_pulsars=3)
+        prior_model = build_jaxns_cw_prior_model(
+            cw_prior_specs_all_sampled, n_pulsars=3
+        )
         assert callable(prior_model)
 
     def test_model_creates_valid_jaxns_model(self, cw_prior_specs_all_sampled):
@@ -156,12 +253,25 @@ class TestBuildJaxnsCWPriorModel:
         from argus.parameter_sampling import build_jaxns_cw_prior_model
         from jaxns import Model
 
-        prior_model = build_jaxns_cw_prior_model(cw_prior_specs_all_sampled, n_pulsars=3)
+        prior_model = build_jaxns_cw_prior_model(
+            cw_prior_specs_all_sampled, n_pulsars=3
+        )
 
         # Simple log-likelihood that accepts the prior model output
-        def log_likelihood(log10_h0, alpha_gw, delta_gw, log10_f_gw,
-                           cos_iota, psi, Phi0, chi,
-                           log10_gamma_p, log10_sigma_p, efac, equad):
+        def log_likelihood(
+            log10_h0,
+            alpha_gw,
+            delta_gw,
+            log10_f_gw,
+            cos_iota,
+            psi,
+            Phi0,
+            chi,
+            log10_gamma_p,
+            log10_sigma_p,
+            efac,
+            equad,
+        ):
             return jnp.float64(0.0)
 
         model = Model(prior_model=prior_model, log_likelihood=log_likelihood)
@@ -235,13 +345,15 @@ class TestLikelihoodWrapper:
         residuals_list = [np.random.normal(0, 1e-7, nobs) for _ in range(Npsr)]
         errors_list = [np.full(nobs, 1e-7) for _ in range(Npsr)]
 
-        metadata = pd.DataFrame({
-            "name": [f"J000{i}+0001" for i in range(Npsr)],
-            "dim_M": [3] * Npsr,
-            "RA": [0.5, 1.5],
-            "DEC": [0.3, -0.2],
-            "F0": [200.0, 300.0],
-        })
+        metadata = pd.DataFrame(
+            {
+                "name": [f"J000{i}+0001" for i in range(Npsr)],
+                "dim_M": [3] * Npsr,
+                "RA": [0.5, 1.5],
+                "DEC": [0.3, -0.2],
+                "F0": [200.0, 300.0],
+            }
+        )
         design_matrices = [np.random.randn(nobs, 3) * 0.01 for _ in range(Npsr)]
         P_eps = [np.eye(3) * 0.01 for _ in range(Npsr)]
 
@@ -275,8 +387,19 @@ class TestLikelihoodWrapper:
 
         # Direct call
         ll_direct = cw_log_likelihood_fn(
-            kf, log10_h0, alpha_gw, delta_gw, log10_f_gw,
-            cos_iota, psi, Phi0, chi, log10_gp, log10_sp, efac, equad,
+            kf,
+            log10_h0,
+            alpha_gw,
+            delta_gw,
+            log10_f_gw,
+            cos_iota,
+            psi,
+            Phi0,
+            chi,
+            log10_gp,
+            log10_sp,
+            efac,
+            equad,
         )
 
         assert jnp.isfinite(ll_direct)

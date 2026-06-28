@@ -113,11 +113,13 @@ def gw_propagation_direction(alpha_gw, delta_gw):
     jax.Array
         Unit vector n_hat of shape (3,) pointing in the GW propagation direction.
     """
-    return -jnp.array([
-        jnp.cos(alpha_gw) * jnp.cos(delta_gw),
-        jnp.sin(alpha_gw) * jnp.cos(delta_gw),
-        jnp.sin(delta_gw),
-    ])
+    return -jnp.array(
+        [
+            jnp.cos(alpha_gw) * jnp.cos(delta_gw),
+            jnp.sin(alpha_gw) * jnp.cos(delta_gw),
+            jnp.sin(delta_gw),
+        ]
+    )
 
 
 def pulsar_direction(ra, dec):
@@ -135,11 +137,13 @@ def pulsar_direction(ra, dec):
     jax.Array
         Unit vector q_hat of shape (3,).
     """
-    return jnp.array([
-        jnp.cos(ra) * jnp.cos(dec),
-        jnp.sin(ra) * jnp.cos(dec),
-        jnp.sin(dec),
-    ])
+    return jnp.array(
+        [
+            jnp.cos(ra) * jnp.cos(dec),
+            jnp.sin(ra) * jnp.cos(dec),
+            jnp.sin(dec),
+        ]
+    )
 
 
 def polarization_vectors(alpha_gw, delta_gw):
@@ -157,16 +161,20 @@ def polarization_vectors(alpha_gw, delta_gw):
     tuple[jax.Array, jax.Array]
         (m_hat, l_hat), each of shape (3,).
     """
-    m_hat = jnp.array([
-        jnp.sin(alpha_gw),
-        -jnp.cos(alpha_gw),
-        0.0,
-    ])
-    l_hat = jnp.array([
-        -jnp.cos(alpha_gw) * jnp.sin(delta_gw),
-        -jnp.sin(alpha_gw) * jnp.sin(delta_gw),
-        jnp.cos(delta_gw),
-    ])
+    m_hat = jnp.array(
+        [
+            jnp.sin(alpha_gw),
+            -jnp.cos(alpha_gw),
+            0.0,
+        ]
+    )
+    l_hat = jnp.array(
+        [
+            -jnp.cos(alpha_gw) * jnp.sin(delta_gw),
+            -jnp.sin(alpha_gw) * jnp.sin(delta_gw),
+            jnp.cos(delta_gw),
+        ]
+    )
     return m_hat, l_hat
 
 
@@ -243,7 +251,9 @@ def antenna_pattern_single(pulsar_ra, pulsar_dec, alpha_gw, delta_gw, psi):
     return F_plus, F_cross
 
 
-def compute_antenna_patterns(pulsar_ra_array, pulsar_dec_array, alpha_gw, delta_gw, psi):
+def compute_antenna_patterns(
+    pulsar_ra_array, pulsar_dec_array, alpha_gw, delta_gw, psi
+):
     """Compute antenna pattern functions for all pulsars (vectorized).
 
     Parameters
@@ -323,13 +333,24 @@ def _cw_earth_term(toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross):
     amp_cross = -h0 * cos_iota / Omega
 
     phase_e = Omega * toas + Phi0
-    earth_term = F_plus * amp_plus * jnp.sin(phase_e) + F_cross * amp_cross * jnp.cos(phase_e)
+    earth_term = F_plus * amp_plus * jnp.sin(phase_e) + F_cross * amp_cross * jnp.cos(
+        phase_e
+    )
 
     return Omega, amp_plus, amp_cross, earth_term
 
 
-def compute_cw_signal_single_pulsar(toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross,
-                                     pulsar_distance=0.0, geometric_factor=0.0):
+def compute_cw_signal_single_pulsar(
+    toas,
+    f_gw,
+    h0,
+    cos_iota,
+    Phi0,
+    F_plus,
+    F_cross,
+    pulsar_distance=0.0,
+    geometric_factor=0.0,
+):
     """Compute CW timing residuals for all observation times of a single pulsar.
 
     Computes Earth term, and optionally the pulsar term if pulsar_distance > 0.
@@ -371,15 +392,18 @@ def compute_cw_signal_single_pulsar(toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cr
     # When pulsar_distance=0, pulsar term contribution is zero (Earth-term only)
     tau_a = pulsar_distance * geometric_factor
     phase_p = Omega * (toas - tau_a) + Phi0
-    pulsar_term = F_plus * amp_plus * jnp.sin(phase_p) + F_cross * amp_cross * jnp.cos(phase_p)
+    pulsar_term = F_plus * amp_plus * jnp.sin(phase_p) + F_cross * amp_cross * jnp.cos(
+        phase_p
+    )
 
     # Use pulsar_distance as a switch: when 0, no pulsar term subtracted
     has_pulsar_term = jnp.where(pulsar_distance > 0.0, 1.0, 0.0)
     return earth_term - has_pulsar_term * pulsar_term
 
 
-def compute_cw_signal_single_pulsar_phase(toas, f_gw, h0, cos_iota, Phi0,
-                                           F_plus, F_cross, chi):
+def compute_cw_signal_single_pulsar_phase(
+    toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross, chi
+):
     """Compute CW timing residuals using phase-parameterized pulsar term.
 
     Instead of computing the pulsar term from physical distance, uses a
@@ -420,6 +444,8 @@ def compute_cw_signal_single_pulsar_phase(toas, f_gw, h0, cos_iota, Phi0,
 
     # Pulsar term with phase reparameterization
     phase_p = Omega * toas + Phi0 - chi
-    pulsar_term = F_plus * amp_plus * jnp.sin(phase_p) + F_cross * amp_cross * jnp.cos(phase_p)
+    pulsar_term = F_plus * amp_plus * jnp.sin(phase_p) + F_cross * amp_cross * jnp.cos(
+        phase_p
+    )
 
     return earth_term - pulsar_term

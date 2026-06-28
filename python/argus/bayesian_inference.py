@@ -362,8 +362,19 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
 
 
 def cw_log_likelihood_fn(
-    kalman_filter, log10_h0, alpha_gw, delta_gw, log10_f_gw,
-    cos_iota, psi, Phi0, chi, log10_γp, log10_σp, efac, equad,
+    kalman_filter,
+    log10_h0,
+    alpha_gw,
+    delta_gw,
+    log10_f_gw,
+    cos_iota,
+    psi,
+    Phi0,
+    chi,
+    log10_γp,
+    log10_σp,
+    efac,
+    equad,
 ):
     """Calculate CW log likelihood for NumPyro sampling.
 
@@ -450,8 +461,19 @@ def numpyro_model_cw(kalman_filter, prior_specs, n_pulsars):
 
     # Calculate CW log likelihood
     log_likelihood = cw_log_likelihood_fn(
-        kalman_filter, log10_h0, alpha_gw, delta_gw, log10_f_gw,
-        cos_iota, psi, Phi0, chi, log10_γp, log10_σp, efac, equad,
+        kalman_filter,
+        log10_h0,
+        alpha_gw,
+        delta_gw,
+        log10_f_gw,
+        cos_iota,
+        psi,
+        Phi0,
+        chi,
+        log10_γp,
+        log10_σp,
+        efac,
+        equad,
     )
 
     numpyro.factor("likelihood", log_likelihood)
@@ -613,7 +635,12 @@ def run_nuts_sampling(
 
     # Get prior model distributions
     prior_specs = get_prior_model_specs(
-        config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array,
+        config,
+        n_pulsars,
+        sigma_p_array,
+        gamma_p_array,
+        efac_array,
+        equad_array,
         mode=mode,
     )
 
@@ -630,9 +657,12 @@ def run_nuts_sampling(
 
     # Create the actual model function bound to the Kalman filter
     if mode == "cw":
+
         def bound_model():
             return numpyro_model_cw(kalman_filter, prior_specs, n_pulsars)
+
     else:
+
         def bound_model():
             return numpyro_model(kalman_filter, prior_specs, n_pulsars)
 
@@ -653,12 +683,15 @@ def run_nuts_sampling(
     chain_method = "sequential"
     if num_chains > 1:
         import jax
+
         n_devices = jax.local_device_count()
         if n_devices >= num_chains:
             chain_method = "parallel"
             print(f"Running {num_chains} chains in parallel across {n_devices} devices")
         else:
-            print(f"Running {num_chains} chains sequentially ({n_devices} device(s) available)")
+            print(
+                f"Running {num_chains} chains sequentially ({n_devices} device(s) available)"
+            )
 
     sampler = MCMC(
         kernel,
@@ -721,6 +754,7 @@ def _jaxns_results_to_arviz(results, num_posterior_samples=10000):
 
     # Convert JAX arrays to numpy for ArviZ
     import numpy as np
+
     posterior_np = {k: np.asarray(v) for k, v in posterior_dict.items()}
 
     inf_data = az.from_dict(posterior=posterior_np)
@@ -779,7 +813,12 @@ def run_nested_sampling(
 
     # Build prior specs (same as NUTS path)
     prior_specs = get_prior_model_specs(
-        config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array,
+        config,
+        n_pulsars,
+        sigma_p_array,
+        gamma_p_array,
+        efac_array,
+        equad_array,
         mode=mode,
     )
 
@@ -787,13 +826,34 @@ def run_nested_sampling(
     prior_model_fn = build_jaxns_cw_prior_model(prior_specs, n_pulsars)
 
     # Build log-likelihood wrapper that calls existing cw_log_likelihood_fn
-    def log_likelihood(log10_h0, alpha_gw, delta_gw, log10_f_gw,
-                       cos_iota, psi, Phi0, chi,
-                       log10_gamma_p, log10_sigma_p, efac, equad):
+    def log_likelihood(
+        log10_h0,
+        alpha_gw,
+        delta_gw,
+        log10_f_gw,
+        cos_iota,
+        psi,
+        Phi0,
+        chi,
+        log10_gamma_p,
+        log10_sigma_p,
+        efac,
+        equad,
+    ):
         return cw_log_likelihood_fn(
-            kalman_filter, log10_h0, alpha_gw, delta_gw, log10_f_gw,
-            cos_iota, psi, Phi0, chi, log10_gamma_p, log10_sigma_p,
-            efac, equad,
+            kalman_filter,
+            log10_h0,
+            alpha_gw,
+            delta_gw,
+            log10_f_gw,
+            cos_iota,
+            psi,
+            Phi0,
+            chi,
+            log10_gamma_p,
+            log10_sigma_p,
+            efac,
+            equad,
         )
 
     # Create jaxns Model
@@ -826,9 +886,7 @@ def run_nested_sampling(
 
     rng_key = jax.random.PRNGKey(42)
     termination_reason, state = sampler(rng_key)
-    results = sampler.to_results(
-        termination_reason=termination_reason, state=state
-    )
+    results = sampler.to_results(termination_reason=termination_reason, state=state)
 
     # Log evidence
     log_Z_mean = float(results.log_Z_mean)

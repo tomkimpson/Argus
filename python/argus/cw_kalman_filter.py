@@ -37,9 +37,7 @@ def get_logger():
     return get_argus_logger()
 
 
-def _build_per_pulsar_H_vectors(
-    Npsr, max_nobs, max_M, f0, design_matrices, M_dims
-):
+def _build_per_pulsar_H_vectors(Npsr, max_nobs, max_M, f0, design_matrices, M_dims):
     """Build observation vectors h for all pulsars, padded to common dimensions.
 
     For pulsar n at observation k, h^(n)_k = (1/f0^(n), 0, M^(n)_{k,1}, ..., M^(n)_{k,M^(n)})
@@ -253,7 +251,16 @@ def _initialize_single_pulsar(state_dim, sigma_p_sq, gamma_p, P_eps):
 
 
 def _run_single_pulsar_filter(
-    x0, P0, z_tilde, h_vectors, R_scalars, dt_array, mask, gamma_p, sigma_p_sq, state_dim
+    x0,
+    P0,
+    z_tilde,
+    h_vectors,
+    R_scalars,
+    dt_array,
+    mask,
+    gamma_p,
+    sigma_p_sq,
+    state_dim,
 ):
     """Run the Kalman filter for a single pulsar using lax.scan.
 
@@ -336,8 +343,12 @@ class CWKalmanFilter:
         containing per-pulsar observations, metadata, design matrices, and covariances.
     """
 
-    def __init__(self, data: dict, include_pulsar_term: bool = False,
-                 phase_parameterization: bool = True):
+    def __init__(
+        self,
+        data: dict,
+        include_pulsar_term: bool = False,
+        phase_parameterization: bool = True,
+    ):
         """Initialize the CW Kalman filter.
 
         Parameters
@@ -380,7 +391,9 @@ class CWKalmanFilter:
         if include_pulsar_term and not phase_parameterization:
             distances_kpc = df_psr["distance_kpc"].values.astype(float)
             self.pulsar_distances = jnp.array(distances_kpc * KPC_TO_SECONDS)
-            get_logger().info(f"Pulsar distances (kpc): min={distances_kpc.min():.2f}, max={distances_kpc.max():.2f}")
+            get_logger().info(
+                f"Pulsar distances (kpc): min={distances_kpc.min():.2f}, max={distances_kpc.max():.2f}"
+            )
         else:
             # Not needed for phase parameterization (chi replaces distance)
             # or Earth-term only mode
@@ -401,8 +414,12 @@ class CWKalmanFilter:
 
         # Build per-pulsar H vectors (observation model)
         H_np = _build_per_pulsar_H_vectors(
-            self.Npsr, self.max_nobs, self.max_M, self.f0,
-            pulsar_design_matrices, self.M,
+            self.Npsr,
+            self.max_nobs,
+            self.max_M,
+            self.f0,
+            pulsar_design_matrices,
+            self.M,
         )
         self.jax_H = jnp.array(H_np)
 
@@ -419,7 +436,9 @@ class CWKalmanFilter:
         """
         toas_padded = np.zeros((self.Npsr, self.max_nobs))
         residuals_padded = np.zeros((self.Npsr, self.max_nobs))
-        errors_padded = np.ones((self.Npsr, self.max_nobs))  # ones to avoid division by zero
+        errors_padded = np.ones(
+            (self.Npsr, self.max_nobs)
+        )  # ones to avoid division by zero
         mask = np.zeros((self.Npsr, self.max_nobs), dtype=bool)
         dt_padded = np.ones((self.Npsr, self.max_nobs - 1))  # ones for safe dt
 
@@ -470,12 +489,31 @@ class CWKalmanFilter:
         )
 
 
-
-@partial(jax.jit, static_argnames=("Npsr", "state_dim", "include_pulsar_term", "phase_parameterization"))
+@partial(
+    jax.jit,
+    static_argnames=(
+        "Npsr",
+        "state_dim",
+        "include_pulsar_term",
+        "phase_parameterization",
+    ),
+)
 def _cw_likelihood(
-    theta, toas, residuals, errors, mask, dt, H, P_eps,
-    pulsar_ra, pulsar_dec, pulsar_distances, Npsr, state_dim,
-    include_pulsar_term, phase_parameterization,
+    theta,
+    toas,
+    residuals,
+    errors,
+    mask,
+    dt,
+    H,
+    P_eps,
+    pulsar_ra,
+    pulsar_dec,
+    pulsar_distances,
+    Npsr,
+    state_dim,
+    include_pulsar_term,
+    phase_parameterization,
 ):
     """Compute CW log-likelihood using vmapped per-pulsar scalar Kalman filters.
 
@@ -562,9 +600,7 @@ def _cw_likelihood(
     sigma_p_sq = theta.sigma_p**2
 
     def run_one_pulsar(x0, P0, z, h, R, dt_arr, m, gp, sp2):
-        return _run_single_pulsar_filter(
-            x0, P0, z, h, R, dt_arr, m, gp, sp2, state_dim
-        )
+        return _run_single_pulsar_filter(x0, P0, z, h, R, dt_arr, m, gp, sp2, state_dim)
 
     # Build initial states for all pulsars
     x0_all = jnp.zeros((Npsr, state_dim, 1))
@@ -574,8 +610,15 @@ def _cw_likelihood(
 
     # 6. Run vmapped per-pulsar filters
     ll_per_pulsar = jax.vmap(run_one_pulsar)(
-        x0_all, P0_all, z_tilde, H, R_scalars, dt, mask,
-        theta.gamma_p, sigma_p_sq,
+        x0_all,
+        P0_all,
+        z_tilde,
+        H,
+        R_scalars,
+        dt,
+        mask,
+        theta.gamma_p,
+        sigma_p_sq,
     )
 
     # 7. Sum log-likelihoods over pulsars

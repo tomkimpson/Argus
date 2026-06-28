@@ -176,16 +176,26 @@ class TestCWTimingResidual:
     def test_zero_amplitude(self):
         """Zero strain amplitude should give zero residual."""
         result = cw_timing_residual(
-            t=1e8, f_gw=1e-8, h0=0.0, cos_iota=0.5, Phi0=0.3,
-            F_plus=0.1, F_cross=-0.2,
+            t=1e8,
+            f_gw=1e-8,
+            h0=0.0,
+            cos_iota=0.5,
+            Phi0=0.3,
+            F_plus=0.1,
+            F_cross=-0.2,
         )
         assert jnp.allclose(result, 0.0, atol=1e-30)
 
     def test_zero_antenna_patterns(self):
         """Zero antenna patterns should give zero residual."""
         result = cw_timing_residual(
-            t=1e8, f_gw=1e-8, h0=1e-14, cos_iota=0.5, Phi0=0.3,
-            F_plus=0.0, F_cross=0.0,
+            t=1e8,
+            f_gw=1e-8,
+            h0=1e-14,
+            cos_iota=0.5,
+            Phi0=0.3,
+            F_plus=0.0,
+            F_cross=0.0,
         )
         assert jnp.allclose(result, 0.0, atol=1e-30)
 
@@ -194,8 +204,13 @@ class TestCWTimingResidual:
         # For cos_iota = 0: (1+cos^2 iota)/2 = 1/2, and cos_iota = 0
         # So Delta_s_cross = 0, only Delta_s_plus contributes
         result = cw_timing_residual(
-            t=1e8, f_gw=1e-8, h0=1e-14, cos_iota=0.0, Phi0=0.0,
-            F_plus=1.0, F_cross=1.0,
+            t=1e8,
+            f_gw=1e-8,
+            h0=1e-14,
+            cos_iota=0.0,
+            Phi0=0.0,
+            F_plus=1.0,
+            F_cross=1.0,
         )
         # Delta_s_plus = h0 * 0.5 / Omega * sin(Omega*t)
         # Delta_s_cross = 0
@@ -205,13 +220,16 @@ class TestCWTimingResidual:
 
     def test_residual_scales_with_h0(self):
         """Residual should scale linearly with h0."""
-        kwargs = dict(t=1e8, f_gw=1e-8, cos_iota=0.5, Phi0=0.3, F_plus=0.1, F_cross=-0.2)
+        kwargs = dict(
+            t=1e8, f_gw=1e-8, cos_iota=0.5, Phi0=0.3, F_plus=0.1, F_cross=-0.2
+        )
         r1 = cw_timing_residual(h0=1e-14, **kwargs)
         r2 = cw_timing_residual(h0=2e-14, **kwargs)
         assert jnp.allclose(r2, 2.0 * r1, rtol=1e-10)
 
     def test_differentiable(self):
         """CW timing residual should be differentiable w.r.t. all CW parameters."""
+
         def residual_fn(h0, f_gw, cos_iota, Phi0):
             return cw_timing_residual(1e8, f_gw, h0, cos_iota, Phi0, 0.1, -0.2)
 
@@ -235,15 +253,15 @@ class TestComputeCWSignalSinglePulsar:
         )
 
         for i, t in enumerate(toas):
-            scalar_result = cw_timing_residual(t, f_gw, h0, cos_iota, Phi0, F_plus, F_cross)
+            scalar_result = cw_timing_residual(
+                t, f_gw, h0, cos_iota, Phi0, F_plus, F_cross
+            )
             assert jnp.allclose(vec_result[i], scalar_result, atol=1e-20)
 
     def test_output_shape(self):
         """Output should have same shape as input TOAs."""
         toas = jnp.linspace(0, 1e9, 100)
-        result = compute_cw_signal_single_pulsar(
-            toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2
-        )
+        result = compute_cw_signal_single_pulsar(toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2)
         assert result.shape == toas.shape
 
     def test_jit_compatible(self):
@@ -260,12 +278,26 @@ class TestComputeCWSignalSinglePulsar:
         F_plus, F_cross = 0.1, -0.2
 
         earth_only = compute_cw_signal_single_pulsar(
-            toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross,
-            pulsar_distance=0.0, geometric_factor=0.5,
+            toas,
+            f_gw,
+            h0,
+            cos_iota,
+            Phi0,
+            F_plus,
+            F_cross,
+            pulsar_distance=0.0,
+            geometric_factor=0.5,
         )
         with_pulsar = compute_cw_signal_single_pulsar(
-            toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross,
-            pulsar_distance=1e10, geometric_factor=0.5,
+            toas,
+            f_gw,
+            h0,
+            cos_iota,
+            Phi0,
+            F_plus,
+            F_cross,
+            pulsar_distance=1e10,
+            geometric_factor=0.5,
         )
         assert not jnp.allclose(earth_only, with_pulsar)
 
@@ -273,11 +305,24 @@ class TestComputeCWSignalSinglePulsar:
         """With zero distance, result should match Earth-term only."""
         toas = jnp.array([1e8, 2e8, 3e8])
         earth = compute_cw_signal_single_pulsar(
-            toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2,
+            toas,
+            1e-8,
+            1e-14,
+            0.5,
+            0.3,
+            0.1,
+            -0.2,
         )
         zero_dist = compute_cw_signal_single_pulsar(
-            toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2,
-            pulsar_distance=0.0, geometric_factor=1.5,
+            toas,
+            1e-8,
+            1e-14,
+            0.5,
+            0.3,
+            0.1,
+            -0.2,
+            pulsar_distance=0.0,
+            geometric_factor=1.5,
         )
         assert jnp.allclose(earth, zero_dist, atol=1e-20)
 
@@ -289,7 +334,14 @@ class TestComputeCWSignalSinglePulsarPhase:
         """Output shape should match toas shape."""
         toas = jnp.linspace(0, 1e9, 100)
         result = compute_cw_signal_single_pulsar_phase(
-            toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2, 1.0,
+            toas,
+            1e-8,
+            1e-14,
+            0.5,
+            0.3,
+            0.1,
+            -0.2,
+            1.0,
         )
         assert result.shape == toas.shape
 
@@ -309,11 +361,25 @@ class TestComputeCWSignalSinglePulsarPhase:
         chi = (Omega * distance * geometric_factor) % (2.0 * jnp.pi)
 
         from_distance = compute_cw_signal_single_pulsar(
-            toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross,
-            pulsar_distance=distance, geometric_factor=geometric_factor,
+            toas,
+            f_gw,
+            h0,
+            cos_iota,
+            Phi0,
+            F_plus,
+            F_cross,
+            pulsar_distance=distance,
+            geometric_factor=geometric_factor,
         )
         from_phase = compute_cw_signal_single_pulsar_phase(
-            toas, f_gw, h0, cos_iota, Phi0, F_plus, F_cross, chi,
+            toas,
+            f_gw,
+            h0,
+            cos_iota,
+            Phi0,
+            F_plus,
+            F_cross,
+            chi,
         )
         assert jnp.allclose(from_distance, from_phase, atol=1e-20)
 
@@ -322,10 +388,24 @@ class TestComputeCWSignalSinglePulsarPhase:
         toas = jnp.linspace(0, 1e9, 30)
         chi = 1.5
         s1 = compute_cw_signal_single_pulsar_phase(
-            toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2, chi,
+            toas,
+            1e-8,
+            1e-14,
+            0.5,
+            0.3,
+            0.1,
+            -0.2,
+            chi,
         )
         s2 = compute_cw_signal_single_pulsar_phase(
-            toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2, chi + 2 * jnp.pi,
+            toas,
+            1e-8,
+            1e-14,
+            0.5,
+            0.3,
+            0.1,
+            -0.2,
+            chi + 2 * jnp.pi,
         )
         assert jnp.allclose(s1, s2, atol=1e-20)
 
@@ -334,9 +414,18 @@ class TestComputeCWSignalSinglePulsarPhase:
         toas = jnp.linspace(0, 1e9, 20)
 
         def signal_sum(chi):
-            return jnp.sum(compute_cw_signal_single_pulsar_phase(
-                toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2, chi,
-            ))
+            return jnp.sum(
+                compute_cw_signal_single_pulsar_phase(
+                    toas,
+                    1e-8,
+                    1e-14,
+                    0.5,
+                    0.3,
+                    0.1,
+                    -0.2,
+                    chi,
+                )
+            )
 
         grad = jax.grad(signal_sum)(1.5)
         assert jnp.isfinite(grad)
@@ -358,7 +447,14 @@ class TestComputeCWSignalSinglePulsarPhase:
 
         result = jax.vmap(
             lambda t, fp, fc, ch: compute_cw_signal_single_pulsar_phase(
-                t, 1e-8, 1e-14, 0.5, 0.3, fp, fc, ch,
+                t,
+                1e-8,
+                1e-14,
+                0.5,
+                0.3,
+                fp,
+                fc,
+                ch,
             )
         )(toas, F_plus, F_cross, chi)
         assert result.shape == (Npsr, 20)
@@ -368,9 +464,23 @@ class TestComputeCWSignalSinglePulsarPhase:
         """Nonzero chi should produce a different signal than chi=0."""
         toas = jnp.linspace(0, 1e9, 30)
         s_zero = compute_cw_signal_single_pulsar_phase(
-            toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2, 0.0,
+            toas,
+            1e-8,
+            1e-14,
+            0.5,
+            0.3,
+            0.1,
+            -0.2,
+            0.0,
         )
         s_nonzero = compute_cw_signal_single_pulsar_phase(
-            toas, 1e-8, 1e-14, 0.5, 0.3, 0.1, -0.2, 1.5,
+            toas,
+            1e-8,
+            1e-14,
+            0.5,
+            0.3,
+            0.1,
+            -0.2,
+            1.5,
         )
         assert not jnp.allclose(s_zero, s_nonzero)

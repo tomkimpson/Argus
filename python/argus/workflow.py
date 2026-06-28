@@ -36,8 +36,12 @@ def setup_data_and_kalman_filter(config, logger, use_gw, signal_model="gwb"):
     )
 
     if signal_model == "cw":
-        include_pulsar_term = config.getboolean("CWModel", "include_pulsar_term", fallback=False)
-        phase_parameterization = config.getboolean("CWModel", "phase_parameterization", fallback=True)
+        include_pulsar_term = config.getboolean(
+            "CWModel", "include_pulsar_term", fallback=False
+        )
+        phase_parameterization = config.getboolean(
+            "CWModel", "phase_parameterization", fallback=True
+        )
 
         # Override pulsar distances from JSON file if provided
         # Only needed for distance-based pulsar term (not phase parameterization)
@@ -46,8 +50,11 @@ def setup_data_and_kalman_filter(config, logger, use_gw, signal_model="gwb"):
             if distance_file.strip():
                 import json
                 import os
+
                 if not os.path.isabs(distance_file):
-                    config_dir = os.path.dirname(os.path.abspath(config.get("Data", "data_path")))
+                    config_dir = os.path.dirname(
+                        os.path.abspath(config.get("Data", "data_path"))
+                    )
                     distance_file = os.path.join(config_dir, distance_file)
                 with open(distance_file) as f:
                     dist_data = json.load(f)
@@ -55,10 +62,14 @@ def setup_data_and_kalman_filter(config, logger, use_gw, signal_model="gwb"):
                 for idx, row in metadata.iterrows():
                     psr_name = row["name"]
                     if psr_name in dist_data:
-                        metadata.at[idx, "distance_kpc"] = dist_data[psr_name]["distance_kpc"]
+                        metadata.at[idx, "distance_kpc"] = dist_data[psr_name][
+                            "distance_kpc"
+                        ]
                 logger.info(f"Loaded pulsar distances from {distance_file}")
 
-        logger.info(f"Initializing CW per-pulsar Kalman filter (pulsar_term={include_pulsar_term}, phase_param={phase_parameterization})...")
+        logger.info(
+            f"Initializing CW per-pulsar Kalman filter (pulsar_term={include_pulsar_term}, phase_param={phase_parameterization})..."
+        )
         KF = cw_kalman_filter.CWKalmanFilter(
             data=pulsar_data,
             include_pulsar_term=include_pulsar_term,
@@ -118,7 +129,12 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     # Get prior model specifications and display them
     n_pulsars = len(pulsar_data["metadata"])
     prior_specs = prior_models.get_prior_model_specs(
-        config, n_pulsars, sigma_p_array, gamma_p_array, efac_array, equad_array,
+        config,
+        n_pulsars,
+        sigma_p_array,
+        gamma_p_array,
+        efac_array,
+        equad_array,
         mode=signal_model,
     )
 
@@ -172,6 +188,7 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     # Save evidence if nested sampling was used
     if log_evidence is not None:
         import json
+
         evidence_path = os.path.join(output_dir, f"{output_id}_evidence.json")
         with open(evidence_path, "w") as f:
             json.dump(

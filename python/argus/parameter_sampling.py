@@ -409,9 +409,7 @@ def sample_chi_parameters(prior_specs, n_pulsars):
             "chi_prime",
             dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars)),
         )
-        chi = numpyro.deterministic(
-            "chi", tp["mean"] + chi_prime * tp["std"]
-        )
+        chi = numpyro.deterministic("chi", tp["mean"] + chi_prime * tp["std"])
     else:
         chi = numpyro.deterministic("chi", jnp.zeros(n_pulsars))
 
@@ -669,9 +667,18 @@ def build_jaxns_cw_prior_model(prior_specs, n_pulsars):
             equad = jnp.asarray(prior_specs["equad_spec"])
 
         return (
-            log10_h0, alpha_gw, delta_gw, log10_f_gw,
-            cos_iota, psi, Phi0, chi,
-            log10_gamma_p, log10_sigma_p, efac, equad,
+            log10_h0,
+            alpha_gw,
+            delta_gw,
+            log10_f_gw,
+            cos_iota,
+            psi,
+            Phi0,
+            chi,
+            log10_gamma_p,
+            log10_sigma_p,
+            efac,
+            equad,
         )
 
     return prior_model
