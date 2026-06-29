@@ -28,7 +28,9 @@ requires-python = ">=3.11,<3.13"
 
 dependencies = [
     "numpy>=2.0,<2.3",
+    "scipy>=1.11",
     "pandas>=2.2.3",
+    "pyarrow>=17.0.0",
     "fastparquet>=2024.11.0",
     "tqdm>=4.67.1",
     "jax[cuda12]>=0.4.35,<0.5.0",
