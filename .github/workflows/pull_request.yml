@@ -22,11 +22,6 @@ jobs:
       - name: Check-out repo
         uses: actions/checkout@v4
 
-      - name: Install System Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libsuitesparse-dev
-
       - name: Setup Conda
         uses: conda-incubator/setup-miniconda@v3
         with:
@@ -45,8 +40,8 @@ jobs:
       - name: Install dependencies
         shell: bash -l {0}
         run: |
-          conda install -n argus-ci -c conda-forge enterprise-pulsar "numpy>=2.0,<2.3" "setuptools<81" pip
-          conda run -n argus-ci python -m pip install -e ".[dev,docs]" "setuptools<81"
+          conda install -n argus-ci -c conda-forge "numpy>=2.0,<2.3" pip
+          conda run -n argus-ci python -m pip install -e ".[dev,docs]"
 
       - name: Enforce linting
         shell: bash -l {0}

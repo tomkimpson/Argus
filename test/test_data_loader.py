@@ -1,10 +1,33 @@
 """Unit tests for data_loader module."""
 
+import os
+import types
+
 import pytest
 import numpy as np
 import pandas as pd
 from unittest.mock import Mock, patch, MagicMock
 from argus import data_loader
+
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+FIXTURE_FEATHER = os.path.join(DATA_DIR, "test_pulsar.feather")
+
+
+def _synthetic_pulsar(seed=1234, n=12):
+    """Build a deterministic LoadWidebandPulsarData from synthetic inputs."""
+    rng = np.random.default_rng(seed)
+    ds_psr = types.SimpleNamespace(
+        name="J9999+9999",
+        toas=np.linspace(53000.0, 54000.0, n) * 86400.0,
+        toaerrs=np.full(n, 1e-7),
+        residuals=rng.standard_normal(n) * 1e-6,
+        fitpars=["Offset", "F0", "F1", "RAJ", "DECJ"],
+        Mmat=rng.standard_normal((n, 5)),
+        _raj=0.75,
+        _decj=-0.25,
+        _pdist=(1.5, 0.3),
+    )
+    return data_loader.LoadWidebandPulsarData(ds_psr)
 
 
 class TestLoadWidebandPulsarData:
@@ -156,6 +179,7 @@ class TestGetProcessedResiduals:
         mock_exists.return_value = True
         mock_isdir.return_value = True
         mock_glob.side_effect = [
+            [],  # no feather files -> fall back to par/tim
             ["/data/psr1.par", "/data/psr2.par"],
             ["/data/psr1.tim", "/data/psr2.tim"],
         ]
@@ -211,9 +235,11 @@ class TestGetProcessedResiduals:
         """Test error when no par/tim files found."""
         mock_exists.return_value = True
         mock_isdir.return_value = True
-        mock_glob.side_effect = [[], []]
+        mock_glob.side_effect = [[], [], []]
 
-        with pytest.raises(FileNotFoundError, match="No .par or .tim files found"):
+        with pytest.raises(
+            FileNotFoundError, match="No .feather, .par or .tim files found"
+        ):
             data_loader.LoadWidebandPulsarData.get_processed_residuals("/data")
 
     @patch("os.path.isdir")
@@ -224,6 +250,7 @@ class TestGetProcessedResiduals:
         mock_exists.return_value = True
         mock_isdir.return_value = True
         mock_glob.side_effect = [
+            [],  # no feather files -> fall back to par/tim
             ["/data/psr1.par"],
             ["/data/psr1.tim", "/data/psr2.tim"],
         ]
@@ -240,6 +267,7 @@ class TestGetProcessedResiduals:
         mock_exists.return_value = True
         mock_isdir.return_value = True
         mock_glob.side_effect = [
+            [],  # no feather files -> fall back to par/tim
             ["/data/psr1.par", "/data/J1640+2224.par"],
             ["/data/psr1.tim", "/data/J1640+2224.tim"],
         ]
@@ -383,3 +411,120 @@ class TestReadMultipleParTim:
 
         # Should only process 2 files
         assert len(pulsar_dfs) == 2
+
+
+class TestFeatherCache:
+    """Tests for the Argus-native feather cache (no enterprise dependency)."""
+
+    def test_save_read_roundtrip_bit_identical(self, tmp_path):
+        """save_feather -> read_feather reproduces all arrays bit-for-bit."""
+        psr = _synthetic_pulsar()
+        path = str(tmp_path / "roundtrip.feather")
+        psr.save_feather(path, F0=311.49)
+
+        psr2 = data_loader.LoadWidebandPulsarData.read_feather(path)
+
+        for attr in [
+            "toas",
+            "toaerrs",
+            "residuals",
+            "M_matrix",
+            "M_scaled",
+            "P_eps",
+            "toa_diffs",
+            "toa_diff_errors",
+        ]:
+            a = np.asarray(getattr(psr, attr))
+            b = np.asarray(getattr(psr2, attr))
+            assert np.array_equal(a, b), f"{attr} differs after round-trip"
+
+        assert psr2.name == psr.name
+        assert psr2.RA == psr.RA
+        assert psr2.DEC == psr.DEC
+        assert psr2.distance_kpc == psr.distance_kpc
+        assert psr2.distance_err_kpc == psr.distance_err_kpc
+        assert psr2.F0 == 311.49
+        assert list(psr2.fitpars) == list(psr.fitpars)
+
+    def test_read_committed_fixture(self):
+        """The committed fixture feather loads into a valid object."""
+        psr = data_loader.LoadWidebandPulsarData.read_feather(FIXTURE_FEATHER)
+        assert psr.name == "J9999+9999"
+        assert psr.F0 == 311.49
+        assert len(psr.toas) == 12
+        assert psr.M_matrix.shape == (12, 5)
+        # Derived quantities are recomputed by __init__.
+        assert psr.P_eps.shape == (5, 5)
+        col_norms = np.sqrt(np.sum(psr.M_scaled**2, axis=0))
+        assert np.allclose(col_norms, 1.0)
+
+    def test_read_multiple_feather(self):
+        """read_multiple_feather returns the same 4-tuple shape as par/tim."""
+        result = data_loader.LoadWidebandPulsarData.read_multiple_feather(
+            [FIXTURE_FEATHER]
+        )
+        pulsar_dfs, metadata, design_matrices, covariances = result
+
+        assert len(pulsar_dfs) == 1
+        assert list(pulsar_dfs[0].columns) == ["toas", "residuals", "error"]
+        assert metadata.loc[0, "name"] == "J9999+9999"
+        assert metadata.loc[0, "F0"] == 311.49
+        assert metadata.loc[0, "dim_M"] == 5
+        assert len(design_matrices) == 1
+        assert len(covariances) == 1
+
+    def test_get_processed_residuals_prefers_feather(self, tmp_path):
+        """get_processed_residuals uses feathers when present (no par/tim needed)."""
+        psr = _synthetic_pulsar()
+        psr.save_feather(str(tmp_path / "J9999+9999.feather"), F0=311.49)
+
+        result = data_loader.LoadWidebandPulsarData.get_processed_residuals(
+            str(tmp_path), mode="cw"
+        )
+        assert "processed_residuals" in result
+        assert result["metadata"].loc[0, "name"] == "J9999+9999"
+        assert len(result["design_matrices"]) == 1
+
+    def test_empty_directory_raises(self, tmp_path):
+        """A directory with no feather/par/tim files raises FileNotFoundError."""
+        with pytest.raises(FileNotFoundError):
+            data_loader.LoadWidebandPulsarData.get_processed_residuals(str(tmp_path))
+
+
+class TestEnterpriseFeatherGolden:
+    """Golden numerics: enterprise vs feather must be bit-identical.
+
+    Skipped where enterprise (a data-prep-only dependency) is not installed, i.e.
+    in CI. Run locally in the ``Argus`` conda env to guard the validated likelihood.
+    """
+
+    def test_enterprise_vs_feather_bit_identical(self, tmp_path):
+        """A real par/tim load matches its feather round-trip bit-for-bit."""
+        pytest.importorskip("enterprise")
+
+        data_dir = os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "workflows",
+            "data",
+            "IPTA_MockDataChallenge2",
+            "dataset_3b",
+        )
+        par = os.path.join(data_dir, "J0030+0451.par")
+        tim = os.path.join(data_dir, "J0030+0451.tim")
+        if not (os.path.exists(par) and os.path.exists(tim)):
+            pytest.skip("IPTA MDC2 par/tim data not available")
+
+        ent = data_loader.LoadWidebandPulsarData.read_par_tim(par, tim)
+        f0 = data_loader.LoadWidebandPulsarData.get_par_value(par, "F0")
+
+        path = str(tmp_path / f"{ent.name}.feather")
+        ent.save_feather(path, F0=f0)
+        fea = data_loader.LoadWidebandPulsarData.read_feather(path)
+
+        for attr in ["toas", "toaerrs", "residuals", "M_matrix", "M_scaled", "P_eps"]:
+            a = np.asarray(getattr(ent, attr))
+            b = np.asarray(getattr(fea, attr))
+            assert np.array_equal(
+                a, b
+            ), f"{attr} differs between enterprise and feather"

@@ -1,10 +1,15 @@
 """Module for loading pulsar data."""
 
+import glob
+import json
 import os
+import types
+
 import numpy as np
 import pandas as pd
-from enterprise.pulsar import Pulsar as EnterprisePulsar
-import glob
+import pyarrow
+import pyarrow.feather
+
 from argus import gravitational_waves
 
 
@@ -250,29 +255,56 @@ class LoadWidebandPulsarData:
         if not os.path.isdir(directory):
             raise NotADirectoryError(f"Path is not a directory: {directory}")
 
-        # Get all .par and .tim files in the directory
-        par_files = sorted(glob.glob(os.path.join(directory, "*.par")))
-        tim_files = sorted(glob.glob(os.path.join(directory, "*.tim")))
+        # Prefer the Argus feather cache (no enterprise needed); fall back to par/tim.
+        feather_files = sorted(glob.glob(os.path.join(directory, "*.feather")))
+        # Exclude e.g. J1640+2224, whose exponent is too small for the OU process.
+        feather_files = [
+            f for f in feather_files if not any(psr in f for psr in excluded_psrs)
+        ]
 
-        if len(par_files) == 0 and len(tim_files) == 0:
-            raise FileNotFoundError(
-                f"No .par or .tim files found in directory: {directory}"
+        if feather_files:
+            print(
+                f"Getting the data. Loading {len(feather_files)} pulsars "
+                f"from feather cache in {directory}"
             )
+            (
+                pulsar_residuals,
+                pulsar_metadata,
+                pulsar_design_matrices,
+                P_eps_matrices,
+            ) = LoadWidebandPulsarData.read_multiple_feather(feather_files)
+        else:
+            # Get all .par and .tim files in the directory
+            par_files = sorted(glob.glob(os.path.join(directory, "*.par")))
+            tim_files = sorted(glob.glob(os.path.join(directory, "*.tim")))
 
-        if len(par_files) != len(tim_files):
-            raise ValueError(
-                f"Mismatch between .par ({len(par_files)}) and .tim ({len(tim_files)}) file counts in {directory}"
+            if len(par_files) == 0 and len(tim_files) == 0:
+                raise FileNotFoundError(
+                    f"No .feather, .par or .tim files found in directory: {directory}"
+                )
+
+            if len(par_files) != len(tim_files):
+                raise ValueError(
+                    f"Mismatch between .par ({len(par_files)}) and .tim ({len(tim_files)}) file counts in {directory}"
+                )
+
+            par_files = [
+                f for f in par_files if not any(psr in f for psr in excluded_psrs)
+            ]
+            tim_files = [
+                f for f in tim_files if not any(psr in f for psr in excluded_psrs)
+            ]
+
+            # Get the data
+            print(
+                f"Getting the data. Loading {len(par_files)} pulsars from {directory}"
             )
-
-        # Exclude PR J1640+2224 as it has an exponent which is to small for the OU process to be valid
-        par_files = [f for f in par_files if not any(psr in f for psr in excluded_psrs)]
-        tim_files = [f for f in tim_files if not any(psr in f for psr in excluded_psrs)]
-
-        # Get the data
-        print(f"Getting the data. Loading {len(par_files)} pulsars from {directory}")
-        pulsar_residuals, pulsar_metadata, pulsar_design_matrices, P_eps_matrices = (
-            LoadWidebandPulsarData.read_multiple_par_tim(par_files, tim_files)
-        )
+            (
+                pulsar_residuals,
+                pulsar_metadata,
+                pulsar_design_matrices,
+                P_eps_matrices,
+            ) = LoadWidebandPulsarData.read_multiple_par_tim(par_files, tim_files)
 
         if mode == "gwb":
             # GWB mode: epoch-aligned processing with Hellings-Downs correlation
@@ -374,6 +406,10 @@ class LoadWidebandPulsarData:
 
         """
         try:
+            # Lazy import: enterprise is a data-prep-only dependency. The package
+            # imports (and the feather runtime path) work without it installed.
+            from enterprise.pulsar import Pulsar as EnterprisePulsar
+
             pulsar_object = EnterprisePulsar(par_file, tim_file, **kwargs)
             return cls(pulsar_object)
         except Exception as e:
@@ -478,6 +514,182 @@ class LoadWidebandPulsarData:
                     f"Error processing pulsar pair {i+1}/{len(file_pairs)} ({par_file}, {tim_file}): {str(e)}"
                 )
                 # Optionally: raise or continue based on preference
+
+        if not pulsar_data_frames:
+            raise ValueError("No pulsar data was successfully loaded")
+
+        metadata_combined = pd.concat(pulsar_metadata_frames, ignore_index=True)
+
+        return (
+            pulsar_data_frames,
+            metadata_combined,
+            design_matrices,
+            parameter_covariances,
+        )
+
+    # ------------------------------------------------------------------
+    # Feather cache (Argus-native; no enterprise/discovery dependency)
+    # ------------------------------------------------------------------
+
+    def save_feather(self, path: str, F0: float | None = None) -> None:
+        """Serialize the raw pulsar inputs to an Argus feather cache file.
+
+        Stores exactly the quantities consumed by :meth:`__init__` and
+        :meth:`read_multiple_feather`, so a later :meth:`read_feather` reconstructs
+        an identical object without needing enterprise/tempo2. The on-disk layout
+        (per-TOA columns + a JSON ``schema.metadata`` blob) mirrors discovery's
+        feather convention but is written with pyarrow directly.
+
+        Parameters
+        ----------
+        path : str
+            Output ``.feather`` path.
+        F0 : float, optional
+            Pulsar spin frequency (Hz). If None, falls back to ``self.F0`` when
+            present. Stored in metadata for downstream use.
+        """
+        M = np.asarray(self.M_matrix)
+        n_cols = M.shape[1]
+
+        pydict = {
+            "toas": np.asarray(self.toas),
+            "toaerrs": np.asarray(self.toaerrs),
+            "residuals": np.asarray(self.residuals),
+        }
+        for i in range(n_cols):
+            pydict[f"Mmat_{i}"] = M[:, i]
+
+        if F0 is None:
+            F0 = getattr(self, "F0", None)
+
+        fitpars = self.fitpars
+        if isinstance(fitpars, np.ndarray):
+            fitpars = fitpars.tolist()
+
+        meta = {
+            "name": self.name,
+            "RA": float(self.RA),
+            "DEC": float(self.DEC),
+            "distance_kpc": float(self.distance_kpc),
+            "distance_err_kpc": float(self.distance_err_kpc),
+            "F0": None if F0 is None else float(F0),
+            "fitpars": list(fitpars) if fitpars is not None else None,
+            "n_mmat_cols": int(n_cols),
+        }
+
+        table = pyarrow.Table.from_pydict(pydict, metadata={"json": json.dumps(meta)})
+        pyarrow.feather.write_feather(table, path)
+
+    @classmethod
+    def read_feather(cls, path: str) -> "LoadWidebandPulsarData":
+        """Load a pulsar from an Argus feather cache file.
+
+        Reconstructs the raw inputs and feeds them through :meth:`__init__`
+        unchanged, so all derived quantities (``M_scaled``, ``P_eps`` ...) are
+        identical to a direct enterprise load.
+
+        Parameters
+        ----------
+        path : str
+            Path to a ``.feather`` file written by :meth:`save_feather`.
+
+        Returns
+        -------
+        LoadWidebandPulsarData
+            An instance initialized from the cached data (with ``F0`` attached).
+        """
+        table = pyarrow.feather.read_table(path)
+        meta = json.loads(table.schema.metadata[b"json"])
+
+        n_cols = int(meta["n_mmat_cols"])
+        if n_cols > 0:
+            Mmat = np.column_stack(
+                [table.column(f"Mmat_{i}").to_numpy() for i in range(n_cols)]
+            )
+        else:
+            Mmat = np.empty((table.num_rows, 0))
+
+        # Map the cache back onto the enterprise attribute names that __init__ reads.
+        ds_psr = types.SimpleNamespace(
+            toas=table.column("toas").to_numpy(),
+            toaerrs=table.column("toaerrs").to_numpy(),
+            residuals=table.column("residuals").to_numpy(),
+            fitpars=meta.get("fitpars"),
+            Mmat=Mmat,
+            name=meta["name"],
+            _raj=meta["RA"],
+            _decj=meta["DEC"],
+            _pdist=(meta["distance_kpc"], meta["distance_err_kpc"]),
+        )
+
+        obj = cls(ds_psr)
+        obj.F0 = meta.get("F0")
+        return obj
+
+    @classmethod
+    def read_multiple_feather(
+        cls,
+        feather_files: list[str],
+        max_files: int | None = None,
+    ) -> tuple[list[pd.DataFrame], pd.DataFrame, list[np.ndarray], list[np.ndarray]]:
+        """Load multiple pulsars from Argus feather cache files.
+
+        Mirrors :meth:`read_multiple_par_tim` but reads from feather caches (no
+        enterprise) and sources ``F0`` from feather metadata instead of the par
+        file.
+
+        Parameters
+        ----------
+        feather_files : list of str
+            List of ``.feather`` cache file paths.
+        max_files : int, optional
+            If provided, only the first ``max_files`` files are processed.
+
+        Returns
+        -------
+        Same 4-tuple as :meth:`read_multiple_par_tim`:
+        (pulsar_data_frames, metadata_combined, design_matrices, parameter_covariances).
+        """
+        if max_files is not None:
+            feather_files = feather_files[:max_files]
+
+        pulsar_data_frames = []
+        pulsar_metadata_frames = []
+        design_matrices = []
+        parameter_covariances = []
+
+        for i, feather_file in enumerate(feather_files):
+            try:
+                psr = cls.read_feather(feather_file)
+                f0 = getattr(psr, "F0", None)
+                print(f"PSR: {psr.name}, F0: {f0}, # TOAs: {len(psr.toas)}")
+
+                pulsar_df = pd.DataFrame(
+                    {"toas": psr.toas, "residuals": psr.residuals, "error": psr.toaerrs}
+                )
+
+                metadata_df = pd.DataFrame(
+                    {
+                        "name": [psr.name],
+                        "dim_M": [psr.M_matrix.shape[-1]],
+                        "RA": [psr.RA],
+                        "DEC": [psr.DEC],
+                        "F0": [f0],
+                        "distance_kpc": [psr.distance_kpc],
+                        "par_file": [feather_file],
+                        "tim_file": [None],
+                    }
+                )
+
+                pulsar_data_frames.append(pulsar_df)
+                pulsar_metadata_frames.append(metadata_df)
+                design_matrices.append(psr.M_scaled)
+                parameter_covariances.append(psr.P_eps)
+
+            except Exception as e:
+                print(
+                    f"Error processing feather {i+1}/{len(feather_files)} ({feather_file}): {str(e)}"
+                )
 
         if not pulsar_data_frames:
             raise ValueError("No pulsar data was successfully loaded")
