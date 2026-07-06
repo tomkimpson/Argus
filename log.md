@@ -1,5 +1,63 @@
 # Research log
 
+## 2026-07-07 — Discovery review → first CW detection on NG15 (F-statistic)
+
+**Goal.** Review NanoGrav's Discovery for anything useful to Argus, then build a first
+continuous-wave (CW) detection demo on NANOGrav 15yr data.
+
+**What was tried.**
+- Reviewed Discovery (cloned read-only). It's a JAX Gaussian-process (Woodbury) PTA
+  code; we keep Argus's Kalman-filter likelihood and take from Discovery only: its
+  bundled NG15 dataset, the feather schema, and its CW waveform for cross-checking.
+  Wrote `docs/discovery_review.md`.
+- Built a Discovery→Argus feather adapter (`scripts/ingest_discovery_feather.py` +
+  `scripts/ng15_f0_catalog.json`, F0 sourced from NG15 par files since Discovery
+  feathers omit it), folding per-backend white noise into effective errors and mapping
+  power-law red noise → OU.
+- Cross-check test (`test/test_cw_discovery_crosscheck.py`) found the exact convention
+  map: **Argus(ψ) = −0.5·Discovery(−ψ)**.
+- Injection-recovery demo (`workflows/ng15_cw_demo/`). First tried NUTS on Discovery's
+  **narrowband** feathers → OOM (~202 GB at 6 pulsars) and, when trimmed, ~250 s/iter
+  (~11-day ETA). Pivoted to NG15 **wideband** data (~40× fewer TOAs, Argus's native
+  scale) via `prepare_demo_wideband.py` (PINT ingest + SVD-recondition the DMX-heavy
+  design matrix). NUTS then ran (2h58m) but did not converge (r̂≈1.85, ESS≈3); jaxns
+  nested sampling was too slow (>3 h, no result).
+- Since the goal is *detection* not parameter estimation, built an analytic
+  **F-statistic (F_e) + B-statistic** module (`python/argus/cw_fstatistic.py`, tests in
+  `test/test_cw_fstatistic.py`, driver `run_fstatistic.py`): a Kalman whitener reusing
+  the filter's building blocks → whitened inner products → `2F_e = XᵀM⁻¹X` and a
+  closed-form amplitude-marginalised Bayes factor. All-sky freq×sky scan.
+
+**What was learned.**
+- Whitener inner products equal the full Kalman likelihood ratio to machine precision
+  (validated) — the F-stat is correct by construction.
+- On NG15 wideband, a loud injection is cleanly recovered (2F_e≈5800, SNR≈76) at the
+  injected f_gw/RA (Dec at the antenna sky-degeneracy image).
+- **Key finding:** the empirical null (no-injection data) has max 2F_e≈900 — real
+  **common red noise / the GWB** that the coherent F_e picks up and our per-pulsar-only
+  OU model does not remove. A faint injection (h0=5e-14) does not stand out above it; a
+  loud one (5e-13) does.
+- NG15 wideband par files still carry ~169 DMX params over ~400 epochs → raw design
+  matrix is catastrophically ill-conditioned (σ-range ~1e16); SVD-orthonormalising it
+  fixes P_eps (cond ~1e4) while preserving the marginalised likelihood.
+- Cluster: `milan-gpu` partition flag was "down"; A100 `gina*` nodes reachable via
+  `milan-c`.
+
+**Decisions / dead ends.**
+- Narrowband data for Argus CW NUTS: ruled out (memory + compute both blow up). Use
+  wideband.
+- NUTS and nested sampling for CW *detection*: ruled out for now (non-convergent /
+  slow on the multimodal posterior). Frequentist F-statistic is the chosen detector.
+- Savage-Dickey on a NUTS run: rejected in favour of the analytic B-statistic (avoids
+  the h0=0 nesting problem and needs no converged chain).
+
+**Open threads.**
+- Add a common (Hellings–Downs / common-uncorrelated) red-noise term to the whitening
+  covariance — the ingredient needed to detect faint CWs above the null excess.
+- CW strain upper limits vs f_gw; scramble-based background/false-alarm; scale to
+  30–40+ pulsars (breaks the sky degeneracy); add F_p and the pulsar term.
+- Work is uncommitted on branch `discovery-ng15-cw-demo`; committing + PR next.
+
 ## 2026-06-09 — /simplify pass on the CW inference PR (quality only, behavior-preserving)
 
 **Goal.** Reduce duplication/complexity in the continuous-waves branch's CW additions
