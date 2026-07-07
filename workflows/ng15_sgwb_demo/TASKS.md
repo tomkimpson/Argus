@@ -30,8 +30,23 @@
   `DMX_*` cols (149–397/pulsar → 9–26 astrophysical cols) so `P_eps` is finite/full-rank and signal
   survives the timing marginalization (full binned design matrix has rank == 78 = nepoch, would else
   eat the GWB). DMX-drop is the accepted "no DM-noise" simplification (PLAN §2/§4) — flag in README (T4.2).
-- 👉 **NEXT: T1.6** (reduce per-backend white noise to per-pulsar JSON) — CPU, no GPU; depends only on T1.3.
-  Then Stage 2 (T2.1 injector, GPU work behind it).
+- ✅ T1.6 done — `scripts/reduce_ng15_white_noise.py`; per-backend white noise collapsed to
+  `data/ng15_psr_noise.json` (6 pulsars, TOA-count-weighted variance-preserving; efac 1.00–1.19,
+  log10_equad −6.32→−7.20). Loads clean via `utils.get_efac_equad_injections`. **Stage 1 complete.**
+- ✅ T2.1 done — `scripts/inject_powerlaw_gwb.py` (CPU, numpy-only). Two modes on the real aligned geometry:
+  `powerlaw` (frequency-domain Fourier-sum GP, log10_A_gw=−14.6, γ=13/3) and `ou` (forward-sim of Argus's own
+  OU generative model, the T2.3 control). White noise on by default (from `ng15_psr_noise.json`); red noise a flag
+  (off). Both write to `data/inject_{powerlaw,ou}/` + `injection_truth.json` (records injected PSD at the Fourier
+  freqs + pivot amplitudes at f=1/yr and 1/(5yr) → shape-agnostic comparison per PLAN framing). Both verify clean
+  via `get_processed_residuals(mode="gwb")` → (78,6) + unit-diag HD. RMS: powerlaw 211–520 ns, OU 99–527 ns
+  (matched at default log10_ha=−14.35).
+- ⚠️ **Library bug found + fixed while building the OU control** (committed on branch
+  `fix-qblock-q11-normalization`, merged into `ng15-sgwb-demo`): `model.get_Q_block` divided the integrated-OU
+  position process-noise `q11` by `γ**3` instead of `γ**2`, inflating it by `1/γ` (~1e9 at PTA γ). Fixed to `γ**2`
+  (verified vs exact quadrature + dt³/3 limit; q12/q22 were correct). Added regression tests; updated the MDC2
+  golden log-likelihood 55963.86→63618.93. Full suite 234 passed, 1 skipped. **Full MDC2 NUTS *recovery*
+  re-validation still pending on GPU/SLURM** — fold into T0.1 or the first T2.3 run before trusting Stage 3 numbers.
+- 👉 **NEXT: T2.2** (lite injection-recovery config) → T2.3/T2.4 GPU/SLURM de-risking (OU-vs-power-law gate).
 
 ---
 
@@ -142,7 +157,7 @@
     raises. Run: `JAX_PLATFORMS=cpu python workflows/ng15_sgwb_demo/scripts/build_aligned_feathers.py
     --overwrite`. Aligned feathers gitignored via `data/**/*.feather`.
 
-- [ ] **T1.6 — Reduce NG15 per-backend white noise to a per-pulsar JSON.**
+- [x] **T1.6 — Reduce NG15 per-backend white noise to a per-pulsar JSON.**
   - Depends on: T1.3. GPU: no.
   - Do: write `scripts/reduce_ng15_white_noise.py` — parse the subset's
     `noise/{PSR}.wb.pars.txt`, collapse per-backend EFAC/EQUAD to one effective per-pulsar
@@ -153,12 +168,29 @@
     without error for the subset.
   - Note: red noise starts **free/hierarchical** (omit `spin_injections_path`) — no
     power-law→OU conversion needed yet.
+  - ✅ Result: `scripts/reduce_ng15_white_noise.py` (CPU; no library edits). **Key finding:**
+    `.wb.pars.txt` holds only param *names* (column labels); values live in the PTMCMC
+    `.wb.chain_1.txt` (`N_rows×(N_params+4)`, trailing 4 = logpost/loglik/accept/swap). Per
+    backend takes the **posterior median** of `_efac` (linear) and `_log10_t2equad` (log10 s;
+    delogged) after 25% burn-in, dropping `dmefac`/`log10_dmequad`/`red_noise_*`. Collapse is
+    **TOA-count-weighted, variance-preserving** to match Argus's `R=(efac·σ)²+equad²`
+    (`model.py:112`): `efac_eff=Σwₑ·efacₑ/Σwₑ`, `equad_eff=√(Σwₑ·equadₑ²/Σwₑ)`, stored as
+    `log10`. Weight `wₑ` = per-backend TOA count from the tim `-f` flag (the `{flag}` token
+    equals the param-name backend token exactly). JSON keys inserted in
+    `sorted(glob("*.feather"))` order (`data_loader.py:259`) so the positionally-consumed
+    efac/equad arrays align with the residual matrix. Ran
+    `JAX_PLATFORMS=cpu python workflows/ng15_sgwb_demo/scripts/reduce_ng15_white_noise.py
+    --overwrite` → `data/ng15_psr_noise.json` (6 pulsars, efac 1.00–1.19, log10_equad
+    −6.32→−7.20, all in the 0.1–3 / −9→−5 sanity range). Verified: loads via
+    `utils.get_efac_equad_injections` → two length-6 finite positive arrays, keys in sorted
+    order. Small JSON is git-tracked (only `*.feather` gitignored). TOA-count-weighting is an
+    accepted demo approximation (single scalar/pulsar, no ECORR/DM-noise) — flag in README T4.2.
 
 ---
 
 ## Stage 2 — De-risk OU-vs-power-law (GPU/SLURM, cheap)
 
-- [ ] **T2.1 — Power-law GWB injector.**
+- [x] **T2.1 — Power-law GWB injector.**
   - Depends on: T1.5. GPU: no (generation is cheap; run on CPU).
   - Do: write `scripts/inject_powerlaw_gwb.py` — inject an HD-correlated **true power-law**
     GWB (`log10_A_gw=-14.6`, `γ=13/3`) plus per-pulsar red noise into the aligned feathers'
@@ -167,6 +199,19 @@
     dir (e.g. `data/inject_powerlaw/`, `data/inject_ou/`).
   - Done when: injected feathers load and process in GWB mode; injected truth values are
     recorded alongside for comparison.
+  - ✅ Result: `scripts/inject_powerlaw_gwb.py` (CPU, numpy-only, no `argus` runtime path except loaders).
+    `--mode powerlaw`: Fourier-sum GP, per-mode sin/cos coeffs ~N(0,(P(f_k)/T)·Γ_HD), P(f)=A²/(12π²)(f/f_yr)^−γ
+    f_yr^−3 (enterprise convention; f_yr=Julian yr), evaluated at each pulsar's own TOAs. `--mode ou`: forward-sim
+    of Argus's interleaved `[r,a]` GW state (σa2=(ha²/12)γa Γ_HD, init a~N(0,ha²Γ/24), residual=−r) via numpy ports
+    of `get_F_block`/`get_Q_block`. HD from RA/DEC (same fn as recovery). White noise on by default (indexed by
+    name from `ng15_psr_noise.json`, not positional); red noise a flag needing explicit (γp,σp). Residuals REPLACE
+    the real ones (pure synthetic); all other feather fields kept → real geometry preserved. `injection_truth.json`
+    records the injected PSD at Fourier freqs + pivot amplitudes (f=1/yr, 1/(5yr)) + seed. Both modes verify clean:
+    `get_processed_residuals(mode="gwb")` → (78,6) residuals/errors, (6,6) unit-diag HD, all finite. RMS powerlaw
+    211–520 ns, OU 99–527 ns (variance-matched at default log10_ha=−14.35). Commands:
+    `JAX_PLATFORMS=cpu python workflows/ng15_sgwb_demo/scripts/inject_powerlaw_gwb.py --mode {powerlaw,ou} --overwrite`.
+    **NB:** building the OU control surfaced the `get_Q_block` `q11` `γ**3` bug (fixed — see status note above); the
+    injector's numpy `q_block_np` matches the corrected `γ**2`.
 
 - [ ] **T2.2 — Lite injection-recovery config.**
   - Depends on: T2.1. GPU: no.
