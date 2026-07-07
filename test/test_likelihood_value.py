@@ -86,9 +86,11 @@ def test_likelihood_value():
 
     print("the computed log likelihood is:", log_likelihood)
 
-    # Assert expected value - using a placeholder value that should be updated
-    # based on actual test runs with the specific dataset
-    expected_likelihood = 55963.86  # Approximate expected value
+    # Assert expected value - a golden value recorded from an actual run on this
+    # dataset (γa=1e-9, ha=1e-15, 32 MDC2 pulsars). Updated from 55963.86 after the
+    # get_Q_block q11 fix (γ**3 -> γ**2): correcting the integrated-OU position-noise
+    # normalization shifts the log-likelihood by ~7655 nats.
+    expected_likelihood = 63618.93  # Golden value (post q11 fix)
 
     # Use relative tolerance for floating point comparison
     assert (
