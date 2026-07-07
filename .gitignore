@@ -82,6 +82,11 @@ site/
 # Workflow outputs
 workflows/**/outputs/
 
+# NG15 SGWB demo: ignore large ingested/aligned/injected feathers, keep small JSON configs
+workflows/ng15_sgwb_demo/data/**/*.feather
+# Staged par/tim symlinks point to machine-specific cluster paths (regenerate with stage_symlinks.py)
+workflows/ng15_sgwb_demo/data/staging_subset/
+
 # Exploratory work (kept locally, not tracked)
 archive/
 workflows/cw_*/
