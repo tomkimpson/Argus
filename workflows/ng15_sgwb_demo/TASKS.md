@@ -50,10 +50,15 @@
   GW priors bracket the OU truth log10_ha≈−14.35). Parses + finite dry likelihood on BOTH inject dirs
   (inject_ou 6407.54, inject_powerlaw 6414.72). `excluded_psrs=__NONE__` sentinel needed (empty value would
   exclude all pulsars via `'' in psr` in `utils.get_noise_parameters`).
-- 👉 **NEXT: T2.3** (write `slurm_scripts/ng15_slurm_run.sh`; OU-injected → OU-recovered control on A100).
-  NB per T0.1: the SLURM script must `export PYTHONPATH=<worktree>/python` so the run uses the q11-fixed
-  worktree code (not the main-checkout editable install), and should override `output_id`/`data_path` per
-  run so T2.3 (OU) and T2.4 (power-law) outputs don't clobber (one config serves both).
+- ✅ T2.3 done — `slurm_scripts/ng15_slurm_run.sh` (parameterized `MODE=ou|powerlaw`). OU control
+  PASSED on A100 (job 14018847): recovered log10_ha=-14.90±0.47 (truth -14.35, 1.16σ),
+  log10_gamma_a=-8.71±0.58 (truth -8.5, 0.36σ), 0 divergences. **Harness validated.** GPU note:
+  OzSTAR reroutes all GPU jobs to milan-gpu (milan-c is NOT a GPU fallback).
+- 👉 **NEXT: T2.4** (DECISION GATE) — rerun `sbatch slurm_scripts/ng15_slurm_run.sh powerlaw` on the
+  power-law-injected data (log10_A_gw=-14.6, γ=13/3). Compare the recovered OU amplitude/HD against the
+  injected power-law truth; quantify any bias (expected: one OU corner can't match f^-13/3 across the band).
+  Output → `outputs/ng15_inject_powerlaw/`. Within ~1σ → greenlight Stage 3; if biased, record it (load-bearing)
+  and flag for review.
 
 ---
 
@@ -252,13 +257,30 @@
     parses, loads 6 pulsars → (78,6) residual/error + (6,6) unit-diag HD, dry likelihood finite
     for BOTH injection dirs (inject_ou 6407.54, inject_powerlaw 6414.72). No library edits.
 
-- [ ] **T2.3 — Control run: OU-injected → OU-recovered (SLURM).**
+- [x] **T2.3 — Control run: OU-injected → OU-recovered (SLURM).**
   - Depends on: T2.2. GPU: yes (1 × A100).
   - Do: write `slurm_scripts/ng15_slurm_run.sh` (activate **`Argus`**, `oz022`,
     `milan-gpu`, `gpu:1`) running `run_analysis.py configs/ng15_config_lite.ini` on the
     OU-injected data. Submit + monitor.
   - Done when: recovers injected `log10_ha`/`log10_gamma_a` at truth within ~1σ → confirms
     the injection+recovery harness is correct.
+  - ✅ Result: `slurm_scripts/ng15_slurm_run.sh` — one parameterized script for T2.3/T2.4
+    (`MODE=ou|powerlaw`, default `ou`); derives a per-mode config (data_path/output_id) via
+    line-anchored sed into `outputs/derived_configs/` so the two runs don't clobber. Keeps the
+    T0.1 fixes (no `set -e`, `Argus` env, PYTHONPATH→worktree so the q11 fix is used — log
+    confirms `argus.model` from worktree + `q11 ... /γ**2`). **PASS (job 14018847, milan-gpu
+    gina3, 10m54s, COMPLETED):** recovered `log10_ha=-14.90±0.47` (truth -14.35, 1.16σ; truth
+    inside 94% HDI [-15.75,-14.05]) and `log10_gamma_a=-8.71±0.58` (truth -8.5, 0.36σ); **0
+    divergences**, max r_hat 1.031 (GW log10_ha r_hat 1.006), ESS ~178 (low, expected at
+    200/100/2). Free/hierarchical red noise recovered small (`log10_σp≈-16.5→-17`, consistent
+    with no injected red noise) — mild ~1σ low-bias in log10_ha likely a little GW power leaking
+    into it. Corner plot rendered (`outputs/ng15_inject_ou/plots/`). **Harness validated →
+    greenlight T2.4.**
+  - ⚠️ **GPU/partition correction:** the OzSTAR job_submit plugin canonicalizes ANY GPU request
+    to `milan-gpu` regardless of the requested partition — `milan-c` does NOT provide a GPU route
+    (all T0.1 jobs likewise ran on milan-gpu despite the script saying milan-c). If milan-gpu is
+    administratively down, GPU jobs just queue (Reason=PartitionDown) until it returns. Committed
+    script sets `--partition=milan-gpu` (documentation; the reroute enforces it anyway).
 
 - [ ] **T2.4 — The real test: power-law-injected → OU-recovered (SLURM). DECISION GATE.**
   - Depends on: T2.3 (harness validated). GPU: yes (1 × A100).
