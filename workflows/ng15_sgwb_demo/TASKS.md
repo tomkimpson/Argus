@@ -54,11 +54,15 @@
   PASSED on A100 (job 14018847): recovered log10_ha=-14.90±0.47 (truth -14.35, 1.16σ),
   log10_gamma_a=-8.71±0.58 (truth -8.5, 0.36σ), 0 divergences. **Harness validated.** GPU note:
   OzSTAR reroutes all GPU jobs to milan-gpu (milan-c is NOT a GPU fallback).
-- 👉 **NEXT: T2.4** (DECISION GATE) — rerun `sbatch slurm_scripts/ng15_slurm_run.sh powerlaw` on the
-  power-law-injected data (log10_A_gw=-14.6, γ=13/3). Compare the recovered OU amplitude/HD against the
-  injected power-law truth; quantify any bias (expected: one OU corner can't match f^-13/3 across the band).
-  Output → `outputs/ng15_inject_powerlaw/`. Within ~1σ → greenlight Stage 3; if biased, record it (load-bearing)
-  and flag for review.
+- ✅ **T2.4 done + hi-res CONFIRMED (DECISION GATE PASSED).** Power-law→OU: band-referenced amplitude
+  recovered **within ~0.5σ** (bias −0.20 dex/−0.46σ at f=1/(5yr); +0.12 dex/+0.25σ at f=1/yr), stable
+  lite→hi-res, and no worse than the OU→OU control's own −0.74σ. OU absorbs the power-law band
+  amplitude; the *spectral shape/index is not recovered* and the power-law→OU posterior is
+  **pathological** (hi-res r_hat 1.051, ESS 51, 50 divergences vs control 1.004/2496/0). New:
+  `scripts/compare_ou_recovery.py`, `configs/ng15_config_confirm.ini`, `slurm_scripts/ng15_confirm_run.sh`.
+- 👉 **NEXT: T3.1** (production config on the *real* aligned NG15 feathers). Carry the T2.4 caveats:
+  band amplitude is THE observable (not the corner/index); expect GWB-corner divergences on real data
+  → set `target_accept≥0.95`, `dense_mass=true`, generous warmup.
 
 ---
 
@@ -282,7 +286,7 @@
     administratively down, GPU jobs just queue (Reason=PartitionDown) until it returns. Committed
     script sets `--partition=milan-gpu` (documentation; the reroute enforces it anyway).
 
-- [ ] **T2.4 — The real test: power-law-injected → OU-recovered (SLURM). DECISION GATE.**
+- [x] **T2.4 — The real test: power-law-injected → OU-recovered (SLURM). DECISION GATE.**
   - Depends on: T2.3 (harness validated). GPU: yes (1 × A100).
   - Do: same lite run on the power-law-injected data. Compare recovered amplitude
     (mapped to `log10_A_gw`) and HD component against injected truth.
@@ -290,6 +294,41 @@
     (expected failure: one OU corner can't match `f^-13/3` across the band), record the
     bias vs. the `log10_gamma_a` prior — this is a load-bearing scientific result and
     decides whether a spectral-model extension is needed before real data. Flag for review.
+  - ✅ Result (job 14020177, milan-gpu gina11, 31m32s, COMPLETED; likelihood 6414.72, worktree
+    q11-fixed code confirmed): recovered `log10_ha=-13.47±0.62`, `log10_gamma_a=-7.43±0.48`,
+    **0 divergences**. New analysis `scripts/compare_ou_recovery.py` does the shape-agnostic
+    **band-referenced PSD comparison** (`injection_truth.json` pivots; OU residual PSD vs the
+    injected power-law PSD). **GATE ~PASSES: band-referenced amplitude recovered within ~1σ** —
+    bias **−0.21 dex (amp) / −0.28σ at f=1/(5yr)** and **+0.06 dex / +0.08σ at f=1/yr** (both
+    smaller than the OU→OU control's own −1.08σ baseline). The spectral overlay
+    (`outputs/ng15_inject_powerlaw/plots/spectral_overlay.png`) shows the expected failure of
+    *shape*: OU sits below the steep power law at the lowest freqs, above it at the highest, but
+    tracks it through the sensitive mid-band → the band amplitude is the robust observable, the
+    index is not (as PLAN framing predicted). `log10_gamma_a` leans on the high prior edge (−7;
+    20% of draws within 0.25 dex) — the OU corner straining against `f^-4.33`.
+    ⚠️ **CAVEAT — under-converged at lite settings:** max r_hat 1.050, min ESS **34** (vs control's
+    178); the wide PSD posterior (~1.5 dex) means "within 1σ" is a loose statement. Numbers are
+    directionally solid (the mid-band crossover is sampling-noise-robust). Machine-readable verdict
+    in `outputs/ng15_inject_powerlaw/comparison.json`.
+  - ✅ **CONFIRMATION (hi-res, user-requested) — GATE CONFIRMED PASS.** New
+    `configs/ng15_config_confirm.ini` + `slurm_scripts/ng15_confirm_run.sh` (4×A100, 1000/1000/4,
+    `dense_mass`, `max_tree_depth=10`, `log10_gamma_a` upper widened −7→−6). Both modes re-run:
+    * **OU control** (job 14023052, 25m, 4 chains parallel): cleanly converged — max r_hat **1.004**,
+      min ESS **2496**, **0 divergences**; `log10_ha=-14.77±0.47`, `log10_gamma_a=-8.30±0.70`
+      (interior). Its OWN band-amplitude bias @f=1/(5yr) is **−0.40 dex / −0.74σ**.
+    * **Power-law gate** (job 14023051, 42m): band-amplitude bias @f=1/(5yr) **−0.20 dex / −0.46σ**,
+      @f=1/yr **+0.12 dex / +0.25σ** — i.e. the OU recovers the power-law band amplitude *as well as
+      (better in dex than)* it recovers a self-consistent OU injection. Point estimate stable across
+      lite→hi-res (−0.21→−0.20 dex amp) → robust. `log10_ha=-13.45±0.35`, `log10_gamma_a=-7.31±0.33`
+      — the corner does **not** rail even with the widened prior (settles ~−7.3, high/near the band);
+      the spectral *shape/index is not recovered* (expected — no power-law model).
+    * ⚠️ **Load-bearing property — the power-law→OU posterior is pathological:** even at hi-res it gives
+      max r_hat **1.051**, min ESS **51** (barely above lite's 34), **50 divergences** (control: 0).
+      The ha↔γa band-amplitude degeneracy + the OU/power-law shape mismatch make a curved posterior
+      that more compute barely improves. **Carry into Stage 3:** on real data expect divergences on
+      the GWB corner, push `target_accept≥0.95`, and treat the *band-referenced amplitude* (not the
+      corner/index) as THE observable. Confirmed verdict: `outputs/ng15_confirm_powerlaw/comparison.json`,
+      overlay `outputs/ng15_confirm_powerlaw/plots/spectral_overlay.png`. **Gate PASSED → Stage 3 greenlit.**
 
 ---
 
