@@ -52,7 +52,18 @@
 
 ## Stage 0 — Baseline sanity (optional; GPU/SLURM)
 
-- [ ] **T0.1 — Smoke-test the GWB+HD+NUTS path on MDC2 via SLURM.** *(optional — may fold into T2.3)*
+- [x] **T0.1 — Smoke-test the GWB+HD+NUTS path on MDC2 via SLURM.** *(done — became high-value after the q11 fix)*
+  - ✅ Result: `configs/mdc2_smoke_lite.ini` (abs paths; red+white noise FIXED → only log10_ha/log10_gamma_a
+    sampled) + `slurm_scripts/mdc2_qfix_smoke.sh` (A100, `Argus` env, milan-c fallback). **PASS with the q11 fix:**
+    likelihood 63618.81 (corrected value), 0 divergences, r_hat 1.00–1.01, n_eff ~245–300; converges to a robust
+    INTERIOR mode log10_ha=−12.88±0.05, log10_gamma_a=−8.08±0.13 (narrow & widened priors agree → not a runaway).
+    **Two gotchas found & handled:** (1) SLURM `set -e` aborts on ~/.bashrc/conda-init before any output — removed.
+    (2) argus is pip-installed EDITABLE→`/fred/oz022/tkimpson/Argus` (main checkout, no fix); `run_analysis`'s
+    `sys.path.append` loses to it, so the FIRST run silently used old buggy code (likelihood 55963.87). Fixed by
+    `export PYTHONPATH=<worktree>/python` in the SLURM script (script now logs `argus.model from:` + the q11 line to
+    prove provenance). See [[project_argus_editable_install_gotcha]]. **Consequence:** all Stage-2/3 log10_ha priors
+    must be re-centred for the corrected ha-scaling (peak near −12 to −13, not −15), and the fix should land on `main`
+    so GPU runs stop needing the PYTHONPATH hack.
   - Depends on: nothing. GPU: yes (1 × A100).
   - Purpose: confirm the mature GWB path is healthy in this checkout before adding NG15 complexity. Low value because the branch has no library changes and the path is JOSS-validated — **skip or fold into the first real GPU run (T2.3) unless something looks off.**
   - Do: write a corrected SLURM script (activate `Argus`, `--account=oz022`,
