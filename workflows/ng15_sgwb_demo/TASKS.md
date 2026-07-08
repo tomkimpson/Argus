@@ -46,7 +46,14 @@
   (verified vs exact quadrature + dt³/3 limit; q12/q22 were correct). Added regression tests; updated the MDC2
   golden log-likelihood 55963.86→63618.93. Full suite 234 passed, 1 skipped. **Full MDC2 NUTS *recovery*
   re-validation still pending on GPU/SLURM** — fold into T0.1 or the first T2.3 run before trusting Stage 3 numbers.
-- 👉 **NEXT: T2.2** (lite injection-recovery config) → T2.3/T2.4 GPU/SLURM de-risking (OU-vs-power-law gate).
+- ✅ T2.2 done — `configs/ng15_config_lite.ini` (abs paths; white noise FIXED, red noise FREE/hierarchical;
+  GW priors bracket the OU truth log10_ha≈−14.35). Parses + finite dry likelihood on BOTH inject dirs
+  (inject_ou 6407.54, inject_powerlaw 6414.72). `excluded_psrs=__NONE__` sentinel needed (empty value would
+  exclude all pulsars via `'' in psr` in `utils.get_noise_parameters`).
+- 👉 **NEXT: T2.3** (write `slurm_scripts/ng15_slurm_run.sh`; OU-injected → OU-recovered control on A100).
+  NB per T0.1: the SLURM script must `export PYTHONPATH=<worktree>/python` so the run uses the q11-fixed
+  worktree code (not the main-checkout editable install), and should override `output_id`/`data_path` per
+  run so T2.3 (OU) and T2.4 (power-law) outputs don't clobber (one config serves both).
 
 ---
 
@@ -224,13 +231,26 @@
     **NB:** building the OU control surfaced the `get_Q_block` `q11` `γ**3` bug (fixed — see status note above); the
     injector's numpy `q_block_np` matches the corrected `γ**2`.
 
-- [ ] **T2.2 — Lite injection-recovery config.**
+- [x] **T2.2 — Lite injection-recovery config.**
   - Depends on: T2.1. GPU: no.
   - Do: write `configs/ng15_config_lite.ini` (clone `example_config_lite.ini`): `data_path`
     → injected feather dir, `noise_params_path` → `ng15_psr_noise.json`, red noise
     free/hierarchical, lite NUTS (200/100/2). Widen `log10_ha_min/max` to bracket the
     injected amplitude.
   - Done when: config parses and a dry likelihood eval is finite (CPU ok for the eval).
+  - ✅ Result: `configs/ng15_config_lite.ini` (cloned `mdc2_smoke_lite.ini`'s patterns —
+    ABSOLUTE paths, corrected-q11 framing). `data_path` defaults to `data/inject_ou/` (T2.3
+    control); flip one line to `data/inject_powerlaw/` for T2.4. White noise FIXED via
+    `ng15_psr_noise.json` (matches injected truth); red noise FREE/hierarchical (empty
+    `spin_injections_path`). GW priors bracket the OU truth: `log10_ha` [-17,-11] (value
+    -14.35), `log10_gamma_a` [-10.5,-7] (value -8.5) — centred on the *known synthetic* OU
+    amplitude, with upward room for the T2.4 power-law→OU mapping. Lite NUTS 200/100/2.
+    **Gotcha found:** `excluded_psrs` must be a NON-MATCHING sentinel (`__NONE__`), not blank —
+    `utils.get_noise_parameters` passes it raw (no blank-filtering, unlike `workflow.py`), so
+    an empty value → `['']` and `'' in psr` matches every pulsar → all excluded → empty noise
+    arrays → broadcast error. Verified (CPU, worktree/q11-fixed code via `PYTHONPATH`): config
+    parses, loads 6 pulsars → (78,6) residual/error + (6,6) unit-diag HD, dry likelihood finite
+    for BOTH injection dirs (inject_ou 6407.54, inject_powerlaw 6414.72). No library edits.
 
 - [ ] **T2.3 — Control run: OU-injected → OU-recovered (SLURM).**
   - Depends on: T2.2. GPU: yes (1 × A100).
