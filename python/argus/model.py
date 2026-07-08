@@ -53,8 +53,15 @@ def get_Q_block(γ: float, dt: float) -> jax.Array:
     one_minus_exp_term = -jnp.expm1(neg_gamma_dt)
     one_minus_exp_2term = -jnp.expm1(neg_2gamma_dt)
 
-    # Calculate terms assuming gamma != 0
-    q11 = (dt - 2 * one_minus_exp_term / γ + one_minus_exp_2term / (2 * γ)) / γ**3
+    # Calculate terms assuming gamma != 0.
+    #
+    # These are the exact process-noise (co)variances for the integrated-OU state
+    # (x, v) with dx = v dt, dv = -γ v dt + dW (unit-PSD driving noise), i.e.
+    # Q = ∫_0^dt e^{Aτ} B Bᵀ e^{Aᵀτ} dτ with A = [[0, 1], [0, -γ]], B = [0, 1]ᵀ and
+    # e^{Aτ}B = [(1-e^{-γτ})/γ, e^{-γτ}]ᵀ. The position variance is therefore
+    #   q11 = ∫_0^dt [(1-e^{-γτ})/γ]² dτ = [dt - 2(1-e^{-γdt})/γ + (1-e^{-2γdt})/(2γ)] / γ²
+    # (small-γdt limit → dt³/3, matching the double-integrated white-noise result).
+    q11 = (dt - 2 * one_minus_exp_term / γ + one_minus_exp_2term / (2 * γ)) / γ**2
     q12 = (one_minus_exp_term - one_minus_exp_2term / 2) / (γ**2)
     q22 = one_minus_exp_2term / (2 * γ)
 

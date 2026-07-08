@@ -96,6 +96,30 @@ class TestQBlock:
         assert Q[0, 0] < 1e-10
         assert Q[1, 1] < 1e-5
 
+    def test_q11_matches_exact_integrated_ou(self):
+        """q11 must equal the exact integrated-OU position variance (regression).
+
+        For the state (x, v) with dx = v dt, dv = -γ v dt + dW (unit-PSD noise),
+        q11 = ∫_0^dt [(1-e^{-γτ})/γ]² dτ. This pins the γ**2 normalization: a γ**3
+        typo inflates q11 by a factor 1/γ, which for PTA-scale γ ~ 1e-9 is a ~1e9
+        error in the GW/red-noise process noise. Compared against an independent
+        numerical quadrature (robust to the closed form's cancellation at small γdt).
+        """
+        for γ, dt in [(1e-8, 30 * 86400.0), (1e-9, 30 * 86400.0), (2.0, 0.5)]:
+            q11 = float(model.get_Q_block(γ, dt)[0, 0])
+            τ = np.linspace(0.0, dt, 400_001)
+            quad = float(np.trapz(((1 - np.exp(-γ * τ)) / γ) ** 2, τ))
+
+            assert np.isclose(q11, quad, rtol=1e-4)
+            # The γ**3 typo would put q11 a factor 1/γ above the true value.
+            assert not np.isclose(q11, quad / γ, rtol=1e-2)
+
+    def test_q11_small_dt_cubic_limit(self):
+        """For γ·dt << 1 the position variance approaches the dt³/3 white-noise result."""
+        γ, dt = 1e-3, 1.0  # γ·dt = 1e-3: small enough for dt³/3, mild cancellation
+        q11 = float(model.get_Q_block(γ, dt)[0, 0])
+        assert np.isclose(q11, dt**3 / 3.0, rtol=2e-3)
+
 
 class TestFSpin:
     """Tests for get_F_spin function."""
