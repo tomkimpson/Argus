@@ -1,5 +1,61 @@
 # Research log
 
+## 2026-07-08 — SGWB injector (T2.1), a get_Q_block bug, and MDC2 GPU re-validation (T0.1)
+
+**Goal.** Build the Stage-2 GWB injector (`workflows/ng15_sgwb_demo`, T2.1): inject a
+synthetic HD-correlated SGWB into the epoch-aligned NG15 feathers to de-risk the central
+question — can Argus's single-corner OU recovery absorb a true power-law GWB without biasing
+the amplitude?
+
+**What was tried.** Designed `scripts/inject_powerlaw_gwb.py` (CPU, numpy-only) with two
+modes: `powerlaw` (true `f^-13/3` via a frequency-domain Fourier-sum GP, enterprise PSD
+convention) and `ou` (forward-sim of Argus's own OU generative model as the self-consistent
+control). Both replace residuals with pure-synthetic signal on the real geometry, keep all
+other feather fields, add fixed-value white noise, and record injected truth (PSD at the
+Fourier freqs + pivot amplitudes) for a shape-agnostic comparison. Framing agreed with the
+user first: neither power-law nor OU is "the truth"; a PTA only constrains ~1 decade of
+frequency, so the robust observable is the band-referenced amplitude, not the spectral index.
+
+Building the OU control exposed a bug: its residuals came out ~500× larger than the
+power-law injection (75–294 µs vs 200–520 ns). Traced to `python/argus/model.py`
+`get_Q_block`: the integrated-OU **position** process-noise `q11` was divided by `γ**3`
+instead of `γ**2`, inflating it by exactly `1/γ` (~1e9 at PTA `γ~1e-9`). Confirmed against the
+exact integral `∫₀^dt[(1-e^{-γτ})/γ]²dτ` three ways (series, quadrature, `dt³/3` limit);
+`q12`/`q22` were correct. Fixed on an isolated branch `fix-qblock-q11-normalization` (PR #101
+to `main`), merged into `ng15-sgwb-demo`; added regression tests and bumped the MDC2 golden
+log-likelihood (55963.86→63618.93). With the corrected `q_block`, the OU control naturally
+matched the power-law RMS at the default `log10_ha=-14.35`.
+
+Then re-validated on GPU (T0.1): a lite MDC2 GWB+HD+NUTS run (only `log10_ha`/`log10_gamma_a`
+sampled; red+white noise fixed). Took four SLURM submissions to get a valid run.
+
+**What was learned.** The fix is confirmed on GPU: likelihood 63618.81, 0 divergences,
+`r_hat` 1.00–1.01, robust interior posterior `log10_ha≈-12.88`, `log10_gamma_a≈-8.08` (narrow
+and widened priors agree → genuine mode, not a runaway). Crucially, the recovered amplitude
+shifted from the buggy run's −15.5 to −12.88 because the fix changes the `ha`→residual-amplitude
+scaling: r-noise is now `∝ ha²·γa` (was `∝ ha²`, `γa` cancelled). This is exactly the
+`(ha,γa)`↔physical-amplitude mapping the PLAN said Stage 2 must establish — the bug had been
+corrupting it. Consequence: all Stage-2/3 `log10_ha` priors must re-centre to ~−12…−13.
+
+**Decisions / dead ends.** (1) First SLURM job failed instantly (0% resource, 63 s) — `set -e`
+aborts on the benign non-zero return from `~/.bashrc`/conda-init before any output; removed it
+(existing example scripts omit it too). (2) `milan-gpu` briefly flapped `PartitionDown`; a
+`--partition=milan-c` override was silently ignored (site GPU-routing forces `milan-gpu`), but
+it came back up. (3) The first "COMPLETED" run was a FALSE PASS: it printed the *old* likelihood
+55963.87 because `argus` is pip-installed **editable** pointing at the main checkout
+`/fred/oz022/tkimpson/Argus` (no fix), and `run_analysis.py` only `sys.path.append`s the repo
+`python/` dir — the append loses to the editable install. So GPU runs silently ignore
+treehouse-worktree edits. Worked around with `export PYTHONPATH=<worktree>/python` (prepends) +
+a log line proving `argus.model.__file__` and the q11 divisor. This contradicts PLAN §3's
+"Argus is not pip-installed" claim (to be corrected). The clean long-term fix is merging PR #101
+so the editable target serves the fix.
+
+**Open threads.** PR #101 awaiting merge. Next task T2.2 (lite injection-recovery config →
+`data/inject_powerlaw`/`data/inject_ou`) needs the re-centred `log10_ha` prior and, until #101
+merges, the PYTHONPATH hack in its SLURM script. Then T2.3/T2.4 are the actual OU-vs-power-law
+decision gate. The injector's red-noise mode is built but off by default (needs per-pulsar
+γp/σp, not in `ng15_psr_noise.json`).
+
 ## 2026-06-09 — /simplify pass on the CW inference PR (quality only, behavior-preserving)
 
 **Goal.** Reduce duplication/complexity in the continuous-waves branch's CW additions

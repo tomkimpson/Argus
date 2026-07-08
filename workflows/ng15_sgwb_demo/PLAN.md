@@ -89,9 +89,15 @@ here is `/home/tkimpson/.treehouse/Argus-891104/1/Argus`. Feature branch:
 - **Avoid `argus-env`**: it is missing `flax` and has `jax` 0.6.2 (outside the declared
   range). The committed SLURM scripts (`example_workflow*/slurm_scripts/*.sh`) wrongly do
   `conda activate argus-env` — any new SLURM script must activate `Argus` instead.
-- Argus is **not pip-installed**; `run_analysis.py` prepends the repo's `python/` dir to
-  `sys.path`. Just run with the `Argus` env's python. For a bare import outside the run
-  script, set `PYTHONPATH="$REPO/python"`.
+- **CORRECTION (verified 2026-07-08):** Argus **IS** pip-installed **editable** in the
+  `Argus` env, pointing at the **main checkout** `/fred/oz022/tkimpson/Argus/python` (which
+  tracks `main`). `run_analysis.py` only `sys.path.append`s the repo `python/` dir, and that
+  append **loses** to the editable install already on `sys.path`. So **any `run_analysis`
+  (GPU/SLURM) run uses the main-checkout code, NOT whatever treehouse worktree you are
+  editing** — a treehouse edit is invisible to GPU runs. To force a worktree's code, prepend
+  `PYTHONPATH="$WORKTREE/python"` (prepends → wins over the editable install), or land the
+  change on `main` so the editable target serves it. This bit us once (an MDC2 run silently
+  used old code). See memory `project_argus_editable_install_gotcha`.
 
 **GPU vs CPU.**
 - Interactive/login-node GPU init **hangs** (CUDA contention with other jobs). Do **not**
