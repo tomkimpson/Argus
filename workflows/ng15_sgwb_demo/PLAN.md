@@ -68,6 +68,11 @@ work:
   recovers a *common HD-correlated amplitude under an assumed template*; it **cannot**
   produce a Bayes-factor HD-vs-CURN (common-uncorrelated-red-noise) detection. The
   deliverable must be scoped honestly (see §6).
+  - **Being explored (T2.6):** a JAX-native **blackjax nested-sampling** backend behind the
+    existing `sampler` config hook. The Kalman likelihood is already differentiable, so a
+    gradient-augmented NS could deliver evidence and *lift this ceiling* to a proper
+    HD-vs-CURN Bayes-factor detection. Kill-gated feasibility spike; if it passes, T3.4
+    upgrades from an amplitude contrast to a model-comparison detection.
 
 - **Minor — noise model mismatch.** NG15 white noise is *per-backend* (many EFAC/EQUAD
   per pulsar) and includes ECORR and DM-noise. Argus applies a single scalar EFAC/EQUAD
@@ -280,6 +285,7 @@ workflows/ng15_sgwb_demo/
 
 ## 10. Explicitly out of scope (future work)
 
-- Bayes-factor HD-vs-CURN model comparison (needs GWB evidence / a new sampler).
+- Bayes-factor HD-vs-CURN model comparison — *previously out of scope; now being de-risked in
+  T2.6* (blackjax nested-sampling spike). If T2.6 passes it moves into scope via T3.4.
 - A faithful power-law red-noise state model, ECORR, DM-noise, or per-backend white noise.
 - Returning to CW detection (F-statistic + common-red-noise foreground) on PR #100.

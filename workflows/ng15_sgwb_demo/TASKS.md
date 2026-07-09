@@ -330,6 +330,33 @@
       corner/index) as THE observable. Confirmed verdict: `outputs/ng15_confirm_powerlaw/comparison.json`,
       overlay `outputs/ng15_confirm_powerlaw/plots/spectral_overlay.png`. **Gate PASSED → Stage 3 greenlit.**
 
+- [ ] **T2.6 — blackjax nested-sampling feasibility spike (methods track; parallel to Stage 3).**
+  - Depends on: nothing (can run now, in parallel with T3.1). GPU: optional (CPU ok for the
+    small validation problems).
+  - **Why:** RISK B is the milestone's scoping ceiling — NUTS yields no evidence, so the best
+    claim is "amplitude under an assumed HD template," NOT a Bayes-factor HD-vs-CURN *detection*.
+    blackjax now ships a native nested sampler (https://blackjax-devs.github.io/sampling-book/
+    algorithms/nested-sampling/, arXiv:2601.23252); Argus's likelihood is already a differentiable
+    JAX Kalman filter, and `bayesian_inference.py:805 run_nested_sampling` is a stub raising
+    `NotImplementedError` for GWB — a clean extension point behind the config's existing `sampler`
+    field. A working JAX evidence engine would lift the deliverable from *demonstration* to
+    *detection* (HD-vs-CURN + CURN-vs-noise Bayes factors) and is reusable across CW / common-red-noise.
+  - **Riskiest assumption (test first, cheapest):** does blackjax NS give *trustworthy, reproducible
+    evidence* at acceptable cost? Evidence is prior-sensitive (unlike posterior shape) and our priors
+    are reparameterized `U→N(0,1)` — the transform Jacobians must be handled correctly or Z is
+    silently wrong. Validate Z on (1) an analytic Gaussian (known Z), then (2) the **OU-injected
+    synthetic** (correctly-specified model; cross-check the posterior against the existing NUTS run).
+    Benchmark cost at the ~15–20D hierarchical model.
+  - Do: integrate a blackjax-NS backend behind `run_nested_sampling` (JAX-native, gradient-augmented
+    within-shell kernel). Check dependency/version compatibility (Argus env pins jax 0.4.38 — blackjax
+    NS may need newer; verify like the argus-env vs Argus jax issue). **Kill-gated:** set a kill date.
+  - Done when: Z reproduced on the analytic + OU-synthetic checks within tolerance and cost recorded
+    → PASS unlocks the T3.4 upgrade; else record why NS is not viable here (so we don't retry) and
+    keep NUTS + the documented RISK-B framing.
+  - Follow-on (lower priority, NOT scoped here): blackjax's composable Markov kernels could address
+    the `h_a↔γ_a` ridge pathology (a structured/blocked kernel) — note only.
+  - 📄 Reasoning + strategy eval: `research-evaluations/2026-07-09-blackjax-nested-sampling-model-selection.md`.
+
 ---
 
 ## Stage 3 — Real-data SGWB recovery (GPU/SLURM, production)
@@ -355,13 +382,21 @@
   - Done when: converges (`r_hat ≲ 1.01`, low divergences); recovered `log10_ha`→strain
     overlaps the published `log10_A_gw ≈ -14.6`; posterior off prior edges.
 
-- [ ] **T3.4 — HD-vs-CURN contrast.**
+- [ ] **T3.4 — HD-vs-CURN contrast (CONDITIONAL upgrade on T2.6).**
   - Depends on: T3.3. GPU: yes (1–4 × A100).
   - Do: rerun with `data["hd_correlation"]` overridden to identity (a diagnostic-script
-    override — no library edit) to represent a common-uncorrelated red process; compare
-    recovered amplitude / fit quality against the HD run.
-  - Done when: the contrast is quantified (supports "the correlated component matters"),
-    with the RISK B caveat documented (this is not a Bayes factor).
+    override — no library edit) to represent a common-uncorrelated red process.
+  - **If T2.6 PASSED (nested sampling viable):** compute the **Bayes factor** HD-vs-CURN (and
+    CURN-vs-noise) via the blackjax NS backend — the actual detection statistic. This lifts the
+    deliverable past RISK B from "amplitude under an assumed template" to a model-comparison
+    *detection*. **Honesty flag:** a *decisive* HD factor likely needs the full array (T3.5) —
+    NANOGrav's HD evidence came from 67 pulsars, not 6; on the subset this proves the *method* and
+    gives a weak factor / upper limit.
+  - **If T2.6 did NOT pass (NUTS-only fallback):** the original scope — compare recovered amplitude /
+    fit quality between the HD and identity runs; quantify the contrast ("the correlated component
+    matters") with the RISK B caveat documented (this is NOT a Bayes factor).
+  - Done when: either the Bayes factor(s) are reported (T2.6 pass) or the amplitude/fit contrast is
+    quantified with the RISK-B caveat (fallback).
 
 - [ ] **T3.5 — Scale to the full NG15 array.**
   - Depends on: T3.3 working on the subset. GPU: yes (4 × A100).
