@@ -1,5 +1,55 @@
 # Research log
 
+## 2026-07-10 — T2.6: blackjax nested-sampling GWB evidence engine (PASS)
+
+**Goal.** Build the kill-gated T2.6 spike — a JAX-native nested sampler behind the
+`run_nested_sampling` GWB stub — to get Bayesian evidence (logZ) and decide whether it can
+unlock the HD-vs-CURN Bayes factor (T3.4). Was NUTS-only ⇒ no evidence ⇒ "RISK B" ceiling.
+
+**What was tried.** Resolved deps first: `blackjax.nss` (nested slice sampling, Yallup et al.
+2026) is absent from the PyPI wheels (1.4/1.5) but present in blackjax-devs `main`. Installed
+`blackjax 1.6.dev --no-deps` into the `Argus` env, keeping jax pinned at 0.4.38 — the `jax>=0.9`
+requirement is only for other blackjax modules; the NS code uses long-stable APIs. One shim needed
+(`jax.shard_map = jax.experimental.shard_map.shard_map`) because the blackjax package `__init__`
+(via `eca.py`) imports the top-level `jax.shard_map` promoted only in jax≥0.5. Argus imports
+blackjax nowhere else ⇒ zero blast radius. Implemented `run_blackjax_nested_sampling` +
+`_blackjax_ns_evidence` + `_import_blackjax_ns` in `bayesian_inference.py`, dispatched via
+`sampler=blackjax` in `workflow.py`. Key simplification: every free `numpyro.sample` site in the
+GWB model is `Normal(0,1)` (physical params are `deterministic` transforms), so the NS prior is an
+isotropic unit Gaussian — Jacobian-free — and the likelihood is `numpyro.log_density(model) −
+unit_normal_logprior`, reusing the model with no transform re-implementation. Validated in three
+gates: analytic Gaussian logZ (d=2,5,15); then the GWB likelihood on GPU (A100) — the venue, since
+the joint 32-pulsar Kalman likelihood is ~5 s/eval on CPU but 0.075 s on GPU.
+
+**What was learned.** All three gates pass. On MDC2 dataset_2b (noise fixed → 2 free GW params,
+which has a NUTS baseline) the NS posterior reproduces NUTS *exactly* — log10_ha −12.880±0.050 vs
+−12.881±0.046, log10_gamma_a −8.106±0.131 vs −8.081±0.125 — and returns logZ=63781±0.2 (NUTS gives
+none). Three real issues surfaced only by running it: (1) a numerical pathology — free slice
+exploration reaches a latent-tail region where the Kalman innovation covariance is near-singular,
+giving a spurious ~2.2e6 log-likelihood that a 33×33 grid probe localised to |z|=6.5 (outside a 6σ
+box); fixed with a bounded 6σ latent prior (evidence unchanged, ~2e-9/dim mass loss) + non-finite
+guard. (2) The termination guard `i > n_live` forced ≥500 steps under batch deletion (bug); fixed
+to `i > 1`. (3) Posterior extraction OOM'd the 80 GB A100 (~106 GB) because `to_physical` traces
+the full model (runs the likelihood) and `jax.vmap` over thousands of draws materialised all
+intermediates; fixed with sequential `jax.lax.map`. Confirmed from source that `blackjax.nss` is
+vectorised — the inner slice kernel is `jax.vmap`-ed over `num_delete` particles
+(`blackjax/ns/from_mcmc.py:108`), so the GPU-batch width *is* `num_delete`: `num_delete=1` ran
+serial (>2 h, unfinished), `num_delete=25` hit 95% GPU util.
+
+**Decisions / dead ends.** Env: installed into the shared `Argus` env in-place (user's call) but
+`--no-deps` so nothing cascaded; the feared jax 0.10 upgrade was avoided entirely. Validation
+target: had to substitute MDC2 for the task's preferred OU-injected synthetic — the OU feathers are
+gitignored and unrecoverable (no raw feathers anywhere; the ingest step needs `enterprise` and
+isn't a committed workflow script). MDC2 gives an exact NUTS cross-check, so the substitution is
+sound. The 2-D MDC2 problem is *not* representative of cost on the real ~15–20-D hierarchical model.
+
+**Open threads.** (1) NS cost scaling with dimension D, N_pulsars, and (num_live, num_delete,
+num_inner_steps) — flagged by Tom as required before committing NS to T3.4; slice-NS scales worse
+with D than gradient NUTS. (2) `utils.corner_plot` errors on 2-param GWB posteriors ("range not
+valid") — the workflow's built-in per-run corner plot failed, worked around by plotting from the
+saved `.nc`. (3) Timing: NS ~23 min sampling / ~27 min total vs NUTS ~5/~13 on the 2-D MDC2 problem
+at num_delete=25 (not cost-tuned) — widening num_delete is the lever.
+
 ## 2026-07-08 — SGWB injector (T2.1), a get_Q_block bug, and MDC2 GPU re-validation (T0.1)
 
 **Goal.** Build the Stage-2 GWB injector (`workflows/ng15_sgwb_demo`, T2.1): inject a
