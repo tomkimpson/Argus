@@ -60,6 +60,10 @@
   amplitude; the *spectral shape/index is not recovered* and the power-law→OU posterior is
   **pathological** (hi-res r_hat 1.051, ESS 51, 50 divergences vs control 1.004/2496/0). New:
   `scripts/compare_ou_recovery.py`, `configs/ng15_config_confirm.ini`, `slurm_scripts/ng15_confirm_run.sh`.
+- ✅ **T2.6 done — blackjax NS evidence engine PASS (2026-07-09).** Runs on the pinned jax 0.4.38
+  (blackjax-devs main, no cascade, `jax.shard_map` shim); analytic logZ correct; on MDC2 the NS
+  posterior reproduces NUTS exactly and yields logZ. Backend behind `sampler=blackjax`. Unlocks the
+  T3.4 Bayes-factor upgrade. See `notes/t2.6_blackjax_ns_verdict.md`.
 - 👉 **NEXT: T3.1** (production config on the *real* aligned NG15 feathers). Carry the T2.4 caveats:
   band amplitude is THE observable (not the corner/index); expect GWB-corner divergences on real data
   → set `target_accept≥0.95`, `dense_mass=true`, generous warmup.
@@ -330,7 +334,16 @@
       corner/index) as THE observable. Confirmed verdict: `outputs/ng15_confirm_powerlaw/comparison.json`,
       overlay `outputs/ng15_confirm_powerlaw/plots/spectral_overlay.png`. **Gate PASSED → Stage 3 greenlit.**
 
-- [ ] **T2.6 — blackjax nested-sampling feasibility spike (methods track; parallel to Stage 3).**
+- [x] **T2.6 — blackjax nested-sampling feasibility spike (methods track; parallel to Stage 3).**
+  - **PASS (2026-07-09).** blackjax NS runs on the pinned jax 0.4.38 (installed blackjax-devs main
+    `1.6.dev --no-deps`, no jax cascade; 1-line `jax.shard_map` shim). Analytic logZ correct
+    (d=2,5,15). On MDC2 dataset_2b the NS posterior **reproduces the NUTS baseline exactly**
+    (log10_ha −12.88±0.05, log10_gamma_a −8.1±0.13) and gives logZ=63781±0.2. Backend:
+    `bayesian_inference.run_blackjax_nested_sampling` (+`_blackjax_ns_evidence`,
+    `_import_blackjax_ns`); dispatch `sampler=blackjax`. Caveats: ~1 h/run on the 32-psr
+    likelihood (tune `num_delete`/`num_live`); a tail numerical pathology needed a bounded 6σ
+    latent prior; OU cross-check deferred (feathers unrecoverable). Full writeup:
+    `notes/t2.6_blackjax_ns_verdict.md`. **→ unlocks T3.4.**
   - Depends on: nothing (can run now, in parallel with T3.1). GPU: optional (CPU ok for the
     small validation problems).
   - **Why:** RISK B is the milestone's scoping ceiling — NUTS yields no evidence, so the best

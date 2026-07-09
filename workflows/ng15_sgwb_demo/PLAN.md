@@ -68,11 +68,12 @@ work:
   recovers a *common HD-correlated amplitude under an assumed template*; it **cannot**
   produce a Bayes-factor HD-vs-CURN (common-uncorrelated-red-noise) detection. The
   deliverable must be scoped honestly (see §6).
-  - **Being explored (T2.6):** a JAX-native **blackjax nested-sampling** backend behind the
-    existing `sampler` config hook. The Kalman likelihood is already differentiable, so a
-    gradient-augmented NS could deliver evidence and *lift this ceiling* to a proper
-    HD-vs-CURN Bayes-factor detection. Kill-gated feasibility spike; if it passes, T3.4
-    upgrades from an amplitude contrast to a model-comparison detection.
+  - **Lifted (T2.6 PASSED, 2026-07-09):** a JAX-native **blackjax nested-sampling** backend now
+    sits behind the `sampler = blackjax` config hook (`bayesian_inference.run_blackjax_nested_sampling`).
+    It delivers Bayesian evidence (logZ) on the differentiable Kalman likelihood — validated on an
+    analytic Gaussian and against the MDC2 NUTS posterior (exact match). This *lifts this ceiling*:
+    T3.4 can now compute a proper HD-vs-CURN Bayes factor. Env: blackjax-devs main installed
+    `--no-deps` (jax stays 0.4.38; `jax.shard_map` shim). See `notes/t2.6_blackjax_ns_verdict.md`.
 
 - **Minor — noise model mismatch.** NG15 white noise is *per-backend* (many EFAC/EQUAD
   per pulsar) and includes ECORR and DM-noise. Argus applies a single scalar EFAC/EQUAD
@@ -159,7 +160,7 @@ the full array only after Stage 3 works on the subset.
 | GWB / noise priors | `python/argus/prior_models.py` | `get_gw_parameter_priors` (`log10_ha_*`, `log10_gamma_a_*`); `get_pulsar_noise_priors` (hierarchical red noise; `spin_injections_path` **fixes** it); `get_measurement_noise_priors` (`efac_*`, `log10_equad_*`; `noise_params_path` **fixes** white noise). |
 | noise-file loaders | `python/argus/utils.py` | `get_efac_equad_injections` (`:152`, JSON `{psr:{efac,equad}}`, `equad` stored as log10); `get_psr_noise_injections` (`:182`, pandas pickle cols `psr`/`optimal_sigma`/`optimal_gamma`); `get_noise_parameters`; `corner_plot`. |
 | Kalman / HD / OU | `python/argus/jax_kalman_filter.py` | `_compute_sigma_matrix` (`:175`) threads HD + OU state model — the power-law/OU question lives here. |
-| sampler internals | `python/argus/bayesian_inference.py` | `run_nuts_sampling` (`:598`, parallel chains at `:684`), `test_likelihood_performance` (`:905`), `run_nested_sampling` (raises for GWB `:805`). |
+| sampler internals | `python/argus/bayesian_inference.py` | `run_nuts_sampling` (`:598`, parallel chains at `:684`), `test_likelihood_performance` (`:905`), `run_nested_sampling` (jaxns, CW only), `run_blackjax_nested_sampling` (GWB evidence engine, T2.6; `sampler=blackjax`). |
 
 **Config schema** (clone `workflows/example_workflow_lite/configs/example_config_lite.ini`
 for lite / `workflows/example_workflow/configs/example_config.ini` for production):

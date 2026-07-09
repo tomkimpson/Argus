@@ -152,7 +152,22 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     sampler_method = config.get("Data", "sampler", fallback="nuts").strip().lower()
     log_evidence = None
 
-    if sampler_method in ("nested", "jaxns"):
+    if sampler_method in ("blackjax", "blackjax_ns"):
+        logger.info(f"Running blackjax nested sampling (mode={signal_model})...")
+        results, log_evidence = bayesian_inference.run_blackjax_nested_sampling(
+            KF,
+            config,
+            len(pulsar_data["metadata"]),
+            sigma_p_array,
+            gamma_p_array,
+            efac_array,
+            equad_array,
+            mode=signal_model,
+        )
+        logger.info(
+            f"Bayesian evidence: log_Z = {log_evidence[0]:.2f} +/- {log_evidence[1]:.2f}"
+        )
+    elif sampler_method in ("nested", "jaxns"):
         logger.info(f"Running jaxns nested sampling (mode={signal_model})...")
         results, log_evidence = bayesian_inference.run_nested_sampling(
             KF,
