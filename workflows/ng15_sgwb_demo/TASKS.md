@@ -80,11 +80,18 @@
   `log10_ha`∈[-17,-11], `output_id=ng15_real`. **`log10_gamma_a` kept FREE** — re-verified the
   `fixg` "invariant" claim is false (fixing γ_a biases the band amplitude 1.3-1.9 dex low). Aligned
   feathers regenerated (gitignored; T1.2→T1.3→T1.5). Verified: parses + dry likelihood finite (6462.27).
-- 👉 **NEXT: T3.2** (production SLURM script). Extend `slurm_scripts/ng15_slurm_run.sh` (or a
-  production variant) to `--gres=gpu:4` with `num_chains=4` matched, `Argus` env, `oz022`,
-  `milan-gpu`, `PYTHONPATH`→worktree (q11 fix). Then T3.3 submits on the real aligned data. Carry
-  the T2.4 caveats: band amplitude is THE observable (not the corner/index); expect GWB-corner
-  divergences → `target_accept=0.95` already set.
+- ✅ **T3.2 done — production SLURM script `slurm_scripts/ng15_production_run.sh`** (4 × A100).
+  New variant adapted from `ng15_confirm_run.sh`, simplified: no `MODE`/`sed` derived-config
+  (the T3.1 config is self-contained and lives outside `outputs/`), runs `configs/ng15_config.ini`
+  directly. `--gres=gpu:4` matched to `num_chains=4`; `Argus` env, `oz022`, `milan-gpu`,
+  `PYTHONPATH`→worktree (q11 fix), full env/q11 pre-flight block. Walltime 8 h (confirm's 2000
+  iters took ~24 min; production is 3000 iters @ target_accept=0.95). Verified: `bash -n` clean +
+  `sbatch --test-only` schedules on milan-gpu (gina17, 4 GPUs).
+- 👉 **NEXT: T3.3** (real-data subset run). Submit `slurm_scripts/ng15_production_run.sh` on the
+  real aligned NG15 data and monitor to completion. Carry the T2.4 caveats: band amplitude is THE
+  observable (not the corner/index); expect GWB-corner divergences → `target_accept=0.95` already
+  set. Done when converged (`r_hat ≲ 1.01`, low divergences) and recovered `log10_ha`→strain
+  overlaps the published `log10_A_gw ≈ -14.6`.
 
 ---
 
@@ -423,11 +430,20 @@
   - **Verified** (CPU, worktree `PYTHONPATH` for the q11 fix): config parses, 6 pulsars load →
     (78,6) + unit-diag HD, dry likelihood **finite = 6462.27** (~6.4e3, matches T2.2 injected evals).
 
-- [ ] **T3.2 — Production SLURM script.**
+- [x] **T3.2 — Production SLURM script.**
   - Depends on: T3.1. GPU: no (authoring).
   - Do: extend `slurm_scripts/ng15_slurm_run.sh` (or add a production variant) with
     `--gres=gpu:4` and `num_chains=4` matched, activating `Argus`.
   - Done when: script is correct (right env, account, partition, gres).
+  - Result: added `slurm_scripts/ng15_production_run.sh`, a new 4 × A100 variant adapted from
+    `ng15_confirm_run.sh`. Simplified — no `MODE` arg / no `sed` derived-config, since the T3.1
+    config is self-contained and sits outside `outputs/` (no `shutil.SameFileError`); runs
+    `configs/ng15_config.ini` directly. Carries the full proven setup: `--account=oz022`,
+    `--partition=milan-gpu`, `--gres=gpu:4` matched to `num_chains=4`, `--mem=32G`,
+    `--cpus-per-task=8`, `--time=8:00:00`, no `set -e`, `Argus` conda env,
+    `PYTHONPATH`→worktree `python/` (editable-install / q11-fix gotcha), and the env/q11 pre-flight
+    block. Job/log names → `ng15_real`. **Verified** (authoring only, no GPU submit): `bash -n`
+    clean; `sbatch --test-only` parses and would schedule on milan-gpu (gina17, 8 procs / 4 GPUs).
 
 - [ ] **T3.3 — Real-data subset run (SLURM).**
   - Depends on: T3.2. GPU: yes (4 × A100).
