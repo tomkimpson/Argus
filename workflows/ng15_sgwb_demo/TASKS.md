@@ -75,11 +75,16 @@
   Also fixed a Kalman near-singular-covariance pathology NS exposed (`_log_likelihood`, PR #102 to
   main; golden preserved). Full record: `notes/DECISION_nested_sampling_parked.md`,
   `notes/ns_numerical_hygiene.md`. Do **not** re-investigate slice-NS scaling.
-- 👉 **NEXT: T3.1** (production config on the *real* aligned NG15 feathers). Note: the aligned
-  feathers are gitignored/session-local — regenerate via the T1.3–T1.5 ingest scripts (or copy from
-  the main checkout) before any Stage-3 run. Carry the T2.4 caveats: band amplitude is THE
-  observable (not the corner/index); expect GWB-corner divergences on real data → set
-  `target_accept≥0.95`, `dense_mass=true`, generous warmup.
+- ✅ **T3.1 done — production config `configs/ng15_config.ini`** on the *real* aligned NG15
+  feathers. Cloned `ng15_config_confirm.ini`; NUTS 2000/1000/4 @ target_accept=0.95, `dense_mass`,
+  `log10_ha`∈[-17,-11], `output_id=ng15_real`. **`log10_gamma_a` kept FREE** — re-verified the
+  `fixg` "invariant" claim is false (fixing γ_a biases the band amplitude 1.3-1.9 dex low). Aligned
+  feathers regenerated (gitignored; T1.2→T1.3→T1.5). Verified: parses + dry likelihood finite (6462.27).
+- 👉 **NEXT: T3.2** (production SLURM script). Extend `slurm_scripts/ng15_slurm_run.sh` (or a
+  production variant) to `--gres=gpu:4` with `num_chains=4` matched, `Argus` env, `oz022`,
+  `milan-gpu`, `PYTHONPATH`→worktree (q11 fix). Then T3.3 submits on the real aligned data. Carry
+  the T2.4 caveats: band amplitude is THE observable (not the corner/index); expect GWB-corner
+  divergences → `target_accept=0.95` already set.
 
 ---
 
@@ -390,7 +395,7 @@
 
 ## Stage 3 — Real-data SGWB recovery (GPU/SLURM, production)
 
-- [ ] **T3.1 — Production config.**
+- [x] **T3.1 — Production config.**
   - Depends on: T2.4 (greenlit). GPU: no (authoring).
   - Do: write `configs/ng15_config.ini` (clone `example_config.ini`): `data_path` →
     aligned real feathers, `noise_params_path` → `ng15_psr_noise.json`, red noise
@@ -398,6 +403,25 @@
     `target_accept≈0.85`, `max_tree_depth≥10`). Set `log10_ha` prior to bracket the
     published amplitude.
   - Done when: config parses; dry likelihood finite.
+  - ✅ Result: `configs/ng15_config.ini` (cloned `ng15_config_confirm.ini` — keeps abs paths,
+    `__NONE__` sentinel, corrected-q11 framing). `data_path`→`data/aligned/` (real), white noise
+    FIXED via `ng15_psr_noise.json`, red noise FREE/hierarchical. NUTS **2000/1000/4,
+    target_accept=0.95** (raised from confirm's 0.90 per the T2.4 real-data caveat — expect
+    GWB-corner divergences), `dense_mass=true`, `max_tree_depth=10`; `num_chains=4` pairs with
+    `--gres=gpu:4` (T3.2, chains parallel across GPUs). `log10_ha` prior [-17,-11] (brackets
+    published A_gw≈-14.6 → OU log10_ha≈-13.5 via the T2.4 band-amplitude map); `output_id=ng15_real`.
+  - **Load-bearing decision — `log10_gamma_a` kept FREE (not fixed).** Re-checked the Stage-2
+    `fixg` sweep: its "band amplitude invariant to fixed gamma_a" claim is **FALSE**. Free run
+    recovers γ_a≈-7.3 with band-amp bias -0.20 dex/-0.46σ; FIXING γ_a below that starves the OU
+    corner of in-band power and biases the observable LOW by 1.3-1.9 dex (m80@-8.0 → -1.30 dex;
+    m85@-8.5 → -1.94 dex; `outputs/ng15_fixg_m8{0,5}_powerlaw/comparison.json`). So fixing γ_a is
+    NOT a valid cross-check on real data — production keeps it free (config header records this).
+  - **Prereq done:** aligned feathers are gitignored/session-local and were absent from this
+    worktree + main checkout → regenerated via T1.2→T1.3(pint)→T1.5 (raw NG15 wideband reachable
+    at `/fred/oz022/.../NANOGrav15yr_PulsarTiming_v2.1.0/wideband`). `data/aligned/` rebuilt
+    (6×78 joint epochs); `get_processed_residuals(mode="gwb")` → (78,6) + unit-diag (6,6) HD.
+  - **Verified** (CPU, worktree `PYTHONPATH` for the q11 fix): config parses, 6 pulsars load →
+    (78,6) + unit-diag HD, dry likelihood **finite = 6462.27** (~6.4e3, matches T2.2 injected evals).
 
 - [ ] **T3.2 — Production SLURM script.**
   - Depends on: T3.1. GPU: no (authoring).
