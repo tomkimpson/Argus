@@ -151,10 +151,11 @@ def run_inference(config_path, use_gw=True, timestamp=None):
     # Select sampler and run inference
     sampler_method = config.get("Data", "sampler", fallback="nuts").strip().lower()
     log_evidence = None
+    ns_meta = None
 
     if sampler_method in ("blackjax", "blackjax_ns"):
         logger.info(f"Running blackjax nested sampling (mode={signal_model})...")
-        results, log_evidence = bayesian_inference.run_blackjax_nested_sampling(
+        results, log_evidence, ns_meta = bayesian_inference.run_blackjax_nested_sampling(
             KF,
             config,
             len(pulsar_data["metadata"]),
@@ -205,10 +206,16 @@ def run_inference(config_path, use_gw=True, timestamp=None):
         import json
 
         evidence_path = os.path.join(output_dir, f"{output_id}_evidence.json")
+        evidence_payload = {
+            "log_Z_mean": log_evidence[0],
+            "log_Z_uncert": log_evidence[1],
+        }
+        # Additive cost-scaling metadata from the blackjax NS engine (runtime_s, n_steps,
+        # ndim, n_live, num_delete, num_inner_steps, n_pulsars). None for jaxns.
+        if ns_meta is not None:
+            evidence_payload.update(ns_meta)
         with open(evidence_path, "w") as f:
-            json.dump(
-                {"log_Z_mean": log_evidence[0], "log_Z_uncert": log_evidence[1]}, f
-            )
+            json.dump(evidence_payload, f, indent=2)
         logger.info(f"Evidence saved to {evidence_path}")
 
     # Create plots and diagnostics

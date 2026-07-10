@@ -947,8 +947,16 @@ def _blackjax_ns_evidence(
     rng_key=None,
     weights_shape=200,
     progress_every=0,
+    kernel="nss",
 ):
     """Run blackjax nested slice sampling and return the evidence + dead points.
+
+    ``kernel`` selects the inner MCMC kernel: ``"nss"`` (default) is the monolithic
+    hit-and-run slice sampler; ``"nsswig"`` is the axis-aligned slice-within-Gibbs
+    kernel of Yallup (2026, arXiv:2602.17414), which exploits hierarchical structure
+    by sweeping coordinates rather than treating the parameter vector as one block.
+    Both consume the same black-box ``logprior_fn``/``loglikelihood_fn`` and the same
+    ``num_delete``/``num_inner_steps`` knobs, so they are directly comparable.
 
     This is the engine core shared by :func:`run_blackjax_nested_sampling` (GWB on real
     data) and the analytic-Gaussian validation script, so the code path validated
@@ -982,7 +990,10 @@ def _blackjax_ns_evidence(
     if rng_key is None:
         rng_key = jax.random.PRNGKey(0)
 
-    algo = blackjax.nss(
+    if kernel not in ("nss", "nsswig"):
+        raise ValueError(f"kernel must be 'nss' or 'nsswig', got {kernel!r}")
+    ns_constructor = getattr(blackjax, kernel)
+    algo = ns_constructor(
         logprior_fn=logprior_fn,
         loglikelihood_fn=loglikelihood_fn,
         num_delete=num_delete,
@@ -995,6 +1006,7 @@ def _blackjax_ns_evidence(
     n_steps = 0
     t_start = time.perf_counter()
     t_compiled = None
+    prev_progress = None  # (step, gap, wall) at the last progress print, for the ETA estimate
     for i in range(max_steps):
         rng_key, subkey = jax.random.split(rng_key)
         state, info = step(subkey, state)
@@ -1011,9 +1023,26 @@ def _blackjax_ns_evidence(
                     flush=True,
                 )
         if progress_every and (i % progress_every == 0):
+            now = time.perf_counter()
+            # ETA: the gap (logZ_live - logZ) trends down toward the `dlogz` termination
+            # threshold. It is NOT monotonic (jumps up when a new high-L region is found), so
+            # estimate remaining steps from the recent average descent rate and guard against
+            # non-negative slopes. Rough by design — a "how much is left" gauge, not a promise.
+            eta_str = ""
+            if prev_progress is not None:
+                di = i - prev_progress[0]
+                dgap = gap - prev_progress[1]  # negative when descending
+                if di > 0 and dgap < 0:
+                    steps_left = max(0.0, (gap - dlogz) / (-dgap / di))
+                    sec_per_step = (now - prev_progress[2]) / di
+                    eta_s = steps_left * sec_per_step
+                    eta_str = f"  ETA~{eta_s/3600:5.2f}h (~{steps_left:.0f} steps)"
+                else:
+                    eta_str = "  ETA~(gap rose)"
+            prev_progress = (i, gap, now)
             print(
                 f"    [NS] step {i:6d}  logZ={float(state.integrator.logZ):10.3f}  "
-                f"logZ_live-logZ={gap:8.3f}  elapsed={time.perf_counter() - t_start:7.1f}s",
+                f"logZ_live-logZ={gap:8.3f}  elapsed={now - t_start:7.1f}s{eta_str}",
                 flush=True,
             )
         # Terminate once the evidence still held in the live points is a negligible
@@ -1085,8 +1114,11 @@ def run_blackjax_nested_sampling(
     Returns
     -------
     tuple
-        ``(arviz.InferenceData, (logZ_mean, logZ_uncert))`` — matching the return
-        contract of :func:`run_nested_sampling`.
+        ``(arviz.InferenceData, (logZ_mean, logZ_uncert), ns_meta)`` where ``ns_meta``
+        is a dict of additive cost-scaling metadata (``runtime_s``, ``n_steps``,
+        ``ndim``, ``n_live``, ``num_delete``, ``num_inner_steps``, ``n_pulsars``). The
+        first two elements match the return contract of :func:`run_nested_sampling`;
+        the third is blackjax-specific and consumed by :mod:`workflow`.
     """
     if mode != "gwb":
         raise NotImplementedError(
@@ -1179,6 +1211,7 @@ def run_blackjax_nested_sampling(
     num_posterior_samples = config.getint(
         "NestedSampler", "num_posterior_samples", fallback=10000
     )
+    kernel = config.get("NestedSampler", "kernel", fallback="nss").strip().lower()
 
     key, subkey = jax.random.split(key)
     init_particles = jax.random.normal(subkey, (num_live, ndim))
@@ -1189,8 +1222,10 @@ def run_blackjax_nested_sampling(
     print(f"  num_delete: {num_delete}")
     print(f"  num_inner_steps: {num_inner_steps}")
     print(f"  dlogz termination: {dlogz}")
+    print(f"  inner kernel: {kernel}")
 
     key, subkey = jax.random.split(key)
+    t_sample_start = time.perf_counter()
     res = _blackjax_ns_evidence(
         logprior_fn,
         loglikelihood_fn,
@@ -1202,13 +1237,30 @@ def run_blackjax_nested_sampling(
         rng_key=subkey,
         weights_shape=weights_shape,
         progress_every=progress_every,
+        kernel=kernel,
     )
+    sampling_runtime_s = time.perf_counter() - t_sample_start
     log_Z_mean = res["logZ"]
     log_Z_uncert = res["logZ_err"]
     print(
         f"\nLog-evidence: {log_Z_mean:.2f} +/- {log_Z_uncert:.2f} "
-        f"({res['n_steps']} steps)"
+        f"({res['n_steps']} steps, {sampling_runtime_s:.1f} s sampling)"
     )
+
+    # Cost-scaling metadata (additive; does not affect the evidence/posterior). Consumed by
+    # workflow.py to enrich the evidence JSON and by the NS scaling study
+    # (workflows/ng15_sgwb_demo/scripts/ns_scaling_analyze.py).
+    ns_meta = {
+        "runtime_s": float(sampling_runtime_s),
+        "n_steps": int(res["n_steps"]),
+        "ndim": int(res["ndim"]),
+        "n_live": int(res["n_live"]),
+        "num_delete": int(num_delete),
+        "num_inner_steps": int(num_inner_steps),
+        "n_pulsars": int(n_pulsars),
+        "kernel": kernel,
+        "logZ_stochastic_mean": float(res["logZ_stochastic_mean"]),
+    }
 
     # Posterior: resample the latent live points by weight, push through the model to
     # recover the physical (deterministic) parameters, and package as ArviZ.
@@ -1235,7 +1287,7 @@ def run_blackjax_nested_sampling(
     }
     inf_data = az.from_dict(posterior=posterior_np)
 
-    return inf_data, (log_Z_mean, log_Z_uncert)
+    return inf_data, (log_Z_mean, log_Z_uncert), ns_meta
 
 
 def test_likelihood_performance(kalman_filter, config, n_pulsars, logger):

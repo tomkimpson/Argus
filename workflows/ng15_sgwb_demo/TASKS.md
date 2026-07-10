@@ -6,7 +6,9 @@
 > Check the box (`[x]`) and add a one-line result note when a task is complete.
 
 ## Conventions for whoever picks this up
-- Branch: **`ng15-sgwb-demo`**. Commit only via the **`/commit`** skill. No `Co-Authored-By` lines.
+- Branch: **`ng15-sgwb-demo`**. Commit only via the **`/commit`** skill. **No AI attribution
+  anywhere** — no `Co-Authored-By` trailer in commits, no "Generated with Claude Code" footer in
+  PR bodies/comments.
 - Env: activate **`Argus`** (`conda activate Argus`), never `argus-env`. See PLAN §3.
 - CPU work: prefix with `JAX_PLATFORMS=cpu`. GPU/NUTS work: **SLURM only** (A100, `oz022`, `milan-gpu`/`milan-c`).
 - Prefer new scripts under `scripts/` over editing `python/argus/*` (see PLAN §7).
@@ -62,11 +64,22 @@
   `scripts/compare_ou_recovery.py`, `configs/ng15_config_confirm.ini`, `slurm_scripts/ng15_confirm_run.sh`.
 - ✅ **T2.6 done — blackjax NS evidence engine PASS (2026-07-09).** Runs on the pinned jax 0.4.38
   (blackjax-devs main, no cascade, `jax.shard_map` shim); analytic logZ correct; on MDC2 the NS
-  posterior reproduces NUTS exactly and yields logZ. Backend behind `sampler=blackjax`. Unlocks the
-  T3.4 Bayes-factor upgrade. See `notes/t2.6_blackjax_ns_verdict.md`.
-- 👉 **NEXT: T3.1** (production config on the *real* aligned NG15 feathers). Carry the T2.4 caveats:
-  band amplitude is THE observable (not the corner/index); expect GWB-corner divergences on real data
-  → set `target_accept≥0.95`, `dense_mass=true`, generous warmup.
+  posterior reproduces NUTS exactly and yields logZ. Backend behind `sampler=blackjax`.
+  See `notes/t2.6_blackjax_ns_verdict.md`. **⚠️ SUPERSEDED for production — NS parked (below).**
+- 🛑 **DECISION (2026-07-10): slice nested sampling PARKED as the production evidence engine.**
+  The NS cost-scaling study found NS is ~10–30× slower than NUTS at *lower* dimension (accurate
+  full-32 hierarchical evidence run ≈ 2.5–7 weeks vs NUTS ~2 days), because slice-NS discards the
+  gradient NUTS exploits. Sampler dimensional scaling is benign and accuracy is tunable
+  (`num_inner_steps~6D`) — runtime is the killer. **Evidence/Bayes factors now route via NUTS +
+  a posterior-reuse estimator (learned harmonic mean first), NOT NS** — this changes T3.4's method.
+  Also fixed a Kalman near-singular-covariance pathology NS exposed (`_log_likelihood`, PR #102 to
+  main; golden preserved). Full record: `notes/DECISION_nested_sampling_parked.md`,
+  `notes/ns_numerical_hygiene.md`. Do **not** re-investigate slice-NS scaling.
+- 👉 **NEXT: T3.1** (production config on the *real* aligned NG15 feathers). Note: the aligned
+  feathers are gitignored/session-local — regenerate via the T1.3–T1.5 ingest scripts (or copy from
+  the main checkout) before any Stage-3 run. Carry the T2.4 caveats: band amplitude is THE
+  observable (not the corner/index); expect GWB-corner divergences on real data → set
+  `target_accept≥0.95`, `dense_mass=true`, generous warmup.
 
 ---
 
@@ -335,6 +348,9 @@
       overlay `outputs/ng15_confirm_powerlaw/plots/spectral_overlay.png`. **Gate PASSED → Stage 3 greenlit.**
 
 - [x] **T2.6 — blackjax nested-sampling feasibility spike (methods track; parallel to Stage 3).**
+  - 🛑 **OUTCOME (2026-07-10): feasibility PASSED, but NS PARKED for production** after the
+    cost-scaling study (too slow: ~10–30× NUTS). Evidence now via NUTS + posterior-reuse, not NS.
+    See `notes/DECISION_nested_sampling_parked.md`. The PASS details below stand as the record.
   - **PASS (2026-07-09).** blackjax NS runs on the pinned jax 0.4.38 (installed blackjax-devs main
     `1.6.dev --no-deps`, no jax cascade; 1-line `jax.shard_map` shim). Analytic logZ correct
     (d=2,5,15). On MDC2 dataset_2b the NS posterior **reproduces the NUTS baseline exactly**
@@ -395,21 +411,25 @@
   - Done when: converges (`r_hat ≲ 1.01`, low divergences); recovered `log10_ha`→strain
     overlaps the published `log10_A_gw ≈ -14.6`; posterior off prior edges.
 
-- [ ] **T3.4 — HD-vs-CURN contrast (CONDITIONAL upgrade on T2.6).**
+- [ ] **T3.4 — HD-vs-CURN contrast (evidence via NUTS + posterior-reuse; NS parked).**
   - Depends on: T3.3. GPU: yes (1–4 × A100).
   - Do: rerun with `data["hd_correlation"]` overridden to identity (a diagnostic-script
     override — no library edit) to represent a common-uncorrelated red process.
-  - **If T2.6 PASSED (nested sampling viable):** compute the **Bayes factor** HD-vs-CURN (and
-    CURN-vs-noise) via the blackjax NS backend — the actual detection statistic. This lifts the
-    deliverable past RISK B from "amplitude under an assumed template" to a model-comparison
-    *detection*. **Honesty flag:** a *decisive* HD factor likely needs the full array (T3.5) —
-    NANOGrav's HD evidence came from 67 pulsars, not 6; on the subset this proves the *method* and
-    gives a weak factor / upper limit.
-  - **If T2.6 did NOT pass (NUTS-only fallback):** the original scope — compare recovered amplitude /
-    fit quality between the HD and identity runs; quantify the contrast ("the correlated component
-    matters") with the RISK B caveat documented (this is NOT a Bayes factor).
-  - Done when: either the Bayes factor(s) are reported (T2.6 pass) or the amplitude/fit contrast is
-    quantified with the RISK-B caveat (fallback).
+  - **Method (revised 2026-07-10 — slice-NS parked, see DECISION note):** get the **Bayes factor**
+    HD-vs-CURN (and CURN-vs-noise) by computing evidence from the NUTS posteriors we already pay for,
+    via a **posterior-reuse estimator — learned harmonic mean first** (cheapest; ~free on top of an
+    existing NUTS run), with thermodynamic-integration / stepping-stone as the more-robust fallback.
+    **Validate the estimator against the trusted 2-D MDC2 anchor (NS `logZ = 63780`) before trusting
+    it at scale** — this is the concrete, verifiable first sub-task. Do **not** use the blackjax NS
+    backend (parked: ~10–30× slower than NUTS at scale).
+  - **Honesty flag:** a *decisive* HD factor likely needs the full array (T3.5) — NANOGrav's HD
+    evidence came from 67 pulsars, not 6; on the subset this proves the *method* and gives a weak
+    factor / upper limit.
+  - **Fallback if the evidence estimator proves unreliable here:** the original RISK-B scope —
+    compare recovered amplitude / fit quality between the HD and identity runs; quantify the contrast
+    ("the correlated component matters") with the caveat that this is NOT a Bayes factor.
+  - Done when: either the Bayes factor(s) are reported (estimator validated on the anchor) or the
+    amplitude/fit contrast is quantified with the RISK-B caveat (fallback).
 
 - [ ] **T3.5 — Scale to the full NG15 array.**
   - Depends on: T3.3 working on the subset. GPU: yes (4 × A100).
