@@ -1,5 +1,56 @@
 # Research log
 
+## 2026-07-12 — T3.4: HD-vs-CURN Bayes factor (PASS — lnB=+2.1, method-proving, not a detection)
+
+**Goal.** Execute Stage-3 T3.4: get the Bayes factor between HD (Hellings-Downs
+correlated SGWB) and CURN (common uncorrelated red noise, identity ORF) on the real
+6-pulsar NG15 subset, by reusing the NUTS posteriors (nested sampling stays parked).
+
+**What was tried.** Built a self-contained learned-harmonic-mean (LHM) logZ estimator
+(`scripts/logz_lhm.py`, CPU-only, arviz/numpy/scipy — deliberately no `harmonic`
+dependency to avoid the pinned-jax 0.4.38 fragility). A pre-planning Explore + Plan pass
+surfaced the enabling discovery: the `.nc` files already store the per-draw
+`log_likelihood` group *and* the unit-Gaussian latent sites (`*_prime`/`*_raw`), and NUTS
+shares the same `numpyro_model` as the blackjax NS engine — so logZ is pure post-processing
+in the latent space and directly comparable to the NS anchor, with no Kalman re-eval.
+Target φ = shrunk full-covariance Gaussian on a train fold, estimate on a disjoint test
+fold, shrinkage sweep + 2-fold swap as reliability probes. For the CURN run, `run_curn.py`
+monkeypatches the data loader to replace `data["hd_correlation"]` with the identity at
+runtime (no library edit; verified HD diagonal = 1, so identity is the correct CURN).
+Launched CURN as a 4×A100 SLURM job cloned from the T3.3 production script.
+
+**What was learned.**
+- **Both validation gates passed.** GATE: LHM reproduced the trusted 2-D MDC2 NS anchor
+  63780.97±0.16 → got 63781.09±0.02 (Δ+0.11, within 3σ), flat shrinkage plateau. Route-B
+  correctness check (needed because the 2-D anchor can't exercise the 18-D extraction):
+  reconstructed `log_density` matched `logprior+loglik` to <5e-7 across all 4 chains.
+- **Result: HD favoured, lnB = +2.1 ± 0.1** (odds ≈8:1, Kass–Raftery "positive", NOT
+  decisive). At the posterior median HD also fits +4.3 nat better than CURN. CURN converged
+  cleanly (r_hat 1.002, 0.03% div) and recovers log10_ha=-13.99±0.74 — broader/lower than
+  HD's -13.40±0.20, sensible since without cross-correlations more power goes to per-pulsar
+  noise.
+- **The matched-shrinkage trick is what makes lnB trustworthy.** Per-model 18-D LHM has low
+  importance-sampling ESS (~4%, vs ~90% at 2-D — the dimensionality curse showing up early).
+  But 16 of 18 dims (red-noise + hierarchical) are shared between HD and CURN, so at *matched*
+  shrinkage the difficulty cancels: lnB is stable across s=0.6–0.9 (2.16, 2.24, 2.10, 1.92)
+  and ~2.5× tighter than either absolute logZ. Upgraded `logz_lhm.py --compare-to` to report
+  lnB from the matched-shrinkage plateau and auto-exclude degenerate low-shrink values.
+
+**Decisions / dead ends.** Scope fixed to HD-vs-CURN only (CURN-vs-noise deferred). The TI
+fallback was not needed (gate passed). Confirmed the "identity ORF" is physically the correct
+CURN (not just a convenient stand-in) because the HD self-correlation is exactly 1. An early
+dry-likelihood check misleadingly showed HD==CURN — that was because the test noise params sat
+in a GW-negligible regime (LL≈-1340); at the real posterior median (LL≈+6490) the ORF matters
+(+4.3 nat), confirming the override is live.
+
+**Open threads.** The evidence estimator will not survive the jump to the full array (~150-D):
+LHM's shrunk-Gaussian target can't contain that posterior (ESS already cratering 2D→18D).
+Tom flagged Savage-Dickey as the PTA-recommended route; discussed that SD sidesteps the
+evidence integral (high-D-friendly) but needs *nested* models — HD-vs-CURN would need a
+reparameterized ORF (Γ=(1-ε)I+εΓ_HD, SD at ε=0), while CURN-vs-noise is a free SD from the
+existing posterior. Product-space / hypermodel sampling is the non-nested alternative. To be
+worked out in detail as its own task before/alongside T3.5.
+
 ## 2026-07-11 — T3.3: real-data NG15 SGWB subset run (PASS — amplitude recovered, not a detection)
 
 **Goal.** Execute Stage-3 T3.3: run the committed production config on the REAL epoch-aligned
