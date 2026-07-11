@@ -1,5 +1,47 @@
 # Research log
 
+## 2026-07-11 — T3.3: real-data NG15 SGWB subset run (PASS — amplitude recovered, not a detection)
+
+**Goal.** Execute Stage-3 T3.3: run the committed production config on the REAL epoch-aligned
+NG15 6-pulsar subset and verify convergence + amplitude recovery against the published SGWB.
+
+**What was tried.** T3.3 was pure execution — T3.1 (config) and T3.2 (SLURM script) were already
+committed. Pre-flight (6 aligned feathers present, milan-gpu up, `sbatch --test-only` schedules),
+then submitted `slurm_scripts/ng15_production_run.sh` (job 14108726, 4×A100). Queued ~behind a
+higher-priority 6-node job; ran on gina14 once a slot backfilled. Monitored via a persistent
+squeue/log monitor; env pre-flight confirmed the load-bearing bits — `argus.model` resolves to
+the worktree checkout and the q11 fix is live (`uses γ**2: True`), 4 CUDA devices. While it ran,
+built the verification tooling: extended `scripts/compare_ou_recovery.py` with a `--published`
+mode (the real run has no injection-truth sidecar, so it band-references the recovered OU
+amplitude against the published NG15 power law instead — computes T_span from the feathers,
+reports bias/σ + HDI overlap at f=1/(5yr) and 1/yr vs BOTH refs: fixed γ=13/3 log10_A=-14.6 and
+free-γ 3.2 log10_A=-14.19).
+
+**What was learned.** Run completed in 70m49s (GPU 85.6% avg). Convergence was *better* than the
+T2.4 hi-res confirm: max r_hat 1.003, log10_ha ESS 2434, only **4 divergences/8000 (0.05%)** vs
+~50 at confirm — target_accept=0.95 did its job. Recovered `log10_ha = -13.40 ± 0.20`, tight,
+off both prior edges (2.4 dex clear of the -11 top); log10_gamma_a = -7.73, not railed. Band
+amplitude is consistent with the fixed-γ=13/3 published SGWB to <1σ at both pivots (-0.09σ at
+1/yr — essentially exact; -0.86σ at 1/(5yr)); log10_ha brackets the T2.4-mapped published -13.5
+to ~0.5σ. Bonus consistency check: the fixed-γ=13/3 published PSD at 1/(5yr) (-5.747) equals the
+Stage-2 injection's `log10_psd_injected` — the injection was at the same SMBHB amplitude, so the
+comparison sits on validated footing. Corner plot rendered fine (the old low-dim
+`utils.corner_plot` "range not valid" bug did not bite this run).
+
+**Decisions / dead ends.** Framed the result honestly (via scientific-critical-thinking): this is
+**amplitude recovery / end-to-end method validation on real data, NOT a detection.** The run
+*fixed* HD in the model rather than testing it, computed no HD-vs-CURN or signal-vs-noise Bayes
+factor, and 6 pulsars (15 pairs) is far short of NANOGrav's 67 (2211 pairs). A well-constrained
+off-rails amplitude posterior under an assumed HD model ≠ evidence for the quadrupolar
+correlation. The strict 94%-HDI-overlap flag reads False at 1/(5yr) only because the log-PSD core
+is tight (published value 0.055 dex outside a narrow HDI) — a sub-σ miss, reported as such.
+
+**Open threads.** T3.4 (HD-vs-CURN contrast) is the actual detection test — rerun with
+`data["hd_correlation"]` overridden to identity (diagnostic-script override, no library edit),
+Bayes factor via NUTS + posterior-reuse (learned harmonic mean first, validated against the MDC2
+anchor logZ=63780; NS parked). Honesty flag stands: a decisive HD factor likely needs the full
+array (T3.5); on 6 pulsars expect a weak factor / upper limit. Picking up T3.4 next session.
+
 ## 2026-07-10 — T2.6: blackjax nested-sampling GWB evidence engine (PASS)
 
 **Goal.** Build the kill-gated T2.6 spike — a JAX-native nested sampler behind the

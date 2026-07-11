@@ -87,11 +87,17 @@
   `PYTHONPATH`→worktree (q11 fix), full env/q11 pre-flight block. Walltime 8 h (confirm's 2000
   iters took ~24 min; production is 3000 iters @ target_accept=0.95). Verified: `bash -n` clean +
   `sbatch --test-only` schedules on milan-gpu (gina17, 4 GPUs).
-- 👉 **NEXT: T3.3** (real-data subset run). Submit `slurm_scripts/ng15_production_run.sh` on the
-  real aligned NG15 data and monitor to completion. Carry the T2.4 caveats: band amplitude is THE
-  observable (not the corner/index); expect GWB-corner divergences → `target_accept=0.95` already
-  set. Done when converged (`r_hat ≲ 1.01`, low divergences) and recovered `log10_ha`→strain
-  overlaps the published `log10_A_gw ≈ -14.6`.
+- ✅ **T3.3 done — real-data subset run** (job 14108726, 4 × A100 gina14, 70m49s wall, COMPLETED).
+  **Converged cleanly:** max r_hat 1.003, log10_ha ESS 2434, only **4 divergences / 8000 (0.05%)**
+  — target_accept=0.95 crushed the ~50 seen at confirm. Recovered **log10_ha = −13.40 ± 0.20**,
+  off both prior edges (2.4 dex clear of the −11 top); log10_gamma_a = −7.73, not railed. **Band
+  amplitude consistent with the published NG15 SGWB** (fixed γ=13/3, log10_A=−14.6): bias
+  −0.02 dex/−0.09σ at f=1/yr and −0.19 dex/−0.86σ at f=1/(5yr) — i.e. <1σ at both pivots; log10_ha
+  brackets the T2.4-mapped −13.5 to ~0.5σ. Outputs in `outputs/ng15_real/` (+ `comparison.json`,
+  spectral overlay, corner). Verified via extended `scripts/compare_ou_recovery.py --published`.
+- 👉 **NEXT: T3.4** (HD-vs-CURN contrast). Evidence/Bayes factor via NUTS + posterior-reuse
+  (learned harmonic mean first, validated against the MDC2 anchor logZ=63780); NS parked. Fallback:
+  amplitude/fit contrast between HD and identity-correlation runs (RISK-B caveat).
 
 ---
 
@@ -445,11 +451,30 @@
     block. Job/log names → `ng15_real`. **Verified** (authoring only, no GPU submit): `bash -n`
     clean; `sbatch --test-only` parses and would schedule on milan-gpu (gina17, 8 procs / 4 GPUs).
 
-- [ ] **T3.3 — Real-data subset run (SLURM).**
+- [x] **T3.3 — Real-data subset run (SLURM).**
   - Depends on: T3.2. GPU: yes (4 × A100).
   - Do: submit on the real aligned NG15 subset. Monitor to completion.
   - Done when: converges (`r_hat ≲ 1.01`, low divergences); recovered `log10_ha`→strain
     overlaps the published `log10_A_gw ≈ -14.6`; posterior off prior edges.
+  - ✅ **Result (job 14108726, 4 × A100 on gina14, 70m49s wall, COMPLETED, GPU 85.6% avg).**
+    Env pre-flight passed: `argus.model` from the worktree, q11 fix `uses γ**2: True`, 4 CUDA devices.
+    - **Convergence:** max r_hat **1.003**; log10_ha ESS bulk 2434 / tail 1188; **4 divergent
+      transitions / 8000 (0.05%)** — the target_accept=0.95 mitigation crushed the ~50 seen at the
+      T2.4 confirm. All 42 sampled params r_hat ≤ 1.003, ESS ≥ 400.
+    - **Recovered:** `log10_ha = −13.40 ± 0.20` (corner −13.398 +0.083/−0.091), `log10_gamma_a =
+      −7.73 ± 0.25`. Both **off the prior edges** (log10_ha 3.6/2.4 dex from [−17,−11] edges;
+      γ_a not railed against [−10.5,−6.0]).
+    - **Amplitude vs published NG15 SGWB (band-referenced, both refs):** vs fixed γ=13/3
+      (log10_A=−14.6) — bias **−0.02 dex / −0.09σ at f=1/yr**, −0.19 dex / −0.86σ at f=1/(5yr)
+      (i.e. **<1σ at both pivots**). vs free-γ (γ=3.2, log10_A=−14.19) — −0.43 dex / −1.94σ at 1/yr,
+      −0.20 dex / −0.93σ at 1/(5yr). log10_ha −13.40 brackets the T2.4-mapped published ≈ −13.5 to
+      ~0.5σ. The strict 94%-HDI-overlap flag is False at 1/(5yr) only because the log-PSD core is
+      tight (published value 0.055 dex outside a narrow HDI); the discrepancy is sub-σ and negligible.
+    - Outputs: `outputs/ng15_real/` — `ng15_real_results.nc`, `comparison.json`, `numpyro_diagnostics/`,
+      `plots/` (corner + `spectral_overlay.{png,pdf}`). Corner plot rendered fine (no low-dim
+      `utils.corner_plot` error this run). Verified with extended `scripts/compare_ou_recovery.py
+      --published --run-prefix ng15_real` (added a published-reference mode: no injection truth,
+      compares recovered OU band amplitude vs both NG15 references).
 
 - [ ] **T3.4 — HD-vs-CURN contrast (evidence via NUTS + posterior-reuse; NS parked).**
   - Depends on: T3.3. GPU: yes (1–4 × A100).
