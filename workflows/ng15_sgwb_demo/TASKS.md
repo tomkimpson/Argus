@@ -476,25 +476,44 @@
       --published --run-prefix ng15_real` (added a published-reference mode: no injection truth,
       compares recovered OU band amplitude vs both NG15 references).
 
-- [ ] **T3.4 — HD-vs-CURN contrast (evidence via NUTS + posterior-reuse; NS parked).**
-  - Depends on: T3.3. GPU: yes (1–4 × A100).
+- [x] **T3.4 — HD-vs-CURN contrast (evidence via NUTS + posterior-reuse; NS parked).**
+  - Depends on: T3.3. GPU: yes (4 × A100 for the CURN NUTS run; estimator is CPU-only).
   - Do: rerun with `data["hd_correlation"]` overridden to identity (a diagnostic-script
     override — no library edit) to represent a common-uncorrelated red process.
   - **Method (revised 2026-07-10 — slice-NS parked, see DECISION note):** get the **Bayes factor**
-    HD-vs-CURN (and CURN-vs-noise) by computing evidence from the NUTS posteriors we already pay for,
-    via a **posterior-reuse estimator — learned harmonic mean first** (cheapest; ~free on top of an
-    existing NUTS run), with thermodynamic-integration / stepping-stone as the more-robust fallback.
-    **Validate the estimator against the trusted 2-D MDC2 anchor (NS `logZ = 63780`) before trusting
-    it at scale** — this is the concrete, verifiable first sub-task. Do **not** use the blackjax NS
-    backend (parked: ~10–30× slower than NUTS at scale).
-  - **Honesty flag:** a *decisive* HD factor likely needs the full array (T3.5) — NANOGrav's HD
-    evidence came from 67 pulsars, not 6; on the subset this proves the *method* and gives a weak
-    factor / upper limit.
-  - **Fallback if the evidence estimator proves unreliable here:** the original RISK-B scope —
-    compare recovered amplitude / fit quality between the HD and identity runs; quantify the contrast
-    ("the correlated component matters") with the caveat that this is NOT a Bayes factor.
-  - Done when: either the Bayes factor(s) are reported (estimator validated on the anchor) or the
-    amplitude/fit contrast is quantified with the RISK-B caveat (fallback).
+    HD-vs-CURN by computing evidence from the NUTS posteriors we already pay for, via a
+    **posterior-reuse estimator — learned harmonic mean (LHM)** (cheapest; ~free on top of an
+    existing NUTS run). Scope decided HD-vs-CURN only (CURN-vs-noise deferred). Fallback on gate
+    failure = thermodynamic integration (not needed — gate passed). Do **not** use the blackjax NS
+    backend (parked).
+  - **Honesty flag:** a *decisive* HD factor needs the full array (T3.5) — NANOGrav's HD evidence
+    came from 67 pulsars (2211 pairs), not 6 (15 pairs); on the subset this proves the *method* and
+    gives a weak-but-present factor.
+  - ✅ **Result — HD favoured over CURN, lnB = +2.1 ± 0.1 (odds ≈ 8:1; Kass–Raftery "positive", NOT
+    decisive).** Method-proving as expected on 6 pulsars.
+    - **Estimator** (`scripts/logz_lhm.py`, self-contained CPU; arviz/numpy/scipy, no `harmonic`
+      dependency): LHM in the model's unit-Gaussian latent space (the `.nc` already stores the
+      per-draw `log_likelihood` group + `*_prime`/`*_raw` latents, so logZ is pure post-processing —
+      no Kalman re-eval). Target φ = shrunk full-cov Gaussian on a train fold; estimate on a disjoint
+      test fold; shrinkage sweep + 2-fold swap as reliability probes.
+    - **GATE (2-D MDC2 anchor) PASSED:** LHM logZ = **63781.09 ± 0.02** vs NS anchor **63780.97 ± 0.16**
+      (Δ = +0.11, within 3σ; flat shrinkage plateau). `outputs/mdc2_smoke_wide/*_lhm_gate.json`.
+    - **Route-B correctness check PASSED (18-D):** reconstructed `log_density` matches
+      `logprior + loglik` to < 5e-7 across all 4 chains — validates the 18-D latent extraction that
+      the 2-D anchor cannot exercise.
+    - **CURN run (job 14128813, 4 × A100, COMPLETED, 2h23m):** `run_curn.py` overrides the HD ORF with
+      the identity (6×6; HD diag = 1 so identity = correct CURN) at runtime — no library edit. Env
+      pre-flight passed (worktree `argus.model`, q11 `uses γ**2: True`). Converged: r_hat 1.002 on GW
+      params, 0.03% divergences. Recovers `log10_ha = −13.99 ± 0.74` (broader/lower than HD's −13.40 ±
+      0.20 — without cross-correlations more power is attributed to per-pulsar noise).
+    - **Bayes factor:** logZ_HD = 6476.1 ± 0.25, logZ_CURN = 6474.0 ± 0.07 (18-D; low per-model ESS as
+      expected). **lnB reported at MATCHED shrinkage** (s = 0.6–0.9 plateau; the 16 shared red-noise/
+      hierarchical dims cancel in the difference, so lnB is ~2.5× tighter than either absolute logZ):
+      **lnB = 2.11 ± 0.12**, stable across the plateau. At the posterior median HD also fits +4.3 nat
+      better than CURN (consistency check). `outputs/ng15_curn/hd_vs_curn_bayes_factor.json`.
+    - Artifacts: `scripts/logz_lhm.py`, `run_curn.py`, `configs/ng15_curn_config.ini`,
+      `slurm_scripts/ng15_curn_run.sh`; outputs in `outputs/ng15_curn/` and `outputs/ng15_real/ng15_real_evidence.json`.
+  - Done when: Bayes factor reported with estimator validated on the anchor. ✅
 
 - [ ] **T3.5 — Scale to the full NG15 array.**
   - Depends on: T3.3 working on the subset. GPU: yes (4 × A100).
