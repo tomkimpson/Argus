@@ -157,6 +157,49 @@ def compute_joint_grid(pulsars, cadence_days):
     return joint_order, per_pulsar_idx
 
 
+def compute_union_grid(pulsars, cadence_days):
+    """Compute the common epoch grid and the *union* of occupied bins.
+
+    The union grid is the full-array analogue of :func:`compute_joint_grid`: a grid
+    cell is kept if it is occupied by *any* pulsar (not every pulsar). This preserves
+    each pulsar's true baseline instead of truncating the array to the window where
+    all pulsars happen to overlap -- essential once the array spans very heterogeneous
+    baselines (NG15's short-baseline pulsars would otherwise collapse the intersection
+    to ~3 yr). Epochs a given pulsar does not occupy become masked (absent) rows that
+    the joint Kalman filter skips in its measurement update.
+
+    Parameters
+    ----------
+    pulsars : list of LoadWidebandPulsarData
+    cadence_days : float
+
+    Returns
+    -------
+    tuple
+        ``(grid_start_mjd, union_order, per_pulsar_idx)``. ``grid_start_mjd`` is the
+        grid origin in MJD (so a bin's reference time is
+        ``grid_start_mjd + (b + 0.5) * cadence_days``); ``union_order`` is the sorted
+        list of occupied bin indices; ``per_pulsar_idx`` is the per-pulsar array of
+        per-TOA bin indices (same order as ``pulsars``).
+    """
+    mjds = [np.asarray(p.toas, dtype=float) / SEC_PER_DAY for p in pulsars]
+    grid_start = min(m.min() for m in mjds)
+    grid_end = max(m.max() for m in mjds)
+    n_bins = int(np.ceil((grid_end - grid_start) / cadence_days)) + 1
+
+    per_pulsar_idx = []
+    occupied_sets = []
+    for m in mjds:
+        idx = np.floor((m - grid_start) / cadence_days).astype(int)
+        idx = np.clip(idx, 0, n_bins - 1)
+        per_pulsar_idx.append(idx)
+        occupied_sets.append(set(idx.tolist()))
+
+    union_bins = set.union(*occupied_sets) if occupied_sets else set()
+    union_order = sorted(union_bins)
+    return grid_start, union_order, per_pulsar_idx
+
+
 def drop_dmx_columns(M, fitpars):
     """Drop per-epoch ``DMX_*`` design-matrix columns by fit-parameter name.
 
@@ -259,6 +302,56 @@ def bin_pulsar(pulsar, bin_idx, joint_order):
     return toas_b, res_b, err_b, M_b
 
 
+def bin_pulsar_union(pulsar, bin_idx, grid_start, grid_order, cadence_days):
+    """Inverse-variance epoch-average one pulsar onto the union grid, with a mask.
+
+    Unlike :func:`bin_pulsar`, the grid contains cells this pulsar does not occupy.
+    Occupied cells are inverse-variance averaged exactly as in the intersection case;
+    unoccupied cells become masked (absent) rows with a zero residual, a zero design
+    row (so ``P_eps`` is computed from the present rows only) and a placeholder error.
+    Every row's reference TOA is the **grid-cell centre** (not the mean of the TOAs in
+    it), which is well defined for absent cells and guarantees a strictly increasing,
+    correctly spaced time axis for the filter's ``dt`` sequence.
+
+    Returns
+    -------
+    tuple
+        ``(toas_b, res_b, err_b, M_b, mask_b)`` -- the first three shape ``(nepoch,)``
+        (seconds), ``M_b`` shape ``(nepoch, n_cols)``, ``mask_b`` shape ``(nepoch,)``
+        with 1.0 for occupied cells and 0.0 for absent ones.
+    """
+    toas = np.asarray(pulsar.toas, dtype=float)
+    res = np.asarray(pulsar.residuals, dtype=float)
+    err = np.asarray(pulsar.toaerrs, dtype=float)
+    M = np.asarray(pulsar.M_matrix, dtype=float)
+
+    nepoch = len(grid_order)
+    toas_b = np.empty(nepoch)
+    res_b = np.zeros(nepoch)
+    err_b = np.empty(nepoch)
+    M_b = np.zeros((nepoch, M.shape[1]))
+    mask_b = np.zeros(nepoch)
+
+    # Placeholder error for absent rows (masked out; kept at the present-error scale so
+    # the R matrix stays well conditioned even though those rows never enter the fit).
+    placeholder_err = float(np.median(err))
+
+    for k, b in enumerate(grid_order):
+        toas_b[k] = (grid_start + (b + 0.5) * cadence_days) * SEC_PER_DAY
+        sel = np.flatnonzero(bin_idx == b)
+        if sel.size:
+            w_raw = 1.0 / err[sel] ** 2
+            w = w_raw / w_raw.sum()
+            res_b[k] = np.dot(w, res[sel])
+            err_b[k] = 1.0 / np.sqrt(w_raw.sum())
+            M_b[k, :] = w @ M[sel, :]
+            mask_b[k] = 1.0
+        else:
+            err_b[k] = placeholder_err
+
+    return toas_b, res_b, err_b, M_b, mask_b
+
+
 def build_aligned_object(pulsar, toas_b, res_b, err_b, M_b, fitpars_b):
     """Wrap binned arrays in a namespace and build a LoadWidebandPulsarData.
 
@@ -293,29 +386,44 @@ def condition_number(obj):
     return float(np.linalg.cond(MtNinvM))
 
 
-def process_all(pulsars, cadence_days):
+def process_all(pulsars, cadence_days, grid="intersection"):
     """Bin, reduce and build an aligned object for every pulsar.
+
+    Parameters
+    ----------
+    pulsars : list of LoadWidebandPulsarData
+    cadence_days : float
+    grid : {"intersection", "union"}
+        ``intersection`` keeps only epochs occupied by every pulsar (the original
+        subset behaviour, no mask). ``union`` keeps every occupied epoch and emits a
+        per-pulsar mask so the joint filter skips absent epochs -- the full-array path.
 
     Returns
     -------
     tuple
-        ``(built, rows)`` where ``built`` is a list of
-        ``(aligned_object, F0)`` and ``rows`` is a list of per-pulsar summary dicts.
+        ``(built, rows)`` where ``built`` is a list of ``(aligned_object, F0)`` and
+        ``rows`` is a list of per-pulsar summary dicts. In ``union`` mode each object
+        carries a ``mask`` attribute consumed by :meth:`save_feather`.
     """
-    joint_order, per_pulsar_idx = compute_joint_grid(pulsars, cadence_days)
-    nepoch = len(joint_order)
+    if grid == "union":
+        grid_start, order, per_pulsar_idx = compute_union_grid(pulsars, cadence_days)
+    else:
+        order, per_pulsar_idx = compute_joint_grid(pulsars, cadence_days)
+        grid_start = None
+    nepoch = len(order)
 
-    print(f"Common 30-day-style grid: cadence = {cadence_days:g} d, "
-          f"joint epochs = {nepoch}")
-    if nepoch < MIN_VIABLE_JOINT_EPOCHS:
-        raise SystemExit(
-            f"*** STOP -- FLAG FOR REVIEW (RISK A): only {nepoch} joint epochs "
-            f"(< {MIN_VIABLE_JOINT_EPOCHS} floor). Joint alignment is not viable "
-            "for this subset/cadence. ***"
-        )
-    if nepoch != EXPECTED_JOINT_EPOCHS:
-        print(f"  WARNING: expected {EXPECTED_JOINT_EPOCHS} joint epochs (T1.4), "
-              f"got {nepoch} -- grid inputs may have changed.")
+    label = "union" if grid == "union" else "joint"
+    print(f"Common {cadence_days:g}-day grid ({grid}): {label} epochs = {nepoch}")
+    if grid == "intersection":
+        if nepoch < MIN_VIABLE_JOINT_EPOCHS:
+            raise SystemExit(
+                f"*** STOP -- FLAG FOR REVIEW (RISK A): only {nepoch} joint epochs "
+                f"(< {MIN_VIABLE_JOINT_EPOCHS} floor). Joint alignment is not viable "
+                "for this subset/cadence. Consider --grid union. ***"
+            )
+        if nepoch != EXPECTED_JOINT_EPOCHS:
+            print(f"  WARNING: expected {EXPECTED_JOINT_EPOCHS} joint epochs (T1.4), "
+                  f"got {nepoch} -- grid inputs may have changed.")
     print()
 
     built = []
@@ -333,21 +441,30 @@ def process_all(pulsars, cadence_days):
             toas=pulsar.toas, residuals=pulsar.residuals, toaerrs=pulsar.toaerrs,
             M_matrix=M0, name=pulsar.name,
         )
-        toas_b, res_b, err_b, M_b = bin_pulsar(reduced, bin_idx, joint_order)
+        if grid == "union":
+            toas_b, res_b, err_b, M_b, mask_b = bin_pulsar_union(
+                reduced, bin_idx, grid_start, order, cadence_days
+            )
+        else:
+            toas_b, res_b, err_b, M_b = bin_pulsar(reduced, bin_idx, order)
+            mask_b = None
 
-        # Now drop any column that lost all support in the joint bins.
+        # Now drop any column that lost all support in the kept bins.
         M_b, fitpars_b, n_zero = drop_zero_columns(M_b, fitpars0)
         n_cols_final = M_b.shape[1]
 
-        n_dropped_toas = n_toas_orig - int(np.isin(bin_idx, joint_order).sum())
+        n_present = int(mask_b.sum()) if mask_b is not None else nepoch
+        n_dropped_toas = n_toas_orig - int(np.isin(bin_idx, order).sum())
 
         obj = build_aligned_object(pulsar, toas_b, res_b, err_b, M_b, fitpars_b)
+        if mask_b is not None:
+            obj.mask = mask_b
 
         # Correctness guards.
         if not np.all(np.isfinite(obj.P_eps)):
             raise SystemExit(
                 f"*** {pulsar.name}: P_eps is non-finite after reduction "
-                f"({n_cols_final} cols on {nepoch} epochs). Enable the SVD "
+                f"({n_cols_final} cols on {n_present} present epochs). Enable the SVD "
                 "conditioning fallback (see module docstring). ***"
             )
         if not np.all(np.diff(toas_b) > 0):
@@ -363,6 +480,7 @@ def process_all(pulsars, cadence_days):
             "name": pulsar.name,
             "n_toas_orig": n_toas_orig,
             "nepoch": nepoch,
+            "n_present": n_present,
             "n_toas_dropped": n_dropped_toas,
             "n_cols_orig": n_cols_orig,
             "n_dmx": n_dmx,
@@ -408,8 +526,17 @@ def verify(out_dir, n_pulsars):
     assert np.allclose(np.diag(hd), 1.0), "HD diagonal is not unit"
     assert np.all(np.isfinite(res)) and np.all(np.isfinite(errs)), "non-finite residuals/errors"
 
+    mask_msg = ""
+    if "mask" in pr:
+        mask = np.asarray(pr["mask"])
+        assert mask.shape == (nepoch, n_pulsars), f"mask shape {mask.shape}"
+        assert set(np.unique(mask)).issubset({0.0, 1.0}), "mask is not binary"
+        frac = float(mask.mean())
+        mask_msg = f", mask {mask.shape} ({frac*100:.0f}% cells present)"
+
     print(f"  OK: residuals {res.shape}, errors {errs.shape}, toas {toas.shape}, "
-          f"HD {hd.shape} (unit diagonal). process_pulsar_residuals_by_epoch no longer raises.")
+          f"HD {hd.shape} (unit diagonal){mask_msg}. "
+          "process_pulsar_residuals_by_epoch no longer raises.")
 
 
 def print_summary(rows):
@@ -418,7 +545,7 @@ def print_summary(rows):
     print("PER-PULSAR SUMMARY (attrition is explicit, not silent)")
     print("=" * 100)
     header = (
-        f"{'pulsar':<12} {'TOAs':>6} {'->rows':>6} {'TOAdrop':>8} "
+        f"{'pulsar':<12} {'TOAs':>6} {'nepoch':>6} {'present':>7} {'TOAdrop':>8} "
         f"{'cols':>5} {'DMX':>5} {'zero':>5} {'->cols':>6} {'Peps':>5} "
         f"{'cond':>9} {'err_med(us)':>11}"
     )
@@ -427,6 +554,7 @@ def print_summary(rows):
     for r in rows:
         print(
             f"{r['name']:<12} {r['n_toas_orig']:>6d} {r['nepoch']:>6d} "
+            f"{r['n_present']:>7d} "
             f"{r['n_toas_dropped']:>8d} {r['n_cols_orig']:>5d} {r['n_dmx']:>5d} "
             f"{r['n_zero']:>5d} {r['n_cols_final']:>6d} "
             f"{'fin' if r['peps_finite'] else 'BAD':>5} "
@@ -440,18 +568,18 @@ def print_summary(rows):
     )
 
 
-def run(data_dir, out_dir, cadence_days, overwrite):
+def run(data_dir, out_dir, cadence_days, overwrite, grid="intersection"):
     """Load, bin+reduce, write, and verify the aligned feathers."""
     print(f"Reading ragged feathers from: {data_dir}\n")
     pulsars = load_pulsars(data_dir)
     print(f"Loaded {len(pulsars)} pulsars: {', '.join(p.name for p in pulsars)}\n")
 
-    built, rows = process_all(pulsars, cadence_days)
+    built, rows = process_all(pulsars, cadence_days, grid=grid)
     print(f"Writing aligned feathers to: {out_dir}")
     write_aligned(built, out_dir, overwrite)
     print_summary(rows)
     verify(out_dir, len(pulsars))
-    print("\nT1.5 complete: aligned feathers built and consumed by the GWB path.")
+    print("\nAligned feathers built and consumed by the GWB path.")
 
 
 def main():
@@ -478,9 +606,20 @@ def main():
         action="store_true",
         help="Overwrite existing aligned feathers",
     )
+    parser.add_argument(
+        "--grid",
+        choices=["intersection", "union"],
+        default="intersection",
+        help=(
+            "Epoch-grid strategy. 'intersection' (default) keeps only epochs occupied "
+            "by every pulsar (the 6-pulsar subset behaviour). 'union' keeps every "
+            "occupied epoch and emits a per-pulsar observation mask so the joint filter "
+            "skips absent epochs -- required to scale to the full heterogeneous array."
+        ),
+    )
     args = parser.parse_args()
     out_dir = args.out_dir or os.path.join(args.data_dir, "aligned")
-    run(args.data_dir, out_dir, args.cadence, args.overwrite)
+    run(args.data_dir, out_dir, args.cadence, args.overwrite, grid=args.grid)
 
 
 if __name__ == "__main__":

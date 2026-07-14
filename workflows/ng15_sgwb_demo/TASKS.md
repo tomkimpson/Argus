@@ -515,11 +515,46 @@
       `slurm_scripts/ng15_curn_run.sh`; outputs in `outputs/ng15_curn/` and `outputs/ng15_real/ng15_real_evidence.json`.
   - Done when: Bayes factor reported with estimator validated on the anchor. ✅
 
-- [ ] **T3.5 — Scale to the full NG15 array.**
+- [ ] **T3.5 — Scale to the full NG15 array.** ⏳ *machinery validated + first-look amplitude; converged run pending.*
   - Depends on: T3.3 working on the subset. GPU: yes (4 × A100).
   - Do: repeat T1.2–T1.6 + T3.3 for the full 68-pulsar set (watch memory/compute;
     epoch alignment gets harder). Log any pulsars dropped and why (no silent truncation).
   - Done when: full-array recovery completes and is compared to the subset + published.
+  - **Key enabler — missing-observation support in the joint GWB filter (no truncation).** The
+    intersection epoch grid collapses at 68 pulsars (baselines span 2.4→15.9 yr; all-overlap
+    window ≈ 3.2 yr → below the 50-epoch floor and low-freq-blind). Instead the joint Kalman
+    filter now conditions each measurement update on only the pulsars observed at that epoch:
+    - `jax_kalman_filter._update` takes a per-epoch `(Npsr,)` mask; absent pulsars' `H` rows and
+      `R` rows/cols are zeroed / identity-augmented, threaded through the `lax.scan`. Exact
+      Kalman marginalization (each `H` row touches only its own pulsar; cross-pulsar coupling is
+      all in `Pp`). **Golden-preserving:** all-ones mask reproduces the MDC2 likelihood bit-for-bit
+      (63618.93). New tests: all-absent no-op, append-absent-epoch exactness, absent-data-ignored.
+    - `build_aligned_feathers.py --grid union` bins onto the **union** grid + emits a `mask`
+      column (grid-cell reference times); mask flows through `save/read_feather` →
+      `process_pulsar_residuals_by_epoch` → filter (default all-ones, so subset/MDC2 unchanged).
+    - **Latent HD bug fixed** (`gravitational_waves.pairwise_angular_separation`): 15/68 pulsars
+      had self-correlation 0.5 not 1.0 (float noise in the self-pair separation slipped past the
+      `np.isclose` zero-test → halved GW auto-power). Diagonal now pinned to 0. Golden-safe.
+  - **Full-array prep (all glob-driven scripts scaled cleanly):** `stage_symlinks.py --all`
+    (68 canonical pulsars, ao/gbt excluded) → ingest (`--timing-package pint`) → `build_aligned
+    _feathers.py --grid union` → `reduce_ng15_white_noise.py`. **189 union epochs, ZERO TOAs
+    dropped, ZERO pulsars dropped** (all `P_eps` finite; J0437/J1713 stiff but tolerated),
+    41.6% of cells observed. State dim nx=1266 (M_sum=994). Dry likelihood finite (46920.5).
+    Artifacts: `configs/ng15_config_full{,_probe,_quicklook}.ini`, `slurm_scripts/ng15_full_{run,
+    probe,quicklook}.sh`, `data/ng15_psr_noise_full.json`.
+  - **Sizing (1-GPU probe, job 14173193):** 0.26 s/likelihood-eval on A100; the 1266-D
+    `h_a↔γ_a` ridge forces long trajectories. **max_tree_depth capped 10→7** (a depth-10 chain
+    hit ~1000-step trajectories, ~400 s/it, and stalled the whole parallel run — job 14178734
+    died at walltime with no output). Depth 7 bounds each iter to ≤127 steps (~80 s/it steady).
+  - ⏳ **Quick-look (job 14195666, 4×A100, 300 warmup + 500 samples, depth 7, 17.7 h, COMPLETED):**
+    recovered **log10_ha median = −13.40** (3/4 chains agree ~−13.4; chain 1 outlier at −12.65),
+    **band-referenced amplitude OVERLAPS published NG15** at f=1/(5yr) (−0.74σ vs fixed γ=13/3),
+    matching the 6-psr subset (−13.40 ± 0.20). **NOT converged:** r_hat ≈ 10, min ESS ≈ 4,
+    3.05% divergences — the ridge + short 300-warmup leave the chains unmixed. Machinery +
+    ballpark amplitude validated; a converged measurement needs the production run
+    (`ng15_full_run.sh`: 1000 warmup + 2000 samples, depth 7, 4 chains, ~2.5–3 days) and likely
+    a non-centered reparameterization of the GW corner to tame the ridge. Outputs in
+    `outputs/ng15_full_quicklook/` (comparison.json, spectral_overlay.png).
 
 ---
 

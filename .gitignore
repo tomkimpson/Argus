@@ -86,6 +86,7 @@ workflows/**/outputs/
 workflows/ng15_sgwb_demo/data/**/*.feather
 # Staged par/tim symlinks point to machine-specific cluster paths (regenerate with stage_symlinks.py)
 workflows/ng15_sgwb_demo/data/staging_subset/
+workflows/ng15_sgwb_demo/data/staging_full/
 
 # Exploratory work (kept locally, not tracked)
 archive/

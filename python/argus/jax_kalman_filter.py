@@ -147,27 +147,56 @@ def _predict(
 
 
 def _update(
-    xp: jax.Array, Pp: jax.Array, H: jax.Array, R: jax.Array, z: jax.Array
+    xp: jax.Array,
+    Pp: jax.Array,
+    H: jax.Array,
+    R: jax.Array,
+    z: jax.Array,
+    mask: jax.Array = None,
 ) -> tuple[jax.Array, jax.Array, jax.Array, jax.Array]:
     """Update the state and covariance with a new observation.
 
     Args:
         xp: Predicted state vector
         Pp: Predicted covariance matrix
-        H: Observation matrix
-        R: Observation noise (scalar)
-        z: Observation (scalar)
+        H: Observation matrix, shape (Npsr, nx)
+        R: Observation noise covariance, shape (Npsr, Npsr)
+        z: Observation, shape (Npsr,)
+        mask: Optional per-pulsar observation mask, shape (Npsr,), with 1.0 for a
+            pulsar observed at this epoch and 0.0 for one that is absent. When None
+            (the default) every pulsar is treated as observed, which reproduces the
+            original all-pulsars-present update bit-for-bit.
 
     Returns
     -------
         tuple: (updated state, updated covariance, innovation, innovation covariance)
+
+    Note:
+        Missing observations are handled by masking rather than by reshaping, so the
+        matrix dimensions stay static (required for `jax.jit`/`lax.scan`). Each row of
+        H touches only its own pulsar's states and all cross-pulsar coupling lives in
+        Pp, so zeroing the absent pulsars' rows of H (and the corresponding rows/cols
+        of R, replaced by unit diagonal to keep S invertible) yields exactly the
+        Kalman update conditioned on only the present pulsars — the absent pulsars'
+        states are propagated by _predict and simply not updated this epoch.
     """
-    # Compute innovation without reshaping - z is already the right shape
-    y = z[:, None] - H @ xp
-    S = H @ Pp @ H.T + R
+    if mask is None:
+        H_eff = H
+        R_eff = R
+        y = z[:, None] - H_eff @ xp
+    else:
+        # M = diag(mask). H_eff = M H zeroes absent rows; R_eff = M R M + (I - M) keeps
+        # the present block untouched and puts a unit diagonal on absent slots so S is
+        # invertible and block-decoupled. Zeroing the absent innovations keeps their
+        # contribution to the state/covariance update and the likelihood at zero.
+        H_eff = mask[:, None] * H
+        R_eff = (mask[:, None] * mask[None, :]) * R + jnp.diag(1.0 - mask)
+        y = mask[:, None] * (z[:, None] - H_eff @ xp)
+
+    S = H_eff @ Pp @ H_eff.T + R_eff
     # Use solve instead of inv for better performance and numerical stability
     # K = Pp @ H.T @ Sinv becomes K = Pp @ H.T @ solve(S, I)
-    K = Pp @ H.T @ jnp.linalg.solve(S, jnp.eye(S.shape[0]))
+    K = Pp @ H_eff.T @ jnp.linalg.solve(S, jnp.eye(S.shape[0]))
     x = xp + K @ y
 
     # Following FilterPy https://github.com/rlabbe/filterpy/blob/master/filterpy/kalman/EKF.py by using
@@ -175,8 +204,8 @@ def _update(
     # P = (I-KH)P(I-KH)' + KRK' which is more numerically stable
     # and works for non-optimal K vs the equation
     # P = (I-KH)P usually seen in the literature.
-    I_KH = jnp.eye(len(xp)) - K @ H
-    P = I_KH @ Pp @ I_KH.T + K @ R @ K.T
+    I_KH = jnp.eye(len(xp)) - K @ H_eff
+    P = I_KH @ Pp @ I_KH.T + K @ R_eff @ K.T
 
     # Optional: enforce symmetry for numerical stability
     # P = 0.5 * (P + P.T)
@@ -298,8 +327,14 @@ def _run_kalman_filter_scan(
     dim_x,
     n_states,
     P_eps,
+    mask_matrices,
 ):
-    """Run the Kalman filter algorithm over all observations and return a log likelihood."""
+    """Run the Kalman filter algorithm over all observations and return a log likelihood.
+
+    `mask_matrices` has shape (nepoch, Npsr): entry (t, n) is 1.0 if pulsar n is
+    observed at epoch t and 0.0 if it is absent. An all-ones mask reproduces the
+    original every-pulsar-present likelihood exactly.
+    """
     σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
 
     x0, P0 = _initialize_kalman_filter(n_states, Npsr, P_eps, σa2, θ.γa, θ.σp**2, θ.γp)
@@ -316,13 +351,18 @@ def _run_kalman_filter_scan(
 
     # First update
     x, P, y, S = _update(
-        xp=x0, Pp=P0, H=H_matrices[0, :, :], R=R_matrices[0, :, :], z=data[0]
+        xp=x0,
+        Pp=P0,
+        H=H_matrices[0, :, :],
+        R=R_matrices[0, :, :],
+        z=data[0],
+        mask=mask_matrices[0],
     )
     ll0 = _log_likelihood(y, S)
 
     def step(carry, inputs):
         x, P = carry
-        z, R, H, F_gw, F_spin, Q_gw, Q_spin = inputs
+        z, R, H, mask, F_gw, F_spin, Q_gw, Q_spin = inputs
 
         # Use precomputed matrices
         F = (F_gw, F_spin)
@@ -330,7 +370,7 @@ def _run_kalman_filter_scan(
 
         x_predict, P_predict = _predict(x, P, F, Q, dim_x)
 
-        x_new, P_new, y, S = _update(x_predict, P_predict, H, R, z)
+        x_new, P_new, y, S = _update(x_predict, P_predict, H, R, z, mask)
         ll = _log_likelihood(y, S)
         return (x_new, P_new), ll
 
@@ -342,6 +382,7 @@ def _run_kalman_filter_scan(
         data[1:],
         R_matrices[1:],
         H_matrices[1:],
+        mask_matrices[1:],
         F_gw_all,
         F_spin_all,
         Q_gw_all,
@@ -391,6 +432,11 @@ class JaxKalmanFilter:
         self.data = self.observations["residuals"]
         self.data_errors = self.observations["errors"]
         self.t_diffs = np.diff(self.toa)
+
+        # Per-epoch observation mask (nepoch, Npsr): 1.0 present, 0.0 absent. Absent when
+        # not supplied by the data loader -> all-ones, i.e. the original fully-observed
+        # behaviour (backward compatible with MDC2 and the intersection-aligned feathers).
+        self.mask = self.observations.get("mask", None)
 
         # Initialize model parameters from df_psr
         self.Npsr = int(len(df_psr))
@@ -445,6 +491,12 @@ class JaxKalmanFilter:
         self.jax_data_errors = jnp.array(self.data_errors)
         self.jax_t_diffs = jnp.array(self.t_diffs)
 
+        # Build the observation mask as float64 (ones where no mask was supplied).
+        if self.mask is None:
+            self.jax_mask_matrices = jnp.ones_like(self.jax_data)
+        else:
+            self.jax_mask_matrices = jnp.asarray(self.mask, dtype=jnp.float64)
+
         # Convert H matrices
         self.jax_H_matrices = jnp.array(self.Hmat)
 
@@ -458,6 +510,7 @@ class JaxKalmanFilter:
             ("jax_t_diffs", self.jax_t_diffs),
             ("jax_H_matrices", self.jax_H_matrices),
             ("hellings_downs_matrix", self.hellings_downs_matrix),
+            ("jax_mask_matrices", self.jax_mask_matrices),
         ]
 
         for name, arr in float_arrays:
@@ -480,4 +533,5 @@ class JaxKalmanFilter:
             dim_x=2 * self.Npsr,
             n_states=self.nx,
             P_eps=self.P_eps,
+            mask_matrices=self.jax_mask_matrices,
         )

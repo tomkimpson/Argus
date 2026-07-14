@@ -54,6 +54,34 @@ DEFAULT_SUBSET = [
 ]
 
 
+def enumerate_canonical_pulsars(par_dir):
+    """Return the sorted list of canonical NG15 pulsar names in ``par_dir``.
+
+    A canonical file is ``{PSR}_PINT_YYYYMMDD.wb.par`` with ``_PINT`` immediately
+    after the pulsar name; single-telescope variants have a ``...ao`` / ``...gbt``
+    suffix on the name (e.g. ``B1937+21ao_PINT_*``) and are dropped so only the
+    combined-telescope solution is kept. NG15 has 68 such pulsars.
+
+    Parameters
+    ----------
+    par_dir : str
+        The release's ``par/`` directory.
+
+    Returns
+    -------
+    list of str
+        Sorted canonical pulsar names.
+    """
+    names = set()
+    for path in glob.glob(os.path.join(par_dir, "*_PINT_*.wb.par")):
+        base = os.path.basename(path)
+        name = base.split("_PINT_", 1)[0]
+        if name.endswith("ao") or name.endswith("gbt"):
+            continue
+        names.add(name)
+    return sorted(names)
+
+
 def _find_canonical(directory, psr, ext):
     """Return the single canonical ``{psr}_PINT_*.{ext}`` file in ``directory``.
 
@@ -173,16 +201,31 @@ def main():
         help="Pulsar names to stage (default: the science subset)",
     )
     parser.add_argument(
+        "--all",
+        action="store_true",
+        help=(
+            "Stage the full canonical array (all ~68 NG15 pulsars, ao/gbt variants "
+            "excluded), overriding --subset. For the full-array (T3.5) run."
+        ),
+    )
+    parser.add_argument(
         "--overwrite",
         action="store_true",
         help="Replace existing symlinks instead of erroring",
     )
     args = parser.parse_args()
 
+    if args.all:
+        par_dir = os.path.join(args.ng15_wideband, "par")
+        subset = enumerate_canonical_pulsars(par_dir)
+        print(f"--all: staging the full canonical array ({len(subset)} pulsars)")
+    else:
+        subset = args.subset
+
     stage(
         args.ng15_wideband,
         args.output_dir,
-        subset=args.subset,
+        subset=subset,
         overwrite=args.overwrite,
     )
 

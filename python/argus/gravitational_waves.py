@@ -53,6 +53,14 @@ def pairwise_angular_separation(ra_rad, dec_rad):
     # Compute separation in radians
     sep_rad = np.arccos(cos_sep)
 
+    # A pulsar's separation from itself is exactly zero by definition. Rounding in
+    # sin^2 + cos^2 can leave the diagonal cosine just below 1.0, so arccos returns a
+    # tiny (~1e-5 rad) angle instead of 0; that then slips past the ``np.isclose``
+    # self-pair test in ``hellings_downs`` and the diagonal is set to ~0.5 (the HD
+    # curve) rather than the 1.0 auto-correlation. Pinning the diagonal to 0 fixes it
+    # robustly regardless of array size (only surfaced with the full NG15 array).
+    np.fill_diagonal(sep_rad, 0.0)
+
     return sep_rad
 
 
