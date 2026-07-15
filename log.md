@@ -1,5 +1,39 @@
 # Research log
 
+## 2026-07-16 — T3.5: dense-mass GW block vs the h_a↔γ_a ridge (PARTIAL — linear fix works, curvature/funnel remains)
+
+**Goal.** Fix the full-array (68-pulsar) NG15 SGWB convergence failure — the quick-look run's
+`log10_ha↔log10_gamma_a` ridge left r̂≈18.6, min ESS≈4 — *before* committing ~3 days of 4×A100,
+by decorrelating the GW corner with a per-block dense mass matrix (the notes' "try first" lever).
+
+**What was tried.**
+1. Wrote `scripts/diagnose_gw_ridge.py` (read-only) on the existing quick-look `.nc`: confirmed one
+   outlier chain (chain 1 at `log10_ha` −12.65 vs −13.41), a **clean linear ridge** (corr +0.75),
+   and that every high-r̂ `log10_σp` followed that same chain (fraction 1.00) → one problem.
+2. Added a `dense_mass_blocks` config key parsed in `bayesian_inference.setup_nuts_kernel`
+   (list-of-tuples → NumPyro per-block dense mass; boolean `dense_mass` still works). 7 tests pass
+   incl. golden likelihood 63618.93 intact. A tiny CPU probe confirmed NumPyro accepts
+   `dense_mass=[('log10_ha_prime','log10_gamma_a_prime')]` end-to-end on the real model.
+3. Ran the convergence check (job 14302678, `ng15_full_qlblock`, 4×A100, 500+500, 18.7 h).
+
+**What was learned.** The dense block did exactly its job on the *linear* problem: corr **+0.75 →
++0.14**, `log10_ha` r̂ **9.8 → 1.9**, ESS **4 → 44**, max r̂ **18.6 → 2.3**. **But divergences
+EXPLODED 3% → 39%** (777/2000), concentrated in **one stuck chain (chain 1: 482/500 = 96%
+divergent**; others 67/43/185). Divergence-location analysis (`scratchpad/divloc.py`) showed the
+residual tracks **curvature + a mild hierarchical funnel** (weak signatures in `log10_ratio_std`
+low-end / `log10_gamma_p_std` high-end), NOT linear correlation. Whitening the ridge let NUTS take
+bigger steps that overshoot the *curved* OU band-amplitude/shape degeneracy → the divergence blow-up.
+
+**Decisions / dead ends.** **A hand-rolled linear rotation reparam is now RULED OUT** — it is
+mathematically equivalent to the dense block just run, so it would reproduce the same 39%
+divergences. The linear fix is exhausted; the remainder is genuinely nonlinear/curvature + funnel.
+
+**Open threads.** Next lever (not started): cheapest = keep the block + raise `target_accept_prob`
+0.95 → 0.99 (config-only, attacks curvature/funnel divergences directly). Principled = a *nonlinear*
+GW reparam to (band-amplitude, shape) coords in `sample_gw_parameters`. Pragmatic hedge =
+long-baseline subset (~30–40 psr ≥8 yr) — the funnel/stuck chain likely lives in the short-baseline
+pulsars; smaller nx, ~1 day. All code changes uncommitted on `t3.5-full-array` (worktree).
+
 ## 2026-07-12 — T3.4: HD-vs-CURN Bayes factor (PASS — lnB=+2.1, method-proving, not a detection)
 
 **Goal.** Execute Stage-3 T3.4: get the Bayes factor between HD (Hellings-Downs
