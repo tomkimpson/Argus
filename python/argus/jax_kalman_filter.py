@@ -107,9 +107,21 @@ def _log_likelihood(y: jax.Array, cov: jax.Array) -> jax.Array:
     -------
         float: Log likelihood value
     """
+    # Robustness against a near-singular innovation covariance. A global sampler (e.g. nested
+    # sampling) explores prior tails where `cov` can go numerically near-singular; then a raw
+    # slogdet runs to -inf and, if the innovation misses the near-zero-variance direction, the
+    # likelihood spikes to a spurious huge positive value that the sampler locks onto. We
+    # symmetrise and add a jitter scaled to the matrix magnitude (negligible when `cov` is
+    # well-conditioned, so gradient-guided samplers and the golden likelihood are unchanged),
+    # and reject any residually non-positive-definite `cov` rather than return garbage.
+    n = cov.shape[0]
+    cov = 0.5 * (cov + cov.T)
+    jitter = 1e-9 * (jnp.trace(cov) / n)
+    cov = cov + jitter * jnp.eye(n)
     sign, logdet = jnp.linalg.slogdet(2.0 * jnp.pi * cov)
     quadratic_term = y.T @ jnp.linalg.solve(cov, y)
-    return -0.5 * (logdet + quadratic_term)
+    ll = -0.5 * (logdet + quadratic_term)
+    return jnp.where(sign > 0, ll, -jnp.inf)
 
 
 @partial(jax.jit, static_argnums=(4,))
