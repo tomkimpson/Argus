@@ -309,3 +309,134 @@ class TestInitializeKalmanFilter:
         # GW 'a' states should have variance proportional to σa2 / (2*γa)
         expected_var_a = σa2[0, 0] / (2.0 * γa)
         assert jnp.isclose(P0[1, 1], expected_var_a, rtol=0.1)
+
+
+def _reference_sequential_filter(m0, P0, Fs, Qs, Hs, Rs, zs):
+    """Independent textbook linear-Gaussian Kalman filter for tests.
+
+    Matches the Argus epoch convention: epoch 0 is update-only against the prior
+    (m0, P0); epochs 1..T-1 predict with (Fs[k-1], Qs[k-1]) then update. Uses the
+    standard-form covariance update (I - K H) P to match the associative element
+    covariance C. Returns stacked filtered means (T, d, 1) and covariances (T, d, d).
+    """
+    d = m0.shape[0]
+    I = jnp.eye(d)
+
+    def update(mp, Pp, H, R, z):
+        S = H @ Pp @ H.T + R
+        K = Pp @ H.T @ jnp.linalg.solve(S, jnp.eye(S.shape[0]))
+        m = mp + K @ (z[:, None] - H @ mp)
+        P = (I - K @ H) @ Pp
+        return m, 0.5 * (P + P.T)
+
+    m, P = update(m0, P0, Hs[0], Rs[0], zs[0])
+    means, covs = [m], [P]
+    for k in range(1, len(zs)):
+        mp = Fs[k - 1] @ m
+        Pp = Fs[k - 1] @ P @ Fs[k - 1].T + Qs[k - 1]
+        m, P = update(mp, Pp, Hs[k], Rs[k], zs[k])
+        means.append(m)
+        covs.append(P)
+    return jnp.stack(means), jnp.stack(covs)
+
+
+class TestAssociativeScanFilter:
+    """Tests for the associative-scan (temporally parallel) filter primitives."""
+
+    def _random_system(self, seed=0, d=3, m=2, T=6):
+        """Build a small well-conditioned linear-Gaussian system for testing."""
+        rng = np.random.default_rng(seed)
+        m0 = jnp.array(rng.standard_normal((d, 1)))
+        A = rng.standard_normal((d, d))
+        P0 = jnp.array(A @ A.T + d * np.eye(d))  # SPD prior
+        Fs = jnp.array(
+            [0.9 * np.eye(d) + 0.05 * rng.standard_normal((d, d)) for _ in range(T - 1)]
+        )
+        Qs = jnp.array(
+            [(lambda B: B @ B.T + 0.1 * np.eye(d))(rng.standard_normal((d, d))) for _ in range(T - 1)]
+        )
+        Hs = jnp.array([rng.standard_normal((m, d)) for _ in range(T)])
+        Rs = jnp.array(
+            [(lambda B: B @ B.T + 0.5 * np.eye(m))(rng.standard_normal((m, m))) for _ in range(T)]
+        )
+        zs = jnp.array(rng.standard_normal((T, m)))
+        return m0, P0, Fs, Qs, Hs, Rs, zs
+
+    def _build_elements(self, m0, P0, Fs, Qs, Hs, Rs, zs):
+        import jax
+
+        first = jax_kalman_filter._first_filtering_element(m0, P0, Hs[0], Rs[0], zs[0])
+        generic = jax.vmap(jax_kalman_filter._generic_filtering_element)(
+            Fs, Qs, Hs[1:], Rs[1:], zs[1:]
+        )
+        return jax.tree_util.tree_map(
+            lambda f, g: jnp.concatenate([f[None], g], axis=0), first, generic
+        )
+
+    def test_first_element_zero_blocks(self):
+        """First (epoch-0) element has A = eta = J = 0 and correct shapes."""
+        m0, P0, Fs, Qs, Hs, Rs, zs = self._random_system()
+        d = m0.shape[0]
+        A, b, C, eta, J = jax_kalman_filter._first_filtering_element(
+            m0, P0, Hs[0], Rs[0], zs[0]
+        )
+        assert A.shape == (d, d) and jnp.allclose(A, 0.0)
+        assert eta.shape == (d, 1) and jnp.allclose(eta, 0.0)
+        assert J.shape == (d, d) and jnp.allclose(J, 0.0)
+        assert b.shape == (d, 1)
+        assert C.shape == (d, d)
+        assert jnp.allclose(C, C.T)  # symmetric
+
+    def test_generic_element_shapes(self):
+        """Generic element returns (A, b, C, eta, J) with the right shapes."""
+        m0, P0, Fs, Qs, Hs, Rs, zs = self._random_system()
+        d = m0.shape[0]
+        A, b, C, eta, J = jax_kalman_filter._generic_filtering_element(
+            Fs[0], Qs[0], Hs[1], Rs[1], zs[1]
+        )
+        assert A.shape == (d, d)
+        assert b.shape == (d, 1)
+        assert C.shape == (d, d) and jnp.allclose(C, C.T)
+        assert eta.shape == (d, 1)
+        assert J.shape == (d, d) and jnp.allclose(J, J.T)
+
+    def test_operator_associativity(self):
+        """(e1 ⊗ e2) ⊗ e3 == e1 ⊗ (e2 ⊗ e3) on valid elements."""
+        m0, P0, Fs, Qs, Hs, Rs, zs = self._random_system(seed=1)
+        e1 = jax_kalman_filter._generic_filtering_element(Fs[0], Qs[0], Hs[1], Rs[1], zs[1])
+        e2 = jax_kalman_filter._generic_filtering_element(Fs[1], Qs[1], Hs[2], Rs[2], zs[2])
+        e3 = jax_kalman_filter._generic_filtering_element(Fs[2], Qs[2], Hs[3], Rs[3], zs[3])
+
+        def batch(e):
+            return tuple(x[None] for x in e)
+
+        def unbatch(e):
+            return tuple(x[0] for x in e)
+
+        left = unbatch(
+            jax_kalman_filter._filtering_operator(
+                jax_kalman_filter._filtering_operator(batch(e1), batch(e2)), batch(e3)
+            )
+        )
+        right = unbatch(
+            jax_kalman_filter._filtering_operator(
+                batch(e1), jax_kalman_filter._filtering_operator(batch(e2), batch(e3))
+            )
+        )
+        for a, b in zip(left, right):
+            assert jnp.allclose(a, b, atol=1e-8, rtol=1e-6)
+
+    def test_matches_sequential_small_system(self):
+        """associative_scan of elements reproduces the sequential filtered states."""
+        import jax
+
+        m0, P0, Fs, Qs, Hs, Rs, zs = self._random_system(seed=2)
+        elements = self._build_elements(m0, P0, Fs, Qs, Hs, Rs, zs)
+        _, b_filt, C_filt, _, _ = jax.lax.associative_scan(
+            jax_kalman_filter._filtering_operator, elements
+        )
+
+        m_ref, P_ref = _reference_sequential_filter(m0, P0, Fs, Qs, Hs, Rs, zs)
+
+        assert jnp.allclose(b_filt, m_ref, atol=1e-8, rtol=1e-6)
+        assert jnp.allclose(C_filt, P_ref, atol=1e-8, rtol=1e-6)

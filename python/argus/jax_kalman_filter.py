@@ -355,6 +355,234 @@ def _run_kalman_filter_scan(
     return total_ll[0][0]
 
 
+# ---------------------------------------------------------------------------
+# Parallel (associative-scan) Kalman filter
+#
+# Temporal parallelization of the linear-Gaussian filter following
+# Särkkä & García-Fernández, "Temporal Parallelization of Bayesian Smoothers"
+# (arXiv:1905.13002). Each epoch is encoded as an associative filtering element
+# (A, b, C, η, J); `jax.lax.associative_scan` combines them in O(log N) parallel
+# depth instead of the O(N) sequential depth of `_run_kalman_filter_scan`.
+#
+# The associative scan yields the filtered means/covariances at every epoch, from
+# which the marginal log-likelihood is recovered in a second pass that reuses the
+# block-structured predict functions and `_log_likelihood` verbatim.
+#
+# STATUS: PARKED (numerically unstable on real PTA data). This standard-form
+# implementation is algebraically correct -- it reproduces the sequential filter on
+# well-conditioned systems (see TestAssociativeScanFilter in
+# test/test_jax_kalman_filter.py) -- but it does NOT preserve the golden likelihood
+# on the MDC2 array. The information-form combination ((I + C_i J_j)^-1, etc.)
+# suffers catastrophic cancellation under the array's extreme dynamic range (1e-40
+# position-state prior variance; smallest innovation-covariance eigenvalue ~8e-14):
+# the filtered covariance loses positive-definiteness within a few epochs, the
+# filtered mean diverges, and the likelihood collapses to -inf. The sequential
+# Joseph-form filter (`_run_kalman_filter_scan`) is unaffected and remains the
+# default. A numerically stable square-root (Cholesky/QR) parallel filter
+# (Yaghoobi, Corenflos, Hassan & Sarkka 2021) is required to make this usable on
+# real data; that is deferred to be revisited alongside PR 2 (diffuse timing-model
+# initialization, issue #103). `use_parallel` is opt-in and defaults to False.
+# ---------------------------------------------------------------------------
+
+
+def _mT(X: jax.Array) -> jax.Array:
+    """Transpose the trailing two axes (batch-aware matrix transpose)."""
+    return jnp.swapaxes(X, -1, -2)
+
+
+def _build_full_F(F_gw, F_spin, M_sum):
+    """Assemble the full state transition matrix block_diag(F_gw, F_spin, I_M_sum).
+
+    The timing ("epsilon") block has identity dynamics, so it contributes an
+    identity block. Used only to build the associative filtering elements.
+    """
+    return block_diag(F_gw, F_spin, jnp.eye(M_sum))
+
+
+def _build_full_Q(Q_gw, Q_spin, M_sum):
+    """Assemble the full process noise matrix block_diag(Q_gw, Q_spin, 0_M_sum).
+
+    The timing block has no process noise, so it contributes a zero block.
+    """
+    return block_diag(Q_gw, Q_spin, jnp.zeros((M_sum, M_sum)))
+
+
+def _first_filtering_element(x0, P0, H, R, z):
+    """Build the associative filtering element for epoch 0 (update-only prior).
+
+    There is no preceding transition, so A, η and J are zero; b and C carry the
+    prior (x0, P0) conditioned on the first observation (standard-form covariance,
+    symmetrised). Returns the tuple (A, b, C, η, J).
+    """
+    d = x0.shape[0]
+    S = H @ P0 @ H.T + R
+    K = P0 @ H.T @ jnp.linalg.solve(S, jnp.eye(S.shape[0]))
+    I_KH = jnp.eye(d) - K @ H
+    A = jnp.zeros((d, d))
+    b = x0 + K @ (z[:, None] - H @ x0)
+    C = I_KH @ P0
+    C = 0.5 * (C + C.T)
+    eta = jnp.zeros((d, 1))
+    J = jnp.zeros((d, d))
+    return A, b, C, eta, J
+
+
+def _generic_filtering_element(F, Q, H, R, z):
+    """Build the associative filtering element for a predict+update epoch.
+
+    Encodes the transition (F, Q) into the epoch followed by the update (H, R, z),
+    per eqs. 13-15 of Särkkä & García-Fernández (2021):
+        S = H Q Hᵀ + R,  K = Q Hᵀ S⁻¹
+        A = (I − K H) F,  b = K z,  C = (I − K H) Q
+        η = Fᵀ Hᵀ S⁻¹ z,  J = Fᵀ Hᵀ S⁻¹ H F
+    Returns the tuple (A, b, C, η, J).
+    """
+    d = F.shape[0]
+    S = H @ Q @ H.T + R
+    K = Q @ H.T @ jnp.linalg.solve(S, jnp.eye(S.shape[0]))
+    I_KH = jnp.eye(d) - K @ H
+    A = I_KH @ F
+    b = K @ z[:, None]
+    C = I_KH @ Q
+    C = 0.5 * (C + C.T)
+    HF = H @ F
+    eta = HF.T @ jnp.linalg.solve(S, z[:, None])
+    J = HF.T @ jnp.linalg.solve(S, HF)
+    J = 0.5 * (J + J.T)
+    return A, b, C, eta, J
+
+
+def _filtering_operator(elem_i, elem_j):
+    """Associative combination of two filtering elements (i precedes j).
+
+    Implements the binary operator of eq. 17 of Särkkä & García-Fernández (2021):
+        A   = A_j (I + C_i J_j)⁻¹ A_i
+        b   = A_j (I + C_i J_j)⁻¹ (b_i + C_i η_j) + b_j
+        C   = A_j (I + C_i J_j)⁻¹ C_i A_jᵀ + C_j
+        η   = A_iᵀ (I + J_j C_i)⁻¹ (η_j − J_j b_i) + η_i
+        J   = A_iᵀ (I + J_j C_i)⁻¹ J_j A_i + J_i
+
+    Written batch-aware: `jax.lax.associative_scan` calls this with batched slices
+    (a leading segment axis on every leaf), never single elements, so all matrix
+    ops broadcast over that leading axis and the linear solves are batched. Since
+    (I + C_i J_j) has eigenvalues ≥ 1 (product of PSD matrices), the solves are
+    well-conditioned without added jitter.
+    """
+    A1, b1, C1, eta1, J1 = elem_i
+    A2, b2, C2, eta2, J2 = elem_j
+    d = A1.shape[-1]
+    I = jnp.eye(d)
+
+    IpCJ = I + C1 @ J2  # (I + C_i J_j)
+    IpJC = I + J2 @ C1  # (I + J_j C_i)
+
+    A = A2 @ jnp.linalg.solve(IpCJ, A1)
+    b = A2 @ jnp.linalg.solve(IpCJ, b1 + C1 @ eta2) + b2
+    C = A2 @ jnp.linalg.solve(IpCJ, C1) @ _mT(A2) + C2
+    eta = _mT(A1) @ jnp.linalg.solve(IpJC, eta2 - J2 @ b1) + eta1
+    J = _mT(A1) @ jnp.linalg.solve(IpJC, J2 @ A1) + J1
+
+    C = 0.5 * (C + _mT(C))
+    J = 0.5 * (J + _mT(J))
+    return A, b, C, eta, J
+
+
+@jax.named_call
+@partial(jax.jit, static_argnames=("Npsr", "M_sum", "dim_x", "n_states"))
+def _run_kalman_filter_parallel(
+    θ,
+    data,
+    data_errors,
+    H_matrices,
+    Npsr,
+    M_sum,
+    hellings_downs_matrix,
+    dt_array,
+    dim_x,
+    n_states,
+    P_eps,
+):
+    """Run the Kalman filter via associative scan and return a log likelihood.
+
+    PARKED / numerically unstable on ill-conditioned data -- see the module-level
+    note above. Drop-in replacement for `_run_kalman_filter_scan` (identical
+    signature) that parallelizes the recursion over epochs. Two passes:
+
+    1. Build per-epoch filtering elements and combine them with
+       `jax.lax.associative_scan` to obtain the filtered means (b) and covariances
+       (C) at every epoch in O(log N) depth.
+    2. Recompute each epoch's predicted state/covariance, innovation and innovation
+       covariance from the filtered states, reusing `compute_predicted_state`,
+       `compute_predicted_covariance` and `_log_likelihood` so the per-epoch terms
+       match the sequential filter.
+    """
+    σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
+
+    x0, P0 = _initialize_kalman_filter(n_states, Npsr, P_eps, σa2, θ.γa, θ.σp**2, θ.γp)
+
+    # Precompute the R matrix for this parameter set and these data errors
+    R_matrices = precompute_R_matrices(data_errors, θ.EFAC, θ.EQUAD)
+
+    # Precompute all F and Q matrices for all inter-epoch transitions (indices
+    # 0..len(data)-2), matching the sequential filter.
+    dt_indices = jnp.arange(len(data) - 1)
+    F_matrices, Q_matrices = _precompute_transition_matrices(
+        θ.γa, θ.γp, σa2, θ.σp**2, dt_array[dt_indices], Npsr, M_sum
+    )
+    F_gw_all, F_spin_all = F_matrices
+    Q_gw_all, Q_spin_all = Q_matrices
+
+    # --- Pass 1: build associative elements and scan -----------------------
+    # Full dense d x d transition/process matrices for element construction only.
+    F_full = jax.vmap(lambda fg, fs: _build_full_F(fg, fs, M_sum))(F_gw_all, F_spin_all)
+    Q_full = jax.vmap(lambda qg, qs: _build_full_Q(qg, qs, M_sum))(Q_gw_all, Q_spin_all)
+
+    first = _first_filtering_element(
+        x0, P0, H_matrices[0, :, :], R_matrices[0, :, :], data[0]
+    )
+    generic = jax.vmap(_generic_filtering_element)(
+        F_full, Q_full, H_matrices[1:], R_matrices[1:], data[1:]
+    )
+    # Prepend the epoch-0 element to give a single pytree with leading axis T.
+    elements = jax.tree_util.tree_map(
+        lambda f, g: jnp.concatenate([f[None], g], axis=0), first, generic
+    )
+
+    _, b_filt, C_filt, _, _ = jax.lax.associative_scan(_filtering_operator, elements)
+    # b_filt[k] = filtered mean m_k^+  (T, d, 1); C_filt[k] = filtered cov P_k^+  (T, d, d)
+
+    # --- Pass 2: recover per-epoch innovation log-likelihood ---------------
+    # Epoch 0: prior conditioned directly on data[0].
+    y0 = data[0][:, None] - H_matrices[0, :, :] @ x0
+    S0 = H_matrices[0, :, :] @ P0 @ H_matrices[0, :, :].T + R_matrices[0, :, :]
+    ll0 = _log_likelihood(y0, S0)
+
+    def epoch_loglik(m_prev, P_prev, F_gw, F_spin, Q_gw, Q_spin, H, R, z):
+        F_list = (F_gw, F_spin)
+        Q_list = (Q_gw, Q_spin)
+        m_pred = compute_predicted_state(F_list, m_prev, dim_x, dim_x)
+        P_pred = compute_predicted_covariance(P_prev, F_list, Q_list, dim_x, dim_x)
+        y = z[:, None] - H @ m_pred
+        S = H @ P_pred @ H.T + R
+        return _log_likelihood(y, S)
+
+    # Epoch k (k=1..T-1) predicts from the filtered state at k-1 (indices 0..T-2).
+    ll_arr = jax.vmap(epoch_loglik)(
+        b_filt[:-1],
+        C_filt[:-1],
+        F_gw_all,
+        F_spin_all,
+        Q_gw_all,
+        Q_spin_all,
+        H_matrices[1:],
+        R_matrices[1:],
+        data[1:],
+    )
+
+    total_ll = ll0 + jnp.sum(ll_arr)
+    return total_ll[0][0]
+
+
 class JaxKalmanFilter:
     """A class to implement the linear Kalman filter on scalar inputs using JAX.
 
@@ -367,9 +595,16 @@ class JaxKalmanFilter:
         hd_correlation_matrix: Precomputed Hellings-Downs correlation matrix
         pulsar_design_matrices: Design matrices for each pulsar
         use_gw: If True, include GW terms in measurement equation. Default True.
+        use_parallel: If True, evaluate the likelihood with the associative-scan
+            (temporally parallel) filter instead of the sequential lax.scan.
+            Default False. PARKED / EXPERIMENTAL: the current standard-form
+            associative filter is numerically unstable on real PTA data and does
+            not preserve the likelihood there (returns -inf); it is retained only
+            as verified groundwork for a future square-root implementation. Do not
+            enable for production. See _run_kalman_filter_parallel.
     """
 
-    def __init__(self, data: dict, use_gw: bool = True):
+    def __init__(self, data: dict, use_gw: bool = True, use_parallel: bool = False):
         """Initialize the class."""
         get_logger().info("Initializing JaxKalmanFilter...")
 
@@ -396,6 +631,11 @@ class JaxKalmanFilter:
         self.Npsr = int(len(df_psr))
         get_logger().info(f"Number of pulsars: {self.Npsr}")
         self.use_gw = use_gw
+        self.use_parallel = use_parallel
+        if self.use_parallel:
+            get_logger().info(
+                "Using associative-scan (temporally parallel) Kalman filter backend"
+            )
 
         if not self.use_gw:
             get_logger().info(
@@ -468,7 +708,12 @@ class JaxKalmanFilter:
 
     def get_likelihood(self, θ):
         """Run the Kalman filter algorithm over all observations and return a log likelihood."""
-        return _run_kalman_filter_scan(
+        filter_fn = (
+            _run_kalman_filter_parallel
+            if self.use_parallel
+            else _run_kalman_filter_scan
+        )
+        return filter_fn(
             θ=θ,
             data=self.jax_data,
             data_errors=self.jax_data_errors,
