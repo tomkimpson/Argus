@@ -309,3 +309,134 @@ class TestInitializeKalmanFilter:
         # GW 'a' states should have variance proportional to σa2 / (2*γa)
         expected_var_a = σa2[0, 0] / (2.0 * γa)
         assert jnp.isclose(P0[1, 1], expected_var_a, rtol=0.1)
+
+
+def _realistic_pulsar_data(seed=0):
+    """Build a small, well-conditioned pulsar-data dict for equivalence testing.
+
+    Mirrors the structure the real data loader produces: unit-scaled design matrices
+    and a GLS timing-model prior ``P_eps = (Mᵀ N⁻¹ M)⁻¹`` consistent with the design and
+    the TOA errors. This is the regime the filter actually runs in. (The generic
+    `sample_pulsar_data` fixture uses an arbitrary O(1) timing prior with 1e-6-scale
+    residuals — a physically inconsistent configuration whose extreme dynamic range makes
+    it a poor equivalence test, even though both backends are individually well-defined.)
+    """
+    import pandas as pd
+
+    rng = np.random.default_rng(seed)
+    n_epochs, n_psr = 12, 2
+    dims = [5, 6]
+    err_scale = 1e-6  # ~microsecond TOA errors
+
+    metadata = pd.DataFrame(
+        {
+            "name": ["A", "B"],
+            "dim_M": dims,
+            "RA": [0.5, 1.2],
+            "DEC": [0.3, -0.1],
+            "F0": [200.0, 150.0],
+            "par_file": ["a", "b"],
+            "tim_file": ["a", "b"],
+        }
+    )
+    residuals = rng.standard_normal((n_epochs, n_psr)) * err_scale
+    errors = np.ones((n_epochs, n_psr)) * err_scale
+
+    design_matrices, parameter_covariances = [], []
+    for i in range(n_psr):
+        M = rng.standard_normal((n_epochs, dims[i]))
+        M = M / np.sqrt(np.sum(M**2, axis=0))  # unit-norm columns (as data_loader does)
+        Ninv = np.diag(1.0 / errors[:, i] ** 2)
+        design_matrices.append(M)
+        parameter_covariances.append(np.linalg.inv(M.T @ Ninv @ M))  # GLS prior
+
+    return {
+        "processed_residuals": {
+            "toas": np.linspace(0, 1000, n_epochs) * 86400,
+            "residuals": residuals,
+            "errors": errors,
+        },
+        "metadata": metadata,
+        "design_matrices": design_matrices,
+        "parameter_covariances": parameter_covariances,
+        "hd_correlation": np.array([[1.0, 0.5], [0.5, 1.0]]),
+    }
+
+
+class TestMarginalFilter:
+    """Tests for the marginalized (Rao-Blackwellized) timing-model filter.
+
+    The marginal filter integrates the static timing-model parameters out of the
+    propagated state analytically instead of augmenting the state with them. It is
+    mathematically equivalent to the default sequential filter, so the two must return
+    the same log likelihood; the marginal path just propagates a smaller state.
+    """
+
+    def _params(self):
+        return bayesian_inference.Parameters(
+            log10_gamma_a=-9.0,
+            γa=1e-9,
+            ha=1e-15,
+            γp=jnp.full(2, 1e-8),
+            σp=jnp.full(2, 1e-15),
+            EFAC=jnp.ones(2),
+            EQUAD=jnp.full(2, 1e-6),
+        )
+
+    @patch("argus.io_manager.get_argus_logger")
+    def test_matches_sequential(self, mock_logger):
+        """Marginal and sequential backends must agree on the log likelihood."""
+        mock_logger.return_value = Mock()
+        data = _realistic_pulsar_data()
+
+        kf_seq = jax_kalman_filter.JaxKalmanFilter(
+            data=data, use_gw=True, use_marginal=False
+        )
+        kf_marg = jax_kalman_filter.JaxKalmanFilter(
+            data=data, use_gw=True, use_marginal=True
+        )
+
+        ll_seq = kf_seq.get_likelihood(self._params())
+        ll_marg = kf_marg.get_likelihood(self._params())
+
+        assert ll_marg.shape == ()
+        assert jnp.isfinite(ll_marg)
+        assert jnp.isclose(
+            ll_marg, ll_seq, rtol=1e-6, atol=1e-4
+        ), f"marginal {ll_marg} != sequential {ll_seq}"
+
+    @patch("argus.io_manager.get_argus_logger")
+    def test_null_gw_matches_sequential(self, mock_logger):
+        """Equivalence must also hold with GW terms disabled (use_gw=False)."""
+        mock_logger.return_value = Mock()
+        data = _realistic_pulsar_data()
+
+        kf_seq = jax_kalman_filter.JaxKalmanFilter(
+            data=data, use_gw=False, use_marginal=False
+        )
+        kf_marg = jax_kalman_filter.JaxKalmanFilter(
+            data=data, use_gw=False, use_marginal=True
+        )
+
+        ll_seq = kf_seq.get_likelihood(self._params())
+        ll_marg = kf_marg.get_likelihood(self._params())
+
+        assert jnp.isclose(
+            ll_marg, ll_seq, rtol=1e-6, atol=1e-4
+        ), f"marginal {ll_marg} != sequential {ll_seq}"
+
+    @patch("argus.io_manager.get_argus_logger")
+    def test_P_eps_inv_is_prior_inverse(self, mock_logger, sample_pulsar_data):
+        """P_eps_inv must be the exact inverse of the augmented filter's prior block,
+        with per-pulsar blocks in the same order as the epsilon columns of H."""
+        mock_logger.return_value = Mock()
+
+        kf = jax_kalman_filter.JaxKalmanFilter(
+            data=sample_pulsar_data, use_gw=True, use_marginal=True
+        )
+
+        M_sum = kf.M_sum
+        assert kf.P_eps_inv.shape == (M_sum, M_sum)
+        # P_eps_inv @ P_eps == I  (validates block ordering + inverse relationship)
+        identity = kf.P_eps_inv @ kf.P_eps
+        assert jnp.allclose(identity, jnp.eye(M_sum), atol=1e-6)

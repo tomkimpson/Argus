@@ -60,9 +60,6 @@ def test_likelihood_value():
         spin_injections_path, excluded_psrs=["J1640+2224"]
     )
 
-    # Initialize the Kalman filter
-    KF = jk.JaxKalmanFilter(data=pulsar_data, use_gw=True)
-
     # Set GW parameters
     γa = 1e-9
     ha = 1e-15
@@ -81,18 +78,25 @@ def test_likelihood_value():
         EQUAD=equad_array,
     )
 
-    # Calculate likelihood
-    log_likelihood = KF.get_likelihood(params)
-
-    print("the computed log likelihood is:", log_likelihood)
-
     # Assert expected value - a golden value recorded from an actual run on this
     # dataset (γa=1e-9, ha=1e-15, 32 MDC2 pulsars). Updated from 55963.86 after the
     # get_Q_block q11 fix (γ**3 -> γ**2): correcting the integrated-OU position-noise
     # normalization shifts the log-likelihood by ~7655 nats.
     expected_likelihood = 63618.93  # Golden value (post q11 fix)
 
-    # Use relative tolerance for floating point comparison
-    assert (
-        abs(log_likelihood - expected_likelihood) < 1.0
-    ), f"Expected ~{expected_likelihood}, got {log_likelihood}"
+    # Both the default sequential filter and the marginalized (Rao-Blackwellized)
+    # timing-model filter must reproduce the golden value: they are mathematically
+    # equivalent, differing only in whether the timing parameters are carried as state
+    # or integrated out analytically.
+    for use_marginal in (False, True):
+        KF = jk.JaxKalmanFilter(
+            data=pulsar_data, use_gw=True, use_marginal=use_marginal
+        )
+        log_likelihood = KF.get_likelihood(params)
+        backend = "marginal" if use_marginal else "sequential"
+        print(f"the computed log likelihood ({backend}) is:", log_likelihood)
+
+        # Use relative tolerance for floating point comparison
+        assert (
+            abs(log_likelihood - expected_likelihood) < 1.0
+        ), f"[{backend}] Expected ~{expected_likelihood}, got {log_likelihood}"
