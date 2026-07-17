@@ -1,5 +1,45 @@
 # Research log
 
+## 2026-07-18 — T3.5: full-68 NUTS ruled unsamplable; strategic pivot (full-array SGWB is a stepping stone)
+
+**Goal.** Fire the final full-68 convergence lever — keep the dense GW block, raise
+`target_accept_prob` 0.95→0.99 to suppress the 39% divergences from the previous run — and, per a
+pre-committed decision rule, either launch production if it converged or stop the full-array grind
+if it didn't. Framed by a pulse-check at the top of the session: the user reaffirmed that the
+full-array SGWB detection is a *stepping stone*, not the destination.
+
+**What was tried.** Edited `configs/ng15_config_full_qlblock.ini` (`target_accept_prob = 0.99`,
+dense block retained), submitted job 14360470 (4×A100, 500+500, `max_tree_depth=7`). It ran clean
+to COMPLETED in 22.5 h (94% of the 24 h walltime — brushed the cap as predicted but finished).
+Iteration speed stayed in the depth-7 band (55–78 s/it), so the depth-10 trajectory-stall risk did
+not recur. On completion read `numpyro_diagnostics/mcmc_diagnostics.txt` and computed per-chain
+stats directly from the `.nc`.
+
+**What was learned.** The 0.99 lever traded one pathology for a worse one. Divergences fell
+**39% → 1.8%** — but the chains **froze**: every parameter's within-chain sd = 0 (e.g. `log10_ha`
+per-chain means [−13.09, −12.84, −13.13, −12.65] with sd = [0,0,0,0]), r̂ ≈ **5.9e15**, ESS ≈ **4**
+uniformly across all 352 params. Diagnosis: pushing `target_accept` to 0.99 on this ill-conditioned
+geometry drove NUTS's dual-averaging step size toward zero, so nearly every proposal was a no-op —
+the sampler stopped moving, which trivially suppresses divergences (a frozen chain can't diverge).
+This is step-size collapse, not "needs more samples."
+
+**Decisions / dead ends.** **Full-joint NUTS is now ruled UNSAMPLABLE on the 68-pulsar geometry.**
+Three levers triangulate it: diagonal mass → ridge (r̂≈18); dense block @0.95 → 39% divergences
+(curvature overshoot); dense block @0.99 → frozen chains (step-size collapse). Low accept →
+divergences; high accept → no mixing; **no `target_accept` threads the needle** at ~142-D with the
+h_a↔γ_a ridge + short-baseline hierarchical funnel. Fixing it would need a *different formulation*
+(marginalize per-pulsar red noise à la enterprise, or a different sampler) — real research work.
+Per the stepping-stone framing, that is not worth it: the 6-psr amplitude (T3.3) + 6-psr HD-vs-CURN
+lnB=+2.1 (T3.4) already validate that Argus recovers the signal, and this also drops the
+evidence-at-scale problem (Savage-Dickey/product-space) off the critical path.
+
+**Open threads.** One decision deferred to the user: (a) run a converged long-baseline subset
+(~30–40 psr ≥8 yr, ~1 day) as a stronger validation before pivoting, vs. (b) declare validation
+done now on the 6-psr results. Either way the next real direction is the *differentiator* — joint
+CW+SGWB, non-stationarity, or online/real-time inference — where the state-space formulation is the
+actual nugget. Session closed by writing up the branch for a PR (honest framing: validated pipeline
++ two real-data results + a documented full-array sampling limitation).
+
 ## 2026-07-16 — T3.5: dense-mass GW block vs the h_a↔γ_a ridge (PARTIAL — linear fix works, curvature/funnel remains)
 
 **Goal.** Fix the full-array (68-pulsar) NG15 SGWB convergence failure — the quick-look run's
