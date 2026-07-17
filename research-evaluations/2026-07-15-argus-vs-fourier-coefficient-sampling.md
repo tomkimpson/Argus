@@ -1,27 +1,14 @@
 ---
 date: 2026-07-15
 topic: argus-vs-fourier-coefficient-sampling
-verdict: REFINE
 nugget: "Argus is the only production PTA pipeline whose likelihood assumes neither stationarity nor a Fourier basis — the fast-inference paper is a sampler paper, not a model paper, so it kills Argus's speed framing but strengthens its cross-check/non-stationarity framing."
-workflow: B
-dimensions:
-  novelty: 8
-  impact: 6
-  timing: 7
-  feasibility: 5
-  competitive-landscape: 7
-  the-nugget: 8
-  narrative-potential: 7
-revisit-conditions: ""
-scooping-watch: "See Scooping Watch List below; monthly cadence."
 ---
 
-# Workflow B assessment: should Argus continue after arXiv 2607.06834?
+# Should Argus continue after arXiv 2607.06834?
 
 ## Trigger
 
-arXiv 2607.06834 (scraped copy in repo root as `tmpfile.md`): Fourier-coefficient
-sampling under a hierarchical standardizing transform (CURN-approximated Cholesky),
+arXiv 2607.06834: Fourier-coefficient sampling under a hierarchical standardizing transform (CURN-approximated Cholesky),
 NUTS via JAX/NumPyro, single precision, GPU batching. Converged NANOGrav-15yr-scale
 stochastic analyses (67 pulsars, HD correlations, power-law + free-spectral) in
 ~15 min on an RTX 3090; joint HD-GWB + per-pulsar RN + CW on 100 simulated pulsars
@@ -31,14 +18,11 @@ posterior implemented identically in JAX. Extensions: inter-frequency correlatio
 likelihoods, gamma-ray PTA regularization.
 
 ## Status assessment
-
-- Argus: alpha, JOSS draft written, validated on IPTA MDC2 (33 pulsars), CW mode
-  recently added, 227 tests passing. Not yet run on real data.
 - The paper is a **sampler paper, not a model paper**: it states its inference is
   *identical* to standard analyses (same stationary Gaussian Fourier-basis model,
   linearized/marginalized timing model, white noise fixed from single-pulsar runs).
 
-## USP audit (Argus JOSS claims vs the paper)
+## USP audit (Argus claims vs the paper)
 
 | Claimed Argus USP | Status after 2607.06834 |
 |---|---|
@@ -118,22 +102,22 @@ NUTS). What transfers:
 Target: these do not get Argus to 15 min and don't need to — "overnight on one
 GPU for NANOGrav 15yr" is sufficient for the cross-check role.
 
-## Existential technical risk (feasibility = 5 driver)
+## Existential technical risk 
 
-Own log (2026-06-02): the OU process cannot fit steep power-law red noise; the GWB
+The OU process cannot fit steep power-law red noise; the GWB
 is γ ≈ 13/3. If the state-space model cannot express the consensus signal model,
 cross-check posteriors are not comparable to NANOGrav's and the community discounts
 them. Mitigation path exists: sums of OU/SHO components (CARMA; celerite-style
 rational approximations of power-law kernels — a proven O(N) state-space GP method
 in astronomy).
 
-**De-risk experiment (days–2 weeks, binary outcome):** single simulated pulsar,
+**De-risk experiment single simulated pulsar,
 γ = 13/3 injection, K-component OU mixture in the Argus state block; recovered
 (log10_A, γ) posterior must be consistent with injection and with an
 ENTERPRISE/discovery reference run. Failure after honest effort → pivot
 conversation. Success → unlocks Papers A/B and is a methods contribution itself.
 
-## Decision: CONTINUE with repositioning (REFINE)
+## Decision: CONTINUE with repositioning
 
 Repositioned USP: *Argus is the only production PTA pipeline whose likelihood
 assumes neither stationarity nor a Fourier basis — an independent time-domain
@@ -155,21 +139,4 @@ Kill criteria: steep-spectrum representation fails after ~1 month of honest
 effort, OR the 15yr cross-check produces nothing publishable and no non-stationary
 question pans out → park with revisit conditions.
 
-## Scooping watch list
 
-- **Search terms (arXiv/Scholar, monthly):** "state-space pulsar timing array";
-  "Kalman filter gravitational wave background"; "non-stationary pulsar timing
-  array"; "time-resolved gravitational wave background"; "CARMA pulsar timing".
-- **Researchers:** van Haasteren & Vallisneri (Discovery; hierarchical-likelihood
-  lineage of 2607.06834); the 2607.06834 author group (Caltech); FFTInt authors;
-  Melatos group (Melbourne — state-space lineage, closest possible scoopers);
-  Susobhanan (Vela.jl).
-- **Venues:** PRD, MNRAS, ApJL; NANOGrav/IPTA collaboration paper pipelines.
-- **Cadence:** monthly (low direct competition on the state-space axis); next
-  reviews 2026-08-15 and 2026-09-15.
-
-## Context recorded at evaluation time
-
-User goals: methods papers + a novel scientific result; cross-check rather than
-replacement; PTA member with public data only; substantial time; the state-space
-formulation is the research program, open to pivot only in principle.
