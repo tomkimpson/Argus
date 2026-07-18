@@ -60,9 +60,6 @@ def test_likelihood_value():
         spin_injections_path, excluded_psrs=["J1640+2224"]
     )
 
-    # Initialize the Kalman filter
-    KF = jk.JaxKalmanFilter(data=pulsar_data, use_gw=True)
-
     # Set GW parameters
     γa = 1e-9
     ha = 1e-15
@@ -81,18 +78,41 @@ def test_likelihood_value():
         EQUAD=equad_array,
     )
 
-    # Calculate likelihood
-    log_likelihood = KF.get_likelihood(params)
-
-    print("the computed log likelihood is:", log_likelihood)
-
     # Assert expected value - a golden value recorded from an actual run on this
     # dataset (γa=1e-9, ha=1e-15, 32 MDC2 pulsars). Updated from 55963.86 after the
     # get_Q_block q11 fix (γ**3 -> γ**2): correcting the integrated-OU position-noise
     # normalization shifts the log-likelihood by ~7655 nats.
     expected_likelihood = 63618.93  # Golden value (post q11 fix)
 
-    # Use relative tolerance for floating point comparison
+    # Both the default sequential filter and the marginalized (Rao-Blackwellized)
+    # timing-model filter must reproduce the golden value: they are mathematically
+    # equivalent, differing only in whether the timing parameters are carried as state
+    # or integrated out analytically.
+    for use_marginal in (False, True):
+        KF = jk.JaxKalmanFilter(
+            data=pulsar_data, use_gw=True, use_marginal=use_marginal
+        )
+        log_likelihood = KF.get_likelihood(params)
+        backend = "marginal" if use_marginal else "sequential"
+        print(f"the computed log likelihood ({backend}) is:", log_likelihood)
+
+        # Use relative tolerance for floating point comparison
+        assert (
+            abs(log_likelihood - expected_likelihood) < 1.0
+        ), f"[{backend}] Expected ~{expected_likelihood}, got {log_likelihood}"
+
+    # Diffuse (flat/improper) timing-model prior on the marginal filter. This is a
+    # different likelihood from the informative-prior golden above (P_eps⁻¹ → 0 fully
+    # projects out the timing-model subspace and drops a parameter-independent additive
+    # constant), so it has its own recorded reference. The value is independently
+    # validated in test_jax_kalman_filter.py::TestDiffuseFilter against a batch GLS /
+    # G-matrix oracle and the α → ∞ limit of the informative filter.
+    expected_diffuse_likelihood = 59420.06
+    KF_diffuse = jk.JaxKalmanFilter(
+        data=pulsar_data, use_gw=True, use_marginal=True, timing_prior="diffuse"
+    )
+    log_likelihood_diffuse = KF_diffuse.get_likelihood(params)
+    print("the computed log likelihood (diffuse) is:", log_likelihood_diffuse)
     assert (
-        abs(log_likelihood - expected_likelihood) < 1.0
-    ), f"Expected ~{expected_likelihood}, got {log_likelihood}"
+        abs(log_likelihood_diffuse - expected_diffuse_likelihood) < 1.0
+    ), f"[diffuse] Expected ~{expected_diffuse_likelihood}, got {log_likelihood_diffuse}"

@@ -76,8 +76,20 @@ def setup_data_and_kalman_filter(config, logger, use_gw, signal_model="gwb"):
             phase_parameterization=phase_parameterization,
         )
     else:
-        logger.info("Initializing joint GWB Kalman filter...")
-        KF = jax_kalman_filter.JaxKalmanFilter(data=pulsar_data, use_gw=use_gw)
+        timing_prior = config.get(
+            "PriorModel", "timing_prior", fallback="informative"
+        ).strip()
+        prior_scale = config.getfloat("PriorModel", "prior_scale", fallback=1.0)
+        logger.info(
+            f"Initializing joint GWB Kalman filter "
+            f"(timing_prior={timing_prior}, prior_scale={prior_scale})..."
+        )
+        KF = jax_kalman_filter.JaxKalmanFilter(
+            data=pulsar_data,
+            use_gw=use_gw,
+            timing_prior=timing_prior,
+            prior_scale=prior_scale,
+        )
 
     return pulsar_data, KF
 
