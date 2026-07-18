@@ -100,3 +100,19 @@ def test_likelihood_value():
         assert (
             abs(log_likelihood - expected_likelihood) < 1.0
         ), f"[{backend}] Expected ~{expected_likelihood}, got {log_likelihood}"
+
+    # Diffuse (flat/improper) timing-model prior on the marginal filter. This is a
+    # different likelihood from the informative-prior golden above (P_eps⁻¹ → 0 fully
+    # projects out the timing-model subspace and drops a parameter-independent additive
+    # constant), so it has its own recorded reference. The value is independently
+    # validated in test_jax_kalman_filter.py::TestDiffuseFilter against a batch GLS /
+    # G-matrix oracle and the α → ∞ limit of the informative filter.
+    expected_diffuse_likelihood = 59420.06
+    KF_diffuse = jk.JaxKalmanFilter(
+        data=pulsar_data, use_gw=True, use_marginal=True, timing_prior="diffuse"
+    )
+    log_likelihood_diffuse = KF_diffuse.get_likelihood(params)
+    print("the computed log likelihood (diffuse) is:", log_likelihood_diffuse)
+    assert (
+        abs(log_likelihood_diffuse - expected_diffuse_likelihood) < 1.0
+    ), f"[diffuse] Expected ~{expected_diffuse_likelihood}, got {log_likelihood_diffuse}"

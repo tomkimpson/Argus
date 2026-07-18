@@ -474,7 +474,7 @@ def _run_kalman_filter_scan(
 
 
 @jax.named_call
-@partial(jax.jit, static_argnames=("Npsr", "M_sum", "dim_x", "n_states"))
+@partial(jax.jit, static_argnames=("Npsr", "M_sum", "dim_x", "n_states", "diffuse"))
 def _run_kalman_filter_marginal(
     θ,
     data,
@@ -487,6 +487,7 @@ def _run_kalman_filter_marginal(
     dim_x,
     n_states,
     P_eps_inv,
+    diffuse=False,
 ):
     """Marginalized (Rao-Blackwellized) Kalman filter log likelihood.
 
@@ -510,6 +511,17 @@ def _run_kalman_filter_marginal(
     `P_eps_inv` is the prior precision block P_eps⁻¹ (= Σ_n M_n' N_n⁻¹ M_n, block-diagonal
     over pulsars); it is passed in rather than P_eps so we never invert the (potentially
     ill-conditioned) full prior covariance.
+
+    If `diffuse` is True the timing-model prior is taken to be flat/improper
+    (P_eps⁻¹ → 0), the community-standard PTA treatment (van Haasteren & Levin), which
+    fully projects the timing-model subspace out of the data. The formula collapses to
+
+        Λ = A,   logL = -0.5 [ c + L - b' A⁻¹ b + logdet(A) ],
+
+    i.e. `P_eps_inv` is dropped from Λ and the `logdet(P_eps⁻¹)` term is discarded. The
+    latter is parameter-independent, so the diffuse marginal likelihood is defined only up
+    to an additive constant (harmless for posteriors and for Bayes factors between models
+    sharing the same timing model, where it cancels). `P_eps_inv` is then unused.
     """
     σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
 
@@ -573,6 +585,21 @@ def _run_kalman_filter_marginal(
     # (T, M_sum, M_sum) array of per-epoch A contributions.
     (x, P, Xi, A, b, c, L), _ = lax.scan(step, (x, P, Xi, A, b, c, L), inputs)
 
+    if diffuse:
+        # Flat/improper prior limit P_eps⁻¹ → 0: Λ = A, and the logdet(P_eps⁻¹) term is
+        # dropped (a parameter-independent constant). A can be weakly conditioned when the
+        # timing params are poorly constrained, so mirror the `_log_likelihood` /
+        # `_update_marginal` policy: symmetrise, add magnitude-scaled jitter, and reject a
+        # residually non-PD matrix by returning -inf.
+        n = A.shape[0]
+        Lambda = 0.5 * (A + A.T)
+        jitter = 1e-9 * (jnp.trace(Lambda) / n)
+        Lambda = Lambda + jitter * jnp.eye(n)
+        sign, logdet_Lambda = jnp.linalg.slogdet(Lambda)
+        bLb = (b.T @ jnp.linalg.solve(Lambda, b))[0, 0]
+        logL = -0.5 * (c + L - bLb + logdet_Lambda)
+        return jnp.where(sign > 0, logL, -jnp.inf)
+
     # Analytic marginalization of β with prior precision P_eps_inv.
     Lambda = P_eps_inv + A
     _, logdet_Lambda = jnp.linalg.slogdet(Lambda)
@@ -597,7 +624,14 @@ class JaxKalmanFilter:
         use_gw: If True, include GW terms in measurement equation. Default True.
     """
 
-    def __init__(self, data: dict, use_gw: bool = True, use_marginal: bool = True):
+    def __init__(
+        self,
+        data: dict,
+        use_gw: bool = True,
+        use_marginal: bool = True,
+        timing_prior: str = "informative",
+        prior_scale: float = 1.0,
+    ):
         """Initialize the class.
 
         Args:
@@ -610,8 +644,29 @@ class JaxKalmanFilter:
                 <1 nat on the MDC2 golden dataset), but the marginal path is faster (~1.4x on
                 A100, ~2x on CPU) because the propagated state shrinks from 4*Npsr + M_sum to
                 4*Npsr, cutting the per-epoch O(d^3) update.
+            timing_prior: Prior on the linearized timing-model parameters β. "informative"
+                (default) uses the data-matched GLS prior P_eps = (MᵀN⁻¹M)⁻¹ and reproduces
+                the golden likelihood. "diffuse" takes the flat/improper limit P_eps⁻¹ → 0
+                (the community-standard PTA treatment), fully projecting the timing-model
+                subspace out of the data; only supported on the marginal backend.
+            prior_scale: Multiplicative scale α on the informative prior covariance
+                (P_eps → α·P_eps, P_eps⁻¹ → P_eps⁻¹/α). Default 1.0 reproduces the golden
+                likelihood; large α weakens the prior toward the diffuse limit. Ignored when
+                timing_prior="diffuse".
         """
         get_logger().info("Initializing JaxKalmanFilter...")
+
+        if timing_prior not in ("informative", "diffuse"):
+            raise ValueError(
+                f"timing_prior must be 'informative' or 'diffuse', got {timing_prior!r}"
+            )
+        if timing_prior == "diffuse" and not use_marginal:
+            raise ValueError(
+                "timing_prior='diffuse' is only supported on the marginalized filter "
+                "(use_marginal=True); the augmented-state filter cannot represent a flat "
+                "timing-model prior without hitting the near-singular P0 pathology."
+            )
+        self.timing_prior = timing_prior
 
         observations = data["processed_residuals"]
         df_psr = data["metadata"]
@@ -619,7 +674,7 @@ class JaxKalmanFilter:
         P_eps_matrices = data["parameter_covariances"]
         hd_correlation_matrix = data["hd_correlation"]
 
-        alpha = 1  # scale slightly
+        alpha = prior_scale  # informative-prior covariance scale (α → ∞ ≈ diffuse)
         Peps = alpha * block_diag(*P_eps_matrices)
 
         # Prior precision block P_eps⁻¹ for the marginalized filter. Built by per-pulsar
@@ -731,6 +786,7 @@ class JaxKalmanFilter:
                 dim_x=2 * self.Npsr,
                 n_states=self.nx,
                 P_eps_inv=self.P_eps_inv,
+                diffuse=(self.timing_prior == "diffuse"),
             )
         return _run_kalman_filter_scan(
             θ=θ,
