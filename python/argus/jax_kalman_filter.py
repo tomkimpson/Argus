@@ -7,7 +7,7 @@ from functools import partial
 import jax
 import jax.numpy as jnp
 from jax import lax
-from jax.scipy.linalg import block_diag
+from jax.scipy.linalg import block_diag, solve_triangular
 from typing import Tuple
 
 
@@ -610,6 +610,373 @@ def _run_kalman_filter_marginal(
     return logL
 
 
+# ---------------------------------------------------------------------------
+# Square-root temporally-parallel (associative-scan) Kalman filter.
+#
+# Numerically-stable, autodiff-safe replacement for the parked standard-form
+# associative scan (issue #103 PR1). The parked filter lost positive-definiteness
+# of the filtered COVARIANCE under the array's 1e-40 dynamic range (the
+# `(I + C_i J_j)⁻¹` combination developed negative eigenvalues → logL = -inf).
+#
+# We therefore carry the covariance block C = U Uᵀ in square-root (Cholesky
+# factor) form — U is what must stay PSD — but keep the information block J as a
+# plain symmetric matrix. Element/operator follow Särkkä & García-Fernández
+# (2021, arXiv:1905.13002); the square-root covariance combination is derived via
+# the Woodbury identity
+#     (I + C_i J_j)⁻¹ C_i = U_i M⁻¹ U_iᵀ ,   M = I + U_iᵀ J_j U_i  (PD, ⪰ I)
+# so the combined covariance factor U_new = tria([A_j U_i M⁻ᵀᐟ² | U_j]) is a QR
+# of a *full-rank* horizontal stack of PSD terms (no subtraction → PSD by
+# construction), and the only matrix inverse is a Cholesky solve against M ⪰ I
+# (perfectly conditioned regardless of the 1e-40 scaling).
+#
+# Why not also factor J (as the Yaghoobi et al. 2021 fully-square-root filter
+# does): J = Σ (HF)ᵀS⁻¹(HF) is genuinely low-rank early in the scan, so its
+# factor Z must be zero-padded to a fixed shape — and JAX's QR reverse-mode
+# divides by zero on the resulting rank-deficient pre-arrays, giving NaN
+# gradients (NUTS needs gradients). Keeping J plain makes every QR here
+# full-rank, so gradients flow. J only ever enters through M = I + Uᵀ J U, whose
+# conditioning is immune to J being ill-scaled or slightly indefinite.
+# ---------------------------------------------------------------------------
+
+
+def _tria(X):
+    """Lower-triangular factor L with L Lᵀ = X Xᵀ, via the reduced QR of Xᵀ.
+
+    `X` has shape (p, q) with q >= p (rows are variables, columns are the
+    stacked pre-array). Returns L of shape (p, p). The sign of the QR diagonal
+    is irrelevant since only L Lᵀ is used downstream.
+    """
+    R = jnp.linalg.qr(X.T, mode="reduced")[1]  # (p, p) upper-triangular
+    return R.T
+
+
+def _chol_psd(M):
+    """Lower-triangular Cholesky factor L with L Lᵀ = M, for PD M.
+
+    Cholesky (not eigh) is used deliberately: the prior covariance and process
+    noise span ~1e-40..1e-23, and an eigendecomposition cannot resolve the
+    1e-40 position-variance entries (they fall below the noise floor of the
+    ~1e-23 largest eigenvalue), whereas Cholesky computes each pivot from its
+    own local scale and preserves the hierarchy. A magnitude-relative jitter far
+    below the smallest structural entry guards a marginally-indefinite input
+    without perturbing the 1e-40 scale.
+    """
+    n = M.shape[0]
+    M = 0.5 * (M + M.T)
+    jitter = 1e-30 * jnp.trace(M) / n
+    return jnp.linalg.cholesky(M + jitter * jnp.eye(n))
+
+
+def _sqrt_first_filtering_element(x0, L_P0, H, L_R, z):
+    """Square-root filtering element for epoch 0 (update-only against the prior).
+
+    `L_P0 L_P0ᵀ = P0` (prior cov), `L_R L_Rᵀ = R`. Returns (A, b, U, eta, J) with
+    A, eta, J zero (no preceding transition) and (b, U) the prior updated on the
+    first observation. `U Uᵀ = (I - K H) P0` is read straight off the QR of the
+    measurement pre-array, so it is PSD by construction.
+    """
+    d = x0.shape[0]
+    m = L_R.shape[0]
+    # Pre-array [[L_R, H L_P0], [0, L_P0]] -> tria gives [[S^{1/2}, 0], [K S^{1/2}, U]].
+    top = jnp.concatenate([L_R, H @ L_P0], axis=1)
+    bot = jnp.concatenate([jnp.zeros((d, m)), L_P0], axis=1)
+    L = _tria(jnp.concatenate([top, bot], axis=0))
+    L11 = L[:m, :m]
+    L21 = L[m:, :m]
+    U = L[m:, m:]
+    # K = L21 L11^{-1}: solve L11ᵀ Kᵀ = L21ᵀ (L11ᵀ upper-triangular).
+    K = solve_triangular(L11.T, L21.T, lower=False).T
+    b = x0 + K @ (z[:, None] - H @ x0)
+    A = jnp.zeros((d, d))
+    eta = jnp.zeros((d, 1))
+    J = jnp.zeros((d, d))
+    return A, b, U, eta, J
+
+
+def _sqrt_generic_filtering_element(F, L_Q, H, L_R, z):
+    """Square-root filtering element for a predict+update epoch.
+
+    `L_Q L_Qᵀ = Q` (process noise), `L_R L_Rᵀ = R`. Encodes transition (F, Q)
+    then update (H, R, z). Returns (A, b, U, eta, J) with U Uᵀ = C = (I-KH)Q the
+    Cholesky factor of the covariance block and J = (H F)ᵀ S⁻¹ (H F) the plain
+    (d, d) symmetric information block.
+    """
+    d = F.shape[0]
+    m = L_R.shape[0]
+    # Measurement-update array with Q as the "predicted" covariance.
+    top = jnp.concatenate([L_R, H @ L_Q], axis=1)
+    bot = jnp.concatenate([jnp.zeros((d, m)), L_Q], axis=1)
+    L = _tria(jnp.concatenate([top, bot], axis=0))
+    L11 = L[:m, :m]  # S^{1/2}
+    L21 = L[m:, :m]  # K S^{1/2}
+    U = L[m:, m:]  # C^{1/2}
+
+    K = solve_triangular(L11.T, L21.T, lower=False).T
+    I_KH = jnp.eye(d) - K @ H
+    A = I_KH @ F
+    b = K @ z[:, None]
+
+    HF = H @ F
+    # eta = (HF)ᵀ S⁻¹ z  via two triangular solves against S^{1/2} = L11.
+    w = solve_triangular(L11, z[:, None], lower=True)
+    Sinv_z = solve_triangular(L11.T, w, lower=False)
+    eta = HF.T @ Sinv_z
+    # J = (HF)ᵀ S⁻¹ (HF) = GᵀG with G = L11⁻¹ (HF); kept as a plain matrix.
+    G = solve_triangular(L11, HF, lower=True)
+    J = G.T @ G
+    return A, b, U, eta, J
+
+
+def _sqrt_filtering_operator(elem_i, elem_j):
+    """Associative combination of two square-root filtering elements (i precedes j).
+
+    Square-root (covariance-factored, information-plain) form of Särkkä &
+    García-Fernández (2021) eq. 17. Passed to `jax.lax.associative_scan` via
+    `jax.vmap`, so this operates on single (2-D) elements and vmap supplies the
+    leading segment axis.
+    """
+    A_i, b_i, U_i, eta_i, J_i = elem_i
+    A_j, b_j, U_j, eta_j, J_j = elem_j
+    d = A_i.shape[0]
+    Id = jnp.eye(d)
+
+    # M = I + U_iᵀ J_j U_i  (PD, ⪰ I); Lam Lamᵀ = M.
+    UtJ = U_i.T @ J_j  # (d, d)
+    M = Id + UtJ @ U_i
+    Lam = jnp.linalg.cholesky(0.5 * (M + M.T))
+
+    def Minv(X):  # M⁻¹ X via two triangular solves against Lam.
+        return solve_triangular(
+            Lam.T, solve_triangular(Lam, X, lower=True), lower=False
+        )
+
+    # (I + C_i J_j)⁻¹ C_i = U_i M⁻¹ U_iᵀ = P Pᵀ, P = U_i Lam⁻ᵀ.
+    P = solve_triangular(Lam, U_i.T, lower=True).T
+    # G = (I + C_i J_j)⁻¹ = I - U_i M⁻¹ (U_iᵀ J_j); Gp = (I + J_j C_i)⁻¹.
+    G = Id - U_i @ Minv(UtJ)
+    Gp = Id - (J_j @ U_i) @ Minv(U_i.T)
+
+    A = A_j @ G @ A_i
+    # C_i eta_j = U_i (U_iᵀ eta_j).
+    b = A_j @ (G @ (b_i + U_i @ (U_i.T @ eta_j))) + b_j
+    eta = A_i.T @ (Gp @ (eta_j - J_j @ b_i)) + eta_i
+
+    # C_new = (A_j P)(A_j P)ᵀ + U_j U_jᵀ  -> QR of a full-rank stack (PSD, no subtraction).
+    U = _tria(jnp.concatenate([A_j @ P, U_j], axis=1))
+    # J_new = A_iᵀ [(I + J_j C_i)⁻¹ J_j] A_i + J_i, with (I+J_jC_i)⁻¹J_j = J_j - Y M⁻¹ Yᵀ.
+    Y = J_j @ U_i
+    Jterm = J_j - Y @ Minv(Y.T)
+    J = A_i.T @ Jterm @ A_i + J_i
+    J = 0.5 * (J + J.T)
+    return A, b, U, eta, J
+
+
+def _sqrt_parallel_filter(x0, L_P0, F_all, L_Q_all, H_dyn_all, L_R_all, data):
+    """Square-root associative-scan Kalman filter over the dynamic state.
+
+    Builds per-epoch square-root filtering elements (epoch 0 update-only, the
+    rest predict+update) and combines them with `_sqrt_filtering_operator` under
+    `jax.lax.associative_scan` in O(log T) depth. Returns the filtered mean
+    `m_filt` (T, d, 1) and filtered-covariance Cholesky factor `U_filt` (T, d, d)
+    with P_k = U_k U_kᵀ. All covariances/process-noise are supplied as factors
+    (`L_P0`, `L_Q_all`, `L_R_all`) so positive-definiteness is preserved.
+    """
+    e0 = _sqrt_first_filtering_element(x0, L_P0, H_dyn_all[0], L_R_all[0], data[0])
+    e_rest = jax.vmap(_sqrt_generic_filtering_element)(
+        F_all, L_Q_all, H_dyn_all[1:], L_R_all[1:], data[1:]
+    )
+    elements = tuple(
+        jnp.concatenate([e0_leaf[None, ...], rest_leaf], axis=0)
+        for e0_leaf, rest_leaf in zip(e0, e_rest)
+    )
+    _, b_filt, U_filt, _, _ = lax.associative_scan(
+        jax.vmap(_sqrt_filtering_operator), elements
+    )
+    return b_filt, U_filt
+
+
+def _run_sqrt_dynamic_filter(
+    θ,
+    data,
+    data_errors,
+    H_dyn_all,
+    Npsr,
+    M_sum,
+    hellings_downs_matrix,
+    dt_array,
+    dim_x,
+):
+    """STAGE-0 spike: square-root parallel Kalman filter over the dynamic state only.
+
+    Produces per-epoch filtered mean `m_filt` (T, d, 1) and filtered-covariance
+    Cholesky factor `U_filt` (T, d, d) with P_k = U_k U_kᵀ, for the d = 4*Npsr
+    dynamic (GW+spin) state — no timing-model sensitivity Ξ, no marginalization.
+    This isolates the numerical question: does the square-root associative scan
+    stay PSD and match the sequential dynamic filter on the real (1e-40 dynamic
+    range) MDC2 array?
+    """
+    σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
+    x0, P0 = _initialize_dynamic_kalman_filter(Npsr, σa2, θ.γa, θ.σp**2, θ.γp)
+    L_P0 = _chol_psd(P0)
+
+    R_matrices = precompute_R_matrices(data_errors, θ.EFAC, θ.EQUAD)
+    L_R_all = jnp.sqrt(R_matrices)  # R is diagonal -> factor is elementwise sqrt
+
+    dt_indices = jnp.arange(len(data) - 1)
+    (F_gw_all, F_spin_all), (Q_gw_all, Q_spin_all) = _precompute_transition_matrices(
+        θ.γa, θ.γp, σa2, θ.σp**2, dt_array[dt_indices], Npsr, M_sum
+    )
+    F_all = jax.vmap(block_diag)(F_gw_all, F_spin_all)
+    Q_all = jax.vmap(block_diag)(Q_gw_all, Q_spin_all)
+    L_Q_all = jax.vmap(_chol_psd)(Q_all)
+
+    return _sqrt_parallel_filter(x0, L_P0, F_all, L_Q_all, H_dyn_all, L_R_all, data)
+
+
+def _affine_compose(elem_i, elem_j):
+    """Compose two affine maps g(x)=M x + N (i precedes j): returns (M_j M_i, M_j N_i + N_j)."""
+    M_i, N_i = elem_i
+    M_j, N_j = elem_j
+    return M_j @ M_i, M_j @ N_i + N_j
+
+
+@jax.named_call
+@partial(jax.jit, static_argnames=("Npsr", "M_sum", "dim_x", "n_states", "diffuse"))
+def _run_kalman_filter_marginal_parallel(
+    θ,
+    data,
+    data_errors,
+    H_matrices,
+    Npsr,
+    M_sum,
+    hellings_downs_matrix,
+    dt_array,
+    dim_x,
+    n_states,
+    P_eps_inv,
+    diffuse=False,
+):
+    """Temporally-parallel (square-root associative-scan) marginalized Kalman filter.
+
+    Same marginal log likelihood as `_run_kalman_filter_marginal` (analytic
+    Rao-Blackwellization of the timing-model parameters β), but the O(T)
+    sequential recursion is replaced by O(log T)-depth parallel scans:
+
+      Pass 1  square-root parallel filter over the dynamic state -> filtered
+              mean m_k and covariance factor U_k (P_k = U_k U_kᵀ) at every epoch;
+      Pass 2a vmap recompute of the per-epoch predicted mean/cov, innovation
+              covariance S_k, gain K_k, β=0 innovation ỹ_k, and the affine
+              coefficients M_k=(I-K_k H_dyn,k)F_k, N_k=-K_k H_eps,k of the
+              sensitivity recursion (S_k, K_k, P_k are β-independent);
+      Pass 2b a second associative scan composing the affine maps to get the
+              filtered sensitivity Ξ_filt,k, then Ξ_pred,k = F_k Ξ_filt,k-1;
+      Pass 3  reduce the per-epoch information contributions A,b,c,L.
+
+    The final marginalization over β is identical to the sequential filter.
+    Equal to the golden likelihood in exact arithmetic.
+    """
+    σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, hellings_downs_matrix)
+    x0, P0 = _initialize_dynamic_kalman_filter(Npsr, σa2, θ.γa, θ.σp**2, θ.γp)
+    L_P0 = _chol_psd(P0)
+
+    R_matrices = precompute_R_matrices(data_errors, θ.EFAC, θ.EQUAD)
+    L_R_all = jnp.sqrt(R_matrices)
+
+    dt_indices = jnp.arange(len(data) - 1)
+    (F_gw_all, F_spin_all), (Q_gw_all, Q_spin_all) = _precompute_transition_matrices(
+        θ.γa, θ.γp, σa2, θ.σp**2, dt_array[dt_indices], Npsr, M_sum
+    )
+    F_all = jax.vmap(block_diag)(F_gw_all, F_spin_all)  # (T-1, d, d)
+    Q_all = jax.vmap(block_diag)(Q_gw_all, Q_spin_all)
+    L_Q_all = jax.vmap(_chol_psd)(Q_all)
+
+    n_dyn = 4 * Npsr
+    H_dyn_all = H_matrices[:, :, :n_dyn]
+    H_eps_all = H_matrices[:, :, n_dyn:]
+    d = n_dyn
+
+    # --- Pass 1: square-root parallel filter -> filtered m_k, U_k. ---
+    m_filt, U_filt = _sqrt_parallel_filter(
+        x0, L_P0, F_all, L_Q_all, H_dyn_all, L_R_all, data
+    )
+    P_filt = jnp.matmul(U_filt, jnp.swapaxes(U_filt, -1, -2))  # (T, d, d)
+
+    # --- Pass 2a: per-epoch predicted mean/cov (epoch 0 = prior). ---
+    m_pred = jnp.concatenate(
+        [x0[None], jnp.matmul(F_all, m_filt[:-1])], axis=0
+    )  # (T, d, 1)
+    FPFt = jnp.matmul(jnp.matmul(F_all, P_filt[:-1]), jnp.swapaxes(F_all, -1, -2))
+    P_pred = jnp.concatenate([P0[None], FPFt + Q_all], axis=0)  # (T, d, d)
+
+    def per_epoch_predict(H_dyn, H_eps, R, z, mp, Pp, F):
+        # Innovation covariance with the same symmetrise + jitter + PD policy as
+        # `_update_marginal`, so the log-det stream matches the sequential filter.
+        S = H_dyn @ Pp @ H_dyn.T + R
+        n = S.shape[0]
+        S = 0.5 * (S + S.T)
+        jitter = 1e-9 * (jnp.trace(S) / n)
+        S = S + jitter * jnp.eye(n)
+        sign, logdet = jnp.linalg.slogdet(2.0 * jnp.pi * S)
+        Sinv = jnp.linalg.solve(S, jnp.eye(n))
+        K = Pp @ H_dyn.T @ Sinv
+        y0 = z[:, None] - H_dyn @ mp
+        M = (jnp.eye(d) - K @ H_dyn) @ F  # affine coeff for Ξ (epoch>=1)
+        N = -K @ H_eps
+        dL = jnp.where(sign > 0, logdet, jnp.inf)
+        return Sinv, y0, M, N, dL
+
+    # F into epoch k is F_all[k-1]; epoch 0 has no predecessor (M_0 set to 0 below).
+    F_into = jnp.concatenate([jnp.zeros((1, d, d)), F_all], axis=0)  # (T, d, d)
+    Sinv_all, y0_all, M_all, N_all, dL_all = jax.vmap(per_epoch_predict)(
+        H_dyn_all, H_eps_all, R_matrices, data, m_pred, P_pred, F_into
+    )
+    # Epoch 0 is update-only: Ξ_filt,0 = N_0 (no predecessor), so zero its map.
+    M_all = M_all.at[0].set(jnp.zeros((d, d)))
+
+    # --- Pass 2b: affine associative scan for the filtered sensitivity Ξ. ---
+    _, Xi_filt = lax.associative_scan(jax.vmap(_affine_compose), (M_all, N_all))
+    # Predicted sensitivity: Ξ_pred,0 = 0; Ξ_pred,k = F_k Ξ_filt,k-1.
+    Xi_pred = jnp.concatenate(
+        [jnp.zeros((1, d, M_sum)), jnp.matmul(F_all, Xi_filt[:-1])], axis=0
+    )
+
+    # --- Pass 3: reduce the epsilon information contributions. ---
+    def per_epoch_info(H_dyn, H_eps, Sinv, y0, Xi_p):
+        Psi = H_eps + H_dyn @ Xi_p  # (m, M_sum)
+        Sinv_Psi = Sinv @ Psi
+        Sinv_y0 = Sinv @ y0
+        dA = Psi.T @ Sinv_Psi
+        db = Psi.T @ Sinv_y0
+        dc = (y0.T @ Sinv_y0)[0, 0]
+        return dA, db, dc
+
+    dA_all, db_all, dc_all = jax.vmap(per_epoch_info)(
+        H_dyn_all, H_eps_all, Sinv_all, y0_all, Xi_pred
+    )
+    A = jnp.sum(dA_all, axis=0)
+    b = jnp.sum(db_all, axis=0)
+    c = jnp.sum(dc_all, axis=0)
+    L = jnp.sum(dL_all, axis=0)
+
+    # --- Final marginalization of β (identical to the sequential filter). ---
+    if diffuse:
+        n = A.shape[0]
+        Lambda = 0.5 * (A + A.T)
+        jitter = 1e-9 * (jnp.trace(Lambda) / n)
+        Lambda = Lambda + jitter * jnp.eye(n)
+        sign, logdet_Lambda = jnp.linalg.slogdet(Lambda)
+        bLb = (b.T @ jnp.linalg.solve(Lambda, b))[0, 0]
+        logL = -0.5 * (c + L - bLb + logdet_Lambda)
+        return jnp.where(sign > 0, logL, -jnp.inf)
+
+    Lambda = P_eps_inv + A
+    _, logdet_Lambda = jnp.linalg.slogdet(Lambda)
+    _, logdet_P_eps_inv = jnp.linalg.slogdet(P_eps_inv)
+    bLb = (b.T @ jnp.linalg.solve(Lambda, b))[0, 0]
+    logL = -0.5 * (c + L - bLb + logdet_Lambda - logdet_P_eps_inv)
+    return logL
+
+
 class JaxKalmanFilter:
     """A class to implement the linear Kalman filter on scalar inputs using JAX.
 
@@ -631,6 +998,7 @@ class JaxKalmanFilter:
         use_marginal: bool = True,
         timing_prior: str = "informative",
         prior_scale: float = 1.0,
+        use_parallel: bool = False,
     ):
         """Initialize the class.
 
@@ -653,6 +1021,13 @@ class JaxKalmanFilter:
                 (P_eps → α·P_eps, P_eps⁻¹ → P_eps⁻¹/α). Default 1.0 reproduces the golden
                 likelihood; large α weakens the prior toward the diffuse limit. Ignored when
                 timing_prior="diffuse".
+            use_parallel: If True, use the temporally-parallel square-root
+                associative-scan implementation of the marginal filter
+                (`_run_kalman_filter_marginal_parallel`) instead of the sequential
+                `lax.scan`. Same log likelihood (reproduces the golden value), but the
+                O(T) recursion becomes O(log T) depth via `jax.lax.associative_scan`,
+                which parallelises across epochs on GPU. Only supported on the marginal
+                backend (requires use_marginal=True). Default False.
         """
         get_logger().info("Initializing JaxKalmanFilter...")
 
@@ -666,7 +1041,14 @@ class JaxKalmanFilter:
                 "(use_marginal=True); the augmented-state filter cannot represent a flat "
                 "timing-model prior without hitting the near-singular P0 pathology."
             )
+        if use_parallel and not use_marginal:
+            raise ValueError(
+                "use_parallel=True is only supported on the marginalized filter "
+                "(use_marginal=True); the temporally-parallel square-root scan is "
+                "implemented for the marginal backend."
+            )
         self.timing_prior = timing_prior
+        self.use_parallel = use_parallel
 
         observations = data["processed_residuals"]
         df_psr = data["metadata"]
@@ -773,6 +1155,21 @@ class JaxKalmanFilter:
 
     def get_likelihood(self, θ):
         """Run the Kalman filter algorithm over all observations and return a log likelihood."""
+        if self.use_marginal and self.use_parallel:
+            return _run_kalman_filter_marginal_parallel(
+                θ=θ,
+                data=self.jax_data,
+                data_errors=self.jax_data_errors,
+                H_matrices=self.jax_H_matrices,
+                Npsr=self.Npsr,
+                M_sum=self.M_sum,
+                hellings_downs_matrix=self.hellings_downs_matrix,
+                dt_array=self.jax_t_diffs,
+                dim_x=2 * self.Npsr,
+                n_states=self.nx,
+                P_eps_inv=self.P_eps_inv,
+                diffuse=(self.timing_prior == "diffuse"),
+            )
         if self.use_marginal:
             return _run_kalman_filter_marginal(
                 θ=θ,

@@ -101,6 +101,18 @@ def test_likelihood_value():
             abs(log_likelihood - expected_likelihood) < 1.0
         ), f"[{backend}] Expected ~{expected_likelihood}, got {log_likelihood}"
 
+    # The temporally-parallel square-root (associative-scan) backend must also
+    # reproduce the golden value: it is the same marginal likelihood computed in
+    # O(log T) depth instead of an O(T) sequential scan.
+    KF_par = jk.JaxKalmanFilter(
+        data=pulsar_data, use_gw=True, use_marginal=True, use_parallel=True
+    )
+    ll_parallel = KF_par.get_likelihood(params)
+    print("the computed log likelihood (parallel) is:", ll_parallel)
+    assert (
+        abs(ll_parallel - expected_likelihood) < 1.0
+    ), f"[parallel] Expected ~{expected_likelihood}, got {ll_parallel}"
+
     # Diffuse (flat/improper) timing-model prior on the marginal filter. This is a
     # different likelihood from the informative-prior golden above (P_eps⁻¹ → 0 fully
     # projects out the timing-model subspace and drops a parameter-independent additive
@@ -116,3 +128,17 @@ def test_likelihood_value():
     assert (
         abs(log_likelihood_diffuse - expected_diffuse_likelihood) < 1.0
     ), f"[diffuse] Expected ~{expected_diffuse_likelihood}, got {log_likelihood_diffuse}"
+
+    # Parallel backend on the diffuse prior must also reproduce the diffuse golden.
+    KF_diffuse_par = jk.JaxKalmanFilter(
+        data=pulsar_data,
+        use_gw=True,
+        use_marginal=True,
+        timing_prior="diffuse",
+        use_parallel=True,
+    )
+    ll_diffuse_par = KF_diffuse_par.get_likelihood(params)
+    print("the computed log likelihood (diffuse, parallel) is:", ll_diffuse_par)
+    assert (
+        abs(ll_diffuse_par - expected_diffuse_likelihood) < 1.0
+    ), f"[diffuse-parallel] Expected ~{expected_diffuse_likelihood}, got {ll_diffuse_par}"
