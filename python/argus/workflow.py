@@ -80,15 +80,18 @@ def setup_data_and_kalman_filter(config, logger, use_gw, signal_model="gwb"):
             "PriorModel", "timing_prior", fallback="informative"
         ).strip()
         prior_scale = config.getfloat("PriorModel", "prior_scale", fallback=1.0)
+        use_parallel = config.getboolean("PriorModel", "use_parallel", fallback=False)
         logger.info(
             f"Initializing joint GWB Kalman filter "
-            f"(timing_prior={timing_prior}, prior_scale={prior_scale})..."
+            f"(timing_prior={timing_prior}, prior_scale={prior_scale}, "
+            f"use_parallel={use_parallel})..."
         )
         KF = jax_kalman_filter.JaxKalmanFilter(
             data=pulsar_data,
             use_gw=use_gw,
             timing_prior=timing_prior,
             prior_scale=prior_scale,
+            use_parallel=use_parallel,
         )
 
     return pulsar_data, KF

@@ -2,6 +2,7 @@
 
 import pytest
 import numpy as np
+import jax
 import jax.numpy as jnp
 from unittest.mock import Mock, patch
 from argus import jax_kalman_filter, bayesian_inference
@@ -634,3 +635,206 @@ class TestDiffuseFilter:
         assert np.isclose(
             ll_filter, ll_batch, rtol=1e-5, atol=1e-3
         ), f"filter {ll_filter} != batch GLS {ll_batch}"
+
+
+def _reference_sequential_filter(m0, P0, Fs, Qs, Hs, Rs, zs):
+    """Independent textbook linear-Gaussian Kalman filter for tests.
+
+    Matches the Argus epoch convention: epoch 0 is update-only against the prior
+    (m0, P0); epochs 1..T-1 predict with (Fs[k-1], Qs[k-1]) then update. Uses the
+    standard-form covariance update (I - K H) P to match the square-root element
+    covariance factor. Returns stacked filtered means (T, d, 1) and covs (T, d, d).
+    """
+    d = m0.shape[0]
+    Id = jnp.eye(d)
+
+    def update(mp, Pp, H, R, z):
+        S = H @ Pp @ H.T + R
+        K = Pp @ H.T @ jnp.linalg.solve(S, jnp.eye(S.shape[0]))
+        m = mp + K @ (z[:, None] - H @ mp)
+        P = (Id - K @ H) @ Pp
+        return m, 0.5 * (P + P.T)
+
+    m, P = update(m0, P0, Hs[0], Rs[0], zs[0])
+    means, covs = [m], [P]
+    for k in range(1, len(zs)):
+        mp = Fs[k - 1] @ m
+        Pp = Fs[k - 1] @ P @ Fs[k - 1].T + Qs[k - 1]
+        m, P = update(mp, Pp, Hs[k], Rs[k], zs[k])
+        means.append(m)
+        covs.append(P)
+    return jnp.stack(means), jnp.stack(covs)
+
+
+class TestSqrtParallelFilter:
+    """Tests for the square-root temporally-parallel (associative-scan) filter.
+
+    The parked standard-form associative scan returned -inf on the real MDC2
+    array (catastrophic cancellation in `(I + C_i J_j)⁻¹` under the 1e-40 dynamic
+    range). The square-root reformulation carries Cholesky factors and combines
+    via QR, so the filtered covariance is PSD by construction. These tests cover
+    operator associativity, agreement with a sequential filter (well- and
+    ill-conditioned), PSD preservation, and end-to-end likelihood equivalence.
+    """
+
+    def _random_system(self, seed=0, d=4, m=2, T=6):
+        """Small well-conditioned linear-Gaussian system."""
+        rng = np.random.default_rng(seed)
+        m0 = jnp.array(rng.standard_normal((d, 1)))
+        A = rng.standard_normal((d, d))
+        P0 = jnp.array(A @ A.T + d * np.eye(d))
+        Fs = jnp.array(
+            [0.9 * np.eye(d) + 0.05 * rng.standard_normal((d, d)) for _ in range(T - 1)]
+        )
+        Qs = jnp.array(
+            [
+                (lambda B: B @ B.T + 0.1 * np.eye(d))(rng.standard_normal((d, d)))
+                for _ in range(T - 1)
+            ]
+        )
+        Hs = jnp.array([rng.standard_normal((m, d)) for _ in range(T)])
+        Rs = jnp.array(
+            [
+                (lambda B: B @ B.T + 0.5 * np.eye(m))(rng.standard_normal((m, m)))
+                for _ in range(T)
+            ]
+        )
+        zs = jnp.array(rng.standard_normal((T, m)))
+        return m0, P0, Fs, Qs, Hs, Rs, zs
+
+    def _sqrt_scan(self, m0, P0, Fs, Qs, Hs, Rs, zs):
+        """Build square-root elements from covariances and run the parallel scan."""
+        L_P0 = jnp.linalg.cholesky(P0)
+        L_Qs = jax.vmap(jnp.linalg.cholesky)(Qs)
+        L_Rs = jax.vmap(jnp.linalg.cholesky)(Rs)
+        b_filt, U_filt = jax_kalman_filter._sqrt_parallel_filter(
+            m0, L_P0, Fs, L_Qs, Hs, L_Rs, zs
+        )
+        C_filt = jnp.matmul(U_filt, jnp.swapaxes(U_filt, -1, -2))
+        return b_filt, C_filt
+
+    def test_operator_associativity(self):
+        """(e1 ⊗ e2) ⊗ e3 == e1 ⊗ (e2 ⊗ e3) for the square-root operator."""
+        _, _, Fs, Qs, Hs, Rs, zs = self._random_system(seed=1, T=4)
+        L_Qs = jax.vmap(jnp.linalg.cholesky)(Qs)
+        L_Rs = jax.vmap(jnp.linalg.cholesky)(Rs)
+        e1, e2, e3 = (
+            jax_kalman_filter._sqrt_generic_filtering_element(
+                Fs[k], L_Qs[k], Hs[k + 1], L_Rs[k + 1], zs[k + 1]
+            )
+            for k in range(3)
+        )
+        op = jax_kalman_filter._sqrt_filtering_operator
+        left = op(op(e1, e2), e3)
+        right = op(e1, op(e2, e3))
+
+        # A, b, eta, J compared directly; C = U Uᵀ compared reconstructed (the
+        # triangular covariance factor U itself is not unique).
+        for idx in (0, 1, 3, 4):  # A, b, eta, J
+            assert jnp.allclose(left[idx], right[idx], atol=1e-8, rtol=1e-6)
+        CL, CR = left[2] @ left[2].T, right[2] @ right[2].T
+        assert jnp.allclose(CL, CR, atol=1e-8, rtol=1e-6)
+
+    def test_matches_sequential_small_system(self):
+        """Parallel filtered means/covs match a sequential filter (well-conditioned)."""
+        m0, P0, Fs, Qs, Hs, Rs, zs = self._random_system(seed=2)
+        b_filt, C_filt = self._sqrt_scan(m0, P0, Fs, Qs, Hs, Rs, zs)
+        m_ref, P_ref = _reference_sequential_filter(m0, P0, Fs, Qs, Hs, Rs, zs)
+        assert jnp.allclose(b_filt, m_ref, atol=1e-8, rtol=1e-6)
+        assert jnp.allclose(C_filt, P_ref, atol=1e-8, rtol=1e-6)
+
+    def test_psd_preservation_ill_conditioned(self):
+        """Filtered covariance stays PSD under a 1e-40 dynamic range (the MDC2 regime).
+
+        This is exactly the configuration on which the standard-form scan lost
+        positive-definiteness (min eig ~ -59) and returned -inf.
+        """
+        m0, P0, Fs, Qs, Hs, Rs, zs = self._random_system(seed=3, d=4, m=2, T=8)
+        # Crush two state directions' prior/process variances to 1e-40 scale.
+        scale = jnp.array([1.0, 1e-40, 1.0, 1e-40])
+        D = jnp.diag(scale)
+        P0 = D @ P0 @ D
+        Qs = jnp.array([D @ Q @ D for Q in Qs])
+        _, C_filt = self._sqrt_scan(m0, P0, Fs, Qs, Hs, Rs, zs)
+        for k in range(C_filt.shape[0]):
+            C = 0.5 * (C_filt[k] + C_filt[k].T)
+            eig = jnp.linalg.eigvalsh(C)
+            rel = eig[0] / jnp.maximum(eig[-1], 1e-300)
+            assert rel > -1e-10, f"epoch {k}: min/max eig = {rel}"
+
+    @patch("argus.io_manager.get_argus_logger")
+    def test_matches_marginal_backend(self, mock_logger):
+        """Parallel backend must reproduce the sequential marginal log likelihood."""
+        mock_logger.return_value = Mock()
+        data = _realistic_pulsar_data()
+        params = TestMarginalFilter()._params()
+
+        kf_seq = jax_kalman_filter.JaxKalmanFilter(data=data, use_marginal=True)
+        kf_par = jax_kalman_filter.JaxKalmanFilter(
+            data=data, use_marginal=True, use_parallel=True
+        )
+        ll_seq = kf_seq.get_likelihood(params)
+        ll_par = kf_par.get_likelihood(params)
+
+        assert ll_par.shape == ()
+        assert jnp.isfinite(ll_par)
+        assert jnp.isclose(
+            ll_par, ll_seq, rtol=1e-6, atol=1e-4
+        ), f"parallel {ll_par} != sequential {ll_seq}"
+
+    @patch("argus.io_manager.get_argus_logger")
+    def test_diffuse_matches_marginal_backend(self, mock_logger):
+        """Parallel backend must also match the sequential diffuse marginal likelihood."""
+        mock_logger.return_value = Mock()
+        data = _realistic_pulsar_data()
+        params = TestMarginalFilter()._params()
+
+        kf_seq = jax_kalman_filter.JaxKalmanFilter(
+            data=data, use_marginal=True, timing_prior="diffuse"
+        )
+        kf_par = jax_kalman_filter.JaxKalmanFilter(
+            data=data, use_marginal=True, timing_prior="diffuse", use_parallel=True
+        )
+        ll_seq = kf_seq.get_likelihood(params)
+        ll_par = kf_par.get_likelihood(params)
+        assert jnp.isclose(
+            ll_par, ll_seq, rtol=1e-6, atol=1e-4
+        ), f"parallel diffuse {ll_par} != sequential {ll_seq}"
+
+    @patch("argus.io_manager.get_argus_logger")
+    def test_gradients_finite_and_match(self, mock_logger):
+        """Gradients must flow through the parallel filter and match the sequential ones.
+
+        NUTS differentiates the likelihood, so finite gradients are required. The
+        information-matrix square-root form (zero-padded Z) produced NaN gradients
+        via QR reverse-mode; carrying J as a plain matrix fixes this.
+        """
+        mock_logger.return_value = Mock()
+        data = _realistic_pulsar_data()
+        base = TestMarginalFilter()._params()
+
+        def grad_dlog10_ha(use_parallel):
+            kf = jax_kalman_filter.JaxKalmanFilter(
+                data=data, use_marginal=True, use_parallel=use_parallel
+            )
+
+            def f(log10_ha):
+                p = base.replace(ha=10.0**log10_ha)
+                return kf.get_likelihood(p)
+
+            return jax.grad(f)(jnp.log10(base.ha))
+
+        g_seq = grad_dlog10_ha(False)
+        g_par = grad_dlog10_ha(True)
+        assert jnp.isfinite(g_par), f"parallel gradient not finite: {g_par}"
+        assert jnp.isclose(g_par, g_seq, rtol=1e-4, atol=1e-4), f"{g_par} != {g_seq}"
+
+    @patch("argus.io_manager.get_argus_logger")
+    def test_requires_marginal(self, mock_logger):
+        """use_parallel=True is only supported on the marginal backend."""
+        mock_logger.return_value = Mock()
+        data = _realistic_pulsar_data()
+        with pytest.raises(ValueError, match="marginal"):
+            jax_kalman_filter.JaxKalmanFilter(
+                data=data, use_marginal=False, use_parallel=True
+            )
