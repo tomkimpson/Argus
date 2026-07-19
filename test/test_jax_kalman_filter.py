@@ -220,6 +220,266 @@ class TestGetLikelihood:
         assert jnp.isfinite(ll)
 
 
+class TestMaskedUpdate:
+    """Tests for the missing-observation mask in _update."""
+
+    def test_all_ones_mask_matches_no_mask(self):
+        """An all-ones mask must reproduce the no-mask update bit-for-bit."""
+        xp = jnp.zeros((4, 1))
+        Pp = jnp.array(
+            [
+                [1.0, 0.5, 0.1, 0.0],
+                [0.5, 1.0, 0.0, 0.2],
+                [0.1, 0.0, 1.0, 0.3],
+                [0.0, 0.2, 0.3, 1.0],
+            ]
+        )
+        H = jnp.array([[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]])
+        R = jnp.eye(2) * 0.01
+        z = jnp.array([0.1, 0.2])
+
+        x0, P0, y0, S0 = jax_kalman_filter._update(xp, Pp, H, R, z)
+        x1, P1, y1, S1 = jax_kalman_filter._update(
+            xp, Pp, H, R, z, mask=jnp.ones(2)
+        )
+
+        assert jnp.array_equal(x0, x1)
+        assert jnp.array_equal(P0, P1)
+        assert jnp.array_equal(y0, y1)
+        assert jnp.array_equal(S0, S1)
+
+    def test_all_absent_update_is_noop(self):
+        """An all-zero mask must leave state/covariance unchanged (no observation)."""
+        xp = jnp.array([[1.0], [2.0], [3.0], [4.0]])
+        Pp = jnp.eye(4) + 0.1
+        H = jnp.array([[1.0, 0.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0]])
+        R = jnp.eye(2) * 0.01
+        z = jnp.array([5.0, 6.0])
+
+        x, P, y, S = jax_kalman_filter._update(xp, Pp, H, R, z, mask=jnp.zeros(2))
+
+        # No pulsar observed -> no update.
+        assert jnp.allclose(x, xp)
+        assert jnp.allclose(P, Pp)
+        # Innovations zeroed; S is the identity block so it stays invertible.
+        assert jnp.allclose(y, 0.0)
+        assert jnp.allclose(S, jnp.eye(2))
+
+    def test_partial_mask_matches_reduced_dimension_update(self):
+        """Masking pulsar 1 must equal the update that only ever saw pulsar 0."""
+        xp = jnp.zeros((2, 1))
+        Pp = jnp.array([[1.0, 0.5], [0.5, 1.0]])
+        H = jnp.eye(2)
+        R = jnp.diag(jnp.array([0.1, 0.1]))
+        z = jnp.array([1.0, 2.0])
+
+        # Full 2-D update with pulsar 1 masked absent.
+        x_m, P_m, y_m, S_m = jax_kalman_filter._update(
+            xp, Pp, H, R, z, mask=jnp.array([1.0, 0.0])
+        )
+
+        # Genuine 1-measurement update using only pulsar 0's row.
+        H_r = jnp.array([[1.0, 0.0]])
+        R_r = jnp.array([[0.1]])
+        z_r = jnp.array([1.0])
+        x_r, P_r, y_r, S_r = jax_kalman_filter._update(xp, Pp, H_r, R_r, z_r)
+
+        # The masked full update and the reduced update give the same state + covariance.
+        assert jnp.allclose(x_m, x_r)
+        assert jnp.allclose(P_m, P_r)
+
+
+class TestMaskedFilterEquivalence:
+    """Filter-level tests that masking is the correct missing-observation treatment."""
+
+    @patch("argus.io_manager.get_argus_logger")
+    def test_all_ones_mask_matches_default(
+        self, mock_logger, sample_pulsar_data, sample_noise_parameters
+    ):
+        """Threading an explicit all-ones mask through the scan changes nothing.
+
+        The baseline pins use_marginal=False: a mask forces the sequential path, so
+        the bit-for-bit comparison must run the sequential scan on both sides.
+        """
+        mock_logger.return_value = Mock()
+
+        params = bayesian_inference.Parameters(
+            log10_gamma_a=-9.0,
+            γa=1e-9,
+            ha=1e-15,
+            γp=sample_noise_parameters["gamma_p"],
+            σp=sample_noise_parameters["sigma_p"],
+            EFAC=sample_noise_parameters["efac"],
+            EQUAD=sample_noise_parameters["equad"],
+        )
+
+        kf_default = jax_kalman_filter.JaxKalmanFilter(
+            data=sample_pulsar_data, use_gw=True, use_marginal=False
+        )
+        ll_default = kf_default.get_likelihood(params)
+
+        # Same data, but with an explicit all-ones mask supplied by the loader.
+        residuals = dict(sample_pulsar_data["processed_residuals"])
+        residuals["mask"] = np.ones_like(residuals["residuals"])
+        data_masked = dict(sample_pulsar_data)
+        data_masked["processed_residuals"] = residuals
+
+        kf_masked = jax_kalman_filter.JaxKalmanFilter(data=data_masked, use_gw=True)
+        ll_masked = kf_masked.get_likelihood(params)
+
+        assert jnp.allclose(ll_default, ll_masked, rtol=0, atol=0)
+
+    @patch("argus.io_manager.get_argus_logger")
+    def test_appending_absent_epochs_adds_only_constant(
+        self, mock_logger, sample_pulsar_data, sample_noise_parameters
+    ):
+        """Extra epochs where every pulsar is absent add no information.
+
+        Absent epochs are appended at the END so no existing time step is subdivided
+        (the filter's covariance propagation is not required to compose over sub-steps,
+        which is a separate pre-existing property). A correct mask then leaves the
+        likelihood unchanged apart from the fixed log(2pi) contribution the identity
+        innovation slot adds for each absent (epoch, pulsar) pair.
+        """
+        mock_logger.return_value = Mock()
+
+        params = bayesian_inference.Parameters(
+            log10_gamma_a=-9.0,
+            γa=1e-9,
+            ha=1e-15,
+            γp=sample_noise_parameters["gamma_p"],
+            σp=sample_noise_parameters["sigma_p"],
+            EFAC=sample_noise_parameters["efac"],
+            EQUAD=sample_noise_parameters["equad"],
+        )
+
+        base = sample_pulsar_data["processed_residuals"]
+        nepoch, npsr = base["residuals"].shape
+
+        residuals = dict(base)
+        residuals["mask"] = np.ones((nepoch, npsr))
+        data_base = dict(sample_pulsar_data)
+        data_base["processed_residuals"] = residuals
+        ll_base = jax_kalman_filter.JaxKalmanFilter(
+            data=data_base, use_gw=True
+        ).get_likelihood(params)
+
+        # Append K all-absent epochs beyond the last real TOA.
+        K = 3
+        toas = base["toas"]
+        dt = toas[1] - toas[0]
+        extra_toas = toas[-1] + dt * np.arange(1, K + 1)
+        new_toas = np.concatenate([toas, extra_toas])
+        new_res = np.vstack([base["residuals"], np.zeros((K, npsr))])
+        new_err = np.vstack([base["errors"], base["errors"][:K]])
+        new_design = [
+            np.vstack([dm, np.zeros((K, dm.shape[1]))])
+            for dm in sample_pulsar_data["design_matrices"]
+        ]
+        new_mask = np.vstack([np.ones((nepoch, npsr)), np.zeros((K, npsr))])
+
+        data_ext = dict(sample_pulsar_data)
+        data_ext["processed_residuals"] = {
+            "toas": new_toas,
+            "residuals": new_res,
+            "errors": new_err,
+            "mask": new_mask,
+        }
+        data_ext["design_matrices"] = new_design
+        ll_ext = jax_kalman_filter.JaxKalmanFilter(
+            data=data_ext, use_gw=True
+        ).get_likelihood(params)
+
+        offset = 0.5 * (K * npsr) * np.log(2.0 * np.pi)
+        np.testing.assert_allclose(ll_ext + offset, ll_base, rtol=1e-8, atol=1e-6)
+
+    @patch("argus.io_manager.get_argus_logger")
+    def test_absent_pulsar_data_is_ignored(
+        self, mock_logger, sample_pulsar_data, sample_noise_parameters
+    ):
+        """The likelihood must not depend on a pulsar's data where it is masked absent.
+
+        This is the core end-to-end correctness property of the mask: a pulsar marked
+        absent at every epoch contributes no data-dependent information, so arbitrarily
+        changing its residuals (and errors) leaves the likelihood bit-for-bit unchanged.
+        """
+        mock_logger.return_value = Mock()
+
+        params = bayesian_inference.Parameters(
+            log10_gamma_a=-9.0,
+            γa=1e-9,
+            ha=1e-15,
+            γp=sample_noise_parameters["gamma_p"],
+            σp=sample_noise_parameters["sigma_p"],
+            EFAC=sample_noise_parameters["efac"],
+            EQUAD=sample_noise_parameters["equad"],
+        )
+
+        base = sample_pulsar_data["processed_residuals"]
+        nepoch, npsr = base["residuals"].shape
+        mask = np.ones((nepoch, npsr))
+        mask[:, 1] = 0.0  # pulsar 1 absent everywhere
+
+        def ll_with(res_col1, err_col1):
+            res = base["residuals"].copy()
+            err = base["errors"].copy()
+            res[:, 1] = res_col1
+            err[:, 1] = err_col1
+            data = dict(sample_pulsar_data)
+            data["processed_residuals"] = {
+                "toas": base["toas"],
+                "residuals": res,
+                "errors": err,
+                "mask": mask,
+            }
+            return jax_kalman_filter.JaxKalmanFilter(
+                data=data, use_gw=True
+            ).get_likelihood(params)
+
+        ll_a = ll_with(base["residuals"][:, 1], base["errors"][:, 1])
+        ll_b = ll_with(np.random.randn(nepoch) * 1e-3, np.full(nepoch, 5e-7))
+
+        assert jnp.array_equal(ll_a, ll_b)
+
+
+class TestMaskMarginalGuard:
+    """Backend resolution: masks are only supported on the sequential filter."""
+
+    @staticmethod
+    def _with_mask(sample_pulsar_data):
+        residuals = dict(sample_pulsar_data["processed_residuals"])
+        residuals["mask"] = np.ones_like(residuals["residuals"])
+        data = dict(sample_pulsar_data)
+        data["processed_residuals"] = residuals
+        return data
+
+    @patch("argus.io_manager.get_argus_logger")
+    def test_default_without_mask_is_marginal(self, mock_logger, sample_pulsar_data):
+        mock_logger.return_value = Mock()
+        kf = jax_kalman_filter.JaxKalmanFilter(data=sample_pulsar_data, use_gw=True)
+        assert kf.use_marginal is True
+
+    @patch("argus.io_manager.get_argus_logger")
+    def test_mask_falls_back_to_sequential(self, mock_logger, sample_pulsar_data):
+        """A mask with use_marginal unset must select the sequential filter."""
+        mock_logger.return_value = Mock()
+        kf = jax_kalman_filter.JaxKalmanFilter(
+            data=self._with_mask(sample_pulsar_data), use_gw=True
+        )
+        assert kf.use_marginal is False
+
+    @patch("argus.io_manager.get_argus_logger")
+    def test_explicit_marginal_with_mask_raises(self, mock_logger, sample_pulsar_data):
+        """Explicitly requesting the marginal filter with a mask is an error."""
+        mock_logger.return_value = Mock()
+        with pytest.raises(NotImplementedError, match="mask"):
+            jax_kalman_filter.JaxKalmanFilter(
+                data=self._with_mask(sample_pulsar_data),
+                use_gw=True,
+                use_marginal=True,
+            )
+
+
 class TestPrecomputeTransitionMatrices:
     """Tests for _precompute_transition_matrices function."""
 

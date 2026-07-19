@@ -163,11 +163,22 @@ class LoadWidebandPulsarData:
                 result_arrays.append(combined_df.to_numpy())
 
         # Return as a dictionary instead of tuple
-        return {
+        result = {
             "toas": result_arrays[0],  # average TOAs array
             "residuals": result_arrays[1],  # residuals array
             "errors": result_arrays[2],  # errors array
         }
+
+        # Optional per-epoch observation mask: 1.0 where a pulsar is observed at that
+        # epoch, 0.0 where it is absent (union-grid feathers carry it). Included only
+        # when every pulsar supplies one; otherwise the Kalman filter defaults to the
+        # all-observed behaviour, so intersection-aligned / MDC2 feathers are unchanged.
+        if all("mask" in df.columns for df in list_of_dfs):
+            result["mask"] = pd.concat(
+                [df["mask"] for df in list_of_dfs], axis=1
+            ).to_numpy()
+
+        return result
 
     @staticmethod
     def process_pulsar_residuals_per_pulsar(list_of_dfs):
@@ -531,7 +542,9 @@ class LoadWidebandPulsarData:
     # Feather cache (Argus-native; no enterprise/discovery dependency)
     # ------------------------------------------------------------------
 
-    def save_feather(self, path: str, F0: float | None = None) -> None:
+    def save_feather(
+        self, path: str, F0: float | None = None, mask: np.ndarray | None = None
+    ) -> None:
         """Serialize the raw pulsar inputs to an Argus feather cache file.
 
         Stores exactly the quantities consumed by :meth:`__init__` and
@@ -547,6 +560,11 @@ class LoadWidebandPulsarData:
         F0 : float, optional
             Pulsar spin frequency (Hz). If None, falls back to ``self.F0`` when
             present. Stored in metadata for downstream use.
+        mask : numpy.ndarray, optional
+            Per-epoch observation mask (1.0 observed, 0.0 absent), one entry per row.
+            Written for union-grid feathers so the joint GWB filter can skip epochs
+            where this pulsar has no data. Falls back to ``self.mask`` when present.
+            Omitted entirely when neither is set (the fully-observed default).
         """
         M = np.asarray(self.M_matrix)
         n_cols = M.shape[1]
@@ -558,6 +576,11 @@ class LoadWidebandPulsarData:
         }
         for i in range(n_cols):
             pydict[f"Mmat_{i}"] = M[:, i]
+
+        if mask is None:
+            mask = getattr(self, "mask", None)
+        if mask is not None:
+            pydict["mask"] = np.asarray(mask, dtype=float)
 
         if F0 is None:
             F0 = getattr(self, "F0", None)
@@ -624,6 +647,11 @@ class LoadWidebandPulsarData:
 
         obj = cls(ds_psr)
         obj.F0 = meta.get("F0")
+        # Optional per-epoch observation mask (union-grid feathers only).
+        if "mask" in table.column_names:
+            obj.mask = table.column("mask").to_numpy()
+        else:
+            obj.mask = None
         return obj
 
     @classmethod
@@ -667,6 +695,10 @@ class LoadWidebandPulsarData:
                 pulsar_df = pd.DataFrame(
                     {"toas": psr.toas, "residuals": psr.residuals, "error": psr.toaerrs}
                 )
+                # Carry the per-epoch observation mask through to epoch alignment when
+                # the feather supplied one (union-grid full-array feathers).
+                if getattr(psr, "mask", None) is not None:
+                    pulsar_df["mask"] = psr.mask
 
                 metadata_df = pd.DataFrame(
                     {
