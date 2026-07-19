@@ -1,5 +1,278 @@
 # Research log
 
+## 2026-07-18 — T3.5: full-68 NUTS ruled unsamplable; strategic pivot (full-array SGWB is a stepping stone)
+
+**Goal.** Fire the final full-68 convergence lever — keep the dense GW block, raise
+`target_accept_prob` 0.95→0.99 to suppress the 39% divergences from the previous run — and, per a
+pre-committed decision rule, either launch production if it converged or stop the full-array grind
+if it didn't. Framed by a pulse-check at the top of the session: the user reaffirmed that the
+full-array SGWB detection is a *stepping stone*, not the destination.
+
+**What was tried.** Edited `configs/ng15_config_full_qlblock.ini` (`target_accept_prob = 0.99`,
+dense block retained), submitted job 14360470 (4×A100, 500+500, `max_tree_depth=7`). It ran clean
+to COMPLETED in 22.5 h (94% of the 24 h walltime — brushed the cap as predicted but finished).
+Iteration speed stayed in the depth-7 band (55–78 s/it), so the depth-10 trajectory-stall risk did
+not recur. On completion read `numpyro_diagnostics/mcmc_diagnostics.txt` and computed per-chain
+stats directly from the `.nc`.
+
+**What was learned.** The 0.99 lever traded one pathology for a worse one. Divergences fell
+**39% → 1.8%** — but the chains **froze**: every parameter's within-chain sd = 0 (e.g. `log10_ha`
+per-chain means [−13.09, −12.84, −13.13, −12.65] with sd = [0,0,0,0]), r̂ ≈ **5.9e15**, ESS ≈ **4**
+uniformly across all 352 params. Diagnosis: pushing `target_accept` to 0.99 on this ill-conditioned
+geometry drove NUTS's dual-averaging step size toward zero, so nearly every proposal was a no-op —
+the sampler stopped moving, which trivially suppresses divergences (a frozen chain can't diverge).
+This is step-size collapse, not "needs more samples."
+
+**Decisions / dead ends.** **Full-joint NUTS is now ruled UNSAMPLABLE on the 68-pulsar geometry.**
+Three levers triangulate it: diagonal mass → ridge (r̂≈18); dense block @0.95 → 39% divergences
+(curvature overshoot); dense block @0.99 → frozen chains (step-size collapse). Low accept →
+divergences; high accept → no mixing; **no `target_accept` threads the needle** at ~142-D with the
+h_a↔γ_a ridge + short-baseline hierarchical funnel. Fixing it would need a *different formulation*
+(marginalize per-pulsar red noise à la enterprise, or a different sampler) — real research work.
+Per the stepping-stone framing, that is not worth it: the 6-psr amplitude (T3.3) + 6-psr HD-vs-CURN
+lnB=+2.1 (T3.4) already validate that Argus recovers the signal, and this also drops the
+evidence-at-scale problem (Savage-Dickey/product-space) off the critical path.
+
+**Open threads.** One decision deferred to the user: (a) run a converged long-baseline subset
+(~30–40 psr ≥8 yr, ~1 day) as a stronger validation before pivoting, vs. (b) declare validation
+done now on the 6-psr results. Either way the next real direction is the *differentiator* — joint
+CW+SGWB, non-stationarity, or online/real-time inference — where the state-space formulation is the
+actual nugget. Session closed by writing up the branch for a PR (honest framing: validated pipeline
++ two real-data results + a documented full-array sampling limitation).
+
+## 2026-07-16 — T3.5: dense-mass GW block vs the h_a↔γ_a ridge (PARTIAL — linear fix works, curvature/funnel remains)
+
+**Goal.** Fix the full-array (68-pulsar) NG15 SGWB convergence failure — the quick-look run's
+`log10_ha↔log10_gamma_a` ridge left r̂≈18.6, min ESS≈4 — *before* committing ~3 days of 4×A100,
+by decorrelating the GW corner with a per-block dense mass matrix (the notes' "try first" lever).
+
+**What was tried.**
+1. Wrote `scripts/diagnose_gw_ridge.py` (read-only) on the existing quick-look `.nc`: confirmed one
+   outlier chain (chain 1 at `log10_ha` −12.65 vs −13.41), a **clean linear ridge** (corr +0.75),
+   and that every high-r̂ `log10_σp` followed that same chain (fraction 1.00) → one problem.
+2. Added a `dense_mass_blocks` config key parsed in `bayesian_inference.setup_nuts_kernel`
+   (list-of-tuples → NumPyro per-block dense mass; boolean `dense_mass` still works). 7 tests pass
+   incl. golden likelihood 63618.93 intact. A tiny CPU probe confirmed NumPyro accepts
+   `dense_mass=[('log10_ha_prime','log10_gamma_a_prime')]` end-to-end on the real model.
+3. Ran the convergence check (job 14302678, `ng15_full_qlblock`, 4×A100, 500+500, 18.7 h).
+
+**What was learned.** The dense block did exactly its job on the *linear* problem: corr **+0.75 →
++0.14**, `log10_ha` r̂ **9.8 → 1.9**, ESS **4 → 44**, max r̂ **18.6 → 2.3**. **But divergences
+EXPLODED 3% → 39%** (777/2000), concentrated in **one stuck chain (chain 1: 482/500 = 96%
+divergent**; others 67/43/185). Divergence-location analysis (`scratchpad/divloc.py`) showed the
+residual tracks **curvature + a mild hierarchical funnel** (weak signatures in `log10_ratio_std`
+low-end / `log10_gamma_p_std` high-end), NOT linear correlation. Whitening the ridge let NUTS take
+bigger steps that overshoot the *curved* OU band-amplitude/shape degeneracy → the divergence blow-up.
+
+**Decisions / dead ends.** **A hand-rolled linear rotation reparam is now RULED OUT** — it is
+mathematically equivalent to the dense block just run, so it would reproduce the same 39%
+divergences. The linear fix is exhausted; the remainder is genuinely nonlinear/curvature + funnel.
+
+**Open threads.** Next lever (not started): cheapest = keep the block + raise `target_accept_prob`
+0.95 → 0.99 (config-only, attacks curvature/funnel divergences directly). Principled = a *nonlinear*
+GW reparam to (band-amplitude, shape) coords in `sample_gw_parameters`. Pragmatic hedge =
+long-baseline subset (~30–40 psr ≥8 yr) — the funnel/stuck chain likely lives in the short-baseline
+pulsars; smaller nx, ~1 day. All code changes uncommitted on `t3.5-full-array` (worktree).
+
+## 2026-07-12 — T3.4: HD-vs-CURN Bayes factor (PASS — lnB=+2.1, method-proving, not a detection)
+
+**Goal.** Execute Stage-3 T3.4: get the Bayes factor between HD (Hellings-Downs
+correlated SGWB) and CURN (common uncorrelated red noise, identity ORF) on the real
+6-pulsar NG15 subset, by reusing the NUTS posteriors (nested sampling stays parked).
+
+**What was tried.** Built a self-contained learned-harmonic-mean (LHM) logZ estimator
+(`scripts/logz_lhm.py`, CPU-only, arviz/numpy/scipy — deliberately no `harmonic`
+dependency to avoid the pinned-jax 0.4.38 fragility). A pre-planning Explore + Plan pass
+surfaced the enabling discovery: the `.nc` files already store the per-draw
+`log_likelihood` group *and* the unit-Gaussian latent sites (`*_prime`/`*_raw`), and NUTS
+shares the same `numpyro_model` as the blackjax NS engine — so logZ is pure post-processing
+in the latent space and directly comparable to the NS anchor, with no Kalman re-eval.
+Target φ = shrunk full-covariance Gaussian on a train fold, estimate on a disjoint test
+fold, shrinkage sweep + 2-fold swap as reliability probes. For the CURN run, `run_curn.py`
+monkeypatches the data loader to replace `data["hd_correlation"]` with the identity at
+runtime (no library edit; verified HD diagonal = 1, so identity is the correct CURN).
+Launched CURN as a 4×A100 SLURM job cloned from the T3.3 production script.
+
+**What was learned.**
+- **Both validation gates passed.** GATE: LHM reproduced the trusted 2-D MDC2 NS anchor
+  63780.97±0.16 → got 63781.09±0.02 (Δ+0.11, within 3σ), flat shrinkage plateau. Route-B
+  correctness check (needed because the 2-D anchor can't exercise the 18-D extraction):
+  reconstructed `log_density` matched `logprior+loglik` to <5e-7 across all 4 chains.
+- **Result: HD favoured, lnB = +2.1 ± 0.1** (odds ≈8:1, Kass–Raftery "positive", NOT
+  decisive). At the posterior median HD also fits +4.3 nat better than CURN. CURN converged
+  cleanly (r_hat 1.002, 0.03% div) and recovers log10_ha=-13.99±0.74 — broader/lower than
+  HD's -13.40±0.20, sensible since without cross-correlations more power goes to per-pulsar
+  noise.
+- **The matched-shrinkage trick is what makes lnB trustworthy.** Per-model 18-D LHM has low
+  importance-sampling ESS (~4%, vs ~90% at 2-D — the dimensionality curse showing up early).
+  But 16 of 18 dims (red-noise + hierarchical) are shared between HD and CURN, so at *matched*
+  shrinkage the difficulty cancels: lnB is stable across s=0.6–0.9 (2.16, 2.24, 2.10, 1.92)
+  and ~2.5× tighter than either absolute logZ. Upgraded `logz_lhm.py --compare-to` to report
+  lnB from the matched-shrinkage plateau and auto-exclude degenerate low-shrink values.
+
+**Decisions / dead ends.** Scope fixed to HD-vs-CURN only (CURN-vs-noise deferred). The TI
+fallback was not needed (gate passed). Confirmed the "identity ORF" is physically the correct
+CURN (not just a convenient stand-in) because the HD self-correlation is exactly 1. An early
+dry-likelihood check misleadingly showed HD==CURN — that was because the test noise params sat
+in a GW-negligible regime (LL≈-1340); at the real posterior median (LL≈+6490) the ORF matters
+(+4.3 nat), confirming the override is live.
+
+**Open threads.** The evidence estimator will not survive the jump to the full array (~150-D):
+LHM's shrunk-Gaussian target can't contain that posterior (ESS already cratering 2D→18D).
+Tom flagged Savage-Dickey as the PTA-recommended route; discussed that SD sidesteps the
+evidence integral (high-D-friendly) but needs *nested* models — HD-vs-CURN would need a
+reparameterized ORF (Γ=(1-ε)I+εΓ_HD, SD at ε=0), while CURN-vs-noise is a free SD from the
+existing posterior. Product-space / hypermodel sampling is the non-nested alternative. To be
+worked out in detail as its own task before/alongside T3.5.
+
+## 2026-07-11 — T3.3: real-data NG15 SGWB subset run (PASS — amplitude recovered, not a detection)
+
+**Goal.** Execute Stage-3 T3.3: run the committed production config on the REAL epoch-aligned
+NG15 6-pulsar subset and verify convergence + amplitude recovery against the published SGWB.
+
+**What was tried.** T3.3 was pure execution — T3.1 (config) and T3.2 (SLURM script) were already
+committed. Pre-flight (6 aligned feathers present, milan-gpu up, `sbatch --test-only` schedules),
+then submitted `slurm_scripts/ng15_production_run.sh` (job 14108726, 4×A100). Queued ~behind a
+higher-priority 6-node job; ran on gina14 once a slot backfilled. Monitored via a persistent
+squeue/log monitor; env pre-flight confirmed the load-bearing bits — `argus.model` resolves to
+the worktree checkout and the q11 fix is live (`uses γ**2: True`), 4 CUDA devices. While it ran,
+built the verification tooling: extended `scripts/compare_ou_recovery.py` with a `--published`
+mode (the real run has no injection-truth sidecar, so it band-references the recovered OU
+amplitude against the published NG15 power law instead — computes T_span from the feathers,
+reports bias/σ + HDI overlap at f=1/(5yr) and 1/yr vs BOTH refs: fixed γ=13/3 log10_A=-14.6 and
+free-γ 3.2 log10_A=-14.19).
+
+**What was learned.** Run completed in 70m49s (GPU 85.6% avg). Convergence was *better* than the
+T2.4 hi-res confirm: max r_hat 1.003, log10_ha ESS 2434, only **4 divergences/8000 (0.05%)** vs
+~50 at confirm — target_accept=0.95 did its job. Recovered `log10_ha = -13.40 ± 0.20`, tight,
+off both prior edges (2.4 dex clear of the -11 top); log10_gamma_a = -7.73, not railed. Band
+amplitude is consistent with the fixed-γ=13/3 published SGWB to <1σ at both pivots (-0.09σ at
+1/yr — essentially exact; -0.86σ at 1/(5yr)); log10_ha brackets the T2.4-mapped published -13.5
+to ~0.5σ. Bonus consistency check: the fixed-γ=13/3 published PSD at 1/(5yr) (-5.747) equals the
+Stage-2 injection's `log10_psd_injected` — the injection was at the same SMBHB amplitude, so the
+comparison sits on validated footing. Corner plot rendered fine (the old low-dim
+`utils.corner_plot` "range not valid" bug did not bite this run).
+
+**Decisions / dead ends.** Framed the result honestly (via scientific-critical-thinking): this is
+**amplitude recovery / end-to-end method validation on real data, NOT a detection.** The run
+*fixed* HD in the model rather than testing it, computed no HD-vs-CURN or signal-vs-noise Bayes
+factor, and 6 pulsars (15 pairs) is far short of NANOGrav's 67 (2211 pairs). A well-constrained
+off-rails amplitude posterior under an assumed HD model ≠ evidence for the quadrupolar
+correlation. The strict 94%-HDI-overlap flag reads False at 1/(5yr) only because the log-PSD core
+is tight (published value 0.055 dex outside a narrow HDI) — a sub-σ miss, reported as such.
+
+**Open threads.** T3.4 (HD-vs-CURN contrast) is the actual detection test — rerun with
+`data["hd_correlation"]` overridden to identity (diagnostic-script override, no library edit),
+Bayes factor via NUTS + posterior-reuse (learned harmonic mean first, validated against the MDC2
+anchor logZ=63780; NS parked). Honesty flag stands: a decisive HD factor likely needs the full
+array (T3.5); on 6 pulsars expect a weak factor / upper limit. Picking up T3.4 next session.
+
+## 2026-07-10 — T2.6: blackjax nested-sampling GWB evidence engine (PASS)
+
+**Goal.** Build the kill-gated T2.6 spike — a JAX-native nested sampler behind the
+`run_nested_sampling` GWB stub — to get Bayesian evidence (logZ) and decide whether it can
+unlock the HD-vs-CURN Bayes factor (T3.4). Was NUTS-only ⇒ no evidence ⇒ "RISK B" ceiling.
+
+**What was tried.** Resolved deps first: `blackjax.nss` (nested slice sampling, Yallup et al.
+2026) is absent from the PyPI wheels (1.4/1.5) but present in blackjax-devs `main`. Installed
+`blackjax 1.6.dev --no-deps` into the `Argus` env, keeping jax pinned at 0.4.38 — the `jax>=0.9`
+requirement is only for other blackjax modules; the NS code uses long-stable APIs. One shim needed
+(`jax.shard_map = jax.experimental.shard_map.shard_map`) because the blackjax package `__init__`
+(via `eca.py`) imports the top-level `jax.shard_map` promoted only in jax≥0.5. Argus imports
+blackjax nowhere else ⇒ zero blast radius. Implemented `run_blackjax_nested_sampling` +
+`_blackjax_ns_evidence` + `_import_blackjax_ns` in `bayesian_inference.py`, dispatched via
+`sampler=blackjax` in `workflow.py`. Key simplification: every free `numpyro.sample` site in the
+GWB model is `Normal(0,1)` (physical params are `deterministic` transforms), so the NS prior is an
+isotropic unit Gaussian — Jacobian-free — and the likelihood is `numpyro.log_density(model) −
+unit_normal_logprior`, reusing the model with no transform re-implementation. Validated in three
+gates: analytic Gaussian logZ (d=2,5,15); then the GWB likelihood on GPU (A100) — the venue, since
+the joint 32-pulsar Kalman likelihood is ~5 s/eval on CPU but 0.075 s on GPU.
+
+**What was learned.** All three gates pass. On MDC2 dataset_2b (noise fixed → 2 free GW params,
+which has a NUTS baseline) the NS posterior reproduces NUTS *exactly* — log10_ha −12.880±0.050 vs
+−12.881±0.046, log10_gamma_a −8.106±0.131 vs −8.081±0.125 — and returns logZ=63781±0.2 (NUTS gives
+none). Three real issues surfaced only by running it: (1) a numerical pathology — free slice
+exploration reaches a latent-tail region where the Kalman innovation covariance is near-singular,
+giving a spurious ~2.2e6 log-likelihood that a 33×33 grid probe localised to |z|=6.5 (outside a 6σ
+box); fixed with a bounded 6σ latent prior (evidence unchanged, ~2e-9/dim mass loss) + non-finite
+guard. (2) The termination guard `i > n_live` forced ≥500 steps under batch deletion (bug); fixed
+to `i > 1`. (3) Posterior extraction OOM'd the 80 GB A100 (~106 GB) because `to_physical` traces
+the full model (runs the likelihood) and `jax.vmap` over thousands of draws materialised all
+intermediates; fixed with sequential `jax.lax.map`. Confirmed from source that `blackjax.nss` is
+vectorised — the inner slice kernel is `jax.vmap`-ed over `num_delete` particles
+(`blackjax/ns/from_mcmc.py:108`), so the GPU-batch width *is* `num_delete`: `num_delete=1` ran
+serial (>2 h, unfinished), `num_delete=25` hit 95% GPU util.
+
+**Decisions / dead ends.** Env: installed into the shared `Argus` env in-place (user's call) but
+`--no-deps` so nothing cascaded; the feared jax 0.10 upgrade was avoided entirely. Validation
+target: had to substitute MDC2 for the task's preferred OU-injected synthetic — the OU feathers are
+gitignored and unrecoverable (no raw feathers anywhere; the ingest step needs `enterprise` and
+isn't a committed workflow script). MDC2 gives an exact NUTS cross-check, so the substitution is
+sound. The 2-D MDC2 problem is *not* representative of cost on the real ~15–20-D hierarchical model.
+
+**Open threads.** (1) NS cost scaling with dimension D, N_pulsars, and (num_live, num_delete,
+num_inner_steps) — flagged by Tom as required before committing NS to T3.4; slice-NS scales worse
+with D than gradient NUTS. (2) `utils.corner_plot` errors on 2-param GWB posteriors ("range not
+valid") — the workflow's built-in per-run corner plot failed, worked around by plotting from the
+saved `.nc`. (3) Timing: NS ~23 min sampling / ~27 min total vs NUTS ~5/~13 on the 2-D MDC2 problem
+at num_delete=25 (not cost-tuned) — widening num_delete is the lever.
+
+## 2026-07-08 — SGWB injector (T2.1), a get_Q_block bug, and MDC2 GPU re-validation (T0.1)
+
+**Goal.** Build the Stage-2 GWB injector (`workflows/ng15_sgwb_demo`, T2.1): inject a
+synthetic HD-correlated SGWB into the epoch-aligned NG15 feathers to de-risk the central
+question — can Argus's single-corner OU recovery absorb a true power-law GWB without biasing
+the amplitude?
+
+**What was tried.** Designed `scripts/inject_powerlaw_gwb.py` (CPU, numpy-only) with two
+modes: `powerlaw` (true `f^-13/3` via a frequency-domain Fourier-sum GP, enterprise PSD
+convention) and `ou` (forward-sim of Argus's own OU generative model as the self-consistent
+control). Both replace residuals with pure-synthetic signal on the real geometry, keep all
+other feather fields, add fixed-value white noise, and record injected truth (PSD at the
+Fourier freqs + pivot amplitudes) for a shape-agnostic comparison. Framing agreed with the
+user first: neither power-law nor OU is "the truth"; a PTA only constrains ~1 decade of
+frequency, so the robust observable is the band-referenced amplitude, not the spectral index.
+
+Building the OU control exposed a bug: its residuals came out ~500× larger than the
+power-law injection (75–294 µs vs 200–520 ns). Traced to `python/argus/model.py`
+`get_Q_block`: the integrated-OU **position** process-noise `q11` was divided by `γ**3`
+instead of `γ**2`, inflating it by exactly `1/γ` (~1e9 at PTA `γ~1e-9`). Confirmed against the
+exact integral `∫₀^dt[(1-e^{-γτ})/γ]²dτ` three ways (series, quadrature, `dt³/3` limit);
+`q12`/`q22` were correct. Fixed on an isolated branch `fix-qblock-q11-normalization` (PR #101
+to `main`), merged into `ng15-sgwb-demo`; added regression tests and bumped the MDC2 golden
+log-likelihood (55963.86→63618.93). With the corrected `q_block`, the OU control naturally
+matched the power-law RMS at the default `log10_ha=-14.35`.
+
+Then re-validated on GPU (T0.1): a lite MDC2 GWB+HD+NUTS run (only `log10_ha`/`log10_gamma_a`
+sampled; red+white noise fixed). Took four SLURM submissions to get a valid run.
+
+**What was learned.** The fix is confirmed on GPU: likelihood 63618.81, 0 divergences,
+`r_hat` 1.00–1.01, robust interior posterior `log10_ha≈-12.88`, `log10_gamma_a≈-8.08` (narrow
+and widened priors agree → genuine mode, not a runaway). Crucially, the recovered amplitude
+shifted from the buggy run's −15.5 to −12.88 because the fix changes the `ha`→residual-amplitude
+scaling: r-noise is now `∝ ha²·γa` (was `∝ ha²`, `γa` cancelled). This is exactly the
+`(ha,γa)`↔physical-amplitude mapping the PLAN said Stage 2 must establish — the bug had been
+corrupting it. Consequence: all Stage-2/3 `log10_ha` priors must re-centre to ~−12…−13.
+
+**Decisions / dead ends.** (1) First SLURM job failed instantly (0% resource, 63 s) — `set -e`
+aborts on the benign non-zero return from `~/.bashrc`/conda-init before any output; removed it
+(existing example scripts omit it too). (2) `milan-gpu` briefly flapped `PartitionDown`; a
+`--partition=milan-c` override was silently ignored (site GPU-routing forces `milan-gpu`), but
+it came back up. (3) The first "COMPLETED" run was a FALSE PASS: it printed the *old* likelihood
+55963.87 because `argus` is pip-installed **editable** pointing at the main checkout
+`/fred/oz022/tkimpson/Argus` (no fix), and `run_analysis.py` only `sys.path.append`s the repo
+`python/` dir — the append loses to the editable install. So GPU runs silently ignore
+treehouse-worktree edits. Worked around with `export PYTHONPATH=<worktree>/python` (prepends) +
+a log line proving `argus.model.__file__` and the q11 divisor. This contradicts PLAN §3's
+"Argus is not pip-installed" claim (to be corrected). The clean long-term fix is merging PR #101
+so the editable target serves the fix.
+
+**Open threads.** PR #101 awaiting merge. Next task T2.2 (lite injection-recovery config →
+`data/inject_powerlaw`/`data/inject_ou`) needs the re-centred `log10_ha` prior and, until #101
+merges, the PYTHONPATH hack in its SLURM script. Then T2.3/T2.4 are the actual OU-vs-power-law
+decision gate. The injector's red-noise mode is built but off by default (needs per-pulsar
+γp/σp, not in `ng15_psr_noise.json`).
+
 ## 2026-06-09 — /simplify pass on the CW inference PR (quality only, behavior-preserving)
 
 **Goal.** Reduce duplication/complexity in the continuous-waves branch's CW additions
