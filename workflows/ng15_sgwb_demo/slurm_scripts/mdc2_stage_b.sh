@@ -16,10 +16,12 @@
 # The OzSTAR job_submit plugin canonicalizes any GPU request to milan-gpu; if
 # milan-gpu is down, GPU jobs queue until it returns (milan-c has no GPU route).
 #SBATCH --partition=milan-gpu
-#SBATCH --gres=gpu:1
-#SBATCH --time=2:00:00
-#SBATCH --mem=16G
-#SBATCH --cpus-per-task=4
+# 4 GPUs matched to num_chains=4 so chains run in parallel (sequential chains
+# on 1 GPU timed out the first Stage A array — see mdc2_stage_a.sh).
+#SBATCH --gres=gpu:4
+#SBATCH --time=4:00:00
+#SBATCH --mem=32G
+#SBATCH --cpus-per-task=8
 #SBATCH --export=ALL
 #SBATCH --chdir=/home/tkimpson/.treehouse/Argus-891104/1/Argus/workflows/ng15_sgwb_demo
 #SBATCH --output=/home/tkimpson/.treehouse/Argus-891104/1/Argus/workflows/ng15_sgwb_demo/outputs/logfiles/mdc2_stage_b_%j.out

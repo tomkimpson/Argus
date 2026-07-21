@@ -17,8 +17,11 @@
 # The OzSTAR job_submit plugin canonicalizes any GPU request to milan-gpu; if
 # milan-gpu is down, GPU jobs queue until it returns (milan-c has no GPU route).
 #SBATCH --partition=milan-gpu
-#SBATCH --gres=gpu:1
-#SBATCH --time=8:00:00
+# 4 GPUs matched to num_chains=4 so chains run in parallel. Walltime sized
+# generously: 68-D at depth 8 could reach ~2^8 leapfrog steps/iter; the 68-psr
+# quicklook (142-D, depth 7) ran ~80 s/iter, and this filter is ~4x cheaper.
+#SBATCH --gres=gpu:4
+#SBATCH --time=24:00:00
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=8
 #SBATCH --export=ALL
