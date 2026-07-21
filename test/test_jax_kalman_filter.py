@@ -239,9 +239,7 @@ class TestMaskedUpdate:
         z = jnp.array([0.1, 0.2])
 
         x0, P0, y0, S0 = jax_kalman_filter._update(xp, Pp, H, R, z)
-        x1, P1, y1, S1 = jax_kalman_filter._update(
-            xp, Pp, H, R, z, mask=jnp.ones(2)
-        )
+        x1, P1, y1, S1 = jax_kalman_filter._update(xp, Pp, H, R, z, mask=jnp.ones(2))
 
         assert jnp.array_equal(x0, x1)
         assert jnp.array_equal(P0, P1)

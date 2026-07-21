@@ -14,6 +14,7 @@ path, so logZ_HD and logZ_CURN are comparable term-for-term.
 Point it at a config whose output_id is distinct from the HD run (ng15_curn):
     python run_curn.py configs/ng15_curn_config.ini
 """
+
 import os
 import sys
 import argparse
@@ -61,7 +62,9 @@ def main():
     print("=== NG15 SGWB WORKFLOW (CURN — identity ORF) ===")
     print(f"JAX version: {jax.__version__}")
     print("Default device:", jax.default_backend())
-    print("Note: HD correlation replaced by identity => common UNCORRELATED red noise.\n")
+    print(
+        "Note: HD correlation replaced by identity => common UNCORRELATED red noise.\n"
+    )
 
     utils.check_gpu_availability()
     _install_curn_override()

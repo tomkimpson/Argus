@@ -20,6 +20,7 @@ Defaults target the quick-look run. Outputs:
   <outdir>/ridge_scatter.png               (log10_ha vs log10_gamma_a, colored by chain)
   <outdir>/gw_traces.png                    (per-chain traces of the two GW params)
 """
+
 import argparse
 import json
 import os
@@ -49,7 +50,9 @@ def _chain_draw(idata, name):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--nc", default=DEFAULT_NC, help="InferenceData .nc file to diagnose")
+    ap.add_argument(
+        "--nc", default=DEFAULT_NC, help="InferenceData .nc file to diagnose"
+    )
     ap.add_argument("--outdir", default=DEFAULT_OUTDIR, help="output directory")
     args = ap.parse_args()
 
@@ -112,7 +115,9 @@ def main():
         # per-chain, per-pulsar means: (chain, n_pulsar)
         sp_chain_mean = sp.mean(axis=1)
         # For each pulsar, is the log10_ha outlier chain also the sigma_p outlier chain?
-        tail = list(range(max(0, n_psr - 5), n_psr))  # last 5 (the sigma_p[63..67] seen)
+        tail = list(
+            range(max(0, n_psr - 5), n_psr)
+        )  # last 5 (the sigma_p[63..67] seen)
         agree = []
         for p in tail:
             col = sp_chain_mean[:, p]
@@ -160,8 +165,11 @@ def main():
     fig, axscat = plt.subplots(figsize=(6, 5))
     for c in range(n_chain):
         axscat.scatter(
-            ha[c], ga[c], s=4, alpha=0.35, label=f"chain {c}"
-            + (" (outlier)" if c == outlier_chain else ""),
+            ha[c],
+            ga[c],
+            s=4,
+            alpha=0.35,
+            label=f"chain {c}" + (" (outlier)" if c == outlier_chain else ""),
         )
     axscat.set_xlabel("log10_ha")
     axscat.set_ylabel("log10_gamma_a")

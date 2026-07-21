@@ -238,9 +238,7 @@ class TestSetupNutsKernel:
         _, nuts_info = bayesian_inference.setup_nuts_kernel(
             self._gw_prior_specs(), n_pulsars=2, config=mock_config
         )
-        assert nuts_info["dense_mass"] == [
-            ("log10_ha_prime", "log10_gamma_a_prime")
-        ]
+        assert nuts_info["dense_mass"] == [("log10_ha_prime", "log10_gamma_a_prime")]
 
     @patch("argus.parameter_sampling.count_free_parameters")
     def test_dense_mass_blocks_multiple_groups(self, mock_count, mock_config):

@@ -158,7 +158,9 @@ def ingest(
                 continue
 
             psr.save_feather(out_path, F0=f0)
-            drop_note = f", dropped {len(dropped)} zero cols {dropped}" if dropped else ""
+            drop_note = (
+                f", dropped {len(dropped)} zero cols {dropped}" if dropped else ""
+            )
             print(
                 f"[{i + 1}/{len(pairs)}] {psr.name}: "
                 f"{len(psr.toas)} TOAs, F0={f0}{drop_note} -> {out_path}"

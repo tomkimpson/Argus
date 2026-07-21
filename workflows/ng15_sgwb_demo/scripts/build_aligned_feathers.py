@@ -422,8 +422,10 @@ def process_all(pulsars, cadence_days, grid="intersection"):
                 "for this subset/cadence. Consider --grid union. ***"
             )
         if nepoch != EXPECTED_JOINT_EPOCHS:
-            print(f"  WARNING: expected {EXPECTED_JOINT_EPOCHS} joint epochs (T1.4), "
-                  f"got {nepoch} -- grid inputs may have changed.")
+            print(
+                f"  WARNING: expected {EXPECTED_JOINT_EPOCHS} joint epochs (T1.4), "
+                f"got {nepoch} -- grid inputs may have changed."
+            )
     print()
 
     built = []
@@ -438,8 +440,11 @@ def process_all(pulsars, cadence_days, grid="intersection"):
             np.asarray(pulsar.M_matrix, dtype=float), pulsar.fitpars
         )
         reduced = types.SimpleNamespace(
-            toas=pulsar.toas, residuals=pulsar.residuals, toaerrs=pulsar.toaerrs,
-            M_matrix=M0, name=pulsar.name,
+            toas=pulsar.toas,
+            residuals=pulsar.residuals,
+            toaerrs=pulsar.toaerrs,
+            M_matrix=M0,
+            name=pulsar.name,
         )
         if grid == "union":
             toas_b, res_b, err_b, M_b, mask_b = bin_pulsar_union(
@@ -476,22 +481,24 @@ def process_all(pulsars, cadence_days, grid="intersection"):
         cond_flag = "  (STIFF)" if cond > COND_WARN_THRESHOLD else ""
 
         built.append((obj, getattr(pulsar, "F0", None)))
-        rows.append({
-            "name": pulsar.name,
-            "n_toas_orig": n_toas_orig,
-            "nepoch": nepoch,
-            "n_present": n_present,
-            "n_toas_dropped": n_dropped_toas,
-            "n_cols_orig": n_cols_orig,
-            "n_dmx": n_dmx,
-            "n_zero": n_zero,
-            "n_cols_final": n_cols_final,
-            "peps_finite": True,
-            "cond": cond,
-            "cond_flag": cond_flag,
-            "err_min": float(err_b.min()),
-            "err_med": float(np.median(err_b)),
-        })
+        rows.append(
+            {
+                "name": pulsar.name,
+                "n_toas_orig": n_toas_orig,
+                "nepoch": nepoch,
+                "n_present": n_present,
+                "n_toas_dropped": n_dropped_toas,
+                "n_cols_orig": n_cols_orig,
+                "n_dmx": n_dmx,
+                "n_zero": n_zero,
+                "n_cols_final": n_cols_final,
+                "peps_finite": True,
+                "cond": cond,
+                "cond_flag": cond_flag,
+                "err_min": float(err_b.min()),
+                "err_med": float(np.median(err_b)),
+            }
+        )
     return built, rows
 
 
@@ -501,9 +508,7 @@ def write_aligned(built, out_dir, overwrite):
     for obj, f0 in built:
         path = os.path.join(out_dir, f"{obj.name}.feather")
         if os.path.exists(path) and not overwrite:
-            raise SystemExit(
-                f"*** {path} exists; pass --overwrite to replace it. ***"
-            )
+            raise SystemExit(f"*** {path} exists; pass --overwrite to replace it. ***")
         obj.save_feather(path, F0=f0)
         print(f"  wrote {path}")
 
@@ -524,7 +529,9 @@ def verify(out_dir, n_pulsars):
     assert toas.shape == (nepoch,), f"toas shape {toas.shape}"
     assert hd.shape == (n_pulsars, n_pulsars), f"hd shape {hd.shape}"
     assert np.allclose(np.diag(hd), 1.0), "HD diagonal is not unit"
-    assert np.all(np.isfinite(res)) and np.all(np.isfinite(errs)), "non-finite residuals/errors"
+    assert np.all(np.isfinite(res)) and np.all(
+        np.isfinite(errs)
+    ), "non-finite residuals/errors"
 
     mask_msg = ""
     if "mask" in pr:
@@ -534,9 +541,11 @@ def verify(out_dir, n_pulsars):
         frac = float(mask.mean())
         mask_msg = f", mask {mask.shape} ({frac*100:.0f}% cells present)"
 
-    print(f"  OK: residuals {res.shape}, errors {errs.shape}, toas {toas.shape}, "
-          f"HD {hd.shape} (unit diagonal){mask_msg}. "
-          "process_pulsar_residuals_by_epoch no longer raises.")
+    print(
+        f"  OK: residuals {res.shape}, errors {errs.shape}, toas {toas.shape}, "
+        f"HD {hd.shape} (unit diagonal){mask_msg}. "
+        "process_pulsar_residuals_by_epoch no longer raises."
+    )
 
 
 def print_summary(rows):

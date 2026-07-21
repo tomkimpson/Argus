@@ -102,10 +102,10 @@ def parse_backend_params(pars_path, psr):
         if not name.startswith(prefix):
             continue
         if name.endswith(EFAC_SUFFIX):
-            flag = name[len(prefix):-len(EFAC_SUFFIX)]
+            flag = name[len(prefix) : -len(EFAC_SUFFIX)]
             backends[flag]["efac"] = idx
         elif name.endswith(EQUAD_SUFFIX):
-            flag = name[len(prefix):-len(EQUAD_SUFFIX)]
+            flag = name[len(prefix) : -len(EQUAD_SUFFIX)]
             backends[flag]["equad"] = idx
         # dmefac / log10_dmequad / red_noise_* are intentionally ignored.
 
@@ -156,15 +156,13 @@ def reduce_pulsar(psr, noise_dir, tim_dir, burn_in):
     flags = sorted(backends)
     efacs = np.array([np.median(chain[:, backends[f]["efac"]]) for f in flags])
     # log10 t2equad posterior median, then delog to seconds.
-    equads = np.array(
-        [10 ** np.median(chain[:, backends[f]["equad"]]) for f in flags]
-    )
+    equads = np.array([10 ** np.median(chain[:, backends[f]["equad"]]) for f in flags])
     weights = np.array([float(toa_counts.get(f, 0)) for f in flags])
     if weights.sum() == 0:
         weights = np.ones_like(weights)  # fall back to equal weights
 
     efac_eff = float(np.average(efacs, weights=weights))
-    equad_eff = float(np.sqrt(np.average(equads ** 2, weights=weights)))
+    equad_eff = float(np.sqrt(np.average(equads**2, weights=weights)))
     log10_equad_eff = float(np.log10(equad_eff))
 
     detail = {
@@ -182,12 +180,16 @@ def build_noise_json(feather_dir, noise_dir, tim_dir, burn_in):
     """Return an ordered {psr: {"efac", "equad"}} dict + per-pulsar details."""
     psrs = pulsars_from_feathers(feather_dir)
     if not psrs:
-        raise FileNotFoundError(f"no *.feather in {feather_dir}; run ingest first (T1.3)")
+        raise FileNotFoundError(
+            f"no *.feather in {feather_dir}; run ingest first (T1.3)"
+        )
 
     noise = collections.OrderedDict()
     details = collections.OrderedDict()
     for psr in psrs:  # already in sorted-feather (== loader) order
-        efac_eff, log10_equad_eff, detail = reduce_pulsar(psr, noise_dir, tim_dir, burn_in)
+        efac_eff, log10_equad_eff, detail = reduce_pulsar(
+            psr, noise_dir, tim_dir, burn_in
+        )
         noise[psr] = {"efac": efac_eff, "equad": log10_equad_eff}
         details[psr] = detail
     return noise, details
@@ -195,7 +197,11 @@ def build_noise_json(feather_dir, noise_dir, tim_dir, burn_in):
 
 def print_summary(noise, details):
     """Print a per-pulsar table and warn on out-of-range effective values."""
-    print("\n{:<12} {:>4} {:>10} {:>14}".format("pulsar", "nbe", "efac_eff", "log10_equad"))
+    print(
+        "\n{:<12} {:>4} {:>10} {:>14}".format(
+            "pulsar", "nbe", "efac_eff", "log10_equad"
+        )
+    )
     print("-" * 44)
     for psr, params in noise.items():
         efac, log10_equad = params["efac"], params["equad"]
@@ -212,18 +218,33 @@ def print_summary(noise, details):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("--noise-dir", default=DEFAULT_NOISE_DIR,
-                        help="NG15 wideband noise/ dir (pars.txt + chain_1.txt)")
-    parser.add_argument("--tim-dir", default=DEFAULT_TIM_DIR,
-                        help="NG15 wideband tim/ dir (for per-backend TOA-count weights)")
-    parser.add_argument("--feather-dir", default=DEFAULT_FEATHER_DIR,
-                        help="Ingested feather dir; sets the pulsar list and order")
-    parser.add_argument("--output", default=DEFAULT_OUTPUT,
-                        help="Output JSON path")
-    parser.add_argument("--burn-in", type=float, default=0.25,
-                        help="Fraction of each chain to discard as burn-in")
-    parser.add_argument("--overwrite", action="store_true",
-                        help="Overwrite the output JSON if it already exists")
+    parser.add_argument(
+        "--noise-dir",
+        default=DEFAULT_NOISE_DIR,
+        help="NG15 wideband noise/ dir (pars.txt + chain_1.txt)",
+    )
+    parser.add_argument(
+        "--tim-dir",
+        default=DEFAULT_TIM_DIR,
+        help="NG15 wideband tim/ dir (for per-backend TOA-count weights)",
+    )
+    parser.add_argument(
+        "--feather-dir",
+        default=DEFAULT_FEATHER_DIR,
+        help="Ingested feather dir; sets the pulsar list and order",
+    )
+    parser.add_argument("--output", default=DEFAULT_OUTPUT, help="Output JSON path")
+    parser.add_argument(
+        "--burn-in",
+        type=float,
+        default=0.25,
+        help="Fraction of each chain to discard as burn-in",
+    )
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Overwrite the output JSON if it already exists",
+    )
     args = parser.parse_args()
 
     if os.path.exists(args.output) and not args.overwrite:

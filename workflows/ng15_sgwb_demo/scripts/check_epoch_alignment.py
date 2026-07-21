@@ -156,12 +156,16 @@ def report_overlap(epochs):
     print("=" * 92)
     print("CROSS-PULSAR OVERLAP")
     print("=" * 92)
-    print(f"Full union window : MJD {global_min:.1f} -> {global_max:.1f} "
-          f"({(global_max - global_min) / DAYS_PER_YEAR:.1f} yr)")
+    print(
+        f"Full union window : MJD {global_min:.1f} -> {global_max:.1f} "
+        f"({(global_max - global_min) / DAYS_PER_YEAR:.1f} yr)"
+    )
     if common_hi > common_lo:
-        print(f"Common window     : MJD {common_lo:.1f} -> {common_hi:.1f} "
-              f"({(common_hi - common_lo) / DAYS_PER_YEAR:.1f} yr, "
-              "shared by all pulsars)")
+        print(
+            f"Common window     : MJD {common_lo:.1f} -> {common_hi:.1f} "
+            f"({(common_hi - common_lo) / DAYS_PER_YEAR:.1f} yr, "
+            "shared by all pulsars)"
+        )
     else:
         print("Common window     : NONE -- pulsar baselines do not all overlap!")
     print()
@@ -314,8 +318,10 @@ def run(data_dir, cadences):
     report_per_pulsar(epochs)
     global_min, global_max, common_lo, common_hi = report_overlap(epochs)
     if common_hi <= common_lo:
-        print("*** STOP -- FLAG FOR REVIEW (RISK A): no common baseline overlap; "
-              "joint alignment is impossible for this subset. ***\n")
+        print(
+            "*** STOP -- FLAG FOR REVIEW (RISK A): no common baseline overlap; "
+            "joint alignment is impossible for this subset. ***\n"
+        )
         return []
 
     results = report_sweep(epochs, global_min, global_max, cadences)

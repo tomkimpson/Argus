@@ -42,6 +42,7 @@ Report a Bayes factor (two runs):
     ... --results outputs/ng15_real/ng15_real_results.nc \
         --compare-to outputs/ng15_curn/ng15_curn_results.nc
 """
+
 import argparse
 import json
 import math
@@ -218,9 +219,7 @@ def run_one(nc_path, shrink_grid):
     # Plateau pick: among shrink values with healthy diagnostics, the logZ should be
     # flat. Choose the healthiest (highest min-ESS) as the reported estimate.
     healthy = [
-        e
-        for e in sweep
-        if e["min_ess_frac"] >= 0.1 and e["max_weight_frac"] <= 0.1
+        e for e in sweep if e["min_ess_frac"] >= 0.1 and e["max_weight_frac"] <= 0.1
     ]
     chosen = max(healthy or sweep, key=lambda e: e["min_ess_frac"])
 
@@ -246,9 +245,7 @@ def run_one(nc_path, shrink_grid):
         "max_weight_frac": chosen["max_weight_frac"],
         "max_vov_rel": chosen["max_vov_rel"],
         "swap_spread": chosen["swap_spread"],
-        "sweep": [
-            {k: v for k, v in e.items() if k != "folds"} for e in sweep
-        ],
+        "sweep": [{k: v for k, v in e.items() if k != "folds"} for e in sweep],
     }
 
 
@@ -256,30 +253,52 @@ def print_report(res):
     print(f"\n=== LHM logZ : {res['results_path']} ===")
     print(f"  ndim={res['ndim']}  chains={res['n_chain']}  draws/chain={res['n_draw']}")
     print(f"  latent sites: {', '.join(res['latent_sites'])}")
-    print(f"\n  {'shrink':>7} {'logZ':>14} {'uncert':>9} {'swap':>8} "
-          f"{'ESSfrac':>8} {'maxw':>7} {'vov':>7}")
+    print(
+        f"\n  {'shrink':>7} {'logZ':>14} {'uncert':>9} {'swap':>8} "
+        f"{'ESSfrac':>8} {'maxw':>7} {'vov':>7}"
+    )
     for e in res["sweep"]:
-        print(f"  {e['shrink']:7.2f} {e['logZ']:14.4f} {e['uncert']:9.4f} "
-              f"{e['swap_spread']:8.4f} {e['min_ess_frac']:8.3f} "
-              f"{e['max_weight_frac']:7.3f} {e['max_vov_rel']:7.3f}")
-    print(f"\n  -> log_Z = {res['log_Z_mean']:.4f} +/- {res['log_Z_uncert']:.4f} "
-          f"(shrink={res['chosen_shrink']:.2f}, {res['n_healthy_shrink']} healthy "
-          f"shrink values, plateau spread={res['plateau_spread']:.4f})")
+        print(
+            f"  {e['shrink']:7.2f} {e['logZ']:14.4f} {e['uncert']:9.4f} "
+            f"{e['swap_spread']:8.4f} {e['min_ess_frac']:8.3f} "
+            f"{e['max_weight_frac']:7.3f} {e['max_vov_rel']:7.3f}"
+        )
+    print(
+        f"\n  -> log_Z = {res['log_Z_mean']:.4f} +/- {res['log_Z_uncert']:.4f} "
+        f"(shrink={res['chosen_shrink']:.2f}, {res['n_healthy_shrink']} healthy "
+        f"shrink values, plateau spread={res['plateau_spread']:.4f})"
+    )
 
 
 def main():
-    p = argparse.ArgumentParser(description=__doc__,
-                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     p.add_argument("--results", required=True, help="Path to results .nc (HD run).")
-    p.add_argument("--compare-to", default=None,
-                   help="Second results .nc (e.g. CURN) -> report lnB = logZ1 - logZ2.")
-    p.add_argument("--shrink-grid", type=float, nargs="+",
-                   default=[0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
-    p.add_argument("--expected-logz", type=float, default=None,
-                   help="Anchor logZ for the validation GATE (prints PASS/FAIL).")
+    p.add_argument(
+        "--compare-to",
+        default=None,
+        help="Second results .nc (e.g. CURN) -> report lnB = logZ1 - logZ2.",
+    )
+    p.add_argument(
+        "--shrink-grid",
+        type=float,
+        nargs="+",
+        default=[0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9],
+    )
+    p.add_argument(
+        "--expected-logz",
+        type=float,
+        default=None,
+        help="Anchor logZ for the validation GATE (prints PASS/FAIL).",
+    )
     p.add_argument("--expected-uncert", type=float, default=0.0)
-    p.add_argument("--n-sigma", type=float, default=3.0,
-                   help="GATE tolerance in sigma (default 3).")
+    p.add_argument(
+        "--n-sigma",
+        type=float,
+        default=3.0,
+        help="GATE tolerance in sigma (default 3).",
+    )
     p.add_argument("--out", default=None, help="Write JSON summary here.")
     args = p.parse_args()
 
@@ -291,16 +310,24 @@ def main():
 
     if args.expected_logz is not None:
         d = res1["log_Z_mean"] - args.expected_logz
-        combined = math.sqrt(res1["log_Z_uncert"] ** 2 + args.expected_uncert ** 2)
+        combined = math.sqrt(res1["log_Z_uncert"] ** 2 + args.expected_uncert**2)
         tol = args.n_sigma * combined
         verdict = "PASS" if abs(d) <= tol else "FAIL"
-        print(f"\n  GATE vs anchor {args.expected_logz:.4f} +/- {args.expected_uncert:.4f}:"
-              f"  delta={d:+.4f}  tol(+/-{args.n_sigma:g}sigma)={tol:.4f}  -> {verdict}")
-        payload = {**res1, "gate": {
-            "expected_logz": args.expected_logz,
-            "expected_uncert": args.expected_uncert,
-            "delta": d, "tol": tol, "n_sigma": args.n_sigma, "verdict": verdict,
-        }}
+        print(
+            f"\n  GATE vs anchor {args.expected_logz:.4f} +/- {args.expected_uncert:.4f}:"
+            f"  delta={d:+.4f}  tol(+/-{args.n_sigma:g}sigma)={tol:.4f}  -> {verdict}"
+        )
+        payload = {
+            **res1,
+            "gate": {
+                "expected_logz": args.expected_logz,
+                "expected_uncert": args.expected_uncert,
+                "delta": d,
+                "tol": tol,
+                "n_sigma": args.n_sigma,
+                "verdict": verdict,
+            },
+        }
 
     if args.compare_to is not None:
         res2 = run_one(args.compare_to, args.shrink_grid)
@@ -331,18 +358,26 @@ def main():
         lnb_arr = np.array(lnb_plateau)
         lnB = float(lnb_arr.mean())
         sigB = float(max(lnb_arr.std(), 0.02))  # plateau spread as the error
-        print(f"\n  lnB = logZ1 - logZ2 = {lnB:+.3f} +/- {sigB:.3f}  "
-              f"(matched-shrinkage plateau over {len(lnb_arr)} values)")
+        print(
+            f"\n  lnB = logZ1 - logZ2 = {lnB:+.3f} +/- {sigB:.3f}  "
+            f"(matched-shrinkage plateau over {len(lnb_arr)} values)"
+        )
         print(f"  odds favouring model1 ~ e^lnB = {math.exp(lnB):.1f} : 1")
-        print(f"  (Kass-Raftery 2lnB: <2 bare, 2-6 positive, 6-10 strong, "
-              f">10 very strong; here 2lnB={2*lnB:.1f})")
+        print(
+            f"  (Kass-Raftery 2lnB: <2 bare, 2-6 positive, 6-10 strong, "
+            f">10 very strong; here 2lnB={2*lnB:.1f})"
+        )
         payload = {
-            "model1_path": res1["results_path"], "model2_path": res2["results_path"],
-            "lnB_mean": lnB, "lnB_uncert": sigB,
+            "model1_path": res1["results_path"],
+            "model2_path": res2["results_path"],
+            "lnB_mean": lnB,
+            "lnB_uncert": sigB,
             "odds_model1": math.exp(lnB),
-            "matched_shrink_lnB": {str(s): sweep1[s] - sweep2[s]
-                                   for s in args.shrink_grid},
-            "model1": res1, "model2": res2,
+            "matched_shrink_lnB": {
+                str(s): sweep1[s] - sweep2[s] for s in args.shrink_grid
+            },
+            "model1": res1,
+            "model2": res2,
         }
 
     if args.out:
