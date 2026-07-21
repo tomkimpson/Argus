@@ -17,6 +17,9 @@
 
 ## CURRENT STATUS / NEXT STEP
 
+- ▶ **ACTIVE: M1 — MDC2 dress rehearsal (issue #111), branch `m1-mdc2-dress-rehearsal`.**
+  See the "M1" section at the bottom of this file; Stages 1–4 below are the completed
+  T1–T4 history of the 6-pulsar NG15 demo.
 - ✅ Strategic direction decided (SGWB-first; PR #100 held). Branch `ng15-sgwb-demo` created.
 - ✅ Environment resolved (`Argus` env; GPU-init hangs interactively → SLURM only).
 - ✅ Stage 0 attempted on CPU and killed (too slow); to be run properly on SLURM or folded in.
@@ -587,3 +590,52 @@
   - Do: tidy configs/scripts/slurm; ensure `PLAN.md`/`TASKS.md` reflect final state; commit
     via **`/commit`**. Open a PR when the user asks (do not push/PR unprompted).
   - Done when: branch is clean and the deliverable matches PLAN §8.
+
+---
+
+## M1 — MDC2 dress rehearsal (issue #111, branch `m1-mdc2-dress-rehearsal`)
+
+Two-stage-noise detection machinery exercised at 33 pulsars against known truth
+(dataset 2b, injected GWB log10_A = −14.886) before the 68-pulsar real-data run (M3).
+**Acceptance:** decisively positive lnB(HD/CURN) + GW posterior covering the injected
+amplitude (band-referenced, `scripts/check_mdc2_truth.py`).
+
+Infrastructure (all committed on this branch):
+
+- Library: `red_noise_prior = flat` (independent per-pulsar Uniforms, for n=1 Stage A
+  runs) and `empirical_priors_path` + `empirical_prior_inflation` (per-pulsar Normal
+  priors on log10_γp/log10_ratio from Stage A posteriors, no hyperpriors — Stage C).
+  Precedence: `spin_injections_path` (fixed) > empirical > flat > hierarchical.
+- Staging: `scripts/stage_mdc2.py` (per-pulsar one-feather dirs + one-entry white-noise
+  JSONs under `data/mdc2_singles/`, from the `data/mdc2_all/` feather cache).
+- Extraction: `scripts/extract_stage_a.py` (33 .nc → `data/stage_a_medians.pkl` for
+  Stage B, `data/stage_a_empirical_priors.json` for Stage C, health table + plot;
+  `--drop-failing` prints the `excluded_psrs` string).
+- Truth gate: `scripts/check_mdc2_truth.py` (PSD-pivot comparison at f=1/(5yr);
+  injected γ assumed 13/3 — the MDC2 repo records only the amplitude).
+- Configs: `mdc2_stage_a.ini` (sed template), `mdc2_stage_{b,c}_{hd,curn}.ini`.
+- SLURM: `mdc2_stage_a.sh` (array 0-32), `mdc2_stage_b.sh` / `mdc2_stage_c.sh` (MODE=hd|curn).
+
+Execution playbook (gated):
+
+- [ ] **M1.0 — Ingest + stage.** Login node, `Argus` env:
+  `python scripts/ingest_par_tim.py workflows/data/IPTA_MockDataChallenge2/dataset_2b workflows/ng15_sgwb_demo/data/mdc2_all`
+  then `python workflows/ng15_sgwb_demo/scripts/stage_mdc2.py`. Done when 33 dirs staged.
+- [ ] **M1.1 — Stage A.** `sbatch slurm_scripts/mdc2_stage_a.sh` (33 × ≤30 min, 1×A100 each).
+  Done when all 33 `outputs/mdc2_stageA_*/..._results.nc` exist.
+- [ ] **M1.2 — Gate A.** `python scripts/extract_stage_a.py` — all pulsars pass health
+  gates (r_hat<1.05, ESS>200, not railed) or documented drops (J1640+2224 the known
+  candidate). Commit the two artifacts. Done when pickle+JSON written.
+- [ ] **M1.3 — Stages B & C (4 jobs in parallel).** `sbatch slurm_scripts/mdc2_stage_b.sh [hd|curn]`,
+  `sbatch slurm_scripts/mdc2_stage_c.sh [hd|curn]`. Gate: r_hat<1.01 on GW sites,
+  divergences <1%, no railing. Stage C escalation ladder in its config header.
+- [ ] **M1.4 — Truth gate.** `python scripts/check_mdc2_truth.py --run mdc2_stageB_hd --run mdc2_stageC_hd`.
+  Winner (pass + healthier) becomes the M3 procedure; if both pass, C wins (honest
+  uncertainty + noise-marginalized evidence).
+- [ ] **M1.5 — Stage D evidence.** CPU, login node:
+  `JAX_PLATFORMS=cpu python scripts/logz_lhm.py --results outputs/mdc2_stageB_hd/mdc2_stageB_hd_results.nc --compare-to outputs/mdc2_stageB_curn/mdc2_stageB_curn_results.nc --out outputs/mdc2_stageB_lnB.json`
+  (2-D sanity), then the Stage C pair with
+  `--shrink-grid 0.5 0.6 0.7 0.75 0.8 0.85 0.9 0.95` (68-D LHM calibration; needs ≥3
+  healthy shrink values, plateau spread ≲1 nat; if none, re-run Stage C with
+  num_samples=4000 before declaring LHM broken at 68-D).
+  Done when 2·lnB > 10 (Kass-Raftery "very strong") on the winning stage's pair.
