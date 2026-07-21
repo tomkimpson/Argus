@@ -503,6 +503,21 @@ def setup_nuts_kernel(prior_specs, n_pulsars, config):
     max_tree_depth = config.getint("NUTS", "max_tree_depth", fallback=10)
     dense_mass = config.getboolean("NUTS", "dense_mass", fallback=False)
 
+    # Optional per-block dense mass matrix (NumPyro's list-of-tuples form). When present and
+    # non-empty, this OVERRIDES the boolean above: the named latent sites get a dense sub-matrix
+    # and every other site keeps its diagonal block. Sites within a group are comma-separated;
+    # ';' separates independent groups. Used to learn the log10_ha<->log10_gamma_a ridge
+    # correlation (2x2 dense block over log10_ha_prime, log10_gamma_a_prime) without the cost of a
+    # full ~142x142 dense matrix. A mass-matrix choice never changes the target posterior.
+    if config.has_option("NUTS", "dense_mass_blocks"):
+        raw = config.get("NUTS", "dense_mass_blocks").strip()
+        if raw:
+            dense_mass = [
+                tuple(s.strip() for s in group.split(",") if s.strip())
+                for group in raw.split(";")
+                if group.strip()
+            ]
+
     # Handle step_size - only set if explicitly provided in config
     nuts_kwargs = {
         "target_accept_prob": target_accept_prob,

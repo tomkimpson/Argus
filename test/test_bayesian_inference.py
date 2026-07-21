@@ -201,6 +201,66 @@ class TestSetupNutsKernel:
         assert nuts_info["target_accept_prob"] == 0.90
         assert nuts_info["max_tree_depth"] == 15
 
+    @staticmethod
+    def _gw_prior_specs():
+        return {
+            "log10_ha_transform_params": {"mean": -14.0, "std": 1.0},
+            "log10_gamma_a_spec": tfpd.Uniform(-10.5, -6.0),
+            "log10_gamma_p_spec": None,
+            "log10_sigma_p_spec": None,
+            "efac_spec": jnp.ones(2),
+            "equad_spec": jnp.full(2, 1e-7),
+        }
+
+    @patch("argus.parameter_sampling.count_free_parameters")
+    def test_dense_mass_default_boolean(self, mock_count, mock_config):
+        """Absent dense_mass_blocks -> dense_mass stays the plain boolean (backward compat)."""
+        mock_count.return_value = 10
+        # mock_config sets dense_mass = "False" and no dense_mass_blocks key.
+        _, nuts_info = bayesian_inference.setup_nuts_kernel(
+            self._gw_prior_specs(), n_pulsars=2, config=mock_config
+        )
+        assert nuts_info["dense_mass"] is False
+
+        mock_config.set("NUTS", "dense_mass", "True")
+        _, nuts_info = bayesian_inference.setup_nuts_kernel(
+            self._gw_prior_specs(), n_pulsars=2, config=mock_config
+        )
+        assert nuts_info["dense_mass"] is True
+
+    @patch("argus.parameter_sampling.count_free_parameters")
+    def test_dense_mass_blocks_parsed(self, mock_count, mock_config):
+        """dense_mass_blocks parses to NumPyro's list-of-tuples form and overrides the boolean."""
+        mock_count.return_value = 10
+        mock_config.set(
+            "NUTS", "dense_mass_blocks", "log10_ha_prime, log10_gamma_a_prime"
+        )
+        _, nuts_info = bayesian_inference.setup_nuts_kernel(
+            self._gw_prior_specs(), n_pulsars=2, config=mock_config
+        )
+        assert nuts_info["dense_mass"] == [("log10_ha_prime", "log10_gamma_a_prime")]
+
+    @patch("argus.parameter_sampling.count_free_parameters")
+    def test_dense_mass_blocks_multiple_groups(self, mock_count, mock_config):
+        """';' separates independent dense groups."""
+        mock_count.return_value = 10
+        mock_config.set("NUTS", "dense_mass_blocks", "a, b; c")
+        _, nuts_info = bayesian_inference.setup_nuts_kernel(
+            self._gw_prior_specs(), n_pulsars=2, config=mock_config
+        )
+        assert nuts_info["dense_mass"] == [("a", "b"), ("c",)]
+
+    @patch("argus.parameter_sampling.count_free_parameters")
+    def test_dense_mass_blocks_empty_falls_back(self, mock_count, mock_config):
+        """An empty dense_mass_blocks value falls back to the boolean dense_mass."""
+        mock_count.return_value = 10
+        mock_config.set("NUTS", "dense_mass", "False")
+        mock_config.set("NUTS", "dense_mass_blocks", "   ")
+        _, nuts_info = bayesian_inference.setup_nuts_kernel(
+            self._gw_prior_specs(), n_pulsars=2, config=mock_config
+        )
+        assert nuts_info["dense_mass"] is False
+
 
 class TestPrintNutsDiagnostics:
     """Tests for print_nuts_diagnostics function."""

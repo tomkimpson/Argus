@@ -446,6 +446,56 @@ class TestFeatherCache:
         assert psr2.F0 == 311.49
         assert list(psr2.fitpars) == list(psr.fitpars)
 
+    def test_mask_roundtrip_and_absent_by_default(self, tmp_path):
+        """A per-epoch mask survives save->read; feathers without one read as None."""
+        psr = _synthetic_pulsar(n=12)
+
+        # No mask supplied -> no mask column, read back as None.
+        path_nomask = str(tmp_path / "nomask.feather")
+        psr.save_feather(path_nomask, F0=311.49)
+        assert data_loader.LoadWidebandPulsarData.read_feather(path_nomask).mask is None
+
+        # Mask supplied -> round-trips bit-for-bit.
+        mask = np.ones(12)
+        mask[[2, 5, 9]] = 0.0
+        path_mask = str(tmp_path / "mask.feather")
+        psr.save_feather(path_mask, F0=311.49, mask=mask)
+        back = data_loader.LoadWidebandPulsarData.read_feather(path_mask)
+        assert back.mask is not None
+        assert np.array_equal(np.asarray(back.mask), mask)
+
+    def test_epoch_alignment_collects_mask(self, tmp_path):
+        """process_pulsar_residuals_by_epoch surfaces the mask as an (nepoch, Npsr) array."""
+        psr = _synthetic_pulsar(n=12)
+        m0 = np.ones(12)
+        m0[[1, 4]] = 0.0
+        m1 = np.ones(12)
+        m1[[7]] = 0.0
+        p0 = str(tmp_path / "A.feather")
+        p1 = str(tmp_path / "B.feather")
+        psr.save_feather(p0, F0=311.49, mask=m0)
+        psr.save_feather(p1, F0=311.49, mask=m1)
+
+        dfs, *_ = data_loader.LoadWidebandPulsarData.read_multiple_feather([p0, p1])
+        result = data_loader.LoadWidebandPulsarData.process_pulsar_residuals_by_epoch(
+            dfs
+        )
+        assert "mask" in result
+        assert result["mask"].shape == (12, 2)
+        assert np.array_equal(result["mask"][:, 0], m0)
+        assert np.array_equal(result["mask"][:, 1], m1)
+
+    def test_epoch_alignment_omits_mask_when_absent(self, tmp_path):
+        """No mask key when the feathers carry none (backward-compatible default)."""
+        psr = _synthetic_pulsar(n=12)
+        p0 = str(tmp_path / "A.feather")
+        psr.save_feather(p0, F0=311.49)
+        dfs, *_ = data_loader.LoadWidebandPulsarData.read_multiple_feather([p0])
+        result = data_loader.LoadWidebandPulsarData.process_pulsar_residuals_by_epoch(
+            dfs
+        )
+        assert "mask" not in result
+
     def test_read_committed_fixture(self):
         """The committed fixture feather loads into a valid object."""
         psr = data_loader.LoadWidebandPulsarData.read_feather(FIXTURE_FEATHER)
