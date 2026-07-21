@@ -5,7 +5,7 @@
 # (data/mdc2_singles/<PSR>/, built by scripts/stage_mdc2.py) with the Stage A
 # template config (configs/mdc2_stage_a.ini): GW fixed negligible, flat
 # per-pulsar red-noise priors, EFAC/EQUAD fixed from the per-pulsar MDC2 truth
-# slice. A 2-D NUTS problem per pulsar — minutes on an A100.
+# slice. A 2-D NUTS problem per pulsar (~25 min per chain on an A100).
 #
 # Prerequisites (login node, Argus conda env):
 #   1. python scripts/ingest_par_tim.py \
@@ -22,7 +22,9 @@
 # milan-gpu is down, GPU jobs queue until it returns (milan-c has no GPU route).
 #SBATCH --partition=milan-gpu
 #SBATCH --gres=gpu:1
-#SBATCH --time=0:30:00
+# ~25 min per chain at ~2 it/s (job 14572769) x 2 sequential chains + ~10 min
+# env/JIT startup; 30:00 timed out all 33 tasks at 4 chains.
+#SBATCH --time=1:30:00
 #SBATCH --mem=16G
 #SBATCH --cpus-per-task=4
 #SBATCH --export=ALL
