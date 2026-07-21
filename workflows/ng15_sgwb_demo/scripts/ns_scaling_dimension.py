@@ -30,6 +30,7 @@ Exit code 0 iff every dimension's recovered logZ agrees with the closed form wit
 tolerance (|logZ_est - logZ_true| < max(3*logZ_err, ATOL)); otherwise 1 (evidence became
 unreliable at some dimension — itself a study finding).
 """
+
 import argparse
 import csv
 import math
@@ -51,8 +52,18 @@ DEFAULT_OUT = os.path.join(
 )
 
 
-def run_dim(d, half_width=10.0, num_live=500, num_delete=25, num_inner_steps=None,
-            inner_mult=None, seed=0, dlogz=-5.0, max_steps=200000, kernel="nss"):
+def run_dim(
+    d,
+    half_width=10.0,
+    num_live=500,
+    num_delete=25,
+    num_inner_steps=None,
+    inner_mult=None,
+    seed=0,
+    dlogz=-5.0,
+    max_steps=200000,
+    kernel="nss",
+):
     """Run NS on the d-dim analytic Gaussian; return (logZ_true, res).
 
     Mirrors ``blackjax_ns_analytic_check.run_dim`` (same target, same known logZ) but with
@@ -110,29 +121,46 @@ def _fit_powerlaw(x, y):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--dims", type=int, nargs="+",
-                        default=[2, 5, 15, 30, 60, 120, 270])
+    parser.add_argument(
+        "--dims", type=int, nargs="+", default=[2, 5, 15, 30, 60, 120, 270]
+    )
     parser.add_argument("--num-live", type=int, default=500)
     parser.add_argument("--num-delete", type=int, default=25)
-    parser.add_argument("--num-inner-steps", type=int, default=None,
-                        help="Fixed inner-step count; default engine's max(5, 2*d).")
-    parser.add_argument("--inner-mult", type=float, default=None,
-                        help="Set num_inner_steps = inner_mult*d (overrides --num-inner-steps). "
-                             "Stage-1a diagnostic: ~6 recovers logZ accuracy at high d.")
+    parser.add_argument(
+        "--num-inner-steps",
+        type=int,
+        default=None,
+        help="Fixed inner-step count; default engine's max(5, 2*d).",
+    )
+    parser.add_argument(
+        "--inner-mult",
+        type=float,
+        default=None,
+        help="Set num_inner_steps = inner_mult*d (overrides --num-inner-steps). "
+        "Stage-1a diagnostic: ~6 recovers logZ accuracy at high d.",
+    )
     parser.add_argument("--dlogz", type=float, default=-5.0)
     parser.add_argument("--atol", type=float, default=0.5)
-    parser.add_argument("--out", default=os.path.join(DEFAULT_OUT, "dimension_scaling.csv"))
+    parser.add_argument(
+        "--out", default=os.path.join(DEFAULT_OUT, "dimension_scaling.csv")
+    )
     args = parser.parse_args()
 
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
 
     print("=" * 92)
-    print("NS scaling Stage 1a: pure-dimension scaling (analytic Gaussian, likelihood-free)")
-    print(f"num_live={args.num_live}  num_delete={args.num_delete}  "
-          f"num_inner_steps={args.num_inner_steps or 'max(5,2d)'}  dlogz={args.dlogz}")
+    print(
+        "NS scaling Stage 1a: pure-dimension scaling (analytic Gaussian, likelihood-free)"
+    )
+    print(
+        f"num_live={args.num_live}  num_delete={args.num_delete}  "
+        f"num_inner_steps={args.num_inner_steps or 'max(5,2d)'}  dlogz={args.dlogz}"
+    )
     print("=" * 92)
-    header = (f"{'d':>5} {'logZ_true':>12} {'logZ_est':>12} {'logZ_err':>10} "
-              f"{'|err|':>8} {'inner':>6} {'steps':>8} {'wall_s':>9}  verdict")
+    header = (
+        f"{'d':>5} {'logZ_true':>12} {'logZ_est':>12} {'logZ_err':>10} "
+        f"{'|err|':>8} {'inner':>6} {'steps':>8} {'wall_s':>9}  verdict"
+    )
     print(header)
 
     rows = []
@@ -151,22 +179,26 @@ def main():
         abs_err = abs(est - logZ_true)
         ok = abs_err < max(3.0 * err, args.atol)
         all_ok &= ok
-        rows.append({
-            "d": d,
-            "logZ_true": logZ_true,
-            "logZ_est": est,
-            "logZ_err": err,
-            "abs_err": abs_err,
-            "num_inner_steps": res["num_inner_steps"],
-            "n_steps": int(res["n_steps"]),
-            "wall_s": res["wall_s"],
-            "num_live": args.num_live,
-            "num_delete": args.num_delete,
-            "ok": int(ok),
-        })
-        print(f"{d:>5} {logZ_true:>12.3f} {est:>12.3f} {err:>10.3f} "
-              f"{abs_err:>8.3f} {res['num_inner_steps']:>6d} {res['n_steps']:>8d} "
-              f"{res['wall_s']:>9.1f}  {'PASS' if ok else 'FAIL'}")
+        rows.append(
+            {
+                "d": d,
+                "logZ_true": logZ_true,
+                "logZ_est": est,
+                "logZ_err": err,
+                "abs_err": abs_err,
+                "num_inner_steps": res["num_inner_steps"],
+                "n_steps": int(res["n_steps"]),
+                "wall_s": res["wall_s"],
+                "num_live": args.num_live,
+                "num_delete": args.num_delete,
+                "ok": int(ok),
+            }
+        )
+        print(
+            f"{d:>5} {logZ_true:>12.3f} {est:>12.3f} {err:>10.3f} "
+            f"{abs_err:>8.3f} {res['num_inner_steps']:>6d} {res['n_steps']:>8d} "
+            f"{res['wall_s']:>9.1f}  {'PASS' if ok else 'FAIL'}"
+        )
 
     with open(args.out, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
@@ -177,11 +209,15 @@ def main():
     a_s, b_s = _fit_powerlaw(dims, [r["n_steps"] for r in rows])
     a_w, b_w = _fit_powerlaw(dims, [r["wall_s"] for r in rows])
     print("=" * 92)
-    print(f"Power-law fits:  n_steps ~ {a_s:.3g} * d^{b_s:.2f}   "
-          f"wall_s ~ {a_w:.3g} * d^{b_w:.2f}")
+    print(
+        f"Power-law fits:  n_steps ~ {a_s:.3g} * d^{b_s:.2f}   "
+        f"wall_s ~ {a_w:.3g} * d^{b_w:.2f}"
+    )
     print(f"CSV written: {args.out}")
-    print(f"Stage 1a evidence-accuracy gate: {'PASS' if all_ok else 'FAIL'} "
-          f"(exponent b_steps={b_s:.2f}, b_wall={b_w:.2f})")
+    print(
+        f"Stage 1a evidence-accuracy gate: {'PASS' if all_ok else 'FAIL'} "
+        f"(exponent b_steps={b_s:.2f}, b_wall={b_w:.2f})"
+    )
     raise SystemExit(0 if all_ok else 1)
 
 

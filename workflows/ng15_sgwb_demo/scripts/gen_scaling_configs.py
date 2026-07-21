@@ -30,6 +30,7 @@ Usage:
     python gen_scaling_configs.py --stage 2         # red_free, N in {6,16,32}
     python gen_scaling_configs.py --stage 3         # red_free N=16, knob sweep
 """
+
 import argparse
 import configparser
 import csv
@@ -57,9 +58,7 @@ def _load_template():
 
 def _pulsar_list(data_path):
     """Sorted pulsar names (from .par files) in the dataset directory."""
-    names = sorted(
-        f[:-4] for f in os.listdir(data_path) if f.endswith(".par")
-    )
+    names = sorted(f[:-4] for f in os.listdir(data_path) if f.endswith(".par"))
     return names
 
 
@@ -75,15 +74,18 @@ def dimension(n, dmode):
     raise ValueError(f"unknown dmode {dmode!r}")
 
 
-def make_config(n, dmode, num_live, num_delete, seed,
-                num_inner_steps=None, output_id=None):
+def make_config(
+    n, dmode, num_live, num_delete, seed, num_inner_steps=None, output_id=None
+):
     """Return (output_id, ConfigParser) for one grid point."""
     cp = _load_template()
     data_path = cp.get("Data", "data_path")
     all_psrs = _pulsar_list(data_path)
     candidates = [p for p in all_psrs if p != ALWAYS_EXCLUDE]
     if n > len(candidates):
-        raise ValueError(f"requested N={n} but only {len(candidates)} pulsars available")
+        raise ValueError(
+            f"requested N={n} but only {len(candidates)} pulsars available"
+        )
     keep = candidates[:n]
     excluded = [ALWAYS_EXCLUDE] + [p for p in candidates if p not in keep]
     # Comma-only (no space): utils.get_noise_parameters splits excluded_psrs on "," WITHOUT
@@ -108,8 +110,9 @@ def make_config(n, dmode, num_live, num_delete, seed,
     cp.set("NestedSampler", "seed", str(seed))
 
     if output_id is None:
-        output_id = (f"ns_scal_{dmode}_N{n:02d}_D{D:03d}"
-                     f"_nl{num_live}_nd{num_delete}_s{seed}")
+        output_id = (
+            f"ns_scal_{dmode}_N{n:02d}_D{D:03d}" f"_nl{num_live}_nd{num_delete}_s{seed}"
+        )
     cp.set("Output", "output_dir", OUTPUT_DIR + os.sep)
     cp.set("Output", "output_id", output_id)
     return output_id, cp, D, num_inner_steps
@@ -118,17 +121,30 @@ def make_config(n, dmode, num_live, num_delete, seed,
 def _points_for_stage(stage):
     """Return list of dicts of make_config kwargs for a named stage."""
     if stage == "1b":  # likelihood-cost vs N, dimension held at D=2
-        return [dict(n=n, dmode="fixed", num_live=500, num_delete=25, seed=42)
-                for n in (2, 4, 8, 16, 32)]
-    if stage == "2":   # realistic coupled proxy: red noise free, climb N (and thus D)
-        return [dict(n=n, dmode="red_free", num_live=500, num_delete=25, seed=42)
-                for n in (6, 16, 32)]
-    if stage == "3":   # sampler-knob frontier at one representative config (N=16, red_free)
+        return [
+            dict(n=n, dmode="fixed", num_live=500, num_delete=25, seed=42)
+            for n in (2, 4, 8, 16, 32)
+        ]
+    if stage == "2":  # realistic coupled proxy: red noise free, climb N (and thus D)
+        return [
+            dict(n=n, dmode="red_free", num_live=500, num_delete=25, seed=42)
+            for n in (6, 16, 32)
+        ]
+    if (
+        stage == "3"
+    ):  # sampler-knob frontier at one representative config (N=16, red_free)
         pts = []
         for num_delete in (25, 50, 100):
             for num_live in (250, 500, 1000):
-                pts.append(dict(n=16, dmode="red_free",
-                                num_live=num_live, num_delete=num_delete, seed=42))
+                pts.append(
+                    dict(
+                        n=16,
+                        dmode="red_free",
+                        num_live=num_live,
+                        num_delete=num_delete,
+                        seed=42,
+                    )
+                )
         return pts
     raise ValueError(f"unknown stage {stage!r}")
 
@@ -137,13 +153,17 @@ def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--stage", choices=["1b", "2", "3"], required=True)
     p.add_argument("--out-dir", default=DERIVED_DIR)
-    p.add_argument("--manifest", default=None,
-                   help="CSV manifest path (default: <out-dir>/manifest_stage<stage>.csv)")
+    p.add_argument(
+        "--manifest",
+        default=None,
+        help="CSV manifest path (default: <out-dir>/manifest_stage<stage>.csv)",
+    )
     args = p.parse_args()
 
     os.makedirs(args.out_dir, exist_ok=True)
     manifest = args.manifest or os.path.join(
-        args.out_dir, f"manifest_stage{args.stage}.csv")
+        args.out_dir, f"manifest_stage{args.stage}.csv"
+    )
 
     rows = []
     paths = []
@@ -153,12 +173,19 @@ def main():
         with open(path, "w") as f:
             cp.write(f)
         paths.append(path)
-        rows.append({
-            "output_id": output_id, "config_path": path,
-            "N": kw["n"], "dmode": kw["dmode"], "D": D,
-            "num_live": kw["num_live"], "num_delete": kw["num_delete"],
-            "num_inner_steps": nis, "seed": kw["seed"],
-        })
+        rows.append(
+            {
+                "output_id": output_id,
+                "config_path": path,
+                "N": kw["n"],
+                "dmode": kw["dmode"],
+                "D": D,
+                "num_live": kw["num_live"],
+                "num_delete": kw["num_delete"],
+                "num_inner_steps": nis,
+                "seed": kw["seed"],
+            }
+        )
 
     with open(manifest, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
@@ -167,12 +194,17 @@ def main():
 
     # stderr: human summary; stdout: config paths (one per line) for the SLURM runner.
     import sys
-    print(f"# stage {args.stage}: {len(paths)} configs -> {args.out_dir}", file=sys.stderr)
+
+    print(
+        f"# stage {args.stage}: {len(paths)} configs -> {args.out_dir}", file=sys.stderr
+    )
     print(f"# manifest: {manifest}", file=sys.stderr)
     for r in rows:
-        print(f"#   {r['output_id']}  (N={r['N']} D={r['D']} "
-              f"nl={r['num_live']} nd={r['num_delete']} nis={r['num_inner_steps']})",
-              file=sys.stderr)
+        print(
+            f"#   {r['output_id']}  (N={r['N']} D={r['D']} "
+            f"nl={r['num_live']} nd={r['num_delete']} nis={r['num_inner_steps']})",
+            file=sys.stderr,
+        )
     for path in paths:
         print(path)
 

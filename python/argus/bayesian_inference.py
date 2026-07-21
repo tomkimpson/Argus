@@ -1021,7 +1021,9 @@ def _blackjax_ns_evidence(
     n_steps = 0
     t_start = time.perf_counter()
     t_compiled = None
-    prev_progress = None  # (step, gap, wall) at the last progress print, for the ETA estimate
+    prev_progress = (
+        None  # (step, gap, wall) at the last progress print, for the ETA estimate
+    )
     for i in range(max_steps):
         rng_key, subkey = jax.random.split(rng_key)
         state, info = step(subkey, state)
@@ -1068,9 +1070,7 @@ def _blackjax_ns_evidence(
 
     dead_info = ns_utils.finalise(state, dead)
     # Point estimate: accumulated dead-point evidence + remaining live contribution.
-    logZ_point = float(
-        jnp.logaddexp(state.integrator.logZ, state.integrator.logZ_live)
-    )
+    logZ_point = float(jnp.logaddexp(state.integrator.logZ, state.integrator.logZ_live))
     # Uncertainty: stochastic-volume realisations of the evidence (Skilling 2006).
     rng_key, subkey = jax.random.split(rng_key)
     log_w = ns_utils.log_weights(subkey, dead_info, shape=weights_shape)
@@ -1172,17 +1172,15 @@ def run_blackjax_nested_sampling(
     sizes = [int(np.prod(s)) if s else 1 for s in shapes]
     ndim = int(sum(sizes))
     det_names = [
-        name
-        for name, site in disc_trace.items()
-        if site["type"] == "deterministic"
+        name for name, site in disc_trace.items() if site["type"] == "deterministic"
     ]
 
     def unpack(z):
         out = {}
         offset = 0
         for name, shape, size in zip(names, shapes, sizes):
-            out[name] = z[offset] if shape == () else z[offset : offset + size].reshape(
-                shape
+            out[name] = (
+                z[offset] if shape == () else z[offset : offset + size].reshape(shape)
             )
             offset += size
         return out
@@ -1297,8 +1295,7 @@ def run_blackjax_nested_sampling(
     physical = jax.lax.map(to_physical, post_z)
     # ArviZ expects (chains, draws, ...); single chain for nested sampling.
     posterior_np = {
-        name: np.asarray(values)[np.newaxis, ...]
-        for name, values in physical.items()
+        name: np.asarray(values)[np.newaxis, ...] for name, values in physical.items()
     }
     inf_data = az.from_dict(posterior=posterior_np)
 

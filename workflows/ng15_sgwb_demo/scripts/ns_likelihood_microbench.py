@@ -16,6 +16,7 @@ wall times. Fits c(N) ~ a * N^b.
 Run on GPU (the real venue) via SLURM, or on CPU for a quick check of small N:
     JAX_PLATFORMS=cpu PYTHONPATH=<repo>/python python ns_likelihood_microbench.py --N 2 4 8
 """
+
 import argparse
 import csv
 import logging
@@ -52,14 +53,18 @@ def bench_one(config_path, batch=25, repeats=20, warmup=3):
     """Time one full-model log-density (Kalman) eval for the pulsar set in `config_path`."""
     cp = _load_cfg(config_path)
     # JaxKalmanFilter uses argus's global logger, which must be initialised first.
-    logger = io_manager.setup_single_logger(cp, output_dir=None, enable_file_logging=False)
+    logger = io_manager.setup_single_logger(
+        cp, output_dir=None, enable_file_logging=False
+    )
 
     pulsar_data, KF = workflow.setup_data_and_kalman_filter(
-        cp, logger, use_gw=True, signal_model="gwb")
+        cp, logger, use_gw=True, signal_model="gwb"
+    )
     n_pulsars = len(pulsar_data["metadata"])
     efac, equad, sigma_p, gamma_p = utils.get_noise_parameters(cp)
     prior_specs = prior_models.get_prior_model_specs(
-        cp, n_pulsars, sigma_p, gamma_p, efac, equad, mode="gwb")
+        cp, n_pulsars, sigma_p, gamma_p, efac, equad, mode="gwb"
+    )
 
     def model():
         numpyro_model(KF, prior_specs, n_pulsars)
@@ -67,11 +72,14 @@ def bench_one(config_path, batch=25, repeats=20, warmup=3):
     # Latent sites (all reparameterized Normal(0,1)); evaluate at z=0 = prior centre (sane).
     key = jax.random.PRNGKey(0)
     tr = trace(seed(model, key)).get_trace()
-    latents = {name: jnp.zeros(jnp.shape(site["value"]))
-               for name, site in tr.items()
-               if site["type"] == "sample" and not site.get("is_observed", False)}
-    ndim = int(sum(int(np.prod(jnp.shape(v))) if jnp.shape(v) else 1
-                   for v in latents.values()))
+    latents = {
+        name: jnp.zeros(jnp.shape(site["value"]))
+        for name, site in tr.items()
+        if site["type"] == "sample" and not site.get("is_observed", False)
+    }
+    ndim = int(
+        sum(int(np.prod(jnp.shape(v))) if jnp.shape(v) else 1 for v in latents.values())
+    )
 
     def loglik(params):
         lp, _ = log_density(model, (), {}, params)
@@ -79,11 +87,13 @@ def bench_one(config_path, batch=25, repeats=20, warmup=3):
 
     f1 = jax.jit(loglik)
     fB = jax.jit(jax.vmap(loglik))
-    batch_params = {k: jnp.broadcast_to(v, (batch,) + jnp.shape(v))
-                    for k, v in latents.items()}
+    batch_params = {
+        k: jnp.broadcast_to(v, (batch,) + jnp.shape(v)) for k, v in latents.items()
+    }
 
     # single-eval timing
-    v = f1(latents); v.block_until_ready()
+    v = f1(latents)
+    v.block_until_ready()
     for _ in range(warmup):
         f1(latents).block_until_ready()
     t0 = time.perf_counter()
@@ -92,7 +102,8 @@ def bench_one(config_path, batch=25, repeats=20, warmup=3):
     t_single = (time.perf_counter() - t0) / repeats
 
     # batched-eval timing (vmap over `batch` particles, like NS's num_delete)
-    vb = fB(batch_params); vb.block_until_ready()
+    vb = fB(batch_params)
+    vb.block_until_ready()
     for _ in range(warmup):
         fB(batch_params).block_until_ready()
     t0 = time.perf_counter()
@@ -101,9 +112,12 @@ def bench_one(config_path, batch=25, repeats=20, warmup=3):
     t_batch = (time.perf_counter() - t0) / repeats
 
     return {
-        "N": n_pulsars, "ndim": ndim,
+        "N": n_pulsars,
+        "ndim": ndim,
         "loglik_at_center": float(v),
-        "t_single_s": t_single, "t_batch_s": t_batch, "batch": batch,
+        "t_single_s": t_single,
+        "t_batch_s": t_batch,
+        "batch": batch,
         "t_per_particle_s": t_batch / batch,
     }
 
@@ -127,32 +141,43 @@ def main():
     os.makedirs(os.path.dirname(args.out), exist_ok=True)
 
     print("=" * 84)
-    print(f"Kalman likelihood microbenchmark (D=2 fixed-noise configs), batch={args.batch}")
+    print(
+        f"Kalman likelihood microbenchmark (D=2 fixed-noise configs), batch={args.batch}"
+    )
     print("=" * 84)
-    print(f"{'N':>4} {'ndim':>5} {'loglik@0':>14} {'t_single(ms)':>13} "
-          f"{'t_batch(ms)':>12} {'t/particle(ms)':>15}")
+    print(
+        f"{'N':>4} {'ndim':>5} {'loglik@0':>14} {'t_single(ms)':>13} "
+        f"{'t_batch(ms)':>12} {'t/particle(ms)':>15}"
+    )
 
     rows = []
     for N in args.N:
         cfg = os.path.join(DERIVED, f"ns_scal_fixed_N{N:02d}_D002_nl500_nd25_s42.ini")
         if not os.path.exists(cfg):
-            print(f"  (missing config for N={N}: {cfg}) -- run gen_scaling_configs.py --stage 1b")
+            print(
+                f"  (missing config for N={N}: {cfg}) -- run gen_scaling_configs.py --stage 1b"
+            )
             continue
         r = bench_one(cfg, batch=args.batch, repeats=args.repeats)
         rows.append(r)
-        print(f"{r['N']:>4} {r['ndim']:>5} {r['loglik_at_center']:>14.2f} "
-              f"{r['t_single_s']*1e3:>13.2f} {r['t_batch_s']*1e3:>12.2f} "
-              f"{r['t_per_particle_s']*1e3:>15.3f}")
+        print(
+            f"{r['N']:>4} {r['ndim']:>5} {r['loglik_at_center']:>14.2f} "
+            f"{r['t_single_s']*1e3:>13.2f} {r['t_batch_s']*1e3:>12.2f} "
+            f"{r['t_per_particle_s']*1e3:>15.3f}"
+        )
 
     if rows:
         with open(args.out, "w", newline="") as f:
             w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
-            w.writeheader(); w.writerows(rows)
+            w.writeheader()
+            w.writerows(rows)
         a1, b1 = _fit_powerlaw([r["N"] for r in rows], [r["t_single_s"] for r in rows])
         aB, bB = _fit_powerlaw([r["N"] for r in rows], [r["t_batch_s"] for r in rows])
         print("=" * 84)
-        print(f"fit: t_single(N) ~ {a1:.3g}*N^{b1:.2f} s   "
-              f"t_batch(N) ~ {aB:.3g}*N^{bB:.2f} s")
+        print(
+            f"fit: t_single(N) ~ {a1:.3g}*N^{b1:.2f} s   "
+            f"t_batch(N) ~ {aB:.3g}*N^{bB:.2f} s"
+        )
         print(f"CSV -> {args.out}")
 
 

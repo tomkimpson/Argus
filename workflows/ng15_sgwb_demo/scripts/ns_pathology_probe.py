@@ -14,6 +14,7 @@ Usage (CPU, fast for the D=2 fixed-noise configs):
 
 Exit 0 if max|logL| stays within --sane-cap (pathology absent/guarded), else 1.
 """
+
 import argparse
 import itertools
 import os
@@ -36,13 +37,17 @@ def build_loglik(config_path):
     cp = configparser.ConfigParser(interpolation=None)
     cp.optionxform = str
     cp.read(config_path)
-    logger = io_manager.setup_single_logger(cp, output_dir=None, enable_file_logging=False)
+    logger = io_manager.setup_single_logger(
+        cp, output_dir=None, enable_file_logging=False
+    )
     pulsar_data, KF = workflow.setup_data_and_kalman_filter(
-        cp, logger, use_gw=True, signal_model="gwb")
+        cp, logger, use_gw=True, signal_model="gwb"
+    )
     n_pulsars = len(pulsar_data["metadata"])
     efac, equad, sigma_p, gamma_p = utils.get_noise_parameters(cp)
     prior_specs = prior_models.get_prior_model_specs(
-        cp, n_pulsars, sigma_p, gamma_p, efac, equad, mode="gwb")
+        cp, n_pulsars, sigma_p, gamma_p, efac, equad, mode="gwb"
+    )
 
     def model():
         numpyro_model(KF, prior_specs, n_pulsars)
@@ -51,14 +56,15 @@ def build_loglik(config_path):
     names, shapes = [], []
     for name, site in tr.items():
         if site["type"] == "sample" and not site.get("is_observed", False):
-            names.append(name); shapes.append(jnp.shape(site["value"]))
+            names.append(name)
+            shapes.append(jnp.shape(site["value"]))
     sizes = [int(np.prod(s)) if s else 1 for s in shapes]
     ndim = int(sum(sizes))
 
     def unpack(z):
         out, off = {}, 0
         for nm, sh, sz in zip(names, shapes, sizes):
-            out[nm] = z[off] if sh == () else z[off:off+sz].reshape(sh)
+            out[nm] = z[off] if sh == () else z[off : off + sz].reshape(sh)
             off += sz
         return out
 
@@ -72,7 +78,9 @@ def build_loglik(config_path):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--config", required=True)
-    ap.add_argument("--span", type=float, default=8.0, help="scan each latent in [-span, span]")
+    ap.add_argument(
+        "--span", type=float, default=8.0, help="scan each latent in [-span, span]"
+    )
     ap.add_argument("--grid", type=int, default=41)
     ap.add_argument("--sane-cap", type=float, default=1e6)
     args = ap.parse_args()
@@ -84,17 +92,22 @@ def main():
     axis = np.linspace(-args.span, args.span, args.grid)
     worst, worst_z = -np.inf, None
     for zi, zj in itertools.product(axis, axis):
-        z = np.zeros(ndim); z[0] = zi
+        z = np.zeros(ndim)
+        z[0] = zi
         if ndim > 1:
             z[1] = zj
         v = float(loglik(jnp.asarray(z)))
         if np.isfinite(v) and v > worst:
             worst, worst_z = v, (zi, zj)
-    print(f"config N={N} ndim={ndim}: max logL over |z|<= {args.span} grid = {worst:.4g} "
-          f"at z[:2]={worst_z}")
+    print(
+        f"config N={N} ndim={ndim}: max logL over |z|<= {args.span} grid = {worst:.4g} "
+        f"at z[:2]={worst_z}"
+    )
     ok = abs(worst) < args.sane_cap
-    print(f"PATHOLOGY {'ABSENT (bounded)' if ok else 'PRESENT (spurious huge logL)'} "
-          f"[sane cap {args.sane_cap:g}]")
+    print(
+        f"PATHOLOGY {'ABSENT (bounded)' if ok else 'PRESENT (spurious huge logL)'} "
+        f"[sane cap {args.sane_cap:g}]"
+    )
     raise SystemExit(0 if ok else 1)
 
 

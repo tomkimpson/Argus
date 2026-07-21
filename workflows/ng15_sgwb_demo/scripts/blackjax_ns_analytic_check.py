@@ -20,6 +20,7 @@ Run (CPU):
 Exit code 0 iff every dimension's recovered logZ agrees with the closed form within
 tolerance (``|logZ_est - logZ_true| < max(3*logZ_err, ATOL)``).
 """
+
 import argparse
 import math
 import time
@@ -47,9 +48,7 @@ def run_dim(d, half_width=10.0, num_live=500, seed=0, dlogz=-5.0):
 
     key = jax.random.PRNGKey(seed)
     key, subkey = jax.random.split(key)
-    init_particles = jax.random.uniform(
-        subkey, (num_live, d), minval=lo, maxval=hi
-    )
+    init_particles = jax.random.uniform(subkey, (num_live, d), minval=lo, maxval=hi)
 
     t0 = time.time()
     res = _blackjax_ns_evidence(
@@ -75,8 +74,10 @@ def main():
     print("=" * 78)
     print("T2.6 GATE 2: blackjax NS evidence vs analytic Gaussian logZ")
     print("=" * 78)
-    print(f"{'d':>4} {'logZ_true':>12} {'logZ_est':>12} {'logZ_err':>10} "
-          f"{'|err|':>8} {'steps':>8} {'wall_s':>8}  verdict")
+    print(
+        f"{'d':>4} {'logZ_true':>12} {'logZ_est':>12} {'logZ_err':>10} "
+        f"{'|err|':>8} {'steps':>8} {'wall_s':>8}  verdict"
+    )
 
     all_ok = True
     for d in args.dims:
@@ -86,9 +87,11 @@ def main():
         abs_err = abs(est - logZ_true)
         ok = abs_err < max(3.0 * err, args.atol)
         all_ok &= ok
-        print(f"{d:>4} {logZ_true:>12.3f} {est:>12.3f} {err:>10.3f} "
-              f"{abs_err:>8.3f} {res['n_steps']:>8d} {res['wall_s']:>8.1f}  "
-              f"{'PASS' if ok else 'FAIL'}")
+        print(
+            f"{d:>4} {logZ_true:>12.3f} {est:>12.3f} {err:>10.3f} "
+            f"{abs_err:>8.3f} {res['n_steps']:>8d} {res['wall_s']:>8.1f}  "
+            f"{'PASS' if ok else 'FAIL'}"
+        )
 
     print("=" * 78)
     print(f"GATE 2: {'PASS' if all_ok else 'FAIL'}")
