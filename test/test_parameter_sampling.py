@@ -341,3 +341,202 @@ class TestCountFreeParameters:
 
         # ha (1) + gamma_a (1) + gamma_p (3) + sigma_p (3) + efac (3) + equad (3) = 14
         assert count == 14
+
+
+class TestSampleEmpiricalNoiseParameters:
+    """Tests for the empirical per-pulsar prior sampling path."""
+
+    @pytest.fixture
+    def empirical_specs(self):
+        return {
+            "gamma_loc": jnp.array([-8.0, -8.5, -9.0]),
+            "gamma_scale": jnp.array([0.2, 0.3, 0.4]),
+            "ratio_loc": jnp.array([-6.0, -6.5, -7.0]),
+            "ratio_scale": jnp.array([0.1, 0.2, 0.3]),
+            "psr_names": ["J0030+0451", "J1640+2224", "J1909-3744"],
+        }
+
+    def test_sites_and_deterministics(self, empirical_specs):
+        """Empirical mode samples unit-Gaussian raw sites and derives physicals."""
+        from numpyro import handlers
+
+        def model():
+            parameter_sampling.sample_empirical_noise_parameters(empirical_specs, 3)
+
+        trace = handlers.trace(handlers.seed(model, rng_seed=0)).get_trace()
+
+        assert trace["log10_γp_raw"]["type"] == "sample"
+        assert trace["log10_ratio_raw"]["type"] == "sample"
+        assert trace["log10_γp_raw"]["value"].shape == (3,)
+
+        raw_gamma = trace["log10_γp_raw"]["value"]
+        raw_ratio = trace["log10_ratio_raw"]["value"]
+        expected_gamma = (
+            empirical_specs["gamma_loc"] + raw_gamma * empirical_specs["gamma_scale"]
+        )
+        expected_ratio = (
+            empirical_specs["ratio_loc"] + raw_ratio * empirical_specs["ratio_scale"]
+        )
+        assert jnp.allclose(trace["log10_γp"]["value"], expected_gamma)
+        assert jnp.allclose(trace["log10_ratio"]["value"], expected_ratio)
+        assert jnp.allclose(trace["log10_σp"]["value"], expected_gamma + expected_ratio)
+
+    def test_no_hyperparameter_sites(self, empirical_specs):
+        """Empirical mode must not sample population hyperparameters."""
+        from numpyro import handlers
+
+        prior_specs = {
+            "empirical_specs": empirical_specs,
+            "log10_gamma_p_spec": None,
+            "log10_sigma_p_spec": None,
+            "hierarchical_specs": None,
+        }
+
+        def model():
+            parameter_sampling.sample_pulsar_noise_parameters(prior_specs, 3)
+
+        trace = handlers.trace(handlers.seed(model, rng_seed=0)).get_trace()
+
+        assert "log10_gamma_p_mean_raw" not in trace
+        assert "log10_gamma_p_std_raw" not in trace
+        assert "log10_ratio_mean_raw" not in trace
+        assert "log10_ratio_std_raw" not in trace
+        assert "log10_γp_raw" in trace
+        assert "log10_ratio_raw" in trace
+
+
+class TestFlatModeSampling:
+    """Tests for the flat (independent Uniform) red noise sampling path."""
+
+    def test_flat_specs_sample_standardized_sites(self):
+        """Distribution specs dispatch to the reparameterized sampler."""
+        from numpyro import handlers
+
+        n = 1
+        prior_specs = {
+            "empirical_specs": None,
+            "log10_gamma_p_spec": tfpd.Uniform(
+                low=jnp.full(n, -12.0), high=jnp.full(n, -6.0)
+            ),
+            "log10_sigma_p_spec": tfpd.Uniform(
+                low=jnp.full(n, -20.0), high=jnp.full(n, -12.0)
+            ),
+            "hierarchical_specs": None,
+        }
+
+        def model():
+            parameter_sampling.sample_pulsar_noise_parameters(prior_specs, n)
+
+        trace = handlers.trace(handlers.seed(model, rng_seed=0)).get_trace()
+
+        assert trace["log10_γp_standardized"]["type"] == "sample"
+        assert trace["log10_σp_standardized"]["type"] == "sample"
+        # At n=1 the standardized latent is exactly N(0,1)
+        assert float(trace["log10_γp_standardized"]["fn"].scale[0]) == pytest.approx(
+            1.0
+        )
+        # Deterministic transform: mean + standardized * std
+        expected = -9.0 + trace["log10_γp_standardized"]["value"] * 1.0
+        assert jnp.allclose(trace["log10_γp"]["value"], expected)
+
+
+class TestCountFreeParametersNewModes:
+    """count_free_parameters for the empirical and flat modes."""
+
+    def _gw_free(self):
+        return {
+            "log10_ha_transform_params": {"mean": -15.0, "std": 0.33},
+            "log10_gamma_a_spec": tfpd.Uniform(-10.0, -8.0),
+            "efac_spec": jnp.ones(3),  # fixed
+            "equad_spec": jnp.ones(3),  # fixed
+        }
+
+    def test_count_empirical_mode(self):
+        """Empirical mode: 2 GW + 2N, no hyperparameters."""
+        prior_specs = self._gw_free() | {
+            "empirical_specs": {
+                "gamma_loc": jnp.zeros(3),
+                "gamma_scale": jnp.ones(3),
+                "ratio_loc": jnp.zeros(3),
+                "ratio_scale": jnp.ones(3),
+                "psr_names": ["a", "b", "c"],
+            },
+            "log10_gamma_p_spec": None,
+            "log10_sigma_p_spec": None,
+            "hierarchical_specs": None,
+        }
+
+        assert parameter_sampling.count_free_parameters(prior_specs, 3) == 2 + 2 * 3
+
+    def test_count_flat_mode(self):
+        """Flat mode: 2 GW + 2N, no hyperparameters."""
+        prior_specs = self._gw_free() | {
+            "empirical_specs": None,
+            "log10_gamma_p_spec": tfpd.Uniform(jnp.full(3, -12.0), jnp.full(3, -6.0)),
+            "log10_sigma_p_spec": tfpd.Uniform(jnp.full(3, -20.0), jnp.full(3, -12.0)),
+            "hierarchical_specs": None,
+        }
+
+        assert parameter_sampling.count_free_parameters(prior_specs, 3) == 2 + 2 * 3
+
+
+class TestNumpyroModelNewModes:
+    """Prior-predictive smoke of the full numpyro model in the new modes."""
+
+    class _StubKalmanFilter:
+        def get_likelihood(self, params):
+            return jnp.asarray(0.0)
+
+    def _base_specs(self):
+        return {
+            "log10_ha_transform_params": {"mean": -15.0, "std": 0.33},
+            "log10_ha_spec": None,
+            "log10_gamma_a_spec": tfpd.Uniform(-10.0, -8.0),
+            "efac_spec": jnp.ones(3),
+            "equad_spec": jnp.full(3, 1e-7),
+        }
+
+    def _trace(self, prior_specs):
+        from numpyro import handlers
+        from argus import bayesian_inference
+
+        def model():
+            bayesian_inference.numpyro_model(self._StubKalmanFilter(), prior_specs, 3)
+
+        return handlers.trace(handlers.seed(model, rng_seed=0)).get_trace()
+
+    def test_empirical_mode_model_traces(self):
+        prior_specs = self._base_specs() | {
+            "empirical_specs": {
+                "gamma_loc": jnp.array([-8.0, -8.5, -9.0]),
+                "gamma_scale": jnp.array([0.2, 0.3, 0.4]),
+                "ratio_loc": jnp.array([-6.0, -6.5, -7.0]),
+                "ratio_scale": jnp.array([0.1, 0.2, 0.3]),
+                "psr_names": ["a", "b", "c"],
+            },
+            "log10_gamma_p_spec": None,
+            "log10_sigma_p_spec": None,
+            "hierarchical_specs": None,
+        }
+
+        trace = self._trace(prior_specs)
+
+        assert "likelihood" in trace
+        assert "log10_γp_raw" in trace
+        assert "log10_gamma_p_mean_raw" not in trace
+        assert jnp.all(jnp.isfinite(trace["log10_σp"]["value"]))
+
+    def test_flat_mode_model_traces(self):
+        prior_specs = self._base_specs() | {
+            "empirical_specs": None,
+            "log10_gamma_p_spec": tfpd.Uniform(jnp.full(3, -12.0), jnp.full(3, -6.0)),
+            "log10_sigma_p_spec": tfpd.Uniform(jnp.full(3, -20.0), jnp.full(3, -12.0)),
+            "hierarchical_specs": None,
+        }
+
+        trace = self._trace(prior_specs)
+
+        assert "likelihood" in trace
+        assert "log10_γp_standardized" in trace
+        assert "log10_σp_standardized" in trace
+        assert jnp.all(jnp.isfinite(trace["log10_σp"]["value"]))

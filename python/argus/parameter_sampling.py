@@ -242,11 +242,55 @@ def sample_log_ratio_parameters(hierarchical_specs, log10_γp, n_pulsars):
     return log10_σp
 
 
-def sample_pulsar_noise_parameters(prior_specs, n_pulsars):
-    """Sample pulsar red noise parameters using hierarchical modeling.
+def sample_empirical_noise_parameters(empirical_specs, n_pulsars):
+    """Sample pulsar red noise parameters from per-pulsar empirical priors.
 
-    Always uses hierarchical modeling for gamma_p and log-ratio parameterization
-    for sigma_p unless parameters are explicitly fixed via injection.
+    Empirical mode (Stage C of the two-stage noise procedure, issue #111):
+    each pulsar gets an independent Normal prior on log10_γp and on the
+    log-ratio σp/γp, with (loc, scale) taken from single-pulsar posteriors.
+    No population hyperparameters are sampled. The latent sites reuse the
+    hierarchical-mode names (log10_γp_raw, log10_ratio_raw) as unit Gaussians
+    so downstream consumers (corner plots, logz_lhm.py) work unchanged.
+
+    Parameters
+    ----------
+    empirical_specs : dict
+        Output of prior_models.get_empirical_noise_priors
+    n_pulsars : int
+        Number of pulsars
+
+    Returns
+    -------
+    tuple
+        (log10_γp, log10_σp) values
+    """
+    log10_γp_raw = numpyro.sample(
+        "log10_γp_raw", dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars))
+    )
+    log10_γp = numpyro.deterministic(
+        "log10_γp",
+        empirical_specs["gamma_loc"] + log10_γp_raw * empirical_specs["gamma_scale"],
+    )
+
+    log10_ratio_raw = numpyro.sample(
+        "log10_ratio_raw", dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars))
+    )
+    log10_ratio = numpyro.deterministic(
+        "log10_ratio",
+        empirical_specs["ratio_loc"] + log10_ratio_raw * empirical_specs["ratio_scale"],
+    )
+
+    log10_σp = numpyro.deterministic("log10_σp", log10_γp + log10_ratio)
+
+    return log10_γp, log10_σp
+
+
+def sample_pulsar_noise_parameters(prior_specs, n_pulsars):
+    """Sample pulsar red noise parameters.
+
+    Dispatches between empirical per-pulsar priors, independent flat priors,
+    fixed injected values, and the default hierarchical modeling with log-ratio
+    parameterization (see prior_models.get_pulsar_noise_priors for precedence).
 
     Parameters
     ----------
@@ -260,11 +304,15 @@ def sample_pulsar_noise_parameters(prior_specs, n_pulsars):
     tuple
         (log10_γp, log10_σp) values
     """
+    empirical_specs = prior_specs.get("empirical_specs")
+    if empirical_specs is not None:
+        return sample_empirical_noise_parameters(empirical_specs, n_pulsars)
+
     hierarchical_specs = prior_specs.get("hierarchical_specs")
 
-    # Handle log10_gamma_p - either hierarchical or fixed
+    # Handle log10_gamma_p - flat (Distribution), fixed, or hierarchical
     if isinstance(prior_specs["log10_gamma_p_spec"], tfpd.Distribution):
-        # Fallback for backwards compatibility - shouldn't occur in new setup
+        # Flat per-pulsar Uniform priors (red_noise_prior = flat)
         log10_γp = sample_reparameterized_parameters(
             prior_specs["log10_gamma_p_spec"], "log10_γp", n_pulsars
         )
@@ -275,9 +323,9 @@ def sample_pulsar_noise_parameters(prior_specs, n_pulsars):
         # Always use hierarchical modeling
         log10_γp = sample_hierarchical_gamma_parameters(hierarchical_specs, n_pulsars)
 
-    # Handle log10_sigma_p - either log-ratio or fixed
+    # Handle log10_sigma_p - flat (Distribution), fixed, or log-ratio
     if isinstance(prior_specs["log10_sigma_p_spec"], tfpd.Distribution):
-        # Fallback for backwards compatibility - shouldn't occur in new setup
+        # Flat per-pulsar Uniform priors (red_noise_prior = flat)
         log10_σp = sample_reparameterized_parameters(
             prior_specs["log10_sigma_p_spec"], "log10_σp", n_pulsars
         )
@@ -453,26 +501,28 @@ def count_free_parameters(prior_specs, n_pulsars):
         if isinstance(prior_specs["log10_gamma_a_spec"], tfpd.Distribution):
             count += 1
 
-    # Pulsar red noise parameters - always hierarchical unless fixed
-    prior_specs.get("hierarchical_specs")
+    # Pulsar red noise parameters
+    if prior_specs.get("empirical_specs") is not None:
+        # Empirical per-pulsar priors: gamma_raw + ratio_raw, no hyperparameters
+        count += 2 * n_pulsars
+    else:
+        # Count gamma_p parameters
+        if isinstance(prior_specs["log10_gamma_p_spec"], tfpd.Distribution):
+            count += n_pulsars  # Flat priors: one per pulsar
+        elif prior_specs["log10_gamma_p_spec"] is None:
+            # Hierarchical modeling: 2 hyperparameters + n_pulsars individual parameters
+            count += 2  # log10_gamma_p_mean and log10_gamma_p_std
+            count += n_pulsars  # Individual pulsar gamma parameters
+        # If fixed, no parameters to count
 
-    # Count gamma_p parameters
-    if isinstance(prior_specs["log10_gamma_p_spec"], tfpd.Distribution):
-        count += n_pulsars  # Fallback: one per pulsar
-    elif prior_specs["log10_gamma_p_spec"] is None:
-        # Hierarchical modeling: 2 hyperparameters + n_pulsars individual parameters
-        count += 2  # log10_gamma_p_mean and log10_gamma_p_std
-        count += n_pulsars  # Individual pulsar gamma parameters
-    # If fixed, no parameters to count
-
-    # Count sigma_p parameters
-    if isinstance(prior_specs["log10_sigma_p_spec"], tfpd.Distribution):
-        count += n_pulsars  # Fallback: one per pulsar
-    elif prior_specs["log10_sigma_p_spec"] is None:
-        # Log-ratio parameterization: 2 hyperparameters + n_pulsars ratio parameters
-        count += 2  # log10_ratio_mean and log10_ratio_std
-        count += n_pulsars  # Individual pulsar ratio parameters (σp derived deterministically)
-    # If fixed, no parameters to count
+        # Count sigma_p parameters
+        if isinstance(prior_specs["log10_sigma_p_spec"], tfpd.Distribution):
+            count += n_pulsars  # Flat priors: one per pulsar
+        elif prior_specs["log10_sigma_p_spec"] is None:
+            # Log-ratio parameterization: 2 hyperparameters + n_pulsars ratio parameters
+            count += 2  # log10_ratio_mean and log10_ratio_std
+            count += n_pulsars  # Individual pulsar ratio parameters (σp derived deterministically)
+        # If fixed, no parameters to count
 
     # Measurement noise parameters
     if isinstance(prior_specs["efac_spec"], tfpd.Distribution):
@@ -509,6 +559,12 @@ def build_jaxns_cw_prior_model(prior_specs, n_pulsars):
         Generator function compatible with jaxns.Model.
     """
     from jaxns.framework.prior import Prior
+
+    if prior_specs.get("empirical_specs") is not None:
+        raise NotImplementedError(
+            "Empirical per-pulsar red noise priors are not supported in the "
+            "jaxns nested-sampling path; use NUTS (sampler = numpyro)."
+        )
 
     cw_specs = prior_specs["cw_specs"]
     hierarchical_specs = prior_specs.get("hierarchical_specs")

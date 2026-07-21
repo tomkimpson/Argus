@@ -175,11 +175,22 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
     # Pulsar red noise parameters
     log_or_print(f"\n--- Pulsar Red Noise Parameters ({n_pulsars} pulsars) ---")
 
-    # log10_gamma_p parameter - check for hierarchical modeling
+    # log10_gamma_p parameter - check for empirical/hierarchical modeling
     gamma_p_spec = prior_specs["log10_gamma_p_spec"]
     hierarchical_specs = prior_specs.get("hierarchical_specs")
+    empirical_specs = prior_specs.get("empirical_specs")
 
-    if hierarchical_specs and hierarchical_specs.get("hierarchical_noise", False):
+    if empirical_specs is not None:
+        gamma_loc = empirical_specs["gamma_loc"]
+        gamma_scale = empirical_specs["gamma_scale"]
+        log_or_print("log10(γ_p): EMPIRICAL per-pulsar Normal priors")
+        log_or_print(
+            f"  - loc range: [{float(jnp.min(gamma_loc)):.2f}, {float(jnp.max(gamma_loc)):.2f}]"
+        )
+        log_or_print(
+            f"  - scale range: [{float(jnp.min(gamma_scale)):.3f}, {float(jnp.max(gamma_scale)):.3f}] (inflation applied)"
+        )
+    elif hierarchical_specs and hierarchical_specs.get("hierarchical_noise", False):
         # Hierarchical modeling case
         mean_spec = hierarchical_specs["log10_gamma_p_mean_spec"]
         std_spec = hierarchical_specs["log10_gamma_p_std_spec"]
@@ -196,7 +207,8 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
             f"log10(γ_p): Uniform({float(gamma_p_spec.low[0]):.1f}, {float(gamma_p_spec.high[0]):.1f}) for each pulsar"
         )
     elif gamma_p_spec is not None:
-        if hasattr(gamma_p_spec, "__len__") and len(gamma_p_spec) > 1:
+        # jnp.min/max also handle length-1 arrays (n=1 runs), where float() would raise
+        if hasattr(gamma_p_spec, "__len__"):
             log_or_print(
                 f"log10(γ_p): FIXED at individual values (range: {float(jnp.min(gamma_p_spec)):.2f} to {float(jnp.max(gamma_p_spec)):.2f})"
             )
@@ -205,9 +217,20 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
     else:
         log_or_print("log10(γ_p): ERROR - None value encountered")
 
-    # log10_sigma_p parameter - check for hierarchical modeling
+    # log10_sigma_p parameter - check for empirical/hierarchical modeling
     sigma_p_spec = prior_specs["log10_sigma_p_spec"]
-    if hierarchical_specs and hierarchical_specs.get(
+    if empirical_specs is not None:
+        ratio_loc = empirical_specs["ratio_loc"]
+        ratio_scale = empirical_specs["ratio_scale"]
+        log_or_print("log10(σ_p): EMPIRICAL log-ratio parameterization")
+        log_or_print("  - log10(σ_p) = log10(γ_p) + log10(ratio)")
+        log_or_print(
+            f"  - ratio loc range: [{float(jnp.min(ratio_loc)):.2f}, {float(jnp.max(ratio_loc)):.2f}]"
+        )
+        log_or_print(
+            f"  - ratio scale range: [{float(jnp.min(ratio_scale)):.3f}, {float(jnp.max(ratio_scale)):.3f}] (inflation applied)"
+        )
+    elif hierarchical_specs and hierarchical_specs.get(
         "log_ratio_parameterization", False
     ):
         # Check if the required specs exist before accessing them
@@ -237,7 +260,8 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
             f"log10(σ_p): Uniform({float(sigma_p_spec.low[0]):.1f}, {float(sigma_p_spec.high[0]):.1f}) for each pulsar"
         )
     elif sigma_p_spec is not None:
-        if hasattr(sigma_p_spec, "__len__") and len(sigma_p_spec) > 1:
+        # jnp.min/max also handle length-1 arrays (n=1 runs), where float() would raise
+        if hasattr(sigma_p_spec, "__len__"):
             log_or_print(
                 f"log10(σ_p): FIXED at individual values (range: {float(jnp.min(sigma_p_spec)):.2f} to {float(jnp.max(sigma_p_spec)):.2f})"
             )
@@ -256,7 +280,8 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
             f"EFAC: Uniform({float(efac_spec.low[0]):.2f}, {float(efac_spec.high[0]):.2f}) for each pulsar"
         )
     elif efac_spec is not None:
-        if hasattr(efac_spec, "__len__") and len(efac_spec) > 1:
+        # jnp.min/max also handle length-1 arrays (n=1 runs), where float() would raise
+        if hasattr(efac_spec, "__len__"):
             log_or_print(
                 f"EFAC: FIXED at individual values (range: {float(jnp.min(efac_spec)):.3f} to {float(jnp.max(efac_spec)):.3f})"
             )
@@ -281,7 +306,8 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
             f"EQUAD: Uniform({float(equad_spec.low[0]):.2e}, {float(equad_spec.high[0]):.2e}) for each pulsar"
         )
     elif equad_spec is not None:
-        if hasattr(equad_spec, "__len__") and len(equad_spec) > 1:
+        # jnp.min/max also handle length-1 arrays (n=1 runs), where float() would raise
+        if hasattr(equad_spec, "__len__"):
             log_or_print(
                 f"EQUAD: FIXED at individual values (range: {float(jnp.min(equad_spec)):.2e} to {float(jnp.max(equad_spec)):.2e})"
             )
@@ -580,9 +606,11 @@ def print_nuts_diagnostics(prior_specs, nuts_info, config):
     print(f"Max tree depth: {nuts_info['max_tree_depth']}")
     print(f"Total free parameters: {nuts_info['total_params']}")
 
-    # Check if hierarchical modeling is enabled
+    # Check if empirical/hierarchical modeling is enabled
     hierarchical_specs = prior_specs.get("hierarchical_specs")
-    if hierarchical_specs:
+    if prior_specs.get("empirical_specs") is not None:
+        print("Empirical per-pulsar red noise priors (no population hyperparameters)")
+    elif hierarchical_specs:
         hier_gamma = hierarchical_specs.get("hierarchical_noise", False)
         log_ratio = hierarchical_specs.get("log_ratio_parameterization", False)
         if hier_gamma or log_ratio:
