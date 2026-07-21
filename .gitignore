@@ -94,3 +94,9 @@ workflows/data/IPTA_MockDataChallenge2/dataset_*/
 .claude
 CLAUDE.md
 handoff.md
+# NG15 CW demo generated data
+workflows/ng15_cw_demo/demo_data/
+workflows/ng15_cw_demo/realdata/
+workflows/ng15_cw_demo/demo_data_wb/
+workflows/ng15_cw_demo/demo_data_wb_loud/
+workflows/ng15_cw_demo/demo_data_wb_noinj/
