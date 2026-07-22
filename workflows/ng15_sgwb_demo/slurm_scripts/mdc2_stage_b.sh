@@ -19,7 +19,10 @@
 # 4 GPUs matched to num_chains=4 so chains run in parallel (sequential chains
 # on 1 GPU timed out the first Stage A array — see mdc2_stage_a.sh).
 #SBATCH --gres=gpu:4
-#SBATCH --time=4:00:00
+# 12h, not 4h: job 14593114 timed out on ONE stuck chain at max tree depth
+# (healthy chains finished in 48 min). With depth capped at 8 the worst-case
+# stuck chain is ~7.5 s/it x 3000 iters ~ 6.3h.
+#SBATCH --time=12:00:00
 #SBATCH --mem=32G
 #SBATCH --cpus-per-task=8
 #SBATCH --export=ALL
