@@ -67,6 +67,49 @@ def sample_gw_parameters(prior_specs):
     tuple
         (log10_ha, log10_gamma_a, γa) values
     """
+    # Ridge parameterization (issue #109): sample the band-referenced pivot
+    # log-PSD and log10_gamma_a as independent coordinates, then derive log10_ha
+    # deterministically. The pivot log-PSD is the direction the data constrains,
+    # so this decouples it from the flat along-ridge direction and straightens
+    # the curved log10_ha<->log10_gamma_a ridge that stalls NUTS chains. The
+    # likelihood still sees (log10_ha, log10_gamma_a); only the prior/sampling
+    # basis changes (uniform on (pivot log-PSD, log10_gamma_a)).
+    if prior_specs.get("gw_parameterization") == "ridge":
+        psd_tp = prior_specs["log10_pivot_psd_transform_params"]
+        ga_tp = prior_specs["log10_gamma_a_transform_params"]
+
+        log10_pivot_psd_prime = numpyro.sample(
+            "log10_pivot_psd_prime", dist.Normal(0.0, 1.0)
+        )
+        log10_pivot_psd = numpyro.deterministic(
+            "log10_pivot_psd", psd_tp["mean"] + log10_pivot_psd_prime * psd_tp["std"]
+        )
+
+        log10_gamma_a_prime = numpyro.sample(
+            "log10_gamma_a_prime", dist.Normal(0.0, 1.0)
+        )
+        log10_gamma_a = numpyro.deterministic(
+            "log10_gamma_a", ga_tp["mean"] + log10_gamma_a_prime * ga_tp["std"]
+        )
+        γa = numpyro.deterministic("γa", 10.0**log10_gamma_a)
+
+        # Invert S_r(f_piv) = (ha^2/12) * ga / (w^2 (ga^2 + w^2)) for log10_ha:
+        #   log10_ha = 0.5[log10(12) + log10_S_r + 2 log10(w)
+        #                  + log10(ga^2 + w^2) - log10_gamma_a]
+        w = prior_specs["gw_pivot_w"]
+        log10_ha = numpyro.deterministic(
+            "log10_ha",
+            0.5
+            * (
+                jnp.log10(12.0)
+                + log10_pivot_psd
+                + 2.0 * jnp.log10(w)
+                + jnp.log10(γa**2 + w**2)
+                - log10_gamma_a
+            ),
+        )
+        return log10_ha, log10_gamma_a, γa
+
     # Handle log10_ha: either fixed value or reparameterized sampling
     if prior_specs["log10_ha_transform_params"] is not None:
         # Sample log10_ha_prime ~ N(0,1) and transform to log10_ha for efficient NUTS sampling
@@ -491,6 +534,10 @@ def count_free_parameters(prior_specs, n_pulsars):
         # Per-pulsar phase parameters (phase reparameterization)
         if cw_specs.get("chi_transform_params") is not None:
             count += n_pulsars
+    elif prior_specs.get("gw_parameterization") == "ridge":
+        # Ridge mode: two free GW coordinates (log10_pivot_psd_prime,
+        # log10_gamma_a_prime); log10_ha is derived deterministically.
+        count += 2
     else:
         # GWB parameters
         # GW amplitude parameter - free if reparameterization is used

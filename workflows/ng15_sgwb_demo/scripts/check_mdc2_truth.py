@@ -77,11 +77,22 @@ def check_run(tag, log10_A, gamma, results_dir):
     log10_ha = post["log10_ha"].values.reshape(-1)
     log10_ga = post["log10_gamma_a"].values.reshape(-1)
 
-    # Sampling health on the GW sites
-    rhat = az.rhat(idata, var_names=["log10_ha", "log10_gamma_a"])
-    rhat_max = float(
-        max(rhat["log10_ha"].values.max(), rhat["log10_gamma_a"].values.max())
+    # Sampling health: r_hat on the actual SAMPLED latent sites, not derived
+    # deterministics. In ridge mode (issue #109) log10_ha is a deterministic and
+    # the free sites are log10_pivot_psd_prime / log10_gamma_a_prime; in direct
+    # mode the free sites are log10_ha_prime / log10_gamma_a_prime (or the raw
+    # names for a fixed param). Pick whichever pair is present.
+    ridge = "log10_pivot_psd_prime" in post
+    gw_sites = (
+        ["log10_pivot_psd_prime", "log10_gamma_a_prime"]
+        if ridge
+        else ["log10_ha_prime", "log10_gamma_a_prime"]
     )
+    gw_sites = [s for s in gw_sites if s in post]
+    if not gw_sites:  # fully-fixed GW (shouldn't happen for B/C) -> use derived
+        gw_sites = ["log10_ha", "log10_gamma_a"]
+    rhat = az.rhat(idata, var_names=gw_sites)
+    rhat_max = float(max(rhat[s].values.max() for s in gw_sites))
     div_frac = 0.0
     if hasattr(idata, "sample_stats") and "diverging" in idata.sample_stats:
         div_frac = float(np.mean(idata.sample_stats["diverging"].values))

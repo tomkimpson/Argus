@@ -540,3 +540,69 @@ class TestNumpyroModelNewModes:
         assert "log10_γp_standardized" in trace
         assert "log10_σp_standardized" in trace
         assert jnp.all(jnp.isfinite(trace["log10_σp"]["value"]))
+
+
+class TestRidgeGwSampling:
+    """Ridge GW parameterization sampling (issue #109)."""
+
+    def _ridge_specs(self):
+        import math
+
+        return {
+            "gw_parameterization": "ridge",
+            "log10_ha_spec": None,
+            "log10_ha_transform_params": None,
+            "log10_gamma_a_spec": None,
+            "log10_pivot_psd_transform_params": {
+                "mean": -9.0,
+                "std": 8.0 / 6.0,
+                "min": -13.0,
+                "max": -5.0,
+            },
+            "log10_gamma_a_transform_params": {
+                "mean": -8.5,
+                "std": 5.0 / 6.0,
+                "min": -11.0,
+                "max": -6.0,
+            },
+            "gw_pivot_w": 2 * math.pi * 6.3376e-09,
+        }
+
+    def test_ridge_sites_and_inversion(self):
+        """Ridge mode samples the two _prime sites and derives log10_ha so that
+        the OU PSD at the pivot reproduces the sampled pivot log-PSD."""
+        from numpyro import handlers
+
+        specs = self._ridge_specs()
+
+        def model():
+            parameter_sampling.sample_gw_parameters(specs)
+
+        trace = handlers.trace(handlers.seed(model, rng_seed=0)).get_trace()
+
+        assert trace["log10_pivot_psd_prime"]["type"] == "sample"
+        assert trace["log10_gamma_a_prime"]["type"] == "sample"
+        assert "log10_ha_prime" not in trace  # log10_ha is derived, not sampled
+
+        log10_pivot_psd = float(trace["log10_pivot_psd"]["value"])
+        log10_ha = float(trace["log10_ha"]["value"])
+        log10_ga = float(trace["log10_gamma_a"]["value"])
+
+        # Forward OU PSD at the pivot must equal the sampled pivot log-PSD
+        w = specs["gw_pivot_w"]
+        ha, ga = 10.0**log10_ha, 10.0**log10_ga
+        s2 = (ha**2 / 12.0) * ga
+        sr = s2 / (w**2 * (ga**2 + w**2))
+        assert float(jnp.log10(sr)) == pytest.approx(log10_pivot_psd, abs=1e-6)
+
+    def test_ridge_count_free_parameters(self):
+        """Ridge GW mode counts 2 free params (fixed noise)."""
+        specs = self._ridge_specs() | {
+            "empirical_specs": None,
+            "log10_gamma_p_spec": jnp.array([-8.0, -8.0]),  # fixed
+            "log10_sigma_p_spec": jnp.array([-15.0, -15.0]),  # fixed
+            "hierarchical_specs": None,
+            "efac_spec": jnp.ones(2),
+            "equad_spec": jnp.full(2, 1e-7),
+        }
+        assert parameter_sampling.count_free_parameters(specs, 2) == 2

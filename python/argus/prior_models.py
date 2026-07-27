@@ -28,7 +28,65 @@ def get_gw_parameter_priors(config):
         - log10_ha_spec: Prior distribution for log10(ha)
         - log10_ha_transform_params: Transformation parameters for reparameterization
         - log10_gamma_a_spec: Prior distribution for log10(γa)
+
+    Notes
+    -----
+    ``gw_parameterization`` (fallback ``direct``) selects the sampling basis:
+
+    - ``direct``: independent reparameterized priors on log10_ha and
+      log10_gamma_a (the original behavior; unchanged when the key is absent).
+    - ``ridge``: sample the band-referenced pivot log-PSD and log10_gamma_a as
+      independent coordinates, deriving log10_ha deterministically. The pivot
+      log-PSD is the direction the data actually constrains, so this decouples
+      it from the flat along-ridge direction and straightens the curved
+      log10_ha<->log10_gamma_a ridge that stalls NUTS chains (issue #109).
+      Reads log10_pivot_psd_{min,max}, gw_pivot_freq_hz (fallback 1/(5 yr)),
+      and log10_gamma_a_{min,max}.
     """
+
+    def _reparam(min_val, max_val):
+        """N(0,1)-reparameterized uniform: returns (mean, std) for the 3-sigma map."""
+        return (min_val + max_val) / 2.0, (max_val - min_val) / 6.0
+
+    gw_parameterization = (
+        config.get("PriorModel", "gw_parameterization", fallback="direct")
+        .strip()
+        .lower()
+    )
+    if gw_parameterization == "ridge":
+        import math
+
+        psd_min = config.getfloat("PriorModel", "log10_pivot_psd_min")
+        psd_max = config.getfloat("PriorModel", "log10_pivot_psd_max")
+        ga_min = config.getfloat("PriorModel", "log10_gamma_a_min")
+        ga_max = config.getfloat("PriorModel", "log10_gamma_a_max")
+        f_piv = config.getfloat(
+            "PriorModel", "gw_pivot_freq_hz", fallback=1.0 / (5.0 * 365.25 * 86400.0)
+        )
+        psd_mean, psd_std = _reparam(psd_min, psd_max)
+        ga_mean, ga_std = _reparam(ga_min, ga_max)
+        return {
+            "gw_parameterization": "ridge",
+            # log10_ha is derived; keep the direct-mode keys present (None) so
+            # count_free_parameters / display code that reads them stay happy.
+            "log10_ha_spec": None,
+            "log10_ha_transform_params": None,
+            "log10_gamma_a_spec": None,
+            "log10_pivot_psd_transform_params": {
+                "mean": psd_mean,
+                "std": psd_std,
+                "min": psd_min,
+                "max": psd_max,
+            },
+            "log10_gamma_a_transform_params": {
+                "mean": ga_mean,
+                "std": ga_std,
+                "min": ga_min,
+                "max": ga_max,
+            },
+            # angular pivot frequency w = 2*pi*f_piv, used in the ha inversion
+            "gw_pivot_w": 2.0 * math.pi * f_piv,
+        }
 
     # Helper function to create prior spec based on fixed/sampled setting
     def get_prior_spec(param_name):
@@ -68,6 +126,7 @@ def get_gw_parameter_priors(config):
     log10_gamma_a_spec = get_prior_spec("log10_gamma_a")
 
     return {
+        "gw_parameterization": "direct",
         "log10_ha_spec": log10_ha_spec,
         "log10_ha_transform_params": log10_ha_transform_params,
         "log10_gamma_a_spec": log10_gamma_a_spec,
@@ -567,10 +626,9 @@ def get_prior_model_specs(
         result["log10_ha_transform_params"] = None
         result["log10_gamma_a_spec"] = None
     else:
-        # GWB-specific priors
-        gw_specs = get_gw_parameter_priors(config)
-        result["log10_ha_spec"] = gw_specs["log10_ha_spec"]
-        result["log10_ha_transform_params"] = gw_specs["log10_ha_transform_params"]
-        result["log10_gamma_a_spec"] = gw_specs["log10_gamma_a_spec"]
+        # GWB-specific priors (direct or ridge parameterization). Copy every key
+        # get_gw_parameter_priors returns so the ridge-mode extras
+        # (gw_parameterization, *_transform_params, gw_pivot_w) pass through.
+        result.update(get_gw_parameter_priors(config))
 
     return result

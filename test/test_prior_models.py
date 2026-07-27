@@ -402,3 +402,48 @@ class TestGetEmpiricalNoisePriors:
 
         assert priors.get("empirical_specs") is None
         assert priors["log10_gamma_p_spec"] is not None
+
+
+class TestRidgeParameterization:
+    """Tests for the ridge GW parameterization (issue #109)."""
+
+    def _enable_ridge(self, mock_config):
+        mock_config.set("PriorModel", "gw_parameterization", "ridge")
+        mock_config.set("PriorModel", "log10_pivot_psd_min", "-13.0")
+        mock_config.set("PriorModel", "log10_pivot_psd_max", "-5.0")
+        mock_config.set("PriorModel", "log10_gamma_a_min", "-11.0")
+        mock_config.set("PriorModel", "log10_gamma_a_max", "-6.0")
+        mock_config.set("PriorModel", "gw_pivot_freq_hz", "6.3376e-09")  # 1/(5 yr)
+
+    def test_ridge_specs(self, mock_config):
+        """Ridge mode returns pivot-PSD + gamma_a transforms and a pivot w."""
+        self._enable_ridge(mock_config)
+        specs = prior_models.get_gw_parameter_priors(mock_config)
+
+        assert specs["gw_parameterization"] == "ridge"
+        assert specs["log10_ha_spec"] is None
+        assert specs["log10_ha_transform_params"] is None
+        psd = specs["log10_pivot_psd_transform_params"]
+        assert psd["mean"] == pytest.approx((-13.0 + -5.0) / 2.0)
+        assert psd["std"] == pytest.approx((-5.0 - -13.0) / 6.0)
+        ga = specs["log10_gamma_a_transform_params"]
+        assert ga["min"] == -11.0 and ga["max"] == -6.0
+        import math
+
+        assert specs["gw_pivot_w"] == pytest.approx(2 * math.pi * 6.3376e-09)
+
+    def test_default_is_direct(self, mock_config):
+        """Absent gw_parameterization key -> direct mode, unchanged behavior."""
+        specs = prior_models.get_gw_parameter_priors(mock_config)
+        assert specs["gw_parameterization"] == "direct"
+        assert specs["log10_ha_transform_params"] is not None
+
+    def test_ridge_passes_through_prior_model_specs(self, mock_config):
+        """get_prior_model_specs forwards the ridge keys in gwb mode."""
+        self._enable_ridge(mock_config)
+        specs = prior_models.get_prior_model_specs(
+            mock_config, 2, None, None, None, None, mode="gwb"
+        )
+        assert specs["gw_parameterization"] == "ridge"
+        assert "gw_pivot_w" in specs
+        assert "log10_pivot_psd_transform_params" in specs

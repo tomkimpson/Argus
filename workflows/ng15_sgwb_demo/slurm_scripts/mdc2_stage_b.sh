@@ -41,7 +41,15 @@ case "${MODE}" in
     curn) DRIVER="${ROOT}/run_curn.py" ;;
     *)    echo "ERROR: MODE must be hd or curn (got '${MODE}')" >&2; exit 1 ;;
 esac
-CONFIG="${ROOT}/configs/mdc2_stage_b_${MODE}.ini"
+# BASIS selects the GW parameterization variant: ridge (default, issue #109 fix)
+# or direct (the original basis, kept for comparison). Ridge configs carry the
+# _ridge suffix.
+BASIS="${2:-ridge}"
+if [ "${BASIS}" = "direct" ]; then
+    CONFIG="${ROOT}/configs/mdc2_stage_b_${MODE}.ini"
+else
+    CONFIG="${ROOT}/configs/mdc2_stage_b_${MODE}_${BASIS}.ini"
+fi
 
 if [ ! -f "${ROOT}/data/stage_a_medians.pkl" ]; then
     echo "ERROR: ${ROOT}/data/stage_a_medians.pkl not found." >&2

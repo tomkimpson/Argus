@@ -133,6 +133,23 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
                 f"χ (per-pulsar phase): Uniform({chi_tp['min']:.3f}, {chi_tp['max']:.3f}) "
                 f"× {n_pulsars} pulsars [phase reparameterization]"
             )
+    elif prior_specs.get("gw_parameterization") == "ridge":
+        # Ridge parameterization (issue #109)
+        log_or_print("\n--- Gravitational Wave Background Parameters (RIDGE) ---")
+        psd_tp = prior_specs["log10_pivot_psd_transform_params"]
+        ga_tp = prior_specs["log10_gamma_a_transform_params"]
+        log_or_print(
+            "Sampling basis: pivot log-PSD + log10(γ_a); log10(h_a) derived "
+            "(straightens the h_a<->γ_a ridge)"
+        )
+        log_or_print(
+            f"  - log10(pivot PSD): Uniform({psd_tp['min']:.1f}, {psd_tp['max']:.1f}) "
+            "via log10_pivot_psd_prime ~ N(0,1)"
+        )
+        log_or_print(
+            f"  - log10(γ_a): Uniform({ga_tp['min']:.1f}, {ga_tp['max']:.1f}) "
+            "via log10_gamma_a_prime ~ N(0,1)"
+        )
     else:
         # GW background parameters
         log_or_print("\n--- Gravitational Wave Background Parameters ---")
