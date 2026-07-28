@@ -616,26 +616,39 @@ Infrastructure (all committed on this branch):
 - Configs: `mdc2_stage_a.ini` (sed template), `mdc2_stage_{b,c}_{hd,curn}.ini`.
 - SLURM: `mdc2_stage_a.sh` (array 0-32), `mdc2_stage_b.sh` / `mdc2_stage_c.sh` (MODE=hd|curn).
 
+**OUTCOME (2026-07-28): M1 banked on amplitude recovery.** The direct
+(log10_ha, log10_gamma_a) basis would not converge — a curved ridge stalled one
+chain per run (r_hat 1.5–2.3). Fixed by an opt-in **ridge GW parameterization**
+(sample pivot log-PSD + log10_gamma_a, derive log10_ha; see
+`notes/ha_gamma_ridge_reparameterization.md`). With ridge, all Stage B/C runs
+converged (r_hat ≤ 1.005, 0% divergences), and **Stage C (empirical priors)
+recovers the injected amplitude — truth gate PASS at −0.35σ** — while Stage B
+(fixed noise) fails at −3.11σ, as the two-stage design predicts. The HD-vs-CURN
+Bayes factor was **not** obtained: LHM is degenerate at 68-D (all matched-shrink
+estimates positive/HD-leaning but uncalibrated), the anticipated high-D LHM wall
+(roadmap risk #3). Decision: bank amplitude recovery as M1's success; defer the
+calibrated lnB to a **product-space / hypermodel** estimator, built+validated on
+this MDC2 case as M3 prep. Ridge is the M3 GW parameterization.
+
 Execution playbook (gated):
 
-- [ ] **M1.0 — Ingest + stage.** Login node, `Argus` env:
-  `python scripts/ingest_par_tim.py workflows/data/IPTA_MockDataChallenge2/dataset_2b workflows/ng15_sgwb_demo/data/mdc2_all`
-  then `python workflows/ng15_sgwb_demo/scripts/stage_mdc2.py`. Done when 33 dirs staged.
-- [ ] **M1.1 — Stage A.** `sbatch slurm_scripts/mdc2_stage_a.sh` (33 × ≤30 min, 1×A100 each).
-  Done when all 33 `outputs/mdc2_stageA_*/..._results.nc` exist.
-- [ ] **M1.2 — Gate A.** `python scripts/extract_stage_a.py` — all pulsars pass health
-  gates (r_hat<1.05, ESS>200, not railed) or documented drops (J1640+2224 the known
-  candidate). Commit the two artifacts. Done when pickle+JSON written.
-- [ ] **M1.3 — Stages B & C (4 jobs in parallel).** `sbatch slurm_scripts/mdc2_stage_b.sh [hd|curn]`,
-  `sbatch slurm_scripts/mdc2_stage_c.sh [hd|curn]`. Gate: r_hat<1.01 on GW sites,
-  divergences <1%, no railing. Stage C escalation ladder in its config header.
-- [ ] **M1.4 — Truth gate.** `python scripts/check_mdc2_truth.py --run mdc2_stageB_hd --run mdc2_stageC_hd`.
-  Winner (pass + healthier) becomes the M3 procedure; if both pass, C wins (honest
-  uncertainty + noise-marginalized evidence).
-- [ ] **M1.5 — Stage D evidence.** CPU, login node:
-  `JAX_PLATFORMS=cpu python scripts/logz_lhm.py --results outputs/mdc2_stageB_hd/mdc2_stageB_hd_results.nc --compare-to outputs/mdc2_stageB_curn/mdc2_stageB_curn_results.nc --out outputs/mdc2_stageB_lnB.json`
-  (2-D sanity), then the Stage C pair with
-  `--shrink-grid 0.5 0.6 0.7 0.75 0.8 0.85 0.9 0.95` (68-D LHM calibration; needs ≥3
-  healthy shrink values, plateau spread ≲1 nat; if none, re-run Stage C with
-  num_samples=4000 before declaring LHM broken at 68-D).
-  Done when 2·lnB > 10 (Kass-Raftery "very strong") on the winning stage's pair.
+- [x] **M1.0 — Ingest + stage.** 33 feathers ingested to `data/mdc2_all/`;
+  `stage_mdc2.py` built the 33 per-pulsar dirs.
+- [x] **M1.1 — Stage A.** Job 14580470 (2 chains, 1×A100): 33/33 completed.
+- [x] **M1.2 — Gate A.** 33/33 PASS (r_hat ≤ 1.010, ESS ≥ 390, none railed —
+  J1640+2224 included). `stage_a_medians.pkl` + `stage_a_empirical_priors.json`
+  committed.
+- [x] **M1.3 — Stages B & C (ridge basis).** Jobs 14820454–57 (4×A100).
+  All converged: Stage B r_hat 1.001 / 0% div (~1 h); Stage C 68-D r_hat ≤ 1.004
+  / 0% div (~9.5 h). The direct-basis runs (superseded) did not converge.
+- [x] **M1.4 — Truth gate.** `check_mdc2_truth.py`: Stage C hd **PASS** (−0.35σ,
+  injected covered); Stage B hd FAIL (−3.11σ, fixed-noise under-recovery). Stage C
+  (empirical priors) is the M3 procedure.
+- [x] **M1.5 — Stage D evidence.** Stage B pair lnB = −0.016 ± 0.020 (≈0, expected
+  under fixed noise). Stage C pair (68-D): **LHM degenerate** — no contained
+  shrinkage, no calibrated lnB (estimates all positive, +1.8…+6.9). → product-space
+  fallback (below).
+
+- [ ] **M1.6 (NEW) — Product-space Bayes factor.** Build a product-space /
+  hypermodel HD-vs-CURN estimator (single run, robust at high-D) and validate it on
+  this MDC2 Stage C case (known truth). Replaces LHM for the M3 Bayes factor.

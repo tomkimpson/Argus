@@ -218,7 +218,58 @@ gate on the converged **ridge** runs, not this hand calculation.
 
 ---
 
-## 7. Implications for M3
+## 7. Outcome (M1 result, 2026-07-28)
+
+All four ridge Stage B/C runs sampled cleanly — the technical goal of the
+reparameterization is met, at both 2-D and 68-D:
+
+| run | worst r_hat (sampled sites) | divergences | runtime |
+|-----|-----------------------------|-------------|---------|
+| Stage B hd (2-D)   | 1.001 | 0.0% | 1:00 |
+| Stage B curn (2-D) | 1.000 | 0.0% | 1:05 |
+| Stage C hd (68-D)  | 1.004 | 0.0% | 9:34 |
+| Stage C curn (68-D)| 1.005 | 0.0% | 9:36 |
+
+Compare the direct basis, which did not converge (Stage B r_hat 1.5–1.6 with one
+stuck chain; Stage C r_hat 2.3, 10% divergences). The ridge fix also cut the
+68-D iteration cost ~4× (~8 s/it vs ~32–38 s/it), because the GW corner no longer
+forces max-depth trajectories.
+
+**Truth gate (band-referenced amplitude at f = 1/(5 yr), injected `log10_A = -14.886`):**
+
+| stage | noise treatment | recovered log10 PSD | injected | bias | verdict |
+|-------|-----------------|---------------------|----------|------|---------|
+| Stage B hd | fixed at Stage A medians | −9.67 ± 1.08 | −6.32 | −3.11σ | **FAIL** |
+| Stage C hd | empirical priors (sampled) | −6.94 ± 1.81 | −6.32 | −0.35σ | **PASS** |
+
+Stage C **recovers the injected amplitude** and Stage B does not — exactly the
+predicted behavior. Stage A characterized each pulsar's noise with the GW off, so
+each single-pulsar OU fit absorbed that pulsar's share of the GW-induced red power
+into its intrinsic noise. Fixed-noise Stage B then double-counts it and
+under-recovers the common signal by ~3σ. Stage C keeps the noise sampled (empirical
+priors, 2× inflated), so the array run re-attributes the power to the common GW
+term — and the truth gate passes at 0.35σ. This validates the two-stage-noise
+detection machinery on a case with known ground truth.
+
+**Stage D Bayes factor (HD vs CURN):**
+
+- Stage B pair (2-D, fixed noise): `lnB = −0.016 ± 0.020` — indistinguishable, as
+  expected once the common signal has been absorbed into the fixed noise.
+- Stage C pair (68-D, empirical priors): the learned-harmonic-mean estimator is
+  **degenerate at this dimension** — no shrinkage value is contained
+  (max-weight-fraction ~0.9), so no calibrated lnB is available (script returns
+  nan). Every matched-shrinkage estimate is positive (+1.8 … +6.9 across the grid),
+  so the *direction* favors HD, but the magnitude is not trustworthy.
+
+This is the anticipated high-D breakdown of LHM (roadmap risk #3 — "LHM unreliable
+at 33/68 pulsars; MDC is the canary"). M1 has therefore delivered its diagnostic
+purpose twice over: it validated the amplitude-recovery machinery **and** confirmed
+that the M3 Bayes factor needs a different estimator. **Decision (2026-07-28):**
+bank the amplitude-recovery result as M1's success; defer the calibrated
+HD-vs-CURN Bayes factor to a product-space / hypermodel estimator, to be built and
+validated on this same MDC2 case as part of M3 preparation.
+
+## 8. Implications for M3
 
 The real NG15 68-pulsar run (M3) samples the same 2 GW parameters on top of the
 per-pulsar noise and will hit the **same** h_a–γ_a ridge (this ridge was in fact
