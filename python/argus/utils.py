@@ -68,6 +68,7 @@ def resolve_config_paths(config, config_path):
         ("Data", "data_path"),
         ("PriorModel", "noise_params_path"),
         ("PriorModel", "spin_injections_path"),
+        ("PriorModel", "empirical_priors_path"),
     }
 
     for section, key in path_keys:

@@ -258,3 +258,192 @@ class TestGetPriorModelSpecs:
 
         # Hierarchical specs should exist
         assert specs["hierarchical_specs"]["hierarchical_noise"] is True
+
+
+class TestFlatRedNoisePriors:
+    """Tests for the flat (independent Uniform) red noise prior mode."""
+
+    def _enable_flat(self, mock_config):
+        mock_config.set("PriorModel", "red_noise_prior", "flat")
+        mock_config.set("PriorModel", "log10_gamma_p_min", "-12.0")
+        mock_config.set("PriorModel", "log10_gamma_p_max", "-6.0")
+        mock_config.set("PriorModel", "log10_sigma_p_min", "-20.0")
+        mock_config.set("PriorModel", "log10_sigma_p_max", "-12.0")
+
+    def test_flat_mode_creates_uniform_specs(self, mock_config):
+        """Flat mode returns per-pulsar Uniform specs and no hierarchical specs."""
+        self._enable_flat(mock_config)
+        n_pulsars = 3
+
+        priors = prior_models.get_pulsar_noise_priors(
+            mock_config, n_pulsars, None, None
+        )
+
+        assert isinstance(priors["log10_gamma_p_spec"], tfpd.Distribution)
+        assert isinstance(priors["log10_sigma_p_spec"], tfpd.Distribution)
+        assert priors["log10_gamma_p_spec"].low.shape == (n_pulsars,)
+        assert float(priors["log10_gamma_p_spec"].low[0]) == -12.0
+        assert float(priors["log10_sigma_p_spec"].high[0]) == -12.0
+        assert priors["hierarchical_specs"] is None
+        assert priors["empirical_specs"] is None
+
+    def test_fixed_overrides_flat(self, mock_config):
+        """spin_injections_path takes precedence over flat mode."""
+        self._enable_flat(mock_config)
+        mock_config.set("PriorModel", "spin_injections_path", "/some/path.pkl")
+        gamma_p_array = jnp.array([1e-8, 1e-8])
+        sigma_p_array = jnp.array([1e-15, 1e-15])
+
+        priors = prior_models.get_pulsar_noise_priors(
+            mock_config, 2, sigma_p_array, gamma_p_array
+        )
+
+        # Fixed arrays, not distributions
+        assert not isinstance(priors["log10_gamma_p_spec"], tfpd.Distribution)
+        assert priors["log10_gamma_p_spec"] is not None
+
+    def test_default_remains_hierarchical(self, mock_config):
+        """Without red_noise_prior the default hierarchical path is unchanged."""
+        priors = prior_models.get_pulsar_noise_priors(mock_config, 3, None, None)
+
+        assert priors["log10_gamma_p_spec"] is None
+        assert priors["hierarchical_specs"] is not None
+        assert priors["empirical_specs"] is None
+
+
+class TestGetEmpiricalNoisePriors:
+    """Tests for per-pulsar empirical red noise priors."""
+
+    @pytest.fixture
+    def empirical_json(self, tmp_path):
+        import json
+
+        priors = {
+            "_meta": {"note": "test artifact"},
+            "J1909-3744": {
+                "log10_gamma_p": {"loc": -8.5, "scale": 0.30},
+                "log10_ratio": {"loc": -6.5, "scale": 0.40},
+            },
+            "J0030+0451": {
+                "log10_gamma_p": {"loc": -8.0, "scale": 0.20},
+                "log10_ratio": {"loc": -6.0, "scale": 0.10},
+            },
+            "J1640+2224": {
+                "log10_gamma_p": {"loc": -9.0, "scale": 0.50},
+                "log10_ratio": {"loc": -7.0, "scale": 0.60},
+            },
+        }
+        path = tmp_path / "empirical_priors.json"
+        path.write_text(json.dumps(priors))
+        return str(path)
+
+    def test_loading_sorted_and_meta_ignored(self, empirical_json):
+        """Pulsars are sorted by name; _meta keys ignored."""
+        specs = prior_models.get_empirical_noise_priors(empirical_json)
+
+        assert specs["psr_names"] == ["J0030+0451", "J1640+2224", "J1909-3744"]
+        assert float(specs["gamma_loc"][0]) == pytest.approx(-8.0)
+        assert float(specs["gamma_loc"][2]) == pytest.approx(-8.5)
+        assert float(specs["ratio_scale"][1]) == pytest.approx(0.60)
+
+    def test_exclusion_filtering(self, empirical_json):
+        """Substring exclusion matches utils.get_efac_equad_injections semantics."""
+        specs = prior_models.get_empirical_noise_priors(
+            empirical_json, excluded_psrs=["J1640+2224"]
+        )
+
+        assert specs["psr_names"] == ["J0030+0451", "J1909-3744"]
+
+    def test_inflation_applied_to_scales_only(self, empirical_json):
+        """Inflation multiplies scales but not locs."""
+        specs = prior_models.get_empirical_noise_priors(empirical_json, inflation=2.0)
+
+        assert float(specs["gamma_scale"][0]) == pytest.approx(0.40)
+        assert float(specs["gamma_loc"][0]) == pytest.approx(-8.0)
+        assert float(specs["ratio_scale"][0]) == pytest.approx(0.20)
+
+    def test_all_excluded_raises(self, empirical_json):
+        """Excluding every pulsar raises a clear error."""
+        with pytest.raises(ValueError, match="No pulsars left"):
+            prior_models.get_empirical_noise_priors(
+                empirical_json, excluded_psrs=["J0030", "J1640", "J1909"]
+            )
+
+    def test_pulsar_count_mismatch_raises(self, mock_config, empirical_json):
+        """get_pulsar_noise_priors raises when the file and data disagree on n."""
+        mock_config.set("PriorModel", "empirical_priors_path", empirical_json)
+        mock_config.set("Data", "excluded_psrs", "")
+
+        with pytest.raises(ValueError, match="must match exactly"):
+            prior_models.get_pulsar_noise_priors(mock_config, 5, None, None)
+
+    def test_empirical_mode_via_config(self, mock_config, empirical_json):
+        """empirical_priors_path activates empirical mode with no hyperpriors."""
+        mock_config.set("PriorModel", "empirical_priors_path", empirical_json)
+        # mock_config excludes J1640+2224 -> 2 pulsars remain
+        priors = prior_models.get_pulsar_noise_priors(mock_config, 2, None, None)
+
+        assert priors["empirical_specs"] is not None
+        assert priors["empirical_specs"]["psr_names"] == ["J0030+0451", "J1909-3744"]
+        assert priors["log10_gamma_p_spec"] is None
+        assert priors["log10_sigma_p_spec"] is None
+        assert priors["hierarchical_specs"] is None
+
+    def test_fixed_overrides_empirical(self, mock_config, empirical_json):
+        """spin_injections_path takes precedence over empirical priors."""
+        mock_config.set("PriorModel", "empirical_priors_path", empirical_json)
+        mock_config.set("PriorModel", "spin_injections_path", "/some/path.pkl")
+        gamma_p_array = jnp.array([1e-8, 1e-8])
+        sigma_p_array = jnp.array([1e-15, 1e-15])
+
+        priors = prior_models.get_pulsar_noise_priors(
+            mock_config, 2, sigma_p_array, gamma_p_array
+        )
+
+        assert priors.get("empirical_specs") is None
+        assert priors["log10_gamma_p_spec"] is not None
+
+
+class TestRidgeParameterization:
+    """Tests for the ridge GW parameterization (issue #109)."""
+
+    def _enable_ridge(self, mock_config):
+        mock_config.set("PriorModel", "gw_parameterization", "ridge")
+        mock_config.set("PriorModel", "log10_pivot_psd_min", "-13.0")
+        mock_config.set("PriorModel", "log10_pivot_psd_max", "-5.0")
+        mock_config.set("PriorModel", "log10_gamma_a_min", "-11.0")
+        mock_config.set("PriorModel", "log10_gamma_a_max", "-6.0")
+        mock_config.set("PriorModel", "gw_pivot_freq_hz", "6.3376e-09")  # 1/(5 yr)
+
+    def test_ridge_specs(self, mock_config):
+        """Ridge mode returns pivot-PSD + gamma_a transforms and a pivot w."""
+        self._enable_ridge(mock_config)
+        specs = prior_models.get_gw_parameter_priors(mock_config)
+
+        assert specs["gw_parameterization"] == "ridge"
+        assert specs["log10_ha_spec"] is None
+        assert specs["log10_ha_transform_params"] is None
+        psd = specs["log10_pivot_psd_transform_params"]
+        assert psd["mean"] == pytest.approx((-13.0 + -5.0) / 2.0)
+        assert psd["std"] == pytest.approx((-5.0 - -13.0) / 6.0)
+        ga = specs["log10_gamma_a_transform_params"]
+        assert ga["min"] == -11.0 and ga["max"] == -6.0
+        import math
+
+        assert specs["gw_pivot_w"] == pytest.approx(2 * math.pi * 6.3376e-09)
+
+    def test_default_is_direct(self, mock_config):
+        """Absent gw_parameterization key -> direct mode, unchanged behavior."""
+        specs = prior_models.get_gw_parameter_priors(mock_config)
+        assert specs["gw_parameterization"] == "direct"
+        assert specs["log10_ha_transform_params"] is not None
+
+    def test_ridge_passes_through_prior_model_specs(self, mock_config):
+        """get_prior_model_specs forwards the ridge keys in gwb mode."""
+        self._enable_ridge(mock_config)
+        specs = prior_models.get_prior_model_specs(
+            mock_config, 2, None, None, None, None, mode="gwb"
+        )
+        assert specs["gw_parameterization"] == "ridge"
+        assert "gw_pivot_w" in specs
+        assert "log10_pivot_psd_transform_params" in specs

@@ -5,6 +5,8 @@ for gravitational wave background and pulsar noise parameters used in
 pulsar timing array analysis.
 """
 
+import json
+
 import jax.numpy as jnp
 import tensorflow_probability.substrates.jax as tfp
 
@@ -26,7 +28,65 @@ def get_gw_parameter_priors(config):
         - log10_ha_spec: Prior distribution for log10(ha)
         - log10_ha_transform_params: Transformation parameters for reparameterization
         - log10_gamma_a_spec: Prior distribution for log10(γa)
+
+    Notes
+    -----
+    ``gw_parameterization`` (fallback ``direct``) selects the sampling basis:
+
+    - ``direct``: independent reparameterized priors on log10_ha and
+      log10_gamma_a (the original behavior; unchanged when the key is absent).
+    - ``ridge``: sample the band-referenced pivot log-PSD and log10_gamma_a as
+      independent coordinates, deriving log10_ha deterministically. The pivot
+      log-PSD is the direction the data actually constrains, so this decouples
+      it from the flat along-ridge direction and straightens the curved
+      log10_ha<->log10_gamma_a ridge that stalls NUTS chains (issue #109).
+      Reads log10_pivot_psd_{min,max}, gw_pivot_freq_hz (fallback 1/(5 yr)),
+      and log10_gamma_a_{min,max}.
     """
+
+    def _reparam(min_val, max_val):
+        """N(0,1)-reparameterized uniform: returns (mean, std) for the 3-sigma map."""
+        return (min_val + max_val) / 2.0, (max_val - min_val) / 6.0
+
+    gw_parameterization = (
+        config.get("PriorModel", "gw_parameterization", fallback="direct")
+        .strip()
+        .lower()
+    )
+    if gw_parameterization == "ridge":
+        import math
+
+        psd_min = config.getfloat("PriorModel", "log10_pivot_psd_min")
+        psd_max = config.getfloat("PriorModel", "log10_pivot_psd_max")
+        ga_min = config.getfloat("PriorModel", "log10_gamma_a_min")
+        ga_max = config.getfloat("PriorModel", "log10_gamma_a_max")
+        f_piv = config.getfloat(
+            "PriorModel", "gw_pivot_freq_hz", fallback=1.0 / (5.0 * 365.25 * 86400.0)
+        )
+        psd_mean, psd_std = _reparam(psd_min, psd_max)
+        ga_mean, ga_std = _reparam(ga_min, ga_max)
+        return {
+            "gw_parameterization": "ridge",
+            # log10_ha is derived; keep the direct-mode keys present (None) so
+            # count_free_parameters / display code that reads them stay happy.
+            "log10_ha_spec": None,
+            "log10_ha_transform_params": None,
+            "log10_gamma_a_spec": None,
+            "log10_pivot_psd_transform_params": {
+                "mean": psd_mean,
+                "std": psd_std,
+                "min": psd_min,
+                "max": psd_max,
+            },
+            "log10_gamma_a_transform_params": {
+                "mean": ga_mean,
+                "std": ga_std,
+                "min": ga_min,
+                "max": ga_max,
+            },
+            # angular pivot frequency w = 2*pi*f_piv, used in the ha inversion
+            "gw_pivot_w": 2.0 * math.pi * f_piv,
+        }
 
     # Helper function to create prior spec based on fixed/sampled setting
     def get_prior_spec(param_name):
@@ -66,6 +126,7 @@ def get_gw_parameter_priors(config):
     log10_gamma_a_spec = get_prior_spec("log10_gamma_a")
 
     return {
+        "gw_parameterization": "direct",
         "log10_ha_spec": log10_ha_spec,
         "log10_ha_transform_params": log10_ha_transform_params,
         "log10_gamma_a_spec": log10_gamma_a_spec,
@@ -93,6 +154,19 @@ def get_pulsar_noise_priors(config, n_pulsars, sigma_p_array, gamma_p_array):
         - log10_gamma_p_spec: Prior distribution for log10(γp)
         - log10_sigma_p_spec: Prior distribution for log10(σp)
         - hierarchical_specs: Hierarchical modeling prior distributions
+        - empirical_specs: Per-pulsar empirical Normal priors (or None)
+
+    Notes
+    -----
+    Red-noise prior precedence:
+    1. ``spin_injections_path`` non-empty -> parameters FIXED.
+    2. ``empirical_priors_path`` non-empty -> per-pulsar Normal priors on
+       (log10_γp, log10_ratio) from single-pulsar posteriors (Stage C of the
+       two-stage noise procedure, issue #111).
+    3. ``red_noise_prior = flat`` -> independent Uniform priors per pulsar,
+       intended for single-pulsar (n=1) noise-characterization runs where the
+       shared population hyperpriors are degenerate.
+    4. otherwise -> hierarchical modeling with shared hyperpriors (default).
     """
     # Check if spin_injections_path is provided to determine if red noise parameters should be fixed
     try:
@@ -110,6 +184,73 @@ def get_pulsar_noise_priors(config, n_pulsars, sigma_p_array, gamma_p_array):
         print(
             "No spin_injections_path provided, sampling red noise parameters from priors"
         )
+
+    if not (log10_gamma_p_fixed or log10_sigma_p_fixed):
+        empirical_priors_path = config.get(
+            "PriorModel", "empirical_priors_path", fallback=""
+        ).strip()
+        if empirical_priors_path:
+            excluded_psrs = [
+                psr.strip()
+                for psr in config.get("Data", "excluded_psrs", fallback="").split(",")
+                if psr.strip()
+            ]
+            inflation = config.getfloat(
+                "PriorModel", "empirical_prior_inflation", fallback=1.0
+            )
+            empirical_specs = get_empirical_noise_priors(
+                empirical_priors_path, excluded_psrs, inflation
+            )
+            n_loaded = len(empirical_specs["psr_names"])
+            if n_loaded != n_pulsars:
+                raise ValueError(
+                    f"Empirical priors file {empirical_priors_path} yields {n_loaded} "
+                    f"pulsars after exclusions but the loaded data has {n_pulsars}. "
+                    "Pulsar sets must match exactly (sorted by name)."
+                )
+            print(
+                f"Using empirical per-pulsar red noise priors from: {empirical_priors_path} "
+                f"(scale inflation x{inflation})"
+            )
+            return {
+                "log10_gamma_p_spec": None,
+                "log10_sigma_p_spec": None,
+                "hierarchical_specs": None,
+                "empirical_specs": empirical_specs,
+            }
+
+        red_noise_prior = (
+            config.get("PriorModel", "red_noise_prior", fallback="hierarchical")
+            .strip()
+            .lower()
+        )
+        if red_noise_prior == "flat":
+            print(
+                "Using flat (independent Uniform) per-pulsar red noise priors "
+                "(red_noise_prior = flat)"
+            )
+            log10_gamma_p_spec = tfpd.Uniform(
+                low=jnp.full(
+                    n_pulsars, config.getfloat("PriorModel", "log10_gamma_p_min")
+                ),
+                high=jnp.full(
+                    n_pulsars, config.getfloat("PriorModel", "log10_gamma_p_max")
+                ),
+            )
+            log10_sigma_p_spec = tfpd.Uniform(
+                low=jnp.full(
+                    n_pulsars, config.getfloat("PriorModel", "log10_sigma_p_min")
+                ),
+                high=jnp.full(
+                    n_pulsars, config.getfloat("PriorModel", "log10_sigma_p_max")
+                ),
+            )
+            return {
+                "log10_gamma_p_spec": log10_gamma_p_spec,
+                "log10_sigma_p_spec": log10_sigma_p_spec,
+                "hierarchical_specs": None,
+                "empirical_specs": None,
+            }
 
     # Always use hierarchical modeling and log-ratio parameterization
     hierarchical_specs = create_hierarchical_priors(config)
@@ -164,6 +305,72 @@ def get_pulsar_noise_priors(config, n_pulsars, sigma_p_array, gamma_p_array):
         "log10_gamma_p_spec": log10_gamma_p_spec,
         "log10_sigma_p_spec": log10_sigma_p_spec,
         "hierarchical_specs": hierarchical_specs,
+        "empirical_specs": None,
+    }
+
+
+def get_empirical_noise_priors(empirical_priors_path, excluded_psrs=[], inflation=1.0):
+    """Load per-pulsar empirical red noise priors from a JSON file.
+
+    The file is produced by Stage A single-pulsar noise runs (see
+    workflows/ng15_sgwb_demo/scripts/extract_stage_a.py) and maps each pulsar
+    name to Normal-prior (loc, scale) pairs for log10_γp and the log10 ratio
+    σp/γp:
+
+        {"J0030+0451": {"log10_gamma_p": {"loc": -8.1, "scale": 0.2},
+                        "log10_ratio":   {"loc": -6.3, "scale": 0.3}}, ...}
+
+    Keys starting with "_" (e.g. "_meta") are ignored. Pulsars are sorted by
+    name to match the data loader's sorted-glob ordering.
+
+    Parameters
+    ----------
+    empirical_priors_path : str
+        Path to the empirical priors JSON file
+    excluded_psrs : list of str, optional
+        Pulsar names to exclude (substring match, same semantics as
+        utils.get_efac_equad_injections)
+    inflation : float, optional
+        Multiplicative inflation factor applied to the prior scales
+        (single-pulsar posteriors can be overconfident). Default 1.0.
+
+    Returns
+    -------
+    dict
+        {"gamma_loc", "gamma_scale", "ratio_loc", "ratio_scale"} as JAX arrays
+        of shape (n_pulsars,), plus "psr_names" (sorted list of str).
+    """
+    with open(empirical_priors_path, "r") as f:
+        empirical_priors = json.load(f)
+
+    psr_names = sorted(
+        psr
+        for psr in empirical_priors
+        if not psr.startswith("_")
+        and not any(excluded_psr in psr for excluded_psr in excluded_psrs)
+    )
+    if not psr_names:
+        raise ValueError(f"No pulsars left in {empirical_priors_path} after exclusions")
+
+    gamma_loc = jnp.array(
+        [empirical_priors[psr]["log10_gamma_p"]["loc"] for psr in psr_names]
+    )
+    gamma_scale = inflation * jnp.array(
+        [empirical_priors[psr]["log10_gamma_p"]["scale"] for psr in psr_names]
+    )
+    ratio_loc = jnp.array(
+        [empirical_priors[psr]["log10_ratio"]["loc"] for psr in psr_names]
+    )
+    ratio_scale = inflation * jnp.array(
+        [empirical_priors[psr]["log10_ratio"]["scale"] for psr in psr_names]
+    )
+
+    return {
+        "gamma_loc": gamma_loc,
+        "gamma_scale": gamma_scale,
+        "ratio_loc": ratio_loc,
+        "ratio_scale": ratio_scale,
+        "psr_names": psr_names,
     }
 
 
@@ -407,6 +614,7 @@ def get_prior_model_specs(
         "efac_spec": measurement_noise_specs["efac_spec"],
         "equad_spec": measurement_noise_specs["equad_spec"],
         "hierarchical_specs": pulsar_noise_specs["hierarchical_specs"],
+        "empirical_specs": pulsar_noise_specs.get("empirical_specs"),
     }
 
     if mode == "cw":
@@ -418,10 +626,9 @@ def get_prior_model_specs(
         result["log10_ha_transform_params"] = None
         result["log10_gamma_a_spec"] = None
     else:
-        # GWB-specific priors
-        gw_specs = get_gw_parameter_priors(config)
-        result["log10_ha_spec"] = gw_specs["log10_ha_spec"]
-        result["log10_ha_transform_params"] = gw_specs["log10_ha_transform_params"]
-        result["log10_gamma_a_spec"] = gw_specs["log10_gamma_a_spec"]
+        # GWB-specific priors (direct or ridge parameterization). Copy every key
+        # get_gw_parameter_priors returns so the ridge-mode extras
+        # (gw_parameterization, *_transform_params, gw_pivot_w) pass through.
+        result.update(get_gw_parameter_priors(config))
 
     return result

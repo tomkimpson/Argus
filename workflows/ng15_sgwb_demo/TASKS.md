@@ -17,6 +17,9 @@
 
 ## CURRENT STATUS / NEXT STEP
 
+- ▶ **ACTIVE: M1 — MDC2 dress rehearsal (issue #111), branch `m1-mdc2-dress-rehearsal`.**
+  See the "M1" section at the bottom of this file; Stages 1–4 below are the completed
+  T1–T4 history of the 6-pulsar NG15 demo.
 - ✅ Strategic direction decided (SGWB-first; PR #100 held). Branch `ng15-sgwb-demo` created.
 - ✅ Environment resolved (`Argus` env; GPU-init hangs interactively → SLURM only).
 - ✅ Stage 0 attempted on CPU and killed (too slow); to be run properly on SLURM or folded in.
@@ -587,3 +590,65 @@
   - Do: tidy configs/scripts/slurm; ensure `PLAN.md`/`TASKS.md` reflect final state; commit
     via **`/commit`**. Open a PR when the user asks (do not push/PR unprompted).
   - Done when: branch is clean and the deliverable matches PLAN §8.
+
+---
+
+## M1 — MDC2 dress rehearsal (issue #111, branch `m1-mdc2-dress-rehearsal`)
+
+Two-stage-noise detection machinery exercised at 33 pulsars against known truth
+(dataset 2b, injected GWB log10_A = −14.886) before the 68-pulsar real-data run (M3).
+**Acceptance:** decisively positive lnB(HD/CURN) + GW posterior covering the injected
+amplitude (band-referenced, `scripts/check_mdc2_truth.py`).
+
+Infrastructure (all committed on this branch):
+
+- Library: `red_noise_prior = flat` (independent per-pulsar Uniforms, for n=1 Stage A
+  runs) and `empirical_priors_path` + `empirical_prior_inflation` (per-pulsar Normal
+  priors on log10_γp/log10_ratio from Stage A posteriors, no hyperpriors — Stage C).
+  Precedence: `spin_injections_path` (fixed) > empirical > flat > hierarchical.
+- Staging: `scripts/stage_mdc2.py` (per-pulsar one-feather dirs + one-entry white-noise
+  JSONs under `data/mdc2_singles/`, from the `data/mdc2_all/` feather cache).
+- Extraction: `scripts/extract_stage_a.py` (33 .nc → `data/stage_a_medians.pkl` for
+  Stage B, `data/stage_a_empirical_priors.json` for Stage C, health table + plot;
+  `--drop-failing` prints the `excluded_psrs` string).
+- Truth gate: `scripts/check_mdc2_truth.py` (PSD-pivot comparison at f=1/(5yr);
+  injected γ assumed 13/3 — the MDC2 repo records only the amplitude).
+- Configs: `mdc2_stage_a.ini` (sed template), `mdc2_stage_{b,c}_{hd,curn}.ini`.
+- SLURM: `mdc2_stage_a.sh` (array 0-32), `mdc2_stage_b.sh` / `mdc2_stage_c.sh` (MODE=hd|curn).
+
+**OUTCOME (2026-07-28): M1 banked on amplitude recovery.** The direct
+(log10_ha, log10_gamma_a) basis would not converge — a curved ridge stalled one
+chain per run (r_hat 1.5–2.3). Fixed by an opt-in **ridge GW parameterization**
+(sample pivot log-PSD + log10_gamma_a, derive log10_ha; see
+`notes/ha_gamma_ridge_reparameterization.md`). With ridge, all Stage B/C runs
+converged (r_hat ≤ 1.005, 0% divergences), and **Stage C (empirical priors)
+recovers the injected amplitude — truth gate PASS at −0.35σ** — while Stage B
+(fixed noise) fails at −3.11σ, as the two-stage design predicts. The HD-vs-CURN
+Bayes factor was **not** obtained: LHM is degenerate at 68-D (all matched-shrink
+estimates positive/HD-leaning but uncalibrated), the anticipated high-D LHM wall
+(roadmap risk #3). Decision: bank amplitude recovery as M1's success; defer the
+calibrated lnB to a **product-space / hypermodel** estimator, built+validated on
+this MDC2 case as M3 prep. Ridge is the M3 GW parameterization.
+
+Execution playbook (gated):
+
+- [x] **M1.0 — Ingest + stage.** 33 feathers ingested to `data/mdc2_all/`;
+  `stage_mdc2.py` built the 33 per-pulsar dirs.
+- [x] **M1.1 — Stage A.** Job 14580470 (2 chains, 1×A100): 33/33 completed.
+- [x] **M1.2 — Gate A.** 33/33 PASS (r_hat ≤ 1.010, ESS ≥ 390, none railed —
+  J1640+2224 included). `stage_a_medians.pkl` + `stage_a_empirical_priors.json`
+  committed.
+- [x] **M1.3 — Stages B & C (ridge basis).** Jobs 14820454–57 (4×A100).
+  All converged: Stage B r_hat 1.001 / 0% div (~1 h); Stage C 68-D r_hat ≤ 1.004
+  / 0% div (~9.5 h). The direct-basis runs (superseded) did not converge.
+- [x] **M1.4 — Truth gate.** `check_mdc2_truth.py`: Stage C hd **PASS** (−0.35σ,
+  injected covered); Stage B hd FAIL (−3.11σ, fixed-noise under-recovery). Stage C
+  (empirical priors) is the M3 procedure.
+- [x] **M1.5 — Stage D evidence.** Stage B pair lnB = −0.016 ± 0.020 (≈0, expected
+  under fixed noise). Stage C pair (68-D): **LHM degenerate** — no contained
+  shrinkage, no calibrated lnB (estimates all positive, +1.8…+6.9). → product-space
+  fallback (below).
+
+- [ ] **M1.6 (NEW) — Product-space Bayes factor.** Build a product-space /
+  hypermodel HD-vs-CURN estimator (single run, robust at high-D) and validate it on
+  this MDC2 Stage C case (known truth). Replaces LHM for the M3 Bayes factor.

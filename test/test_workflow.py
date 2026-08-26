@@ -378,3 +378,98 @@ class TestRunInference:
             "error" in str(call).lower()
             for call in mock_logger_obj.error.call_args_list
         )
+
+
+class TestStageAEndToEndSmoke:
+    """End-to-end CPU smoke of the M1 Stage A single-pulsar run shape.
+
+    Exercises the REAL pipeline (data load from a one-feather directory, flat
+    red-noise priors, GW fixed negligible, EFAC/EQUAD fixed from a one-entry
+    noise JSON, tiny NUTS) with only the output directory redirected to
+    tmp_path. This validates the Stage A config shape before any GPU time.
+    """
+
+    def _write_stage_a_config(self, tmp_path, psr_dir, noise_json):
+        config_text = f"""
+[Data]
+data_path = {psr_dir}
+excluded_psrs = __NONE__
+
+[NUTS]
+num_samples = 10
+num_warmup = 10
+num_chains = 1
+target_accept_prob = 0.9
+max_tree_depth = 5
+dense_mass = true
+
+[PriorModel]
+log10_ha_fixed = true
+log10_ha_value = -20.0
+log10_gamma_a_fixed = true
+log10_gamma_a_value = -8.5
+
+spin_injections_path =
+red_noise_prior = flat
+
+log10_gamma_p_min = -12.0
+log10_gamma_p_max = -6.0
+log10_sigma_p_min = -20.0
+log10_sigma_p_max = -12.0
+
+noise_params_path = {noise_json}
+
+efac_min = 0.5
+efac_max = 2.0
+log10_equad_min = -8.0
+log10_equad_max = -6.0
+
+[Logging]
+level = INFO
+enable_file_logging = false
+
+[Output]
+output_id = stage_a_smoke
+base_dir = {{output_id}}
+"""
+        config_path = tmp_path / "stage_a_smoke.ini"
+        config_path.write_text(config_text)
+        return str(config_path)
+
+    def test_stage_a_single_pulsar_run(self, tmp_path):
+        """Full run_inference pass on a staged one-pulsar directory."""
+        import json
+        import os
+
+        import arviz as az
+
+        # Stage the single-pulsar directory (mirrors scripts/stage_mdc2.py)
+        psr_dir = tmp_path / "J9999+9999"
+        psr_dir.mkdir()
+        feather_src = os.path.abspath("test/data/test_pulsar.feather")
+        os.symlink(feather_src, psr_dir / "J9999+9999.feather")
+
+        noise_json = psr_dir / "psr_noise.json"
+        noise_json.write_text(json.dumps({"J9999+9999": {"efac": 1.0, "equad": -7.0}}))
+
+        config_path = self._write_stage_a_config(tmp_path, psr_dir, noise_json)
+
+        output_dir = str(tmp_path / "output")
+        os.makedirs(output_dir, exist_ok=True)
+        with patch("argus.io_manager.setup_output_directory", return_value=output_dir):
+            result_dir = workflow.run_inference(config_path, use_gw=True)
+
+        assert result_dir == output_dir
+        results_path = os.path.join(output_dir, "stage_a_smoke_results.nc")
+        assert os.path.exists(results_path)
+
+        idata = az.from_netcdf(results_path)
+        post = idata.posterior
+        # The 2 sampled red-noise sites + derived physicals are present
+        assert "log10_γp_standardized" in post
+        assert "log10_σp_standardized" in post
+        assert "log10_γp" in post
+        assert "log10_σp" in post
+        # GW is fixed: no sampled GW latents, deterministic at the fixed value
+        assert "log10_ha_prime" not in post
+        assert float(post["log10_ha"].values.reshape(-1)[0]) == -20.0
