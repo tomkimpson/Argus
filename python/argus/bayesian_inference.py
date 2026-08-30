@@ -962,6 +962,391 @@ def run_nested_sampling(
     return inf_data, (log_Z_mean, log_Z_uncert)
 
 
+def _import_blackjax_ns():
+    """Import blackjax with its nested-sampling module, shimming ``jax.shard_map``.
+
+    The blackjax nested sampler (``blackjax.nss`` + ``blackjax.ns``) lives in the
+    blackjax-devs ``main`` source (>=1.6.dev), not the PyPI wheels. Its package
+    ``__init__`` eagerly imports ``blackjax.eca``, which does ``from jax import
+    shard_map`` — promoted to the top-level ``jax`` namespace only in jax>=0.5. On
+    Argus's pinned jax 0.4.38 we alias it from ``jax.experimental.shard_map`` so
+    ``import blackjax`` succeeds. The NS module itself uses only long-stable jax APIs
+    and runs correctly on 0.4.38 (validated against analytic logZ; see
+    ``workflows/ng15_sgwb_demo/notes/t2.6_blackjax_ns_verdict.md``).
+    """
+    if not hasattr(jax, "shard_map"):
+        try:
+            from jax.experimental.shard_map import shard_map as _shard_map
+
+            jax.shard_map = _shard_map
+        except Exception as exc:  # pragma: no cover - defensive
+            raise ImportError(
+                "Could not shim jax.shard_map for blackjax on this jax version."
+            ) from exc
+    import blackjax
+
+    if not hasattr(blackjax, "nss"):
+        raise ImportError(
+            "Installed blackjax has no nested sampler (blackjax.nss). Install the "
+            "blackjax-devs main source without touching the pinned jax:\n"
+            "  pip install --no-deps "
+            "'git+https://github.com/blackjax-devs/blackjax@main'"
+        )
+    return blackjax
+
+
+def _blackjax_ns_evidence(
+    logprior_fn,
+    loglikelihood_fn,
+    init_particles,
+    *,
+    num_delete=1,
+    num_inner_steps=None,
+    dlogz=-5.0,
+    max_steps=100000,
+    rng_key=None,
+    weights_shape=200,
+    progress_every=0,
+    kernel="nss",
+):
+    """Run blackjax nested slice sampling and return the evidence + dead points.
+
+    ``kernel`` selects the inner MCMC kernel: ``"nss"`` (default) is the monolithic
+    hit-and-run slice sampler; ``"nsswig"`` is the axis-aligned slice-within-Gibbs
+    kernel of Yallup (2026, arXiv:2602.17414), which exploits hierarchical structure
+    by sweeping coordinates rather than treating the parameter vector as one block.
+    Both consume the same black-box ``logprior_fn``/``loglikelihood_fn`` and the same
+    ``num_delete``/``num_inner_steps`` knobs, so they are directly comparable.
+
+    This is the engine core shared by :func:`run_blackjax_nested_sampling` (GWB on real
+    data) and the analytic-Gaussian validation script, so the code path validated
+    against a known logZ is exactly the one used for inference.
+
+    Parameters
+    ----------
+    logprior_fn, loglikelihood_fn : callable
+        Functions of a flat latent vector ``z`` returning scalar log-prior and
+        log-likelihood. The prior is the sampling measure; the evidence is
+        ``Z = int L(z) prior(z) dz``.
+    init_particles : jnp.ndarray
+        Initial live points, shape ``(num_live, ndim)``, drawn from the prior.
+    num_delete, num_inner_steps, dlogz, max_steps, weights_shape : see config.
+    rng_key : jax.Array or None
+
+    Returns
+    -------
+    dict
+        ``logZ`` (point estimate = dead + remaining-live), ``logZ_stochastic_mean``
+        and ``logZ_err`` (mean/std over stochastic-volume realisations), ``logZ_live``,
+        ``n_steps``, ``dead_info`` (finalised), ``final_state``, ``rng_key``, ``blackjax``.
+    """
+    blackjax = _import_blackjax_ns()
+    from blackjax.ns import utils as ns_utils
+    from jax.scipy.special import logsumexp
+
+    n_live, ndim = init_particles.shape
+    if num_inner_steps is None:
+        num_inner_steps = max(5, 2 * ndim)
+    if rng_key is None:
+        rng_key = jax.random.PRNGKey(0)
+
+    if kernel not in ("nss", "nsswig"):
+        raise ValueError(f"kernel must be 'nss' or 'nsswig', got {kernel!r}")
+    ns_constructor = getattr(blackjax, kernel)
+    algo = ns_constructor(
+        logprior_fn=logprior_fn,
+        loglikelihood_fn=loglikelihood_fn,
+        num_delete=num_delete,
+        num_inner_steps=num_inner_steps,
+    )
+    state = algo.init(init_particles)
+    step = jax.jit(algo.step)
+
+    dead = []
+    n_steps = 0
+    t_start = time.perf_counter()
+    t_compiled = None
+    prev_progress = (
+        None  # (step, gap, wall) at the last progress print, for the ETA estimate
+    )
+    for i in range(max_steps):
+        rng_key, subkey = jax.random.split(rng_key)
+        state, info = step(subkey, state)
+        dead.append(info)
+        n_steps = i + 1
+        # Delta between accumulated dead evidence and the live remainder; drives termination.
+        gap = float(state.integrator.logZ_live - state.integrator.logZ)
+        if i == 0:
+            # First step includes JIT compilation; separate it from steady-state cost.
+            t_compiled = time.perf_counter()
+            if progress_every:
+                print(
+                    f"    [NS] compiled step in {t_compiled - t_start:.1f}s",
+                    flush=True,
+                )
+        if progress_every and (i % progress_every == 0):
+            now = time.perf_counter()
+            # ETA: the gap (logZ_live - logZ) trends down toward the `dlogz` termination
+            # threshold. It is NOT monotonic (jumps up when a new high-L region is found), so
+            # estimate remaining steps from the recent average descent rate and guard against
+            # non-negative slopes. Rough by design — a "how much is left" gauge, not a promise.
+            eta_str = ""
+            if prev_progress is not None:
+                di = i - prev_progress[0]
+                dgap = gap - prev_progress[1]  # negative when descending
+                if di > 0 and dgap < 0:
+                    steps_left = max(0.0, (gap - dlogz) / (-dgap / di))
+                    sec_per_step = (now - prev_progress[2]) / di
+                    eta_s = steps_left * sec_per_step
+                    eta_str = f"  ETA~{eta_s/3600:5.2f}h (~{steps_left:.0f} steps)"
+                else:
+                    eta_str = "  ETA~(gap rose)"
+            prev_progress = (i, gap, now)
+            print(
+                f"    [NS] step {i:6d}  logZ={float(state.integrator.logZ):10.3f}  "
+                f"logZ_live-logZ={gap:8.3f}  elapsed={now - t_start:7.1f}s{eta_str}",
+                flush=True,
+            )
+        # Terminate once the evidence still held in the live points is a negligible
+        # fraction of what has been accumulated from the dead points. The i>1 guard only
+        # skips the initial transient (logZ starts at -inf, so gap is +inf on step 0).
+        if i > 1 and gap < dlogz:
+            break
+
+    dead_info = ns_utils.finalise(state, dead)
+    # Point estimate: accumulated dead-point evidence + remaining live contribution.
+    logZ_point = float(jnp.logaddexp(state.integrator.logZ, state.integrator.logZ_live))
+    # Uncertainty: stochastic-volume realisations of the evidence (Skilling 2006).
+    rng_key, subkey = jax.random.split(rng_key)
+    log_w = ns_utils.log_weights(subkey, dead_info, shape=weights_shape)
+    logZ_samples = logsumexp(log_w, axis=0)  # (weights_shape,)
+    return {
+        "logZ": logZ_point,
+        "logZ_stochastic_mean": float(jnp.mean(logZ_samples)),
+        "logZ_err": float(jnp.std(logZ_samples)),
+        "logZ_live": float(state.integrator.logZ_live),
+        "n_steps": n_steps,
+        "n_live": n_live,
+        "ndim": int(ndim),
+        "dead_info": dead_info,
+        "final_state": state,
+        "rng_key": rng_key,
+        "blackjax": blackjax,
+    }
+
+
+def run_blackjax_nested_sampling(
+    kalman_filter,
+    config,
+    n_pulsars,
+    sigma_p_array,
+    gamma_p_array,
+    efac_array,
+    equad_array,
+    mode="gwb",
+):
+    """Run blackjax nested sampling for GWB inference — a JAX-native evidence engine.
+
+    Computes the Bayesian evidence (logZ) for the GWB model with blackjax nested slice
+    sampling on Argus's differentiable Kalman likelihood, unlocking model-comparison
+    (HD-vs-CURN) Bayes factors that NUTS cannot provide. Introduced as the T2.6
+    feasibility spike; see ``workflows/ng15_sgwb_demo/notes/t2.6_blackjax_ns_verdict.md``.
+
+    The sampler works in the GWB model's **native reparameterized latent space**: every
+    free ``numpyro.sample`` site in :func:`numpyro_model` is ``Normal(0, 1)`` (the
+    physical parameters are ``deterministic`` transforms), so the prior is an isotropic
+    unit Gaussian — Jacobian-free — and the evidence/posterior are directly comparable to
+    the NUTS run on the same config. The likelihood is obtained by reusing numpyro's own
+    ``log_density`` on the exact same model (``loglik = log_joint - logprior``), so no
+    transform is re-implemented.
+
+    Parameters
+    ----------
+    kalman_filter : object
+        JAX Kalman filter with ``get_likelihood``.
+    config : configparser.ConfigParser
+    n_pulsars : int
+    sigma_p_array, gamma_p_array, efac_array, equad_array : arrays or None
+    mode : str
+        Only ``"gwb"`` is supported (CW uses the jaxns path in
+        :func:`run_nested_sampling`).
+
+    Returns
+    -------
+    tuple
+        ``(arviz.InferenceData, (logZ_mean, logZ_uncert), ns_meta)`` where ``ns_meta``
+        is a dict of additive cost-scaling metadata (``runtime_s``, ``n_steps``,
+        ``ndim``, ``n_live``, ``num_delete``, ``num_inner_steps``, ``n_pulsars``). The
+        first two elements match the return contract of :func:`run_nested_sampling`;
+        the third is blackjax-specific and consumed by :mod:`workflow`.
+    """
+    if mode != "gwb":
+        raise NotImplementedError(
+            "run_blackjax_nested_sampling supports mode='gwb'; use "
+            "run_nested_sampling (jaxns) for CW."
+        )
+    import numpy as np
+    from numpyro.handlers import trace, seed, substitute
+    from numpyro.infer.util import log_density
+    from .prior_models import get_prior_model_specs
+
+    prior_specs = get_prior_model_specs(
+        config,
+        n_pulsars,
+        sigma_p_array,
+        gamma_p_array,
+        efac_array,
+        equad_array,
+        mode="gwb",
+    )
+
+    def model():
+        numpyro_model(kalman_filter, prior_specs, n_pulsars)
+
+    # Discover the free latent sites (all N(0,1)) and the deterministic (physical) sites.
+    seed_val = config.getint("NestedSampler", "seed", fallback=42)
+    key = jax.random.PRNGKey(seed_val)
+    disc_trace = trace(seed(model, key)).get_trace()
+    latent = {
+        name: site
+        for name, site in disc_trace.items()
+        if site["type"] == "sample" and not site.get("is_observed", False)
+    }
+    names = list(latent.keys())
+    shapes = [tuple(jnp.shape(latent[name]["value"])) for name in names]
+    sizes = [int(np.prod(s)) if s else 1 for s in shapes]
+    ndim = int(sum(sizes))
+    det_names = [
+        name for name, site in disc_trace.items() if site["type"] == "deterministic"
+    ]
+
+    def unpack(z):
+        out = {}
+        offset = 0
+        for name, shape, size in zip(names, shapes, sizes):
+            out[name] = (
+                z[offset] if shape == () else z[offset : offset + size].reshape(shape)
+            )
+            offset += size
+        return out
+
+    half_log_2pi = 0.5 * jnp.log(2.0 * jnp.pi)
+    # Bound the (unit-normal) latent prior to a wide box so the slice sampler cannot step
+    # out into the extreme tails, where the Kalman likelihood is numerically pathological
+    # (near-singular innovation covariance -> spuriously huge log-likelihood). At the default
+    # 6 sigma the truncated N(0,1) mass loss is ~2e-9/dim, so the evidence is unchanged, but
+    # unlike gradient-guided NUTS (which stays in the typical set) NS explores globally and
+    # would otherwise get stuck on a spurious high-likelihood tail point.
+    latent_cutoff = config.getfloat("NestedSampler", "latent_cutoff", fallback=6.0)
+
+    def _unit_normal_logprior(z):
+        # The unbounded N(0,1) density — matches the prior log_density() accumulates
+        # internally from the model's Normal(0,1) sample sites, so subtracting it isolates
+        # the pure log-likelihood.
+        return -0.5 * jnp.sum(z**2) - ndim * half_log_2pi
+
+    def logprior_fn(z):
+        # Prior measure blackjax integrates: unit normal, truncated to the wide box.
+        inside = jnp.all(jnp.abs(z) <= latent_cutoff)
+        return jnp.where(inside, _unit_normal_logprior(z), -jnp.inf)
+
+    def loglikelihood_fn(z):
+        log_joint, _ = log_density(model, (), {}, unpack(z))
+        ll = log_joint - _unit_normal_logprior(z)
+        # Defensive: reject any residual non-finite likelihood inside the box.
+        return jnp.where(jnp.isfinite(ll), ll, -jnp.inf)
+
+    # Nested-sampler configuration.
+    num_live = config.getint("NestedSampler", "num_live_points", fallback=500)
+    num_delete = config.getint("NestedSampler", "num_delete", fallback=1)
+    num_inner_steps = config.getint(
+        "NestedSampler", "num_inner_steps", fallback=max(5, 2 * ndim)
+    )
+    dlogz = config.getfloat("NestedSampler", "dlogz", fallback=-5.0)
+    max_steps = config.getint("NestedSampler", "max_samples", fallback=100000)
+    weights_shape = config.getint("NestedSampler", "weights_shape", fallback=200)
+    progress_every = config.getint("NestedSampler", "progress_every", fallback=10)
+    num_posterior_samples = config.getint(
+        "NestedSampler", "num_posterior_samples", fallback=10000
+    )
+    kernel = config.get("NestedSampler", "kernel", fallback="nss").strip().lower()
+
+    key, subkey = jax.random.split(key)
+    init_particles = jax.random.normal(subkey, (num_live, ndim))
+
+    print("Running blackjax nested slice sampling (GWB)...")
+    print(f"  latent dimension: {ndim}")
+    print(f"  num_live_points: {num_live}")
+    print(f"  num_delete: {num_delete}")
+    print(f"  num_inner_steps: {num_inner_steps}")
+    print(f"  dlogz termination: {dlogz}")
+    print(f"  inner kernel: {kernel}")
+
+    key, subkey = jax.random.split(key)
+    t_sample_start = time.perf_counter()
+    res = _blackjax_ns_evidence(
+        logprior_fn,
+        loglikelihood_fn,
+        init_particles,
+        num_delete=num_delete,
+        num_inner_steps=num_inner_steps,
+        dlogz=dlogz,
+        max_steps=max_steps,
+        rng_key=subkey,
+        weights_shape=weights_shape,
+        progress_every=progress_every,
+        kernel=kernel,
+    )
+    sampling_runtime_s = time.perf_counter() - t_sample_start
+    log_Z_mean = res["logZ"]
+    log_Z_uncert = res["logZ_err"]
+    print(
+        f"\nLog-evidence: {log_Z_mean:.2f} +/- {log_Z_uncert:.2f} "
+        f"({res['n_steps']} steps, {sampling_runtime_s:.1f} s sampling)"
+    )
+
+    # Cost-scaling metadata (additive; does not affect the evidence/posterior). Consumed by
+    # workflow.py to enrich the evidence JSON and by the NS scaling study
+    # (workflows/ng15_sgwb_demo/scripts/ns_scaling_analyze.py).
+    ns_meta = {
+        "runtime_s": float(sampling_runtime_s),
+        "n_steps": int(res["n_steps"]),
+        "ndim": int(res["ndim"]),
+        "n_live": int(res["n_live"]),
+        "num_delete": int(num_delete),
+        "num_inner_steps": int(num_inner_steps),
+        "n_pulsars": int(n_pulsars),
+        "kernel": kernel,
+        "logZ_stochastic_mean": float(res["logZ_stochastic_mean"]),
+    }
+
+    # Posterior: resample the latent live points by weight, push through the model to
+    # recover the physical (deterministic) parameters, and package as ArviZ.
+    from blackjax.ns import utils as ns_utils
+
+    key, subkey = jax.random.split(res["rng_key"])
+    post_z = ns_utils.sample(
+        subkey, res["dead_info"], shape=num_posterior_samples
+    ).position  # (num_posterior_samples, ndim)
+
+    def to_physical(z):
+        tr = trace(substitute(model, unpack(z))).get_trace()
+        return {name: tr[name]["value"] for name in det_names}
+
+    # Sequential (lax.map), NOT vmap: tracing the model also runs the joint Kalman
+    # likelihood, whose per-sample intermediates are large; vmapping over thousands of
+    # posterior draws materialises all of them at once and OOMs the GPU (~100 GB for the
+    # 32-pulsar model). lax.map keeps memory at one draw's footprint.
+    physical = jax.lax.map(to_physical, post_z)
+    # ArviZ expects (chains, draws, ...); single chain for nested sampling.
+    posterior_np = {
+        name: np.asarray(values)[np.newaxis, ...] for name, values in physical.items()
+    }
+    inf_data = az.from_dict(posterior=posterior_np)
+
+    return inf_data, (log_Z_mean, log_Z_uncert), ns_meta
+
+
 def test_likelihood_performance(kalman_filter, config, n_pulsars, logger):
     """Test likelihood evaluation performance using known parameter values.
 
