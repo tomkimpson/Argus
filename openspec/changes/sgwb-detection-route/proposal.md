@@ -57,8 +57,9 @@ recovering the SGWB spectral index, and per-backend/ECORR/DM noise modelling.
 - `sgwb/kernel-fidelity`: measuring and reporting the systematic induced by fitting an OU kernel
   to a γ = 13/3 power-law background, on both amplitude and evidence, and the resulting bound on
   what may be claimed.
-- `sgwb/array-analysis-procedure`: the end-to-end two-stage (single-pulsar noise → array) SGWB
-  analysis procedure, its staged scale-up 33 → subset → 68, and the acceptance gate at each stage.
+- `sgwb/array-analysis-procedure`: the end-to-end SGWB analysis procedure — per-pulsar red noise
+  sampled jointly with the GW under priors not derived from single-pulsar fits of the same data —
+  its staged scale-up 33 → subset → 68, and the acceptance gate at each stage.
 - `kalman/masked-marginal-filter`: missing-observation mask support on the marginalized
   (Rao-Blackwellized) Kalman filter path, removing the sequential-fallback guard.
 - `inference/run-checkpointing`: checkpointing and resumption of long NUTS runs so partial results

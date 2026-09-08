@@ -5,6 +5,11 @@ See `proposal.md` for motivation. What already exists and constrains the approac
 - **Working array analysis.** Two-stage noise (single-pulsar → array with empirical priors) plus the
   `gw_parameterization = ridge` pivot-log-PSD basis converges cleanly at 33 pulsars: Stage C reached
   r̂ ≤ 1.004 with 0% divergences in ~9.5 h on A100, and covered the injected amplitude at −0.35σ.
+  **Superseded 2026-09-06 as to the noise half.** The two-stage empirical priors converge but absorb
+  the background: on the 1b positive control they returned `lnB = 0.053` with the amplitude posterior
+  equal to its prior. Flat per-pulsar priors sampled jointly replaced them (`lnB = 3.043`, amplitude
+  onto truth) and are what `sgwb/array-analysis-procedure` now requires. Sampling at 33 pulsars is
+  unaffected — the priors are wider, not more numerous, and the dimension is unchanged at 68.
   This part of the machinery is done and is not revisited here.
 - **No usable detection statistic.** `workflows/ng15_sgwb_demo/scripts/logz_lhm.py` (learned harmonic
   mean) works at 2-D and 18-D but is degenerate at 68-D. It stays as a low-D cross-check only.
@@ -33,8 +38,9 @@ See `proposal.md` for motivation. What already exists and constrains the approac
 
 **Non-Goals**
 
-- No change to the likelihood, the OU generative model, the ridge parameterization, or the two-stage
-  noise design. All goldens stay intact.
+- No change to the likelihood, the OU generative model, or the ridge parameterization. All goldens
+  stay intact. (The two-stage noise design *was* changed, after it was measured to absorb the
+  background — see the Context note above and `sgwb/array-analysis-procedure`.)
 - No joint noise+GW reformulation (#115) and no parallel filter (#108).
 - No attempt to make the OU kernel reach γ = 13/3; the mismatch is measured, not removed.
 

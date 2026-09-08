@@ -6,29 +6,45 @@ known truth to the full real array without changing it along the way.
 
 ## ADDED Requirements
 
-### Requirement: Noise is constrained in two stages
+### Requirement: Per-pulsar red noise is sampled jointly under priors not derived from the same data
 
-The array analysis SHALL constrain per-pulsar red-noise parameters from single-pulsar runs and carry
-them into the array run as informative priors, with the per-pulsar parameters still sampled. Fixing
-per-pulsar noise at point estimates SHALL be available only as a diagnostic pilot, not as the
-procedure that produces reported results.
+The array analysis SHALL sample every pulsar's red-noise parameters jointly with the GW parameters,
+under priors that are NOT derived from single-pulsar fits of the same data. Carrying single-pulsar
+posteriors into the array run as informative priors SHALL NOT be used for reported results, and
+fixing per-pulsar noise at point estimates SHALL be available only as a diagnostic pilot.
 
-#### Scenario: Array run with empirical priors
+This replaces the two-stage empirical-prior procedure, which was measured to fail. A single-pulsar
+fit is performed with the GW held at negligible amplitude, so that pulsar's red-noise posterior
+absorbs its *total* red power, the common background included. Using those posteriors as array-stage
+priors starts the joint fit with the common power already explained as N independent noise processes,
+leaving the GW nothing to claim. On MDC2 dataset 1b — a known, published detection — the procedure
+returned `lnB(HD/CURN) = 0.053 ± 0.004` with a GW amplitude posterior indistinguishable from its
+prior (sd 99% of prior sd) drifting away from the injected value. Removing the empirical priors and
+nothing else moved the amplitude 3 dex onto truth (posterior sd 21% of prior sd) and the Bayes factor
+to `3.043 ± 0.015`. See `workflows/ng15_sgwb_demo/notes/PROBLEM_empirical_priors_absorb_gwb.md`.
 
-- **WHEN** the array stage runs on a dataset whose single-pulsar stage has completed
-- **THEN** each pulsar's red-noise parameters are sampled under priors derived from that pulsar's
-  own single-pulsar posterior
+#### Scenario: Array run
+
+- **WHEN** the array stage runs on a dataset
+- **THEN** each pulsar's red-noise parameters are sampled jointly with the GW parameters under
+  priors independent of any single-pulsar fit of that dataset
+
+#### Scenario: Empirical-prior run
+
+- **WHEN** an array run derives its per-pulsar red-noise priors from single-pulsar posteriors of the
+  same data
+- **THEN** its output is labelled a diagnostic and is not used as the reported amplitude or evidence
 
 #### Scenario: Fixed-noise pilot
 
 - **WHEN** a fixed-noise array run is performed
 - **THEN** its output is labelled as a pilot and is not used as the reported amplitude or evidence
 
-#### Scenario: Single-pulsar stage incomplete
+#### Scenario: Noise-prior choice validated before it is frozen
 
-- **WHEN** the array stage is launched before every pulsar in the dataset has a converged
-  single-pulsar posterior
-- **THEN** the run is refused, naming the pulsars that are missing or unconverged
+- **WHEN** a per-pulsar noise-prior choice is frozen as part of the production procedure
+- **THEN** it has been exercised on a dataset that contains injected per-pulsar red noise, not only
+  on one where the chosen priors are the true model
 
 ### Requirement: Every sampled run must pass convergence checks before use
 

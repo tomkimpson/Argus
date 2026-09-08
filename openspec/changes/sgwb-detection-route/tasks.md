@@ -36,9 +36,17 @@
       it lands below zero by construction. This needs a dataset with no correlated signal, and MDC2
       group1 has none (dataset1/2 are GWB, dataset3 is a CW source) — so it needs a synthesised
       signal-free set at the 1b geometry, or an explicit decision to drop it.
-- [ ] 1.10 Record the frozen evidence configuration as a versioned config file plus a one-line
+- [x] 1.10 Record the frozen evidence configuration as a versioned config file plus a one-line
       provenance stamp written into every run's outputs; verify a run records which frozen version it
-      used.
+      used. DONE: `workflows/ng15_sgwb_demo/configs/frozen/evidence_procedure_v1.json` records
+      estimator B, the 5-rung uniform ε grid, the four reliability gates and their constants, the
+      sampler block, the ridge basis and the readout; `scripts/stamp_provenance.py` writes
+      `provenance.json` (frozen version + its sha256, git SHA, config sha256, dataset, ε, noise prior,
+      host, SLURM ids) into each run's output directory from the ladder drivers. Verified on
+      `outputs/mdc2_d1_nogwb_eps075/provenance.json`. `lnb_path_sampling.py` is untouched — the
+      stamp is written alongside the run, not by the frozen estimator, so the freeze is defined
+      against an unchanged artefact. Freezes the EVIDENCE procedure only; the noise-prior choice
+      belongs to `sgwb/array-analysis-procedure` and is frozen at 6.8.
 
 ## 2. Masks on the marginalized filter (branch `feat/masked-marginal-filter`)
 
@@ -92,17 +100,28 @@
       is a falsification check, NOT a false-alarm probability: N=1 bounds only `p < 1`. Cold ladder,
       so it is also the full-warmup baseline 4.3 compares against. See
       `workflows/ng15_sgwb_demo/notes/RESULTS_null_calibration_scramble.md`.
-- [ ] 4.3 Run a small pilot set of scrambles at 33 pulsars both warm-started and with full warmup;
-      verify the two statistic distributions agree before warm-starting is used for the ensemble.
-- [ ] 4.4 Measure statistic variance vs chain length on the pilot scrambles and choose the ensemble
-      chain length from it; verify by a recorded variance-vs-length curve.
-- [ ] 4.5 Record the target ensemble size, the resulting p-value resolution and the estimated compute
-      cost before launching; verify the plan is committed ahead of the runs.
-- [ ] 4.6 Run the MDC2 scramble ensemble and compute the false-alarm probability for the observed
-      statistic, reporting `p < 1/N` when the observed value exceeds every realisation; verify the
-      observed statistic lands in the extreme upper tail.
-- [ ] 4.7 Run the ensemble on the matched no-injection control; verify the observed statistic sits in
-      the bulk and the recovered p-values are consistent with uniform.
+- [ ] 4.3 DEFERRED (see 4.5). Run a small pilot set of scrambles at 33 pulsars both warm-started and
+      with full warmup; verify the two statistic distributions agree before warm-starting is used for
+      the ensemble. Warm-starting is a cost lever, not a correctness gate — a cold ensemble does not
+      need this.
+- [ ] 4.4 DEFERRED (see 4.5). Measure statistic variance vs chain length on the pilot scrambles and
+      choose the ensemble chain length from it; verify by a recorded variance-vs-length curve.
+- [x] 4.5 Record the target ensemble size, the resulting p-value resolution and the estimated compute
+      cost before launching; verify the plan is committed ahead of the runs. DONE, and the answer is
+      to DEFER the ensemble: the bake-off forced estimator B (5 runs per realisation, ~40 A100-h),
+      so `p < 0.1` costs ~400 A100-h and `p < 0.01` ~4000. On MDC2 the answer is already known, so
+      an ensemble here buys a rehearsal rather than a claim; the budget belongs at 6.7/7.6 where the
+      spec already provides for a degraded null. Reported bound stays `p < 1` from 4.2b, stated as a
+      falsification check and explicitly not a false-alarm probability. This discharges the live
+      re-cost clause in design.md D3. See
+      `workflows/ng15_sgwb_demo/notes/null_ensemble_cost_decision.md`.
+- [ ] 4.6 DEFERRED to 6.7/7.6 (see 4.5). Run the MDC2 scramble ensemble and compute the false-alarm
+      probability for the observed statistic, reporting `p < 1/N` when the observed value exceeds
+      every realisation; verify the observed statistic lands in the extreme upper tail.
+- [ ] 4.7 DEFERRED with 4.6 (see 4.5). Run the ensemble on the matched no-injection control; verify
+      the observed statistic sits in the bulk and the recovered p-values are consistent with uniform.
+      The control dataset now exists (`data/mdc2_d1_nogwb`, built for 1.9), so this is cheap to pick
+      up if the decision is revisited.
 
 ## 5. Kernel systematic (parallel; depends on the frozen procedure from 1.10)
 
