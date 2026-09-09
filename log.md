@@ -1,5 +1,110 @@
 # Research log
 
+## 2026-09-10 — The estimator is validated; the noise model is not
+
+**Goal.** Run the next task in `openspec/changes/sgwb-detection-route`. The user's memory was
+that tasks 4.3-4.7 (the scramble ensemble) had been dropped on cost; checking, they had not
+been decided at all — 4.5 is the task that makes that decision, and `design.md` carried a live,
+unexecuted clause requiring a re-cost if the bake-off forced estimator B, which it did.
+
+**What was tried.** Two ladders in parallel plus the cheap decision items. Task 1.9 (the
+no-injection control) turned out to be far cheaper than the notes claimed:
+`inject_powerlaw_gwb.py` is not 6-pulsar NG15 machinery needing a port — it is geometry-agnostic
+(`EXPECTED_NPSR = 6` is used only in a `print`) and had already run at 33 pulsars in August to
+build the kernel-systematic pair. It replaces the residual column outright rather than adding to
+it, so a signal-free set at the 1b geometry is CPU minutes: `--log10-A-gw -30`, white noise only.
+That last choice is not a shortcut — the upstream IPTA README's dataset table lists `g1.d1a(b)`
+as WN and `g1.d2a(b)` as WN,RN, so white-noise-only IS 1b's noise model. Measured residual RMS
+came out 0.87-1.09x the white-noise prediction across the 33 pulsars.
+
+The second ladder was the 2b generalisation test the last two sessions had flagged as the next
+substantive run: 1b is the one dataset where flat per-pulsar priors are the true model, so
+everything the project rests on had been validated where it could not fail. Before spending A100
+time, `data/mdc2_all` — a symlink into a stale treehouse worktree outside /fred — was re-ingested
+into a real directory and all 33 feathers verified byte-identical to the symlink target.
+
+Alongside, task 1.10 froze the evidence procedure and 4.5 recorded the ensemble decision.
+
+**What was learned.** **The no-injection control passes: `lnB = -0.0131 +/- 0.0002`,
+`reliable: true`,** against a `|lnB| < 1` band written into the config and job headers and
+committed (d4065eb) before the readout ran. All five rungs r_hat 1.010, 0 divergences, ~1h25m
+each. The GW pivot log-PSD sits at -9.69 flat across the whole eps path (0.04 dex from eps=0 to
+eps=1), a mild upper limit against the Normal(-9, 1.333) prior rather than the prior handed back.
+
+That completes `sgwb/model-selection`, and the three cases separate by the SIZE of the integrand
+rather than by a threshold on the final number:
+
+    injected signal, true ORF      +4.695 -> +1.558    lnB +3.043
+    same data, scrambled ORF       -0.386 -> -1.130    lnB -0.766
+    no injected signal, true ORF   -0.015 -> -0.012    lnB -0.013
+
+Each is the right *kind* of answer. The control's integrand is ~100x smaller in magnitude than
+the scramble's, so the estimator is not emitting a number of fixed scale with a varying sign.
+
+**The 2b ladder failed, and that is the session's real finding.** Flat joint priors do not sample
+on the one MDC2 dataset with injected per-pulsar red noise. Two rungs, identical behaviour:
+r_hat 1.59/1.58 (ArviZ, on sampled sites), min ess_bulk 7, 372 and 833 divergences, one chain
+frozen with exactly zero within-chain variance in both, 13h28m and 7h33m against 1.5-2.4 h on 1b.
+The three live chains land at -4.77 in BOTH rungs — turning on a quarter of the HD correlation
+moves them not at all — against an injected pivot log-PSD of -6.3194, so +1.5 dex high and
+confidently so. At eps=0.25 the frozen chain sits within 0.01 dex of truth, consistent with at
+least two modes the sampler cannot move between. The empirical-prior 2b ladder converged on
+byte-identical feathers, so the noise priors are the only variable.
+
+**Two corrections to earlier write-ups.** (1) The ridge pivot prior is not a uniform box.
+`prior_models._reparam` sets `mean = (min+max)/2`, `std = (max-min)/6` and
+`parameter_sampling` samples `prime ~ Normal(0,1)`, so `[-13,-5]` declares
+**Normal(-9, 1.333)** with the declared range as its +/-3 sigma interval. Nothing rails against
+a hard edge; `prime` IS the value in prior sigmas. (2) Two r_hat conventions are in play and
+they disagree by an order of magnitude when a chain is frozen — the job log carries numpyro's
+`print_summary` (27.5 for the 2b rung), while `numpyro_diagnostics/mcmc_diagnostics.txt` and
+ArviZ give 1.59. The repo's stored diagnostics are ArviZ, so ArviZ is what should be quoted.
+
+**Decisions / dead ends.** **The scramble ensemble is deferred** (task 4.5,
+`notes/null_ensemble_cost_decision.md`). The bake-off froze estimator B at 5 runs per
+realisation, ~40 A100-h, so p < 0.1 costs ~400 A100-h and p < 0.01 ~4000. On MDC2 the answer is
+already known, so an ensemble here buys a rehearsal rather than a claim, and 6.7/7.6 already
+provide for a degraded null on real data. The bound stays p < 1 and no result may quote a
+false-alarm probability until an ensemble exists. Tasks 4.3, 4.4, 4.6, 4.7 are annotated
+deferred, not deleted; 4.3 is a cost lever, not a correctness gate, and is unnecessary for a
+cold ensemble.
+
+**`sgwb/array-analysis-procedure` was rewritten.** Its "Noise is constrained in two stages"
+requirement mandated the empirical-prior procedure that was measured to absorb the background,
+so the spec required something no reported result does. Replaced by joint sampling under priors
+not derived from single-pulsar fits of the same data, plus a new scenario requiring the
+noise-prior choice be exercised on data containing red noise before it is frozen — which fails
+on its first application.
+
+**A guard of mine misfired and was fixed properly rather than loosened.** `lnb_readout.sh`
+grepped whole configs for "scramble" and matched the header comment explaining why a scramble
+does not close task 1.9. Investigating the honest fix showed there is no cheap way to prove a
+ladder was unscrambled from its artefacts: the ORF reaches the filter through the data dict, not
+a config key; the checkpoint stores only a composite fingerprint hash; the `.nc` attrs carry no
+ORF provenance; and at eps=0 the scrambled and true runs are genuinely identical. The guard is
+now labelled a naming tripwire and the header says so.
+
+**Open threads.** The next step is NOT the task list. The user's hypothesis, which the data
+support, is that the 2b failure is **model misspecification rather than prior width**: MDC2 (like
+all PTA simulations) injects per-pulsar red noise as a power law, while Argus fits an OU process
+whose residual PSD bends from f^-2 to f^-4 across the band. A power law has one constant slope,
+so an OU cannot be one over MDC2's ~2 decades at any parameter value. Checking the truth refines
+the mechanism: only 3/33 pulsars are steeper than f^-4, so "OU can't be steep enough" is not the
+story; only 4/33 have red noise above their white floor at 1/5 yr, and all four are SHALLOW
+(gamma 2.3-2.7) but loud (J1939+2134 at +2.0 dex over white, J1643-1224 at +1.7). 1b has no
+per-pulsar red noise at all, which is why it works there.
+
+A spike is designed and approved but not run: synthesise one dataset at the 2b geometry drawn
+entirely from Argus's own generative model (OU per-pulsar red noise band-matched to each
+pulsar's injected power, OU GW at 2b's band-referenced amplitude, same white noise and epochs)
+and run a single eps=0 rung with the identical failing config, ~8 A100-h. Clean sampling
+confirms misspecification; identical failure exonerates it and points at the GW<->red-noise
+degeneracy. This also generalises the kernel systematic (tasks 5.x), which had been framed as
+being only about the GW kernel.
+
+Still unresolved from earlier sessions: our lnB 3.04 against the ~0.55 implied by ratioing
+Hazboun's HD(40)/CRN(23) rows for g1.d1.
+
 ## 2026-09-07 — The sky-scramble null passes: the flat-prior lnB tracks correlation, not prior width
 
 **Goal.** Run the null half of `sgwb/model-selection`, which had never been run despite the
