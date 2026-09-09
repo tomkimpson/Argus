@@ -1,7 +1,8 @@
 # Task 1.9 — the no-injection control on MDC2 1b geometry
 
-**Status:** ladder running (submitted 2026-09-08, job 16319044). **This section was written
-before any Bayes factor was read.**
+**Status:** COMPLETE — **PASS**, `lnB = -0.0131 +/- 0.0002`, `reliable: true`. The dataset,
+criterion and pass band below were written and committed (d4065eb) **before any Bayes factor was
+read**; the Results section was appended after.
 
 ## The question
 
@@ -66,13 +67,58 @@ exactly 0.
 | `lnB` near `+3` | **FAIL.** The estimator manufactures HD evidence on noise; the 3.043 does not survive. |
 | `lnB` near `-0.77` | Not a failure, but a different finding: the estimator penalises *any* correlation model on noise-only data. To be reported, not filed as a pass. |
 
-## Results
+## Results — PASS
 
-_Pending — the ladder is running. Fill in with the readout from
-`outputs/lnb_path_sampling_mdc2_d1_nogwb.json`._
+    ln B(HD/CURN) = -0.0131 +/- 0.0002        reliable: true, failed_diagnostics: []
 
-Early signal from the first completed rung (ε = 0.75, 1h25m, 0 divergences, r̂ = 1.00): the GW
-pivot log-PSD posterior sits at median **-9.69** (sd 1.02) against the injected **-6.908** on
-real 1b and the **-6.47** the flat ladder recovered there. The amplitude has collapsed well below
-the injection scale, which is what a signal-free dataset should do. This is one rung and not a
-Bayes factor.
+`|lnB| = 0.013` against a pre-registered pass band of `|lnB| < 1`. The estimator returns
+essentially exactly zero on data with no correlated signal.
+
+| rung | `<dlnL/deps>` | ESS |
+|---|---|---|
+| ε = 0.00 | −0.0150 ± 0.0005 | 4000 |
+| ε = 0.25 | −0.0138 ± 0.0004 | 4000 |
+| ε = 0.50 | −0.0135 ± 0.0005 | 3644 |
+| ε = 0.75 | −0.0121 ± 0.0004 | 3904 |
+| ε = 1.00 | −0.0117 ± 0.0005 | 3030 |
+
+The integrand is not a set of large values cancelling: it is uniformly tiny, smooth and mildly
+negative along the whole path, which is what "no correlation to find, and a small Occam penalty
+for looking" should look like. Quadrature is nowhere near its tolerance — Romberg residual
+2.2e-5 against a 0.1 ceiling, minimum integrand ESS 3030 against a floor of 50, endpoints
+covered.
+
+Sampling was flawless. All five rungs: r̂ = 1.010, min ess_bulk ≥ 6942, **0 divergences**,
+~1h25m each, four chains agreeing to 0.1 dex. The GW pivot log-PSD sits at −9.69 flat across
+the entire ε path (−9.704 at ε = 0 to −9.715 at ε = 1), i.e. turning the Hellings–Downs
+correlation on from nothing to full moves the amplitude by 0.04 dex. Against the
+`Normal(−9, 1.333)` prior that is a mild upper limit — posterior sd 1.04, 0.78 of prior sd,
+centred slightly below the prior mean. Not a measurement, and not the prior handed back either.
+
+## The three scenarios, together
+
+`sgwb/model-selection` is now satisfied in full on MDC2 1b, and the three cases separate by
+orders of magnitude in the integrand rather than by a threshold on the final number:
+
+| case | integrand range | ln B |
+|---|---|---|
+| injected signal, true ORF | +4.695 → +1.558 | **+3.043 ± 0.015** |
+| same data, sky-scrambled ORF | −0.386 → −1.130 | **−0.766 ± 0.010** |
+| **no injected signal, true ORF** | **−0.015 → −0.012** | **−0.013 ± 0.0002** |
+
+Each answer is the right *kind* of answer, not merely the right sign. Real correlation present
+and correctly described → strongly positive. Real correlation present and mis-described →
+negative, because a wrong pattern fits worse than none. No correlation to describe → zero. The
+control's integrand is ~100× smaller in magnitude than the scramble's and ~300× smaller than the
+injection's, so the estimator is not returning a number of fixed scale with a varying sign; it is
+measuring how much correlation information the data actually contain.
+
+Taken with the scramble, this closes the question the +3.043 could not answer on its own. Flat
+red-noise priors do not manufacture Hellings–Downs evidence: given the same priors, the same
+geometry, the same epochs and the same noise model, removing the signal removes the evidence.
+
+## Scope
+
+This validates the **estimator**, on 1b's geometry and noise model. It says nothing about
+whether the flat-prior noise model itself survives data with per-pulsar red noise — 1b has none,
+and on 2b it does not survive. See `RESULTS_2b_flat_priors.md`.

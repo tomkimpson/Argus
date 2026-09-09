@@ -30,12 +30,19 @@
 - [x] 1.8 Decide the bake-off in writing: if A and B agree within combined uncertainties, freeze A as
       the production procedure with B as audit; otherwise freeze B and discard A. Verify by a
       committed decision note recording both numbers and the rule that was applied.
-- [ ] 1.9 Run the frozen estimator on the MDC2 no-injection control and verify it returns `lnB`
+- [x] 1.9 Run the frozen estimator on the MDC2 no-injection control and verify it returns `lnB`
       consistent with zero and `reliable: true` — the negative control the injected case cannot give.
       NOT closed by the 4.2b sky scramble: a scramble mis-describes a correlation that is present, so
       it lands below zero by construction. This needs a dataset with no correlated signal, and MDC2
       group1 has none (dataset1/2 are GWB, dataset3 is a CW source) — so it needs a synthesised
-      signal-free set at the 1b geometry, or an explicit decision to drop it.
+      signal-free set at the 1b geometry, or an explicit decision to drop it. DONE by synthesising
+      one: `data/mdc2_d1_nogwb` (`inject_powerlaw_gwb.py` at `log10_A_gw = -30`, white noise only,
+      matching g1.d1b's WN-only noise model; every other feather field is real 1b).
+      **`lnB = -0.0131 +/- 0.0002`, `reliable: true`**, against a pass band of `|lnB| < 1` recorded
+      before the readout. All five rungs r̂ = 1.010, 0 divergences; integrand uniformly tiny and
+      negative (−0.015 → −0.012) rather than large values cancelling. With 4.2b this closes
+      `sgwb/model-selection`: +3.043 injected, −0.766 scrambled, −0.013 signal-free. See
+      `workflows/ng15_sgwb_demo/notes/RESULTS_no_injection_control.md`.
 - [x] 1.10 Record the frozen evidence configuration as a versioned config file plus a one-line
       provenance stamp written into every run's outputs; verify a run records which frozen version it
       used. DONE: `workflows/ng15_sgwb_demo/configs/frozen/evidence_procedure_v1.json` records

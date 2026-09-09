@@ -19,8 +19,18 @@
 # SCRAMBLED LADDERS DO NOT GO THROUGH THIS SCRIPT. lnb_path_sampling.py --evaluate rebuilds the
 # data from the config, so it picks up the TRUE ORF regardless of what the rungs were sampled
 # under, and returns a well-formed, reliable-looking, meaningless number. Use
-# scripts/lnb_scrambled.py for those. This script refuses any ladder whose config mentions a
-# scramble.
+# scripts/lnb_scrambled.py for those.
+#
+# The check below is a NAMING TRIPWIRE, and it is worth being honest about what it cannot do.
+# The ORF does not reach the filter through any config key -- it arrives through the data dict,
+# which is why run_scrambled.py monkeypatches the loader instead of setting an option. Nothing
+# on the run side records which ORF was used either: the checkpoint stores only a composite
+# fingerprint hash (bayesian_inference._data_fingerprint does hash the ORF, but only into that
+# one opaque value), and the .nc attrs carry no ORF provenance at all. At eps = 0 the two are
+# genuinely identical anyway, since correlation_path returns the identity for any geometry.
+# So there is no cheap way to *prove* a ladder was unscrambled from its artefacts. The tripwire
+# catches the realistic mistake -- pointing this script at the mdc2_d1_null_* ladder -- and
+# nothing more. The real protection is using lnb_scrambled.py deliberately.
 
 #SBATCH --job-name=lnb_readout
 #SBATCH --account=oz022
@@ -60,9 +70,17 @@ if [ ! -f "${CONFIG}" ]; then
     echo "ERROR: ${CONFIG} not found." >&2
     exit 1
 fi
-# See the header: --evaluate would silently use the true ORF.
-if grep -qiE "scramble" "${CONFIG}"; then
-    echo "ERROR: ${CONFIG} mentions a scramble; use scripts/lnb_scrambled.py instead." >&2
+# See the header: --evaluate would silently use the true ORF. Naming tripwire, not proof.
+if echo "${LADDER}" | grep -qiE "null|scramble"; then
+    echo "ERROR: ladder '${LADDER}' is named as a scrambled/null ladder." >&2
+    echo "       --evaluate would integrate it against the TRUE ORF and return a" >&2
+    echo "       well-formed, meaningless number. Use scripts/lnb_scrambled.py." >&2
+    exit 1
+fi
+# Comments are stripped first: the config headers discuss scrambles at length, and an earlier
+# version of this guard matched its own explanatory prose and refused a clean ladder.
+if sed 's/#.*//' "${CONFIG}" | grep -qiE "scramble"; then
+    echo "ERROR: ${CONFIG} sets a scramble option; use scripts/lnb_scrambled.py instead." >&2
     exit 1
 fi
 
