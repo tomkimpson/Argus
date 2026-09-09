@@ -1,7 +1,7 @@
 # Flat per-pulsar priors fail on MDC2 2b — the dataset that has red noise
 
-**Date:** 2026-09-09 · **Status:** ε = 0 and ε = 0.25 complete and the failure reproduces on
-both; three rungs queued. The ladder is being run to completion to show the failure across the ε path, but
+**Date:** 2026-09-09 (updated 2026-09-10) · **Status:** ε = 0, 0.25 and 0.75 complete; the
+failure reproduces on all three. Two rungs still running. The ladder is being run to completion to show the failure across the ε path, but
 **no Bayes factor will come out of it** — a non-converged rung poisons the path integral.
 
 ## Why this was run
@@ -88,7 +88,17 @@ For contrast, the identical configuration on 1b:
 | chain 1 | frozen, sd = 0, at −5.581 | frozen, sd = 0, at −6.307 |
 | chains 0/2/3 pivot median | −4.771 / −4.777 / −4.775 | −4.768 / −4.768 / −4.771 |
 
-Two things stand out. The three live chains land at **−4.77 in both rungs**, unchanged by
+`mdc2_flat_eps075` (10 h 56 m) then sharpened it: r̂ 1.59, ess_bulk 7, 751 divergences, chains
+0/2/3 at −4.74 — and chain 1 **not frozen**, moving freely but confined to a low mode at −6.12,
+near the injected −6.3194.
+
+**So the frozen chain was a symptom, not the essence.** What is actually present is at least two
+modes that do not mix: one within ~0.2 dex of truth, one ~1.5 dex above it. A chain that freezes
+is just the degenerate case of a chain that cannot leave its mode. This is a better-posed problem
+than "a chain got stuck", and it is what a misspecified noise model offering two competing
+explanations of the same data would look like.
+
+Two further things stand out. The three high chains land at **−4.77 in both of the first rungs**, unchanged by
 turning on a quarter of the Hellings–Downs correlation — the amplitude they settle on is being
 set by something other than the correlation structure. And the frozen chain sits at a
 *different* place in each rung; at ε = 0.25 it sits at **−6.307**, within 0.01 dex of the
