@@ -1,7 +1,7 @@
 # Flat per-pulsar priors fail on MDC2 2b — the dataset that has red noise
 
-**Date:** 2026-09-09 (updated 2026-09-10) · **Status:** ε = 0, 0.25 and 0.75 complete; the
-failure reproduces on all three. Two rungs still running. The ladder is being run to completion to show the failure across the ε path, but
+**Date:** 2026-09-09 (updated 2026-09-10) · **Status:** COMPLETE — all five rungs run, all five
+failed. No Bayes factor: a non-converged rung poisons the path integral. The ladder is being run to completion to show the failure across the ε path, but
 **no Bayes factor will come out of it** — a non-converged rung poisons the path integral.
 
 ## Why this was run
@@ -110,6 +110,29 @@ sampler cannot move, with one chain initialised near the true mode and then unab
 single accepted step. It is not proof of that, and this note does not diagnose it further; the
 point is that the failure is a sampling failure, not simply "the GW ate the red noise", and the
 distinction matters for choosing a remedy.
+
+## The complete ladder
+
+| rung | r̂ | min ess_bulk | divergences | low-mode chains | high-mode chains | wall |
+|---|---|---|---|---|---|---|
+| ε = 0 | 1.59 | 7 | 372 | −5.58* | −4.77, −4.78, −4.77 | 13h28m |
+| ε = 0.25 | 1.58 | 7 | 833 | −6.31* | −4.77, −4.77, −4.77 | 7h33m |
+| ε = 0.5 | 1.59 | 7 | 938 | −6.28 | −4.76, −4.76, −4.76 | 7h17m |
+| ε = 0.75 | 1.59 | 7 | 751 | −6.12 | −4.74, −4.75, −4.74 | 10h56m |
+| ε = 1.0 | **2.21** | 5 | 924 | **−5.55, −6.10** | −4.73, −4.73 | 7h05m |
+
+`*` = chain with exactly zero within-chain variance. Injected pivot log-PSD = **−6.3194**.
+For comparison, every 1b rung: r̂ 1.010, ess ≥ 1251, 0 divergences, 1.5–2.4 h.
+
+Two modes at every rung, never mixing, and the high mode is **rock-steady at −4.73 to −4.78
+across the entire ε path** — wholly indifferent to the correlation structure. The low mode
+tracks truth.
+
+One suggestion, offered as such and not as a finding: at ε = 1 the split becomes 2–2 rather than
+1–3, and r̂ worsens to 2.21 *because* two chains now disagree with two. It may be that the
+Hellings–Downs correlation does carry information favouring the true amplitude and the sampler
+simply cannot exploit it while it cannot mix. That is one rung and a change of one chain, so it
+is a thing to test, not a thing to believe.
 
 ## This is the mirror image of the failure that killed the empirical priors
 
