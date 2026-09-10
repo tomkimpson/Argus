@@ -94,13 +94,34 @@ story; only 4/33 have red noise above their white floor at 1/5 yr, and all four 
 (gamma 2.3-2.7) but loud (J1939+2134 at +2.0 dex over white, J1643-1224 at +1.7). 1b has no
 per-pulsar red noise at all, which is why it works there.
 
-A spike is designed and approved but not run: synthesise one dataset at the 2b geometry drawn
-entirely from Argus's own generative model (OU per-pulsar red noise band-matched to each
-pulsar's injected power, OU GW at 2b's band-referenced amplitude, same white noise and epochs)
-and run a single eps=0 rung with the identical failing config, ~8 A100-h. Clean sampling
-confirms misspecification; identical failure exonerates it and points at the GW<->red-noise
-degeneracy. This also generalises the kernel systematic (tasks 5.x), which had been framed as
-being only about the GW kernel.
+A spike is designed, approved and **fully written up** in
+`workflows/ng15_sgwb_demo/notes/SPIKE_noise_model_misspecification.md`, but not run: synthesise
+one dataset at the 2b geometry drawn entirely from Argus's own generative model (OU per-pulsar
+red noise band-matched to each pulsar's injected power, OU GW at 2b's band-referenced amplitude,
+same white noise and epochs) and run a single eps=0 rung with the identical failing config,
+~8 A100-h. Clean sampling confirms misspecification; identical failure exonerates it and points
+at the GW<->red-noise degeneracy. This also generalises the kernel systematic (tasks 5.x), which
+had been framed as being only about the GW kernel.
+
+All 33 OU red-noise amplitudes are derived in that file so nothing is left to work out. They are
+**pivot-matched** at f = 1/5 yr with the corner at log10_gamma_p = -9.0, following 5.1's
+convention, rather than matched on in-band variance: with the corner below the band the OU is
+f^-4, so its variance integral is dominated by f_lo, and matching variance to a gamma ~ 2.5 power
+law would pile the injected power where the marginalised timing model absorbs it — loud data that
+constrains nothing. The variance-matched list is recorded too, but is not the one to use. Pulsar
+ordering was verified identical between the feather glob and the noise JSON; a silent permutation
+there would give every pulsar the wrong amplitude with no error raised.
+
+**Ladder completed after the above was written.** All five 2b rungs failed (r_hat 1.58-2.21,
+ess_bulk 5-7, 372-938 divergences, 7-13.5 h each), and finishing it changed the characterisation:
+the failure is **bimodality, not a stuck chain**. At eps=0.75 chain 1 moves freely but stays in a
+low mode near truth; a frozen chain is just the degenerate case of a chain that cannot leave its
+mode. The high mode sits at -4.73 to -4.78 across the entire eps path, wholly indifferent to the
+correlation structure, while the low mode tracks the injected -6.3194. At eps=1 the split becomes
+2-2 rather than 1-3 and r_hat worsens to 2.21 because two chains now disagree with two, which may
+hint that the HD correlation does favour the true amplitude and the sampler cannot exploit it
+while it cannot mix — one rung and a change of one chain, so recorded as something to test rather
+than to believe. Any remedy has to address two non-mixing modes.
 
 Still unresolved from earlier sessions: our lnB 3.04 against the ~0.55 implied by ratioing
 Hazboun's HD(40)/CRN(23) rows for g1.d1.
