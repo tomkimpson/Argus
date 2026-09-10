@@ -1,0 +1,34 @@
+# Supported installation path for Argus.
+#
+# pip alone is not sufficient. Reading .par/.tim files goes through
+# enterprise -> libstempo, and libstempo is a C++ extension that needs the
+# tempo2 library and headers at build time. tempo2 is not a Python package and
+# has no PyPI distribution, so the timing stack must come from conda-forge.
+#
+#   conda env create -f environment.yml
+#   conda activate argus
+#   pip install -e ".[dataprep,dev]"
+#
+# The pure-Python dependencies live in pyproject.toml and are installed by that
+# pip step; this file provides only Python itself and the native stack pip
+# cannot supply.
+#
+# For a byte-exact rebuild of the environment that produced the published
+# results, use containers/env-Argus.yml + containers/pip-Argus.txt instead --
+# this file is the maintainable entry point, not a frozen lock.
+
+name: argus
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+
+  # Pulsar-timing stack (not pip-installable).
+  - tempo2=2024.12.1
+  - libstempo=2.5.0
+
+  # Native libraries the timing stack and scikit-sparse link against.
+  - gsl=2.7
+  - fftw=3.3.10
+  - suitesparse=7.8.3
