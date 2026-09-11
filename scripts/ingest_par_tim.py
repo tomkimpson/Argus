@@ -128,6 +128,16 @@ def ingest(
         need ``"pint"`` — their ``TT(BIPM20xx)`` / ``DE440`` clock chains make
         the tempo2 path abort with ``ERROR [CLK4]: Date -nan``.
 
+        The converse also holds, so neither backend can be dropped. The IPTA
+        MDC2 par files are ``UNITS TCB`` and PINT supports only TDB
+        internally, raising ``ValueError: The TCB timescale is not fully
+        supported by PINT``. Converting TCB to TDB rescales F0, F1, PB and the
+        mass terms, and tempo2 is the tool for it, so MDC2 ingestion requires
+        the tempo2 path. (MDC2 pars additionally repeat ``NE_SW`` — ``4`` and
+        ``4.000`` — which tempo2 tolerates and PINT rejects as a non-repeatable
+        parameter.) This is why enterprise/tempo2 stay a required, if
+        data-prep-only, dependency rather than something PINT can replace.
+
     Returns
     -------
     list of str
