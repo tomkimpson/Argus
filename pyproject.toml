@@ -27,10 +27,10 @@ classifiers = [
 requires-python = ">=3.11,<3.13"
 
 dependencies = [
-    # numpy is capped below 2.0 by two of our own dependencies: arviz pins
-    # numpy<2.0 and jaxns pins numpy<2. The previous ">=2.0,<2.3" was therefore
-    # unsatisfiable together with arviz and jaxns, and no environment has ever
-    # been built from it; the working env runs numpy 1.26.4.
+    # Pinned to the numpy 1.26 stack the results were produced with. The
+    # previous ">=2.0,<2.3" window existed for enterprise-pulsar, which is no
+    # longer a dependency (data prep only, see environment.yml). numpy 2 with
+    # newer arviz/jaxns releases resolves but is untested.
     "numpy>=1.26,<2.0",
     "scipy>=1.11",
     "pandas>=2.2.3",
@@ -56,13 +56,6 @@ docs = [
     "mkdocs-gen-files>=0.5",
     "mkdocs-literate-nav>=0.6",
     "markdown-katex>=202112.1034",
-]
-# Reading .par/.tim files. enterprise is imported lazily in
-# argus.data_loader (data-prep only): the package and the feather runtime path
-# work without it. It pulls in libstempo, which is a C++ extension requiring
-# tempo2 headers at build time -- see environment.yml for the supported install.
-dataprep = [
-    "enterprise-pulsar>=3.4",
 ]
 dev = [
     "pytest>=7",

@@ -1,34 +1,42 @@
-# Supported installation path for Argus.
+# Data-prep environment: converting .par/.tim files to Argus feather caches.
 #
-# pip alone is not sufficient. Reading .par/.tim files goes through
-# enterprise -> libstempo, and libstempo is a C++ extension that needs the
-# tempo2 library and headers at build time. tempo2 is not a Python package and
-# has no PyPI distribution, so the timing stack must come from conda-forge.
+# Argus itself does not need this. The runtime reads per-pulsar .feather files
+# and installs with pip alone (`pip install -e .`). This environment is only for
+# the one-time ingestion step, scripts/ingest_par_tim.py, which parses timing
+# files with enterprise:
 #
 #   conda env create -f environment.yml
-#   conda activate argus
-#   pip install -e ".[dataprep,dev]"
+#   conda activate argus-dataprep
+#   pip install -e .
+#   python scripts/ingest_par_tim.py <par_tim_dir> <feather_out_dir>
 #
-# The pure-Python dependencies live in pyproject.toml and are installed by that
-# pip step; this file provides only Python itself and the native stack pip
-# cannot supply.
+# The timing stack comes from conda-forge because it does not install cleanly
+# from PyPI: tempo2 has no PyPI distribution, and scikit-sparse (required by
+# enterprise) ships only as an sdist that fails to find conda's SuiteSparse
+# headers. Both backends are needed: tempo2 (via libstempo) for the IPTA MDC2
+# data, PINT for NANOGrav 15yr (`--timing-package pint`).
 #
-# For a byte-exact rebuild of the environment that produced the published
-# results, use containers/env-Argus.yml + containers/pip-Argus.txt instead --
-# this file is the maintainable entry point, not a frozen lock.
+# Versions match the environment that produced the committed feathers.
 
-name: argus
+name: argus-dataprep
 channels:
   - conda-forge
 dependencies:
   - python=3.12
   - pip
+  - numpy=1.26
 
-  # Pulsar-timing stack (not pip-installable).
+  # Timing-file parsing.
+  - enterprise-pulsar=3.4.4
   - tempo2=2024.12.1
   - libstempo=2.5.0
+  - pint-pulsar=1.1.1
 
-  # Native libraries the timing stack and scikit-sparse link against.
+  # Native dependencies of enterprise and tempo2.
+  - scikit-sparse=0.4.14
+  - suitesparse=7.8.3
   - gsl=2.7
   - fftw=3.3.10
-  - suitesparse=7.8.3
+
+  # enterprise 3.4.4 imports pkg_resources, removed in setuptools 81.
+  - setuptools<81
