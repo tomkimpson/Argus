@@ -6,10 +6,10 @@ This guide will help you install Argus and run your first PTA state-space analys
 
 ## Prerequisites
 
-Argus requires Python 3.11 or 3.12 and uses conda for package management. We strongly recommend using conda to avoid dependency conflicts.
+Argus requires Python 3.11 or 3.12. The package itself installs with pip alone: at runtime it reads per-pulsar `.feather` files and has no dependency on pulsar-timing software.
 
-!!! note "Why Conda?"
-    Argus uses a conda + pip installation workflow to handle the `enterprise-pulsar` dependency, which has complex system-level dependencies that are difficult to resolve with pip alone. This hybrid approach ensures reliable installation across different systems.
+!!! note "Converting your own .par/.tim files"
+    Turning raw `.par`/`.tim` files into feathers is a one-time data-prep step that uses `enterprise-pulsar`, `tempo2` and PINT. These are not pip-installable, so they come from conda via `environment.yml`. See [Preparing data](#preparing-data) below. You do not need them to run Argus on existing feathers.
 
 ---
 
@@ -23,20 +23,23 @@ Argus requires Python 3.11 or 3.12 and uses conda for package management. We str
 ```console
 $ git clone https://github.com/tomkimpson/Argus.git
 $ cd Argus
-$ conda create -n argus-env python=3.11
-$ conda activate argus-env
-$ conda install -c conda-forge enterprise-pulsar libstempo
 $ pip install -e .
 ```
 
-This workflow:
+We recommend installing into a fresh virtual environment or conda environment with Python 3.11 or 3.12.
 
-1. Creates a fresh conda environment with Python 3.11
-2. Installs `enterprise-pulsar` and `libstempo` via conda to handle their complex dependencies
-3. Uses pip to install Argus and all remaining dependencies from `pyproject.toml`
+### Preparing data
 
-!!! note "libstempo dependency"
-    The `libstempo` package is required as a dependency for `enterprise-pulsar` to function correctly. See [issue #83](https://github.com/tomkimpson/Argus/issues/83) for more details.
+To convert `.par`/`.tim` files to feathers, create the data-prep environment and run the ingestion script once:
+
+```console
+$ conda env create -f environment.yml
+$ conda activate argus-dataprep
+$ pip install -e .
+$ python scripts/ingest_par_tim.py <par_tim_dir> <feather_out_dir>
+```
+
+Pass `--timing-package pint` for PINT-format releases such as NANOGrav 15yr. The default (tempo2) is required for the IPTA MDC2 data.
 
 ### Development Installation
 
@@ -45,9 +48,6 @@ If you plan to contribute or modify the code, install with development dependenc
 ```console
 $ git clone https://github.com/tomkimpson/Argus.git
 $ cd Argus
-$ conda create -n argus-env python=3.11
-$ conda activate argus-env
-$ conda install -c conda-forge enterprise-pulsar libstempo
 $ pip install -e ".[dev]"
 ```
 

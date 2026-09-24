@@ -22,12 +22,9 @@ Whether you're fixing bugs, improving documentation, adding features, or suggest
    git clone https://github.com/your-username/Argus.git
    cd Argus
 
-   # Create conda environment with Python 3.11
-   conda create -n argus-dev python=3.11
+   # Create an environment with Python 3.11 or 3.12
+   conda create -n argus-dev python=3.12
    conda activate argus-dev
-
-   # Install enterprise-pulsar and libstempo via conda
-   conda install -c conda-forge enterprise-pulsar libstempo
 
    # Install Argus in editable mode with dev dependencies
    pip install -e ".[dev]"

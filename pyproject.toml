@@ -27,7 +27,11 @@ classifiers = [
 requires-python = ">=3.11,<3.13"
 
 dependencies = [
-    "numpy>=2.0,<2.3",
+    # Pinned to the numpy 1.26 stack the results were produced with. The
+    # previous ">=2.0,<2.3" window existed for enterprise-pulsar, which is no
+    # longer a dependency (data prep only, see environment.yml). numpy 2 with
+    # newer arviz/jaxns releases resolves but is untested.
+    "numpy>=1.26,<2.0",
     "scipy>=1.11",
     "pandas>=2.2.3",
     "pyarrow>=17.0.0",
@@ -42,7 +46,6 @@ dependencies = [
     "tensorflow-probability>=0.24.0",
     "jaxns>=2.6.0",
     "blackjax>=1.2.0",
-    "dynesty>=2.1.0",
 ]
 
 [project.optional-dependencies]

@@ -1,0 +1,42 @@
+# Data-prep environment: converting .par/.tim files to Argus feather caches.
+#
+# Argus itself does not need this. The runtime reads per-pulsar .feather files
+# and installs with pip alone (`pip install -e .`). This environment is only for
+# the one-time ingestion step, scripts/ingest_par_tim.py, which parses timing
+# files with enterprise:
+#
+#   conda env create -f environment.yml
+#   conda activate argus-dataprep
+#   pip install -e .
+#   python scripts/ingest_par_tim.py <par_tim_dir> <feather_out_dir>
+#
+# The timing stack comes from conda-forge because it does not install cleanly
+# from PyPI: tempo2 has no PyPI distribution, and scikit-sparse (required by
+# enterprise) ships only as an sdist that fails to find conda's SuiteSparse
+# headers. Both backends are needed: tempo2 (via libstempo) for the IPTA MDC2
+# data, PINT for NANOGrav 15yr (`--timing-package pint`).
+#
+# Versions match the environment that produced the committed feathers.
+
+name: argus-dataprep
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - numpy=1.26
+
+  # Timing-file parsing.
+  - enterprise-pulsar=3.4.4
+  - tempo2=2024.12.1
+  - libstempo=2.5.0
+  - pint-pulsar=1.1.1
+
+  # Native dependencies of enterprise and tempo2.
+  - scikit-sparse=0.4.14
+  - suitesparse=7.8.3
+  - gsl=2.7
+  - fftw=3.3.10
+
+  # enterprise 3.4.4 imports pkg_resources, removed in setuptools 81.
+  - setuptools<81

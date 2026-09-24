@@ -15,7 +15,7 @@ runtime dependency** on pulsar-timing parsers (no `enterprise`/`tempo2`). Parsin
 `.tim` files is a one-time, offline data-prep step:
 
 ```bash
-# Run once in an environment that has enterprise installed (e.g. the `Argus` conda env):
+# Run once in the data-prep env (conda env create -f environment.yml):
 python scripts/ingest_par_tim.py <par_tim_dir> <feather_out_dir>
 ```
 
