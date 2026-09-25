@@ -1,5 +1,31 @@
 # Research log
 
+## 2026-09-26 — The noise-model spike ran and cleared neither hypothesis; the 2b "bimodality" is a stuck chain in −∞ likelihood holes
+
+**Goal.** Run the pre-registered spike (`workflows/ng15_sgwb_demo/notes/SPIKE_noise_model_misspecification.md`) to decide whether the MDC2 2b flat-prior failure is caused by misspecification (OU vs power-law per-pulsar red noise) or by the GW↔red-noise degeneracy.
+
+**What was tried.** On branch `spike/noise-misspecification` (cut from `feat/no-injection-control`):
+- Re-verified that the pulsar ordering is the same in the feathers and the noise JSON.
+- Independently recomputed the 33 pivot-matched σ_p values (they agree with the doc to <5e-5 dex).
+- Generated `data/mdc2_ou_selfgen` (`slurm_scripts/mdc2_ou_selfgen_generate.sh`). The recipe in the doc failed at first because argparse reads a comma-list that starts with `-` as a flag. It needs `--log10-sigma-p=...`, and the doc is now fixed. After projecting out the timing model, the quiet pulsars match the existing OU-only injection exactly. The loud pulsars are comparable to 2b, with J1643 about 2× louder.
+- Ran one ε=0 rung (job 17416541, `slurm_scripts/mdc2_ou_selfgen_rung.sh`, template = 2b flat template with only data_path and output_id changed). It ran 5–15× slower than the 2b rungs and TIMED OUT at 16 h with 500/1000 draws saved.
+- Wrote `scripts/diag_warmup_collapse.py` (driven by `slurm_scripts/diag_warmup_collapse.sh`, CPU). It rebuilds each run's exact model. It reports potential energy and gradient at the chains' seed-42 init points and at their checkpointed final points, the adapted mass matrix, and the one-leapfrog energy error dH for eps from 1 to 1e-14.
+
+**What was learned.**
+- The spike rung is ENTIRELY FROZEN in all four chains: every parameter has zero within-chain sd, 56% of transitions diverge, ESS is 4, and the adapted step size is about 1e-14. The pre-registered decision table assumed moving chains and cannot be applied.
+- **Correction to the 2026-09-10 entry and `notes/RESULTS_2b_flat_priors.md`:** 2b was never bimodal. In every 2b rung chain 1 is frozen: a single unique value (e.g. pivot −6.1196 for all 1000 draws at ε=0.75), step size 2–8e-15, and inverse mass exactly 9.9e-6. That value is numpyro's regulariser for a window with zero variance. Its potential energy is 1,100–1,700 nats worse. Chains 0/2/3 have step size ≈0.35, 0–1 divergences, and agree on pivot ≈ −4.75. The claim that chain 1 "moves freely" was wrong.
+- Mechanism: at the collapsed positions the potential energy is +inf (log-likelihood −inf) while the gradient stays finite. Within 1e-12–1e-4 of those points, PE jumps to ±inf or NaN at scattered step sizes, even for self-gen chains sitting in the best-PE region near truth. Healthy chains show |dH| ~1e-4 (the roundoff floor) all the way down to eps 1e-14, i.e. a smooth surface. 2b chain 1's checkpointed point scored finite on the GPU during the run (−64,636) but is inf on CPU, so it sits on a numerical knife edge.
+- At init, self-gen gradients reach 1e4–8e6 (PE as high as +3.6e6), versus ~4e2 on 1b and 2b.
+- Suspect: `jax_kalman_filter._log_likelihood`, i.e. `jnp.where(sign > 0, ll, -inf)` plus a jitter of `1e-9 * mean(diag)`, when loud low-corner red noise makes the innovation covariance ill-conditioned. NOT yet confirmed at the per-epoch level.
+
+**Decisions / dead ends.** The misspecification-vs-degeneracy framing is set aside. The blocker is likelihood numerics, so no new red-noise kernel or prior remedy until that is fixed. The spike rung was not resumed, since its remaining draws are worthless.
+
+**Open threads.**
+- Per-epoch filter trace at the frozen points: condition number of S, the slogdet sign, jitter relative to min diag, and the first epoch that goes −∞.
+- A fix in `_log_likelihood`, gated by the goldens plus a benchmark.
+- Once all chains sample, rerun the spike.
+- Look at 2b's amplitude bias: the healthy chains give pivot −4.75 against an injected −6.32 on a published non-detection. This may be where misspecification actually shows.
+
 ## 2026-09-10 — The estimator is validated; the noise model is not
 
 **Goal.** Run the next task in `openspec/changes/sgwb-detection-route`. The user's memory was
