@@ -73,7 +73,7 @@ def build(config_path):
     n_warm = config.getint("NUTS", "num_warmup", fallback=2000)
     pe_fn = (
         initialize_model(random.PRNGKey(0), model).potential_fn)
-    return kernel, seed, n_chains, n_warm, names, pe_fn
+    return kernel, seed, n_chains, n_warm, names, pe_fn, KF
 
 
 def grad_report(pe_fn, z, label, names):
@@ -137,7 +137,7 @@ def main():
     args = ap.parse_args()
 
     print(f"===== {args.config} =====")
-    kernel, seed, n_chains, n_warm, names, pe_fn = build(args.config)
+    kernel, seed, n_chains, n_warm, names, pe_fn, _ = build(args.config)
     keys = random.split(random.PRNGKey(seed), n_chains)
 
     print(f"\n--- INIT (seed {seed}, {n_chains} chains, init_to_uniform) ---")

@@ -233,8 +233,11 @@ def _update(
     I_KH = jnp.eye(len(xp)) - K @ H_eff
     P = I_KH @ Pp @ I_KH.T + K @ R_eff @ K.T
 
-    # Optional: enforce symmetry for numerical stability
-    # P = 0.5 * (P + P.T)
+    # The Joseph product is symmetric only in exact arithmetic. Left unsymmetrised, the
+    # roundoff asymmetry grows geometrically across epochs until the variance of a pulsar's
+    # measured combination (phi/f0 - r) goes negative, S inherits the negative eigenvalue
+    # and the likelihood is -inf -- the holes that froze NUTS chains on MDC2 2b.
+    P = 0.5 * (P + P.T)
 
     return x, P, y, S
 
@@ -448,6 +451,7 @@ def _update_marginal(xp, Pp, Xi_pred, H_dyn, H_eps, R, z, mask=None):
     x = xp + K @ y0
     I_KH = jnp.eye(len(xp)) - K @ H_dyn
     P = I_KH @ Pp @ I_KH.T + K @ R @ K.T
+    P = 0.5 * (P + P.T)  # see `_update`: unsymmetrised roundoff grows into -inf holes
 
     # Sensitivity update: Ξ_filt = (I - K H_dyn) Ξ_pred - K H_eps.
     Xi = I_KH @ Xi_pred - K @ H_eps
