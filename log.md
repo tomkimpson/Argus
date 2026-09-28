@@ -1,5 +1,36 @@
 # Research log
 
+## 2026-09-29 — The −∞ holes were an unsymmetrised Joseph update; fixed, and 2b's amplitude bias is real
+
+**Goal.** Find the likelihood-numerics fault that froze NUTS chains on MDC2 2b and on the OU self-gen spike, fix it, and then see what the spike's question looks like once every chain moves.
+
+**What was tried.**
+- Wrote `workflows/ng15_sgwb_demo/scripts/diag_filter_trace.py`. It replays `_run_kalman_filter_marginal` epoch by epoch at checkpointed frozen positions and logs S's eigenvalues, cond(S), jitter/min-diag, the slogdet sign, P's min eigenvalue and P's asymmetry, plus an eigenvector attribution at the first bad epoch.
+- Tested a single hypothesis in the replay only (`--symmetrise`): re-symmetrise P after each update.
+- Applied `P = 0.5*(P+P.T)` in `_update` and `_update_marginal` (`python/argus/jax_kalman_filter.py`) on branch `fix/kalman-covariance-symmetry`, in worktree `/fred/oz022/tkimpson/Argus-fix-psym`, stacked on the spike branch because main lacks the masked filter and the ORF path. Wrote failing tests first (`test/test_covariance_symmetry.py`, frozen points in `test/data/frozen_nuts_points.json`).
+- Reran ε=0 on 2b and self-gen on the fixed filter (`slurm_scripts/rerun_eps0_psym.sh`). Checked the truth pivot definition, ran a GW-only control (`data/mdc2_inject_ou`), then a 6-seed GW-only calibration (`slurm_scripts/mdc2_ou_calib.sh`, seeds 1–5).
+
+**What was learned.**
+- Mechanism: the Joseph product was never re-symmetrised. Asymmetry grew ~×1.3 per epoch (1e-19 → 1e-10). At late epochs (150–176) the variance of one pulsar's measured combination φ/f₀ − r went to ~−1e-11 (J1939 on 2b ch1; J0437 and J1744 on self-gen). S inherited a ~−1e-12 eigenvalue, the slogdet sign flipped and logL became −∞.
+- The jitter/PD-guard suspicion from 2026-09-26 was wrong. The jitter is ~1e-6 of min diag(S), and the guard only reports the problem.
+- The drift also corrupted FINITE likelihoods: up to 9.3 nats on GPU, and marginal-vs-sequential gaps of 2.8 and 6.6 nats. After the fix every frozen point is finite and gradients are finite. The marginal golden is unchanged to 4 dp (63618.7970); the sequential golden moves 0.63 nats toward it. A100 value+grad cost is ~0.7% (164.3 → 165.5 ms). A residual 0.1–0.3 nat backend gap exists at healthy points too; it is a pre-existing floor of the sequential filter on real data, and the test tolerance (atol 0.5) was set above it only after measuring it.
+- Reruns: 2b ε=0 gives 4/4 chains at pivot −4.776 ± 0.064, r̂ 1.005, 0 divergences, 1.8 h (was 13.5 h). Self-gen gives 0 divergences, r̂ 1.009, 2.2 h. Checkpoints confirm chain 1 was frozen at EVERY 2b rung (one unique value, step ~1e-15), including the ε=0.75 chain previously called "moving freely". The one exception is ε=1.0 chain 0: it moves but sits at −5.55.
+- The truth pivot definition matches the sampler's exactly (−6.3194 at 1/5 yr).
+- 6-seed GW-only calibration: seed 0 was an outlier (pivot z +2.0, γa z +3.7). Pooled: pivot −0.15 dex (seed scatter 0.24, p = 0.19), γa calibrated (KS p 0.80), ha ~1 posterior sd low (p ≈ 0.03, marginal). So 2b's +1.54 dex is ≈6× the realisation scatter: a real effect of its power-law red noise, not a method bias. Model-shaped OU red noise (self-gen, one seed) adds only ~+0.3 dex.
+
+**Decisions / dead ends.**
+- Correction to the 2026-09-10 and 2026-09-26 entries: 2b was never bimodal, and the spike's decision rule is moot. `notes/RESULTS_2b_flat_priors.md` is annotated in place with a correction section; `notes/SPIKE_noise_model_misspecification.md` has an outcome section.
+- Accepted: 2b's excess is power-law-vs-OU misspecification (~0.3 dex of it leakage). No multi-seed leakage run.
+- `test_correlation_path.py::test_epsilon_gradient_integrates_to_the_likelihood_difference` fails identically with and without the fix (7.5e-5 rel vs rtol 1e-5). It is pre-existing and was left alone.
+- `stamp_provenance.py` records the main checkout's HEAD, not the library actually used. The eight `outputs/*_psym/provenance.json` files were patched by hand with `library_git_sha` e83e4d6.
+
+**Open threads.**
+- All 1b results (lnB +3.04, scramble −0.77, no-injection −0.013) were computed on the unsymmetrised filter and need re-validation.
+- The fix sits atop 7 unmerged branches (25 commits) with no open PRs.
+- M3 needs a red-noise model that can represent a power law, or the #115 joint reformulation.
+- On the informative marginal path, the sign of slogdet(Λ) is not checked (it went −1 in one unsymmetrised replay).
+- ha reads ~1σ low across seeds, which is worth watching.
+
 ## 2026-09-26 — The noise-model spike ran and cleared neither hypothesis; the 2b "bimodality" is a stuck chain in −∞ likelihood holes
 
 **Goal.** Run the pre-registered spike (`workflows/ng15_sgwb_demo/notes/SPIKE_noise_model_misspecification.md`) to decide whether the MDC2 2b flat-prior failure is caused by misspecification (OU vs power-law per-pulsar red noise) or by the GW↔red-noise degeneracy.
