@@ -136,3 +136,16 @@ the two hypotheses; it does not say "Argus would sample 2b if only the priors we
 It also does not choose a remedy. If misspecification is confirmed, what replaces the
 single-corner OU for per-pulsar red noise is a subsystem change (cf. issue #115) and needs its
 own design.
+
+## Outcome (2026-09-29)
+
+The pre-registered decision rule could not be applied, and is moot. The spike rung
+(`mdc2_ou_selfgen_eps000`) froze all four chains. The cause was −∞ holes in the likelihood from
+an unsymmetrised Joseph covariance update, and 2b's "bimodality" was the same bug (see the
+correction in `RESULTS_2b_flat_priors.md`). On the fixed filter, 2b *and* the self-generated
+dataset both sample cleanly (0 divergences, r̂ ≤ 1.009). So there is no sampling failure left
+for misspecification or degeneracy to explain. What remains is 2b's amplitude: the pivot is
++1.54 dex high, far outside the ±0.24 dex realisation scatter measured on six OU GW-only seeds.
+The self-generated dataset, whose red noise has the model's own shape, adds only about +0.3 dex.
+Misspecification therefore survives as the explanation of the *amplitude bias*, not of a
+sampling failure.

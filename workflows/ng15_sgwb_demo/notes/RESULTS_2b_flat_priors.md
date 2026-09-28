@@ -4,6 +4,17 @@
 failed. No Bayes factor: a non-converged rung poisons the path integral. The ladder is being run to completion to show the failure across the ε path, but
 **no Bayes factor will come out of it** — a non-converged rung poisons the path integral.
 
+> **CORRECTION (2026-09-29) — read this first.** The "two modes that do not mix" reading below
+> is **wrong**. In every rung the "low mode" is **chain 1, frozen** — one unique value in all
+> 1000 draws, adapted step size 2–8e-15. That includes the ε = 0.75 chain this note calls
+> "moving freely". Chain 1 fell into −∞ holes in the log-likelihood during warmup. The holes came
+> from the Joseph covariance update never being re-symmetrised (fixed on branch
+> `fix/kalman-covariance-symmetry`). With the fix, ε = 0 samples cleanly: 4/4 chains agree at
+> pivot −4.776 ± 0.064, r̂ 1.005, 0 divergences, 1.8 h. **What survives** is the high-amplitude
+> result: 2b's pivot sits +1.54 dex above truth, and a 6-seed calibration on OU GW-only data
+> shows that this is not a method bias. The inline passages below are annotated; see
+> **Correction** at the end for the numbers.
+
 ## Why this was run
 
 Everything the project currently rests on was established on MDC2 **1b**: the amplitude
@@ -90,7 +101,11 @@ For contrast, the identical configuration on 1b:
 
 `mdc2_flat_eps075` (10 h 56 m) then sharpened it: r̂ 1.59, ess_bulk 7, 751 divergences, chains
 0/2/3 at −4.74 — and chain 1 **not frozen**, moving freely but confined to a low mode at −6.12,
-near the injected −6.3194.
+near the injected −6.3194. *[Corrected 2026-09-29: false. Chain 1 at ε = 0.75 is frozen — one
+unique value (−6.1196) in 1000 draws, step size 1.7e-15.]*
+
+*[Superseded 2026-09-29: the two paragraphs below and the "two modes" reading rest on the
+false ε = 0.75 observation above. There is no second mode; there is a frozen chain.]*
 
 **So the frozen chain was a symptom, not the essence.** What is actually present is at least two
 modes that do not mix: one within ~0.2 dex of truth, one ~1.5 dex above it. A chain that freezes
@@ -117,16 +132,22 @@ distinction matters for choosing a remedy.
 |---|---|---|---|---|---|---|
 | ε = 0 | 1.59 | 7 | 372 | −5.58* | −4.77, −4.78, −4.77 | 13h28m |
 | ε = 0.25 | 1.58 | 7 | 833 | −6.31* | −4.77, −4.77, −4.77 | 7h33m |
-| ε = 0.5 | 1.59 | 7 | 938 | −6.28 | −4.76, −4.76, −4.76 | 7h17m |
-| ε = 0.75 | 1.59 | 7 | 751 | −6.12 | −4.74, −4.75, −4.74 | 10h56m |
-| ε = 1.0 | **2.21** | 5 | 924 | **−5.55, −6.10** | −4.73, −4.73 | 7h05m |
+| ε = 0.5 | 1.59 | 7 | 938 | −6.28* | −4.76, −4.76, −4.76 | 7h17m |
+| ε = 0.75 | 1.59 | 7 | 751 | −6.12* | −4.74, −4.75, −4.74 | 10h56m |
+| ε = 1.0 | **2.21** | 5 | 924 | **−5.55†, −6.10*** | −4.73, −4.73 | 7h05m |
 
-`*` = chain with exactly zero within-chain variance. Injected pivot log-PSD = **−6.3194**.
+`*` = chain with exactly zero within-chain variance (chain 1 in every rung, step size 2–8e-15);
+the ε = 0.5 and 0.75 stars were missing in the original table and were added 2026-09-29 from the
+checkpoints. `†` = ε = 1.0 chain 0: genuinely moving (sd 0.20, step 0.38) but not agreeing with
+chains 2/3. It is the one non-frozen outlier in the ladder, and it was not rerun on the fixed filter.
+Injected pivot log-PSD = **−6.3194**.
 For comparison, every 1b rung: r̂ 1.010, ess ≥ 1251, 0 divergences, 1.5–2.4 h.
 
 Two modes at every rung, never mixing, and the high mode is **rock-steady at −4.73 to −4.78
 across the entire ε path** — wholly indifferent to the correlation structure. The low mode
-tracks truth.
+tracks truth. *[Corrected 2026-09-29: the "low mode" is the frozen chain 1 in every rung; its
+position is wherever the seed-42 initialisation landed it before it hit a hole. The high mode
+is the posterior.]*
 
 One suggestion, offered as such and not as a finding: at ε = 1 the split becomes 2–2 rather than
 1–3, and r̂ worsens to 2.21 *because* two chains now disagree with two. It may be that the
@@ -185,3 +206,39 @@ candidates, none costed or tested:
 
 The remaining rungs will say whether the failure is uniform along the ε path or specific to the
 CURN endpoint. Nothing else should be built on 2b until that lands.
+
+## Correction (2026-09-29): the failure was numerical, and the amplitude result stands
+
+**Diagnosis** (`scripts/diag_warmup_collapse.py`, `scripts/diag_filter_trace.py`). The Joseph
+update P = (I−KH)Pp(I−KH)' + KRK' was never re-symmetrised. Roundoff asymmetry grew about ×1.3
+per epoch, from 1e-19 to 1e-10. At late epochs (150–176) the posterior variance of one pulsar's
+measured combination φ/f₀ − r went negative, at about −1e-11. The innovation covariance S
+inherited the negative eigenvalue, its slogdet sign flipped, and logL became −∞. Chain 1 (the
+same seed-42 init every rung) hit such a point in warmup, dual averaging drove its step size to
+~1e-15, and it froze. Before any hole appears, the same drift corrupts *finite* logL by up to
+~9 nats. The fix is P ← ½(P + P') after each update, on branch `fix/kalman-covariance-symmetry`.
+
+**ε = 0 rerun on the fixed filter** (`outputs/mdc2_flat_eps000_psym`):
+
+| | before | after |
+|---|---|---|
+| chain pivot means | −4.775, **−5.581 (frozen)**, −4.776, −4.776 | −4.777, −4.774, −4.776, −4.777 |
+| max r̂ (all 205 params) | 1.59 | **1.005** |
+| min ESS | 7 | **4000** |
+| divergences | 372 | **0** |
+| wall | 13 h 28 m | **1 h 48 m** |
+
+**Is +1.54 dex a method bias?** No. ε = 0 flat, fixed filter, OU GW-only injections at 2b
+geometry (`data/mdc2_inject_ou`, seeds 0–5, `slurm_scripts/mdc2_ou_calib.sh`), truth pivot −6.319:
+mean pivot offset −0.15 dex, seed scatter 0.24, t-test p = 0.19. log10 γa is calibrated
+(KS p = 0.80). log10 ha reads ~1 posterior sd low (p ≈ 0.03, marginal at 6 seeds). With
+model-shaped OU red noise added (`data/mdc2_ou_selfgen`, seed 0) the pivot rises by about
++0.3 dex. 2b's +1.54 dex is ≈6× the realisation scatter, so it is a real effect of 2b's
+power-law red noise. Most of it is attributed to the power-law-vs-OU shape mismatch, with
+roughly 0.3 dex from leakage into the common process.
+
+**Consequences for the sections above.** The sampling failure is gone at ε = 0; the other four
+rungs have not been rerun. "Neither extreme survives a dataset with real per-pulsar red noise"
+still holds, but for the amplitude, not for sampling. The flat-prior 2b posterior samples
+cleanly and is confidently wrong, and that is the gate failure that matters for freezing the
+noise prior.
