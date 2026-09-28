@@ -9,7 +9,10 @@
 # and outputs live in the main checkout, because they are gitignored. The output ids take a
 # _psym suffix, so the frozen runs are kept for comparison.
 #
-# Submit (array index 0 = 2b, 1 = OU self-gen):
+# Index 2 is the control for the self-gen gamma_a/pivot offset: data/mdc2_inject_ou has the same
+# OU GW injection (seed 0, same ha, gamma_a) and white noise but NO per-pulsar red noise.
+#
+# Submit (array index 0 = 2b, 1 = OU self-gen, 2 = OU GW-only; the default array is 0-1):
 #   sbatch /fred/oz022/tkimpson/Argus-fix-psym/workflows/ng15_sgwb_demo/slurm_scripts/rerun_eps0_psym.sh
 
 #SBATCH --job-name=eps0_psym
@@ -28,15 +31,17 @@ ROOT=/fred/oz022/tkimpson/Argus/workflows/ng15_sgwb_demo
 REPO_PY=/fred/oz022/tkimpson/Argus-fix-psym/python
 FROZEN="${ROOT}/configs/frozen/evidence_procedure_v1.json"
 
-TEMPLATES=(mdc2_flat_rung mdc2_ou_selfgen_rung)
-OUT_IDS=(mdc2_flat_eps000_psym mdc2_ou_selfgen_eps000_psym)
+TEMPLATES=(mdc2_flat_rung mdc2_ou_selfgen_rung mdc2_ou_selfgen_rung)
+OUT_IDS=(mdc2_flat_eps000_psym mdc2_ou_selfgen_eps000_psym mdc2_inject_ou_eps000_psym)
+DATA=(mdc2_all mdc2_ou_selfgen mdc2_inject_ou)
 IDX="${SLURM_ARRAY_TASK_ID:-0}"
 TEMPLATE="${ROOT}/configs/${TEMPLATES[$IDX]}.ini.template"
 OUT_ID="${OUT_IDS[$IDX]}"
 CONFIG="${ROOT}/configs/${OUT_ID}.ini"
 
 sed -e "s/__EPS_VALUE__/0.0/" -e "s/__EPS_TAG__/000/" \
-    -e "s/^output_id = .*/output_id = ${OUT_ID}/" "${TEMPLATE}" > "${CONFIG}"
+    -e "s/^output_id = .*/output_id = ${OUT_ID}/" \
+    -e "s|^data_path = .*|data_path = ../data/${DATA[$IDX]}|" "${TEMPLATE}" > "${CONFIG}"
 
 # The same guards as the ladders: empirical_priors_path overrides red_noise_prior.
 if grep -qE "^\s*empirical_priors_path\s*=\s*\S" "${CONFIG}"; then
