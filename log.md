@@ -1,5 +1,31 @@
 # Research log
 
+## 2026-10-02 — 1b holds on the symmetrised Joseph filter; the stack lands as one PR
+
+**Goal.** Check whether the MDC2 1b evidence results, all computed on the unsymmetrised Joseph update, survive the `P = 0.5*(P+P.T)` fix from 2026-09-29.
+
+**What was tried.** Between 2026-09-29 and 2026-10-01, all three 1b path-sampling ladders were rerun on the fix library (`/fred/oz022/tkimpson/Argus-fix-psym/python`, prepended to `PYTHONPATH`). The templates, data and scramble were the same as before. Only the library and the output ids (`mdc2_d1_{flat,null,nogwb}_psym_eps*`) changed. Scripts: `slurm_scripts/mdc2_d1_flat_psym_ladder.sh` (flat) and `slurm_scripts/mdc2_d1_controls_psym.sh` (`KIND=null|nogwb`). Each ladder was then read out on CPU with the same library: `lnb_readout.sh` for flat and nogwb, and the new `lnb_scrambled_readout.sh` for the null.
+
+**What was learned.** Nothing moved:
+
+| 1b ladder | old filter | symmetrised filter |
+|---|---|---|
+| flat (HD vs CURN) | 3.0431 | 3.0432 ± 0.011 |
+| sky-scramble null | −0.766 | −0.759 ± 0.009 |
+| no-injection control | −0.0131 | −0.0131 ± 0.0002 |
+
+All 15 rung logs print `symmetrised: True`, and all three readouts report `library: .../Argus-fix-psym/python` and `reliable: True`. So on 1b the covariance drift never mattered at the level of the evidence. The −∞ holes were a 2b/self-gen problem (loud low-corner red noise), and the 1b validation chain (detection, scramble null, no-injection control) now stands on the fixed filter.
+
+Readout cost: the first flat readout (job 17657822) hit its 4 h limit. `lnb_readout.sh` now allows 8 h, documents the real 3.5–4.5 h / ~36 GB cost, and accepts a `REPO_PY` override so a ladder can be read out on a non-main library. A scrambled ladder must never go through `lnb_readout.sh`, because its `--evaluate` would use the TRUE ORF. That is why `lnb_scrambled_readout.sh` exists.
+
+Caveat: `provenance.json` in these 15 outputs records `git_sha` 36e5a6a, the main checkout's HEAD, not the library that ran. This is the known `stamp_provenance.py` gotcha. The rung logs are the authoritative record of the library.
+
+**Decisions / dead ends.** Step 1 of the 2026-09-29 plan is closed. The 7-branch stack (`feat/orf-path-evidence` → … → `fix/kalman-covariance-symmetry`) lands as ONE PR rather than as ordered PRs, since the fix's tests depend on the `mdc2` fixture from the masked-marginal branch anyway.
+
+**Open threads.**
+- The per-pulsar red-noise model design session for M3 (an OU mixture vs the joint reformulation in issue #115) is next.
+- Still open from 2026-09-29: our 1b lnB of 3.04 vs the ~0.55 implied by Hazboun's table; ha reading about 1σ low across 6 seeds; 2b ε>0 rungs not rerun on the fixed filter; the pre-existing `test_epsilon_gradient_integrates_to_the_likelihood_difference` tolerance failure; the ignored `slogdet(Λ)` sign on the informative marginal path.
+
 ## 2026-09-29 — The −∞ holes were an unsymmetrised Joseph update; fixed, and 2b's amplitude bias is real
 
 **Goal.** Find the likelihood-numerics fault that froze NUTS chains on MDC2 2b and on the OU self-gen spike, fix it, and then see what the spike's question looks like once every chain moves.

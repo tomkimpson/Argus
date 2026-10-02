@@ -2,7 +2,8 @@
 # CPU readout of a path-sampling ladder: integrate the recorded integrand and report
 # ln B(HD/CURN) with its reliability diagnostics.
 #
-# WHY THIS IS A BATCH JOB. The readout is CPU-only but not small: ~30 min and ~19 GB resident
+# WHY THIS IS A BATCH JOB. The readout is CPU-only but not small: 3.5-4.5 h and ~36 GB resident
+# on milan in practice (a 4 h limit timed out on the 1b psym ladder), nominally ~30 min and ~19 GB
 # for a five-rung ladder when it gets a core to itself. Run on the login node it has taken
 # 6h33m at 36 GB, purely from cgroup contention -- and a multi-hour 36 GB login-node process
 # can be reaped at any moment. There is no reason to risk it.
@@ -35,7 +36,7 @@
 #SBATCH --job-name=lnb_readout
 #SBATCH --account=oz022
 #SBATCH --partition=milan
-#SBATCH --time=04:00:00
+#SBATCH --time=08:00:00
 #SBATCH --mem=48G
 #SBATCH --cpus-per-task=4
 #SBATCH --export=ALL
@@ -43,7 +44,8 @@
 #SBATCH --output=/fred/oz022/tkimpson/Argus/workflows/ng15_sgwb_demo/outputs/logfiles/lnb_readout_%j.out
 
 ROOT=/fred/oz022/tkimpson/Argus/workflows/ng15_sgwb_demo
-REPO_PY=/fred/oz022/tkimpson/Argus/python
+# REPO_PY may be overridden to read out a ladder run on another library (e.g. a worktree).
+REPO_PY="${REPO_PY:-/fred/oz022/tkimpson/Argus/python}"
 
 if [ -z "${LADDER}" ]; then
     echo "ERROR: set LADDER, e.g. sbatch --export=ALL,LADDER=mdc2_d1_nogwb $0" >&2
@@ -89,7 +91,7 @@ conda activate /fred/oz022/tkimpson/conda_envs/Argus
 export PYTHONPATH="${REPO_PY}:${PYTHONPATH}"
 
 echo "=== readout: ${LADDER} -> outputs/${OUT} ==="
-git -C /fred/oz022/tkimpson/Argus rev-parse --short HEAD
+echo "library: ${REPO_PY}"; git -C "${REPO_PY}/.." rev-parse --short HEAD
 grep -h "data_path" "${CONFIG}"
 
 time JAX_PLATFORMS=cpu python -u "${ROOT}/scripts/lnb_path_sampling.py" \
