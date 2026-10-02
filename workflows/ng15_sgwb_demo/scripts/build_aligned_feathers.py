@@ -386,7 +386,7 @@ def condition_number(obj):
     return float(np.linalg.cond(MtNinvM))
 
 
-def process_all(pulsars, cadence_days, grid="intersection"):
+def process_all(pulsars, cadence_days, grid="intersection", min_epochs=MIN_VIABLE_JOINT_EPOCHS):
     """Bin, reduce and build an aligned object for every pulsar.
 
     Parameters
@@ -415,10 +415,10 @@ def process_all(pulsars, cadence_days, grid="intersection"):
     label = "union" if grid == "union" else "joint"
     print(f"Common {cadence_days:g}-day grid ({grid}): {label} epochs = {nepoch}")
     if grid == "intersection":
-        if nepoch < MIN_VIABLE_JOINT_EPOCHS:
+        if nepoch < min_epochs:
             raise SystemExit(
                 f"*** STOP -- FLAG FOR REVIEW (RISK A): only {nepoch} joint epochs "
-                f"(< {MIN_VIABLE_JOINT_EPOCHS} floor). Joint alignment is not viable "
+                f"(< {min_epochs} floor). Joint alignment is not viable "
                 "for this subset/cadence. Consider --grid union. ***"
             )
         if nepoch != EXPECTED_JOINT_EPOCHS:
@@ -577,13 +577,14 @@ def print_summary(rows):
     )
 
 
-def run(data_dir, out_dir, cadence_days, overwrite, grid="intersection"):
+def run(data_dir, out_dir, cadence_days, overwrite, grid="intersection",
+        min_epochs=MIN_VIABLE_JOINT_EPOCHS):
     """Load, bin+reduce, write, and verify the aligned feathers."""
     print(f"Reading ragged feathers from: {data_dir}\n")
     pulsars = load_pulsars(data_dir)
     print(f"Loaded {len(pulsars)} pulsars: {', '.join(p.name for p in pulsars)}\n")
 
-    built, rows = process_all(pulsars, cadence_days, grid=grid)
+    built, rows = process_all(pulsars, cadence_days, grid=grid, min_epochs=min_epochs)
     print(f"Writing aligned feathers to: {out_dir}")
     write_aligned(built, out_dir, overwrite)
     print_summary(rows)
@@ -626,9 +627,19 @@ def main():
             "skips absent epochs -- required to scale to the full heterogeneous array."
         ),
     )
+    parser.add_argument(
+        "--min-epochs",
+        type=int,
+        default=MIN_VIABLE_JOINT_EPOCHS,
+        help=(
+            "Minimum joint epochs for the intersection grid (default: %(default)s). The "
+            "floor guards multi-pulsar alignment; a single-pulsar input can lower it."
+        ),
+    )
     args = parser.parse_args()
     out_dir = args.out_dir or os.path.join(args.data_dir, "aligned")
-    run(args.data_dir, out_dir, args.cadence, args.overwrite, grid=args.grid)
+    run(args.data_dir, out_dir, args.cadence, args.overwrite, grid=args.grid,
+        min_epochs=args.min_epochs)
 
 
 if __name__ == "__main__":
