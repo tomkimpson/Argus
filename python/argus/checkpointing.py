@@ -71,7 +71,7 @@ def run_fingerprint(spec):
 
 
 def checkpoint_paths(output_dir, output_id):
-    """The two files a checkpoint consists of."""
+    """Return the two files a checkpoint consists of."""
     return (
         os.path.join(output_dir, f"{output_id}{CHECKPOINT_SUFFIX}"),
         os.path.join(output_dir, f"{output_id}{PARTIAL_SUFFIX}"),
@@ -164,7 +164,7 @@ def mark_partial(inference_data, complete, draws_completed, draws_target):
 
 
 def is_complete(inference_data):
-    """True unless the result is explicitly marked as a partial run.
+    """Return True unless the result is explicitly marked as a partial run.
 
     Only a marker this module wrote can mean "partial". Results predating
     checkpointing carry none and are complete by construction, and anything whose

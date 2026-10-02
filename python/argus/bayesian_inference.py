@@ -912,7 +912,7 @@ def _data_fingerprint(kalman_filter):
 
 
 def _prior_fingerprint(prior_specs):
-    """A comparable summary of the prior specification for the resume check.
+    """Summarise the prior specification comparably for the resume check.
 
     Distribution objects do not serialise usefully, so each is reduced to its type and
     support. That is enough to catch the mistakes that matter — a moved prior bound, a
