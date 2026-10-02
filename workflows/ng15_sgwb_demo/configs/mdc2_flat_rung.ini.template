@@ -1,0 +1,119 @@
+# GENERALISATION TEST: do flat per-pulsar red-noise priors still work on data that HAS
+# per-pulsar red noise? One rung of the flat-prior ladder on MDC2 dataset 2b.
+#
+# Everything the project now rests on was established on 1b. The IPTA MDC2 dataset table
+# settles what that means:
+#
+#     g1.d1a(b)   15 yrs   30 days   Noise: WN       Signals: SB
+#     g1.d2a(b)   15 yrs   30 days   Noise: WN,RN    Signals: SB
+#
+# 1b is white-noise only. So when the empirical two-stage priors were removed and flat
+# per-pulsar Uniforms put in their place, the flat model was the TRUE model -- there was no
+# red noise for it to get wrong. That is the one dataset where flat priors are guaranteed to
+# look good, and it is the dataset that produced lnB = +3.043 and the 3-dex amplitude recovery
+# onto the injected -6.908.
+#
+# 2b is the same 33 pulsars, the same epochs and the same white noise, with per-pulsar red
+# noise injected (group1_psr_noise.json carries rn_log10_A and rn_spec_ind for all 33) and a
+# GWB at log10_A = -14.886. It is the only dataset in group1 that exercises the red-noise
+# truth, and it is therefore the test of whether the procedure about to be frozen for real
+# NG15 data generalises at all.
+#
+# WHAT TO LOOK AT. Not lnB. 2b is a published non-detection for every method the IPTA
+# collaboration tried (Hazboun et al., arXiv:1912.12939: Bayes factors 1.1-2.6 against their
+# own declared threshold of 3, and an amplitude UPPER LIMIT < 1.4e-15 against the 1.3e-15
+# injection). Ratioing their HD and CRN rows gives lnB(HD/CURN) ~ -0.13; our empirical-prior
+# ladder gave +0.175 +/- 0.017. lnB ~ 0 is the expected answer here and is not a failure.
+#
+# The informative quantity is the AMPLITUDE POSTERIOR. Flat priors are defensible if 2b
+# returns an informative upper limit near Hazboun's < 1.4e-15 -- posterior sd markedly below
+# prior sd, as on 1b (empirical 0.99 -> flat 0.21 of prior sd). They are not defensible if the
+# posterior is simply the prior handed back, which would mean the 1b success came from flat
+# priors being correct there rather than from the data. Also worth reading off: per-pulsar
+# red-noise recovery against the rn_log10_A / rn_spec_ind truth.
+#
+# This file is configs/mdc2_d1_flat_rung.ini.template with exactly two values changed
+# (data_path, output_id), verified by diff, so 1b and 2b differ by the dataset and nothing
+# else.
+#
+# The rung value is substituted by the SLURM script; this file is the template and is not
+# run directly.
+
+[Data]
+data_path = ../data/mdc2_all
+excluded_psrs = __NONE__
+
+[NUTS]
+num_samples = 1000
+num_warmup = 1000
+num_chains = 4
+target_accept_prob = 0.9
+max_tree_depth = 8
+dense_mass = false
+dense_mass_blocks = log10_pivot_psd_prime, log10_gamma_a_prime
+
+[PriorModel]
+
+# 1. GW background parameters — SAMPLED
+log10_ha_fixed = false
+log10_ha_value = -12.5
+log10_ha_min = -16.0
+log10_ha_max = -9.0
+
+log10_gamma_a_fixed = false
+log10_gamma_a_value = -8.5
+log10_gamma_a_min = -11.0
+log10_gamma_a_max = -6.0
+
+# Ridge GW parameterization (issue #109): sample the band-referenced pivot
+# log-PSD + log10_gamma_a as independent coordinates, deriving log10_ha, to
+# straighten the curved ha<->gamma_a ridge that stalled the direct-basis runs
+# (one chain per run got stuck at high amplitude, r_hat 1.5-2.3). The pivot
+# log-PSD range [-13,-5] brackets both the injected (~-6.9 on 1b) and the
+# empirical-prior recovered (~-9.5) values with room; pivot f = 1/(5 yr).
+gw_parameterization = ridge
+log10_pivot_psd_min = -13.0
+log10_pivot_psd_max = -5.0
+gw_pivot_freq_hz = 6.3376e-09
+
+# Correlation path held at one rung of the ladder.
+orf_path = fixed
+orf_epsilon_value = __EPS_VALUE__
+
+# 2. Pulsar red noise — SAMPLED under independent flat Uniform priors.
+#
+# THIS IS THE ONE CHANGE UNDER TEST. The empirical block was:
+#     empirical_priors_path = ../data/stage_a_d1_empirical_priors.json
+#     empirical_prior_inflation = 2.0
+# and is deliberately absent: empirical_priors_path takes PRECEDENCE over
+# red_noise_prior in get_pulsar_noise_priors, so setting flat is not enough --
+# the path must be gone. Ranges are the same as the empirical runs, which is
+# what makes this a removal rather than a reparameterization.
+spin_injections_path =
+red_noise_prior = flat
+
+log10_gamma_p_min = -12.0
+log10_gamma_p_max = -6.0
+log10_sigma_p_min = -20.0
+log10_sigma_p_max = -12.0
+
+# 3. EFAC/EQUAD — FIXED from MDC2 truth
+noise_params_path = ../../data/IPTA_MockDataChallenge2/group1_psr_noise.json
+
+efac_min = 0.5
+efac_max = 2.0
+log10_equad_min = -8.0
+log10_equad_max = -6.0
+
+[Checkpointing]
+enabled = true
+interval = 250
+resume = false
+
+[Logging]
+level = INFO
+enable_file_logging = false
+
+[Output]
+output_id = mdc2_flat_eps__EPS_TAG__
+base_dir = {output_id}

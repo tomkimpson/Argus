@@ -22,10 +22,17 @@ import jax.random as random
 import numpyro
 import arviz as az
 from numpyro.infer import MCMC, NUTS
+import hashlib
+import os
 import time
+
+import numpy as np
+
+from . import checkpointing
 
 from .parameter_sampling import (
     sample_gw_parameters,
+    sample_orf_epsilon,
     sample_cw_parameters,
     sample_chi_parameters,
     sample_pulsar_noise_parameters,
@@ -53,6 +60,10 @@ class Parameters:
     # Measurement noise parameters
     EFAC: jnp.ndarray  # Error factors
     EQUAD: jnp.ndarray  # Extra quadrature noise
+
+    # Correlation-path coordinate: None disables the path and uses the Hellings-Downs
+    # matrix as supplied; 0 gives CURN (identity ORF), 1 gives Hellings-Downs.
+    orf_epsilon: float = None
 
 
 @struct.dataclass
@@ -337,7 +348,14 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
 
 
 def log_likelihood_fn(
-    kalman_filter, log10_ha, log10_gamma_a, log10_γp, log10_σp, efac, equad
+    kalman_filter,
+    log10_ha,
+    log10_gamma_a,
+    log10_γp,
+    log10_σp,
+    efac,
+    equad,
+    orf_epsilon=None,
 ):
     """Calculate log likelihood for NumPyro sampling.
 
@@ -357,6 +375,9 @@ def log_likelihood_fn(
         EFAC values
     equad : jax.Array
         EQUAD values
+    orf_epsilon : float, jax.Array or None
+        Correlation-path coordinate. None (default) leaves the overlap reduction
+        function as supplied; 0 gives CURN, 1 gives Hellings-Downs.
 
     Returns
     -------
@@ -369,7 +390,14 @@ def log_likelihood_fn(
     σp = 10.0**log10_σp
 
     params = Parameters(
-        log10_gamma_a=log10_gamma_a, γa=γa, ha=ha, γp=γp, σp=σp, EFAC=efac, EQUAD=equad
+        log10_gamma_a=log10_gamma_a,
+        γa=γa,
+        ha=ha,
+        γp=γp,
+        σp=σp,
+        EFAC=efac,
+        EQUAD=equad,
+        orf_epsilon=orf_epsilon,
     )
 
     return kalman_filter.get_likelihood(params)
@@ -392,12 +420,20 @@ def numpyro_model(kalman_filter, prior_specs, n_pulsars):
     """
     # Sample parameters using specialized functions
     log10_ha, log10_gamma_a, γa = sample_gw_parameters(prior_specs)
+    orf_epsilon = sample_orf_epsilon(prior_specs)
     log10_γp, log10_σp = sample_pulsar_noise_parameters(prior_specs, n_pulsars)
     efac, equad = sample_measurement_noise_parameters(prior_specs, n_pulsars)
 
     # Calculate log likelihood
     log_likelihood = log_likelihood_fn(
-        kalman_filter, log10_ha, log10_gamma_a, log10_γp, log10_σp, efac, equad
+        kalman_filter,
+        log10_ha,
+        log10_gamma_a,
+        log10_γp,
+        log10_σp,
+        efac,
+        equad,
+        orf_epsilon=orf_epsilon,
     )
 
     # Add likelihood to the model
@@ -753,27 +789,259 @@ def run_nuts_sampling(
                 f"Running {num_chains} chains sequentially ({n_devices} device(s) available)"
             )
 
-    sampler = MCMC(
-        kernel,
-        num_samples=num_samples,
-        num_warmup=num_warmup,
-        num_chains=num_chains,
-        chain_method=chain_method,
-        progress_bar=True,
-    )
-
-    # Run sampling
     seed = config.getint("NUTS", "seed", fallback=42)
     rng_key = random.PRNGKey(seed)
-    sampler.run(rng_key)
 
-    # Print summary
+    settings = checkpointing.get_checkpoint_settings(config)
+    warm_start = checkpointing.get_warm_start_settings(config)
+
+    if warm_start["enabled"]:
+        # Skip adaptation entirely and continue from the parent run's tuned state.
+        # Warmup is roughly half the wall-clock of a run, and every scramble in the
+        # null ensemble shares this run's geometry, so re-adapting for each is the
+        # largest avoidable cost in that campaign.
+        state = checkpointing.load_warm_start_state(
+            warm_start["state_path"], warm_start["seed"]
+        )
+        print(
+            f"Warm start from {warm_start['state_path']} "
+            f"(seed {warm_start['seed']}); skipping warmup."
+        )
+        sampler = MCMC(
+            kernel,
+            num_samples=num_samples,
+            num_warmup=0,
+            num_chains=num_chains,
+            chain_method=chain_method,
+            progress_bar=True,
+        )
+        sampler.post_warmup_state = state
+        sampler.run(sampler.post_warmup_state.rng_key)
+        sampler.print_summary()
+        return _record_orf_path_attrs(az.from_numpyro(sampler), prior_specs)
+
+    if not settings["enabled"]:
+        sampler = MCMC(
+            kernel,
+            num_samples=num_samples,
+            num_warmup=num_warmup,
+            num_chains=num_chains,
+            chain_method=chain_method,
+            progress_bar=True,
+        )
+        sampler.run(rng_key)
+        sampler.print_summary()
+        return _record_orf_path_attrs(az.from_numpyro(sampler), prior_specs)
+
+    return _record_orf_path_attrs(
+        _run_nuts_with_checkpointing(
+            kernel=kernel,
+            rng_key=rng_key,
+            num_samples=num_samples,
+            num_warmup=num_warmup,
+            num_chains=num_chains,
+            chain_method=chain_method,
+            settings=settings,
+            config=config,
+            fingerprint_spec={
+                "mode": mode,
+                "n_pulsars": int(n_pulsars),
+                "num_samples": int(num_samples),
+                "num_warmup": int(num_warmup),
+                "num_chains": int(num_chains),
+                "seed": int(seed),
+                "nuts": {
+                    key: nuts_info.get(key)
+                    for key in (
+                        "target_accept_prob",
+                        "max_tree_depth",
+                        "dense_mass",
+                    )
+                },
+                "priors": _prior_fingerprint(prior_specs),
+                "data": _data_fingerprint(kalman_filter),
+            },
+        ),
+        prior_specs,
+    )
+
+
+def _record_orf_path_attrs(inference_data, prior_specs):
+    """Stamp the correlation-path support onto the results.
+
+    The Bayes-factor estimators read the posterior density of eps AT the ends of its
+    prior support, so they must know where those ends are. Left to a default they would
+    assume the unit interval and, on a run configured with a narrower one, silently
+    evaluate the ratio at the wrong points -- a wrong answer with no symptom. Recording
+    the bounds with the draws makes that impossible.
+    """
+    if prior_specs.get("orf_path") == "sampled":
+        low, high = prior_specs["orf_epsilon_bounds"]
+        inference_data.attrs["orf_epsilon_min"] = float(low)
+        inference_data.attrs["orf_epsilon_max"] = float(high)
+    elif prior_specs.get("orf_path") == "fixed":
+        inference_data.attrs["orf_epsilon_fixed"] = float(
+            prior_specs["orf_epsilon_value"]
+        )
+    return inference_data
+
+
+def _data_fingerprint(kalman_filter):
+    """Identify the data and correlation structure the run is conditioned on.
+
+    Without this a resume would be judged only on the config, and two runs whose
+    overlap reduction functions differ -- an HD run and a sky-scrambled null, say --
+    would look interchangeable, because the ORF reaches the filter through the data
+    rather than through any config key. Concatenating their draws would be silent and
+    undetectable, which is exactly what the fingerprint exists to prevent.
+    """
+    orf = np.asarray(kalman_filter.hellings_downs_matrix)
+    return {
+        "n_pulsars": int(kalman_filter.Npsr),
+        "n_epochs": int(np.asarray(kalman_filter.jax_data).shape[0]),
+        "m_sum": int(kalman_filter.M_sum),
+        "orf_sha": hashlib.sha256(
+            np.ascontiguousarray(orf, dtype=np.float64).tobytes()
+        ).hexdigest()[:16],
+        "data_sha": hashlib.sha256(
+            np.ascontiguousarray(
+                np.asarray(kalman_filter.jax_data), dtype=np.float64
+            ).tobytes()
+        ).hexdigest()[:16],
+    }
+
+
+def _prior_fingerprint(prior_specs):
+    """Summarise the prior specification comparably for the resume check.
+
+    Distribution objects do not serialise usefully, so each is reduced to its type and
+    support. That is enough to catch the mistakes that matter — a moved prior bound, a
+    parameter switched between fixed and sampled, a different parameterization — while
+    staying stable across irrelevant details.
+    """
+    summary = {}
+    for name, spec in sorted(prior_specs.items()):
+        if isinstance(spec, dict):
+            summary[name] = {
+                key: (float(value) if isinstance(value, (int, float)) else str(value))
+                for key, value in sorted(spec.items())
+                if not isinstance(value, dict)
+            }
+        elif hasattr(spec, "low") and hasattr(spec, "high"):
+            # Bounds may be arrays (one entry per pulsar), so summarise rather than
+            # coerce to a scalar.
+            summary[name] = [
+                type(spec).__name__,
+                np.asarray(spec.low).ravel().tolist(),
+                np.asarray(spec.high).ravel().tolist(),
+            ]
+        elif isinstance(spec, (int, float, str, bool)) or spec is None:
+            summary[name] = spec
+        else:
+            summary[name] = type(spec).__name__
+    return summary
+
+
+def _run_nuts_with_checkpointing(
+    kernel,
+    rng_key,
+    num_samples,
+    num_warmup,
+    num_chains,
+    chain_method,
+    settings,
+    config,
+    fingerprint_spec,
+):
+    """Run NUTS in segments, saving state and accumulated draws after each.
+
+    Warmup is paid once, in the first segment. Later segments start from the previous
+    segment's final state via ``post_warmup_state``, so the chain continues rather than
+    restarting — the concatenated draws are the same chain a single uninterrupted run
+    would have produced.
+    """
+    output_dir = config.get("Checkpointing", "directory", fallback=None)
+    if not output_dir:
+        raise ValueError(
+            "Checkpointing is enabled but no 'directory' is set in [Checkpointing]."
+        )
+    os.makedirs(output_dir, exist_ok=True)
+    output_id = config.get("Checkpointing", "output_id", fallback="run")
+
+    fingerprint = checkpointing.run_fingerprint(fingerprint_spec)
+    resumed = None
+    if settings["resume"]:
+        resumed = checkpointing.load_checkpoint(output_dir, output_id, fingerprint)
+        if resumed is None:
+            print("No checkpoint found; starting from the beginning.")
+
+    sizes = checkpointing.segment_sizes(num_samples, settings["interval"])
+    accumulated = None
+    draws_done = 0
+    first_segment = 0
+
+    if resumed is not None:
+        accumulated = resumed["inference_data"]
+        draws_done = resumed["progress"]["draws_completed"]
+        first_segment = resumed["progress"]["segments_completed"]
+        print(
+            f"Resuming from checkpoint: {draws_done}/{num_samples} draws per chain "
+            f"({first_segment}/{len(sizes)} segments)."
+        )
+        if first_segment >= len(sizes):
+            print("Checkpoint is already complete; nothing to do.")
+            return checkpointing.mark_partial(
+                accumulated, True, draws_done, num_samples
+            )
+
+    segments = [accumulated] if accumulated is not None else []
+    state = resumed["sampler_state"] if resumed is not None else None
+
+    for index in range(first_segment, len(sizes)):
+        size = sizes[index]
+        sampler = MCMC(
+            kernel,
+            num_samples=size,
+            num_warmup=num_warmup,
+            num_chains=num_chains,
+            chain_method=chain_method,
+            progress_bar=True,
+        )
+        print(
+            f"Segment {index + 1}/{len(sizes)}: {size} draws per chain "
+            f"({draws_done}/{num_samples} done)."
+        )
+        if state is None:
+            sampler.run(rng_key)
+        else:
+            # Setting post_warmup_state makes run() skip adaptation and continue the
+            # chain from the stored state, which is what makes a resume a continuation
+            # rather than a restart.
+            sampler.post_warmup_state = state
+            sampler.run(sampler.post_warmup_state.rng_key)
+
+        state = sampler.last_state
+        draws_done += size
+        segments.append(az.from_numpyro(sampler))
+        combined = checkpointing.concat_segments(segments)
+        segments = [combined]
+
+        checkpointing.save_checkpoint(
+            output_dir,
+            output_id,
+            checkpointing.numpy_state(state),
+            combined,
+            fingerprint,
+            {
+                "draws_completed": draws_done,
+                "draws_target": num_samples,
+                "segments_completed": index + 1,
+                "segments_total": len(sizes),
+            },
+        )
+
     sampler.print_summary()
-
-    # Convert to ArviZ format
-    inf_data = az.from_numpyro(sampler)
-
-    return inf_data
+    return checkpointing.mark_partial(segments[0], True, draws_done, num_samples)
 
 
 def _jaxns_results_to_arviz(results, num_posterior_samples=10000):

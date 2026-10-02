@@ -1,0 +1,86 @@
+{
+  "$comment": [
+    "FROZEN EVIDENCE PROCEDURE, version 1 (openspec sgwb-detection-route task 1.10).",
+    "The sgwb/model-selection spec requires the evidence procedure be recorded as a fixed,",
+    "versioned configuration and applied unchanged to every subsequent dataset in the",
+    "scale-up, with each run recording which frozen version it used. This file is that",
+    "record. It describes what is ALREADY being done -- it is a formalisation of a freeze",
+    "that has been honoured informally since task 1.8 -- and changes nothing about how any",
+    "run executes.",
+    "",
+    "SCOPE. This freezes the EVIDENCE procedure only: how ln B(HD/CURN) is obtained from a",
+    "set of runs. It does NOT freeze the noise model, the priors or the pulsar selection.",
+    "Those belong to sgwb/array-analysis-procedure and are frozen separately at task 6.8,",
+    "after the NG15 subset stage. Recording them here would freeze, before the evidence",
+    "exists, a choice (flat per-pulsar red-noise priors) so far validated only on MDC2 1b,",
+    "which the IPTA dataset table lists as white-noise-only and is therefore the one dataset",
+    "where flat priors are the true model.",
+    "",
+    "CHANGING THIS FILE MARKS DOWNSTREAM RESULTS STALE. Per the spec: results produced under",
+    "an older version are not to be combined with new ones. Bump the version, do not edit v1."
+  ],
+  "version": "v1",
+  "frozen_on": "2026-09-08",
+  "frozen_at_git_sha": "d70a4d0c7b2fe629e622bef653a268c8cc73d1dc",
+  "estimator": {
+    "name": "path_sampling",
+    "label": "estimator B -- thermodynamic integration along the correlation path",
+    "script": "workflows/ng15_sgwb_demo/scripts/lnb_path_sampling.py",
+    "script_sha256": "49d1e48419b9e216afb75586128ab27599aa0c717d9bc6fef05e00bf9e89ca84",
+    "decided_by": "task 1.8; see notes/evidence_bakeoff_decision.md",
+    "identity": "ln B(HD/CURN) = ln Z(1) - ln Z(0) = int_0^1 E_eps[ d lnL / d eps ] d eps",
+    "rejected_alternative": {
+      "name": "generalised Savage-Dickey (estimator A)",
+      "script": "workflows/ng15_sgwb_demo/scripts/lnb_savage_dickey.py",
+      "status": "retained as a cheap one-run first look, NOT as production",
+      "reason": "agreed on value (0.105 +/- 0.095 vs 0.175 +/- 0.017, 0.73 sigma) but failed its own fold_agreement gate, i.e. it declines to certify in the regime this project is in"
+    }
+  },
+  "ladder": {
+    "correlation_path": "C(eps) = (1 - eps) * I + eps * C_HD",
+    "orf_path": "fixed",
+    "eps_grid": [0.0, 0.25, 0.5, 0.75, 1.0],
+    "spacing": "uniform",
+    "spacing_rationale": "uniform spacing is what lets the estimator coarsen 5 -> 3 -> 2 and estimate its own discretisation error by Romberg extrapolation",
+    "rungs_are": "independent NUTS runs at fixed eps, embarrassingly parallel across GPUs"
+  },
+  "reliability_gates": {
+    "ladder_too_short": {"constant": "MIN_RUNGS", "value": 5},
+    "ladder_endpoints": {"required_endpoints": [0.0, 1.0], "abs_tol": 1e-09},
+    "discretisation_error": {"constant": "MAX_RESIDUAL_DISCRETISATION", "value": 0.1, "units": "nats", "applies_to": "Romberg residual after extrapolation"},
+    "integrand_ess": {"constant": "MIN_INTEGRAND_ESS", "value": 50.0, "per": "rung"},
+    "verdict_field": "reliable",
+    "on_failure": "the estimator reports reliable: false and names the failing diagnostic; it does not return nan"
+  },
+  "uncertainty": "total = hypot(MCMC uncertainty, Romberg residual) -- the discretisation error is folded in as a systematic, not reported separately",
+  "sampler": {
+    "engine": "numpyro NUTS",
+    "num_chains": 4,
+    "num_warmup": 1000,
+    "num_samples": 1000,
+    "target_accept_prob": 0.9,
+    "max_tree_depth": 8,
+    "dense_mass": false,
+    "dense_mass_blocks": ["log10_pivot_psd_prime", "log10_gamma_a_prime"],
+    "convergence_thresholds": {"r_hat_max": 1.01, "divergence_fraction_max": 0.01}
+  },
+  "gw_parameterization": {
+    "basis": "ridge",
+    "sampled": ["log10_pivot_psd", "log10_gamma_a"],
+    "derived": ["log10_ha"],
+    "pivot_freq_hz": 6.3376e-09,
+    "pivot_freq_label": "1/(5 yr)",
+    "rationale": "straightens the curved ha<->gamma_a ridge that stalled the direct-basis runs (issue #109)"
+  },
+  "readout": {
+    "mode": "--evaluate",
+    "batch_size": 100,
+    "batch_size_required": "yes -- the integrand evaluation is OOM-killed without it",
+    "run_as": "SLURM CPU job, never the login node (a login-node readout took 6h33m at 36 GB and can be reaped)",
+    "scrambled_ladders": "must go through scripts/lnb_scrambled.py; --evaluate rebuilds the data from the config and would otherwise integrate against the TRUE ORF, returning a well-formed and meaningless number"
+  },
+  "comparability": {
+    "requirement": "sgwb/model-selection -- HD and CURN differ ONLY in the overlap reduction function",
+    "curn_construction": "eps = 0, at which correlation_path returns the identity for any input geometry"
+  }
+}
