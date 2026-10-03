@@ -44,6 +44,7 @@
   "log10_ha": -12.919767,
   "log10_gamma_a": -9.0,
   "sigma_a2_diag": 1.2058263056161051e-36,
+  "psd_convention": "two-sided (pre-2026-10-03 convention; one-sided = +log10 2)",
   "pivot_psd_s3": {
     "f_yr": 7.673088255979585e-10,
     "f_band_1over5yr": 4.792778571304715e-07

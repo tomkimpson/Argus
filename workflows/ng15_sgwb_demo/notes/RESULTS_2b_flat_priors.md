@@ -1,5 +1,7 @@
 # Flat per-pulsar priors fail on MDC2 2b — the dataset that has red noise
 
+> **Erratum 2026-10-03 (PSD sidedness).** Every OU pivot PSD here (the sampled `log10_pivot_psd`, the OU readouts) is the TWO-sided density, but the injected −6.3194 is a ONE-sided power-law value. On the same footing the 2b ε=0 pivot is **−4.475 ± 0.064, i.e. +1.84 dex above truth, not +1.54**. That comes from the corrected `check_mdc2_truth.py` on `mdc2_flat_eps000_psym`. The 6-seed calibration and the self-gen leakage (+0.3) compare OU with OU and stand as written. See `scripts/check_psd_sidedness.py` and `notes/RESULTS_ou_adequacy_ng15.md`. OU-vs-OU comparisons in this note are unaffected.
+
 **Date:** 2026-09-09 (updated 2026-09-10) · **Status:** COMPLETE — all five rungs run, all five
 failed. No Bayes factor: a non-converged rung poisons the path integral. The ladder is being run to completion to show the failure across the ε path, but
 **no Bayes factor will come out of it** — a non-converged rung poisons the path integral.

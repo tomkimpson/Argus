@@ -1,5 +1,7 @@
 # The two-stage noise procedure absorbs the gravitational-wave background
 
+> **Erratum 2026-10-03 (PSD sidedness).** Sampled `log10_pivot_psd` values are the TWO-sided OU density. Add log10 2 = 0.30 before comparing them with the injected one-sided power-law pivot. With the corrected `check_mdc2_truth.py`, 1b flat ε=0 reads −6.243 ± 0.708 against −6.908, i.e. +0.94σ, still covered. See `scripts/check_psd_sidedness.py` and `notes/RESULTS_ou_adequacy_ng15.md`. OU-vs-OU comparisons in this note are unaffected.
+
 **Status:** **RESOLVED (2026-09-07).** Proven by removal and confirmed against a null.
 `red_noise_prior = flat` (empirical priors deleted, everything else held identical) moves the
 pivot log-PSD 3 dex onto the injected truth on MDC2 1b and lifts `lnB(HD/CURN)` from

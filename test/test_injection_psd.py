@@ -40,10 +40,11 @@ def injector():
 
 
 def matched_ou_amplitude(log10_A, gamma, log10_gamma_a, f_pivot=F_PIVOT):
-    """The log10_ha whose OU PSD equals the power law's at the pivot.
+    """The log10_ha whose one-sided OU PSD equals the power law's at the pivot.
 
-    Inverts S_OU(f) = (ha^2/12) gamma_a / (w^2 (gamma_a^2 + w^2)) for ha, which is the
-    same inversion the ridge GW parameterization performs.
+    Inverts S_OU(f) = 2 (ha^2/12) gamma_a / (w^2 (gamma_a^2 + w^2)) for ha. The ridge GW
+    parameterization performs the same inversion on the TWO-sided density (no factor 2),
+    so its ``log10_pivot_psd`` is this PSD minus log10(2).
     """
     psd = (
         (10.0**log10_A) ** 2
@@ -55,7 +56,7 @@ def matched_ou_amplitude(log10_A, gamma, log10_gamma_a, f_pivot=F_PIVOT):
     gamma_a = 10.0**log10_gamma_a
     return 0.5 * (
         math.log10(12.0)
-        + math.log10(psd)
+        + math.log10(psd / 2.0)
         + 2.0 * math.log10(w)
         + math.log10(gamma_a**2 + w**2)
         - log10_gamma_a
@@ -68,11 +69,36 @@ def test_ou_psd_matches_its_closed_form(injector):
 
     gamma_a = 10.0**log10_gamma_a
     w = 2.0 * np.pi * freqs
-    expected = ((10.0**log10_ha) ** 2 / 12.0 * gamma_a) / (w**2 * (gamma_a**2 + w**2))
+    expected = 2.0 * ((10.0**log10_ha) ** 2 / 12.0 * gamma_a) / (w**2 * (gamma_a**2 + w**2))
 
     np.testing.assert_allclose(
         injector.ou_psd(freqs, log10_ha, log10_gamma_a), expected, rtol=1e-14
     )
+
+
+def test_ou_psd_is_one_sided_like_the_power_law(injector):
+    """``ou_psd`` must share ``powerlaw_psd``'s one-sided convention.
+
+    Differentiating the residual removes the random-walk divergence at f -> 0: the
+    derivative's PSD is w^2 S(f), and the derivative is the stationary OU state with
+    variance sigma_a2 / (2 gamma_a) = ha^2 / 24. A one-sided PSD integrates to that
+    variance over f >= 0; the pre-2026-10-03 two-sided form integrated to half of it,
+    which read every OU-vs-power-law comparison 0.30 dex low.
+    """
+    from scipy.integrate import quad
+
+    log10_ha, log10_gamma_a = -13.0, -8.5
+    gamma_a = 10.0**log10_gamma_a
+    corner = gamma_a / (2.0 * np.pi)
+
+    def derivative_psd(f):
+        return (2.0 * np.pi * f) ** 2 * injector.ou_psd(np.array([f]), log10_ha, log10_gamma_a)[0]
+
+    variance = sum(
+        quad(derivative_psd, lo, hi, limit=200)[0]
+        for lo, hi in ((0.0, corner), (corner, 1e3 * corner), (1e3 * corner, np.inf))
+    )
+    assert variance == pytest.approx((10.0**log10_ha) ** 2 / 24.0, rel=1e-6)
 
 
 def test_ou_spectrum_cannot_be_steeper_than_f_minus_four(injector):

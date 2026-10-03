@@ -21,10 +21,27 @@ first-differenced residual:
 | per-pulsar OU red noise vs `S_OU` | +0.307 |
 | GW OU vs `ou_psd` | +0.293 |
 
-So every OU-vs-power-law pivot comparison so far reads the OU 0.30 dex too LOW (the 2b
-pivot excess is ~+1.84 dex one-sided, not +1.54). OU-vs-OU comparisons (the 6-seed
-calibration, the self-gen spike) are unaffected. **Not fixed on this branch** — existing
-scripts are untouched; the new scripts use the one-sided form `2 S_OU`.
+So every OU-vs-power-law pivot comparison so far read the OU 0.30 dex too LOW.
+OU-vs-OU comparisons (the 6-seed calibration, the self-gen spike) are unaffected.
+
+**Fixed 2026-10-03.** Script-side only. `ou_psd`, `check_mdc2_truth.ou_residual_psd` and
+`compare_ou_recovery.ou_residual_psd` are now one-sided (factor 2). `check_psd_sidedness.py`
+is now a regression check (offsets +0.006 / −0.008 dex). `test/test_injection_psd.py` pins the
+convention analytically. Truth sidecars carry a `psd_convention` key, and the old OU ones are
+marked two-sided. The library's ridge parameter `log10_pivot_psd` is deliberately unchanged
+(the frozen evidence procedure and every ridge config depend on it). It stays the TWO-sided
+density, now documented: one-sided = `log10_pivot_psd + log10 2`.
+
+Corrected readouts (`check_mdc2_truth.py`, pivot 1/(5 yr)):
+
+| run | recovered (one-sided) | injected | bias |
+|---|---|---|---|
+| 2b flat ε=0 (`mdc2_flat_eps000_psym`) | −4.475 ± 0.064 | −6.319 | **+1.84 dex** (was quoted +1.54) |
+| 1b flat ε=0 (`mdc2_d1_flat_psym_eps000`) | −6.243 ± 0.708 | −6.908 | +0.94σ, covered |
+| M1 Stage C path-sampled | −6.541 ± 1.80 | −6.319 | −0.12σ, covered |
+
+The task-5.1 "matched" OU injection (`log10_ha = −12.919767`) is 0.30 dex louder than its
+power-law partner; the matched value is −13.070282. Errata are prepended to the affected notes.
 
 ## Step 1 — which pulsars have red noise above the white floor?
 
@@ -95,8 +112,8 @@ noise low wherever EQUAD dominates.
   residuals combined with a DMX-free design matrix hide red power (3 pulsars here, and
   plausibly partly elsewhere), and post-binning EQUAD inflates white noise. Both bias red
   noise, and therefore potentially the GWB, LOW. They need resolving before an M3 run.
-- **Sidedness:** quoted OU pivot PSDs should be raised by 0.30 dex wherever they are compared
-  with a power law. That needs a separate fix to the existing scripts and any quoted numbers.
+- **Sidedness:** fixed in the scripts on 2026-10-03 (see step 0). Older quoted OU-vs-power-law
+  numbers carry errata.
 
 Caveat: the NANOGrav reference is itself a posterior *under a power-law model* with its own
 data treatment (unbinned, per-backend white noise, DMX marginalised). Disagreement says the

@@ -166,7 +166,7 @@ def main():
         m_sqrt = jax.tree.map(lambda a: jnp.asarray(a)[c], s.adapt_state.mass_matrix_sqrt)
         post = kernel.postprocess_fn((), {})(z)
         piv = float(post["log10_pivot_psd"]) if "log10_pivot_psd" in post else np.nan
-        print(f" chain {c}: adapted step = {step:.3e}  pivot = {piv:.3f}")
+        print(f" chain {c}: adapted step = {step:.3e}  pivot (two-sided) = {piv:.3f}")
         mass_report(inv_m)
         grad_report(pe_fn, z, "final", names)
         for eps, dh in leapfrog_dH(pe_fn, z, inv_m, m_sqrt, random.PRNGKey(c)):

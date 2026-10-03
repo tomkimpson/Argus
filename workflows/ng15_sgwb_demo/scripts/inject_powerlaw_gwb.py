@@ -204,18 +204,24 @@ def powerlaw_psd(freqs, log10_A, gamma):
 
 
 def ou_psd(freqs, log10_ha, log10_gamma_a):
-    """OU residual PSD ``S_r(f)=sigma_a2/((2 pi f)^2 (gamma_a^2+(2 pi f)^2))`` [s^3].
+    """ONE-sided OU residual PSD ``S_r(f)=2 sigma_a2/((2 pi f)^2 (gamma_a^2+(2 pi f)^2))`` [s^3].
 
     ``sigma_a2=(ha^2/12) gamma_a``. This is the same quantity ``powerlaw_psd`` returns for
     the other shape, which is the point: a PTA constrains the spectrum over about a decade,
     so the comparable observable between an OU and a power-law injection is the PSD at a
     pivot frequency, not the spectral index. Recording it for both makes the downstream
     comparison shape-agnostic.
+
+    The factor 2 makes it one-sided like ``powerlaw_psd`` (``int_0^inf S df`` = variance).
+    Without it the expression is the TWO-sided density (its integral over +-f is the OU
+    stationary variance), which read every OU-vs-power-law comparison 0.30 dex low until
+    2026-10-03 (``check_psd_sidedness.py``). Argus's ridge parameter ``log10_pivot_psd``
+    is still the two-sided value: one-sided = ``log10_pivot_psd + log10(2)``.
     """
     w = 2.0 * np.pi * np.asarray(freqs, dtype=float)
     gamma_a = 10.0**log10_gamma_a
     sigma_a2 = (10.0**log10_ha) ** 2 / 12.0 * gamma_a
-    return sigma_a2 / (w**2 * (gamma_a**2 + w**2))
+    return 2.0 * sigma_a2 / (w**2 * (gamma_a**2 + w**2))
 
 
 def inject_powerlaw_gwb(toas, freqs, log10_A, gamma, L_hd, t0, rng):
@@ -480,6 +486,10 @@ def run(args):
         "f_yr_hz": F_YR,
         "red_noise": bool(args.red_noise),
         "white_noise": not args.no_white_noise,
+        # pivot_psd_s3 / psd_at_freqs_s3 are one-sided for BOTH shapes. Sidecars written
+        # before 2026-10-03 lack this key and their OU pivot values are two-sided
+        # (0.30 dex lower); see ou_psd.
+        "psd_convention": "one-sided",
     }
 
     # ---- GWB signal ----
@@ -531,7 +541,8 @@ def run(args):
                         ou_psd(np.array([f_band]), args.log10_ha, args.log10_gamma_a)[0]
                     ),
                 },
-                "note": "OU residual PSD S_r(f)=sigma_a2_diag/((2 pi f)^2 (gamma_a^2+(2 pi f)^2)); "
+                "note": "One-sided OU residual PSD "
+                "S_r(f)=2 sigma_a2_diag/((2 pi f)^2 (gamma_a^2+(2 pi f)^2)); "
                 "sigma_a2_diag=(ha^2/12) gamma_a.",
             }
         )

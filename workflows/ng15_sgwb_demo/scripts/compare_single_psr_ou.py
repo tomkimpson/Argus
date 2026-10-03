@@ -7,7 +7,7 @@ For every pulsar selected by ``ng15_red_noise_budget.py`` with a finished run
 1. Health gates from ``extract_stage_a.health_check`` (r_hat, ESS, finite). Railing
    against a prior edge is reported but not gating (see ``main``).
 2. The posterior 5-95% band of the ONE-sided Argus OU residual PSD
-   ``2 sigma_p^2 / (f0^2 w^2 (gamma_p^2 + w^2))`` (factor 2: ``check_psd_sidedness.py``)
+   ``2 sigma_p^2 / (f0^2 w^2 (gamma_p^2 + w^2))`` (one-sided, as ``inject_powerlaw_gwb.ou_psd``)
    at the pulsar's in-band frequencies from step 1.
 3. PASS iff the Argus band overlaps the published NG15 power-law 5-95% band at EVERY
    in-band frequency. A health failure makes the row UNREADABLE, not FAIL.

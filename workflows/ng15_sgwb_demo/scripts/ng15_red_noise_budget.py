@@ -23,8 +23,8 @@ OU residual PSD
     S_OU(f) = 2 sigma_r^2 / (w^2 (gamma_p^2 + w^2)),   w = 2 pi f,  sigma_r = sigma_p/f0
 
 to the posterior band of P over its in-band f_k, minimising the worst-case deviation from
-the median in units of the band half-width. The factor 2 is the sidedness correction
-established by ``check_psd_sidedness.py`` (the repo's ``ou_psd`` is two-sided). PASS iff
+the median in units of the band half-width. The factor 2 makes it one-sided like the
+power law (``check_psd_sidedness.py``; same convention as ``inject_powerlaw_gwb.ou_psd``). PASS iff
 the best-fit OU lies inside the 5-95% band at every in-band f_k. With <= 2 in-band bins a
 2-parameter OU always fits, so those rows are flagged as uninformative.
 
