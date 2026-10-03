@@ -1,5 +1,7 @@
 # SPIKE — is the 2b failure noise-model misspecification, or the GW↔red-noise degeneracy?
 
+> **Erratum 2026-10-03 (PSD sidedness).** The "band-matched" amplitudes here equate the TWO-sided OU density with the ONE-sided power law. As a result the GW (`log10_ha = −12.919767`) and the 33 pivot-matched σp give OU spectra **0.30 dex louder** (one-sided) than the 2b power laws they were meant to match. A true match needs log10_ha −0.1505 (= −13.0703) and log10 σp −0.1505. The self-gen data therefore carry about 2× 2b's red-noise power at the pivot. The 2b excess is +1.84 dex one-sided, not +1.54. See `scripts/check_psd_sidedness.py` and `notes/RESULTS_ou_adequacy_ng15.md`. OU-vs-OU comparisons in this note are unaffected.
+
 **Status:** designed and approved 2026-09-10, **NOT YET RUN**. Everything needed to launch it is
 in this file; no derivation is left to do.
 

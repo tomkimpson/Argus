@@ -93,6 +93,8 @@ def sample_gw_parameters(prior_specs):
         )
         γa = numpyro.deterministic("γa", 10.0**log10_gamma_a)
 
+        # log10_pivot_psd is the TWO-sided OU density at the pivot; the one-sided PSD
+        # comparable with an enterprise power law is log10_pivot_psd + log10(2).
         # Invert S_r(f_piv) = (ha^2/12) * ga / (w^2 (ga^2 + w^2)) for log10_ha:
         #   log10_ha = 0.5[log10(12) + log10_S_r + 2 log10(w)
         #                  + log10(ga^2 + w^2) - log10_gamma_a]

@@ -17,6 +17,7 @@
   "log10_ha": -14.35,
   "log10_gamma_a": -8.5,
   "sigma_a2_diag": 5.2579778706682856e-39,
+  "psd_convention": "two-sided (pre-2026-10-03 convention; one-sided = +log10 2)",
   "note": "OU residual PSD S_r(f)=sigma_a2_diag/((2 pi f)^2 (gamma_a^2+(2 pi f)^2)); sigma_a2_diag=(ha^2/12) gamma_a.",
   "white_noise_efac": [
     1.110221025245469,

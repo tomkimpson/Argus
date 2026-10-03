@@ -1,5 +1,7 @@
 # The matched injection pair (task 5.1)
 
+> **Erratum 2026-10-03 (PSD sidedness).** This pair is **not** matched. The OU side was pinned with the TWO-sided OU density, so `log10_ha = −12.919767` gives a one-sided pivot PSD of −6.0184, which is 0.30 dex above the power law's −6.3194. The matched value is `log10_ha = −13.070282`. `test/test_injection_psd.py` now inverts the one-sided form. See `scripts/check_psd_sidedness.py` and `notes/RESULTS_ou_adequacy_ng15.md`. OU-vs-OU comparisons in this note are unaffected.
+
 ## What it is for
 
 Argus models the SGWB with a single-corner OU process. Well above its corner that PSD

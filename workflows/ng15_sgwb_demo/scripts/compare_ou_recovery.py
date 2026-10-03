@@ -18,7 +18,7 @@ known) and recovers it with that OU model. This script performs the shape-agnost
 PSD conventions (must match scripts/inject_powerlaw_gwb.py):
   * injected power-law residual PSD  P(f) = A^2/(12 pi^2) (f/f_yr)^-gamma f_yr^-3  [s^3]
     (recorded in injection_truth.json as psd_at_freqs_s3 + pivot_psd_s3)
-  * recovered OU residual PSD        S_r(f) = sigma_a2 / ((2 pi f)^2 (gamma_a^2 + (2 pi f)^2))
+  * recovered OU residual PSD        S_r(f) = 2 sigma_a2 / ((2 pi f)^2 (gamma_a^2 + (2 pi f)^2))  [one-sided]
     with sigma_a2 = (ha^2/12) gamma_a   (ha = 10^log10_ha, gamma_a = 10^log10_gamma_a)
 
 Pure post-processing (arviz / numpy / matplotlib); no GPU, no argus import, no library
@@ -79,7 +79,7 @@ def powerlaw_psd(freqs, log10_A, gamma):
 
 
 def ou_residual_psd(freqs, log10_ha, log10_gamma_a):
-    """Recovered OU residual PSD [s^3]. Matches the OU-truth note in injection_truth.json.
+    """Recovered ONE-sided OU residual PSD [s^3] (same convention as powerlaw_psd).
 
     Broadcasts: freqs (..., Nf) against draws (Ndraw, ...) -> (Ndraw, Nf) if inputs are
     arranged as column/row. Here we call it per-frequency-grid with vector draws.
@@ -88,7 +88,8 @@ def ou_residual_psd(freqs, log10_ha, log10_gamma_a):
     gamma_a = 10.0 ** np.asarray(log10_gamma_a)
     sigma_a2 = (ha**2 / 12.0) * gamma_a
     w = 2.0 * np.pi * np.asarray(freqs)
-    return sigma_a2 / (w**2 * (gamma_a**2 + w**2))
+    # Factor 2: ONE-sided, like powerlaw_psd (see inject_powerlaw_gwb.ou_psd).
+    return 2.0 * sigma_a2 / (w**2 * (gamma_a**2 + w**2))
 
 
 def _summ(a):

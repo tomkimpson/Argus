@@ -40,6 +40,8 @@ def get_gw_parameter_priors(config):
       log-PSD is the direction the data actually constrains, so this decouples
       it from the flat along-ridge direction and straightens the curved
       log10_ha<->log10_gamma_a ridge that stalls NUTS chains (issue #109).
+      The pivot log-PSD is the TWO-sided OU density (one-sided, as in an
+      enterprise power law, is log10(2) higher).
       Reads log10_pivot_psd_{min,max}, gw_pivot_freq_hz (fallback 1/(5 yr)),
       and log10_gamma_a_{min,max}.
     """

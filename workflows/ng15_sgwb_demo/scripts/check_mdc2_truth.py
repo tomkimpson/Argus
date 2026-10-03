@@ -7,7 +7,7 @@ band-referenced convention (compare_ou_recovery.py), the observable is the
 residual PSD at a pivot frequency near the sensitive band:
 
   * injected power-law residual PSD  P(f) = A^2/(12 pi^2) (f/f_yr)^-gamma f_yr^-3 [s^3]
-  * recovered OU residual PSD        S_r(f) = sigma_a2 / ((2 pi f)^2 (gamma_a^2 + (2 pi f)^2))
+  * recovered OU residual PSD        S_r(f) = 2 sigma_a2 / ((2 pi f)^2 (gamma_a^2 + (2 pi f)^2))  [one-sided]
     with sigma_a2 = (ha^2/12) gamma_a
 
 Pass criterion per run (the B-vs-C decision artifact for issue #111):
@@ -58,12 +58,13 @@ def powerlaw_psd(freqs, log10_A, gamma):
 
 
 def ou_residual_psd(freqs, log10_ha, log10_gamma_a):
-    """Recovered OU residual PSD [s^3]. Matches compare_ou_recovery.py."""
+    """Recovered ONE-sided OU residual PSD [s^3]. Matches compare_ou_recovery.py."""
     ha = 10.0 ** np.asarray(log10_ha)
     gamma_a = 10.0 ** np.asarray(log10_gamma_a)
     sigma_a2 = (ha**2 / 12.0) * gamma_a
     w = 2.0 * np.pi * np.asarray(freqs)
-    return sigma_a2 / (w**2 * (gamma_a**2 + w**2))
+    # Factor 2: ONE-sided, like powerlaw_psd (see inject_powerlaw_gwb.ou_psd).
+    return 2.0 * sigma_a2 / (w**2 * (gamma_a**2 + w**2))
 
 
 def check_run(tag, log10_A, gamma, results_dir):
