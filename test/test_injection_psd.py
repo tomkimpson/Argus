@@ -69,7 +69,9 @@ def test_ou_psd_matches_its_closed_form(injector):
 
     gamma_a = 10.0**log10_gamma_a
     w = 2.0 * np.pi * freqs
-    expected = 2.0 * ((10.0**log10_ha) ** 2 / 12.0 * gamma_a) / (w**2 * (gamma_a**2 + w**2))
+    expected = (
+        2.0 * ((10.0**log10_ha) ** 2 / 12.0 * gamma_a) / (w**2 * (gamma_a**2 + w**2))
+    )
 
     np.testing.assert_allclose(
         injector.ou_psd(freqs, log10_ha, log10_gamma_a), expected, rtol=1e-14
@@ -92,7 +94,9 @@ def test_ou_psd_is_one_sided_like_the_power_law(injector):
     corner = gamma_a / (2.0 * np.pi)
 
     def derivative_psd(f):
-        return (2.0 * np.pi * f) ** 2 * injector.ou_psd(np.array([f]), log10_ha, log10_gamma_a)[0]
+        return (2.0 * np.pi * f) ** 2 * injector.ou_psd(
+            np.array([f]), log10_ha, log10_gamma_a
+        )[0]
 
     variance = sum(
         quad(derivative_psd, lo, hi, limit=200)[0]

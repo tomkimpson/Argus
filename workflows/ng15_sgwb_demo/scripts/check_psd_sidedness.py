@@ -71,7 +71,7 @@ def report(label, f, p_meas, p_model):
 
 
 def main():
-    """Run the white-noise control and the two OU checks; print the verdict."""
+    """Run the white-noise control and the two OU checks; return True if ou_psd is one-sided."""
     rng = np.random.default_rng(20261002)
     t = np.arange(NSTEP) * DT
     diff_tf = lambda f: 4.0 * np.sin(np.pi * f * DT) ** 2  # noqa: E731
@@ -86,27 +86,36 @@ def main():
     res = inject_red_noise(t, [GAMMA], [SIGMA_P], [F0], rng)[0]
     f, p = diff_welch(res)
     log10_ha_rn = 0.5 * np.log10(12.0 * SIGMA_P**2 / (F0**2 * GAMMA))
-    rn = report("per-pulsar OU red noise vs ou_psd", f, p,
-                ou_psd(f, log10_ha_rn, np.log10(GAMMA)) * diff_tf(f))
+    rn = report(
+        "per-pulsar OU red noise vs ou_psd",
+        f,
+        p,
+        ou_psd(f, log10_ha_rn, np.log10(GAMMA)) * diff_tf(f),
+    )
 
     # GW OU state, single pulsar (Gamma = 1). Model: ou_psd exactly.
     res = inject_ou_gwb(t, LOG10_HA, np.log10(GAMMA), np.eye(1), np.eye(1), rng)[0]
     f, p = diff_welch(res)
-    gw = report("GW OU vs ou_psd", f, p, ou_psd(f, LOG10_HA, np.log10(GAMMA)) * diff_tf(f))
+    gw = report(
+        "GW OU vs ou_psd", f, p, ou_psd(f, LOG10_HA, np.log10(GAMMA)) * diff_tf(f)
+    )
 
     print()
     if abs(ctrl) > 0.05:
         print("ESTIMATOR CONTROL FAILED -- do not trust the OU verdict.")
-        return
+        return False
     ok = True
     for name, v in (("red noise", rn), ("GW", gw)):
-        side = "TWO-sided" if abs(v - np.log10(2)) < 0.05 else (
-            "one-sided" if abs(v) < 0.05 else "INCONCLUSIVE"
+        side = (
+            "TWO-sided"
+            if abs(v - np.log10(2)) < 0.05
+            else ("one-sided" if abs(v) < 0.05 else "INCONCLUSIVE")
         )
         ok &= side == "one-sided"
         print(f"{name}: ou_psd is {side} (offset {v:+.3f} dex; log10 2 = 0.301)")
     print("PASS: ou_psd is one-sided like powerlaw_psd" if ok else "FAIL")
+    return ok
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(0 if main() else 1)

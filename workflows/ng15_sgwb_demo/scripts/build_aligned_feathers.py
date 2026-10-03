@@ -386,7 +386,9 @@ def condition_number(obj):
     return float(np.linalg.cond(MtNinvM))
 
 
-def process_all(pulsars, cadence_days, grid="intersection", min_epochs=MIN_VIABLE_JOINT_EPOCHS):
+def process_all(
+    pulsars, cadence_days, grid="intersection", min_epochs=MIN_VIABLE_JOINT_EPOCHS
+):
     """Bin, reduce and build an aligned object for every pulsar.
 
     Parameters
@@ -577,8 +579,14 @@ def print_summary(rows):
     )
 
 
-def run(data_dir, out_dir, cadence_days, overwrite, grid="intersection",
-        min_epochs=MIN_VIABLE_JOINT_EPOCHS):
+def run(
+    data_dir,
+    out_dir,
+    cadence_days,
+    overwrite,
+    grid="intersection",
+    min_epochs=MIN_VIABLE_JOINT_EPOCHS,
+):
     """Load, bin+reduce, write, and verify the aligned feathers."""
     print(f"Reading ragged feathers from: {data_dir}\n")
     pulsars = load_pulsars(data_dir)
@@ -638,8 +646,14 @@ def main():
     )
     args = parser.parse_args()
     out_dir = args.out_dir or os.path.join(args.data_dir, "aligned")
-    run(args.data_dir, out_dir, args.cadence, args.overwrite, grid=args.grid,
-        min_epochs=args.min_epochs)
+    run(
+        args.data_dir,
+        out_dir,
+        args.cadence,
+        args.overwrite,
+        grid=args.grid,
+        min_epochs=args.min_epochs,
+    )
 
 
 if __name__ == "__main__":

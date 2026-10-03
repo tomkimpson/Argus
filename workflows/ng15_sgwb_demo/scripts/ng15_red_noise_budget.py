@@ -39,7 +39,6 @@ Outputs: ``outputs/ng15_ou_adequacy/budget.json`` (consumed by step 3),
 """
 
 import argparse
-import glob
 import json
 import os
 import sys
@@ -49,7 +48,7 @@ from scipy.optimize import minimize
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from reduce_ng15_white_noise import NG15_ROOT  # noqa: E402
-from stage_symlinks import enumerate_canonical_pulsars  # noqa: E402
+from stage_symlinks import _find_canonical, enumerate_canonical_pulsars  # noqa: E402
 
 SEC_PER_DAY = 86400.0
 F_YR = 1.0 / (365.25 * SEC_PER_DAY)
@@ -73,7 +72,10 @@ LOG10_GAMMA_GRID = np.linspace(-12.0, -6.0, 241)
 # PSDs (one-sided, s^3)
 # --------------------------------------------------------------------------------------
 def powerlaw_psd(f, log10_A, gamma):
-    """One-sided enterprise power-law residual PSD; broadcasts draws x freqs."""
+    """One-sided enterprise power-law residual PSD; broadcasts draws x freqs.
+
+    Matches ``inject_powerlaw_gwb.powerlaw_psd`` (copied so this script stays JAX-free).
+    """
     A2 = 10.0 ** (2.0 * np.asarray(log10_A))
     return A2 / (12.0 * np.pi**2) * (f / F_YR) ** (-np.asarray(gamma)) * F_YR**-3
 
@@ -104,12 +106,12 @@ def load_red_noise_draws(psr, noise_dir, n_draws=N_DRAWS, burn_in=BURN_IN):
 
 def read_tim(psr, tim_dir):
     """Return (mjd, err_s) for the canonical wideband tim of ``psr``."""
-    path = glob.glob(os.path.join(tim_dir, f"{psr}_PINT_*.wb.tim"))[0]
+    path = _find_canonical(tim_dir, psr, "tim")
     mjd, err = [], []
     with open(path) as f:
         for line in f:
             tok = line.split()
-            if len(tok) < 5 or tok[0] in ("C", "FORMAT", "MODE") or line.startswith("C "):
+            if len(tok) < 5 or tok[0] in ("C", "FORMAT", "MODE"):
                 continue
             mjd.append(float(tok[2]))
             err.append(float(tok[3]) * 1e-6)  # us -> s
@@ -164,9 +166,13 @@ def fit_ou_to_band(f, lo, med, hi):
                 best = (v, (lg, amp))
     # Bounded polish: gamma_p stays in the Stage A prior box (outside it the corner sits
     # far above the band and the OU is just its f^-2 asymptote anyway).
-    res = minimize(objective, best[1], method="Nelder-Mead",
-                   bounds=[(LOG10_GAMMA_GRID[0], LOG10_GAMMA_GRID[-1]), (None, None)],
-                   options={"xatol": 1e-4, "fatol": 1e-5})
+    res = minimize(
+        objective,
+        best[1],
+        method="Nelder-Mead",
+        bounds=[(LOG10_GAMMA_GRID[0], LOG10_GAMMA_GRID[-1]), (None, None)],
+        options={"xatol": 1e-4, "fatol": 1e-5},
+    )
     p = np.array(res.x if res.fun <= best[0] else best[1], dtype=float)
     model = shape(p[0]) + p[1]
     inside = bool(np.all((model >= lo - 1e-9) & (model <= hi + 1e-9)))
@@ -187,17 +193,23 @@ def self_test():
     true = np.log10(ou_psd_onesided(f, -8.3, -30.0))
     r = fit_ou_to_band(f, true - 0.2, true, true + 0.2)
     ok1 = r["inside_band"] and r["max_dev_dex"] < 0.02
-    print(f"exact OU   : inside={r['inside_band']} max_dev={r['max_dev_dex']:.4f} dex "
-          f"gamma={r['log10_gamma_p']:.3f} (true -8.3)  -> {'OK' if ok1 else 'FAIL'}")
+    print(
+        f"exact OU   : inside={r['inside_band']} max_dev={r['max_dev_dex']:.4f} dex "
+        f"gamma={r['log10_gamma_p']:.3f} (true -8.3)  -> {'OK' if ok1 else 'FAIL'}"
+    )
     pl = np.log10(powerlaw_psd(f, -13.0, 6.0))
     r = fit_ou_to_band(f, pl - 0.2, pl, pl + 0.2)
     ok2 = not r["inside_band"]
-    print(f"PL gamma=6 : inside={r['inside_band']} max_dev={r['max_dev_dex']:.3f} dex"
-          f"  -> {'OK' if ok2 else 'FAIL'}")
+    print(
+        f"PL gamma=6 : inside={r['inside_band']} max_dev={r['max_dev_dex']:.3f} dex"
+        f"  -> {'OK' if ok2 else 'FAIL'}"
+    )
     pl = np.log10(powerlaw_psd(f, -13.0, 3.0))
     r = fit_ou_to_band(f, pl - 0.2, pl, pl + 0.2)
-    print(f"PL gamma=3 : inside={r['inside_band']} max_dev={r['max_dev_dex']:.3f} dex"
-          "  (informational: inside OU's 2-4 slope range)")
+    print(
+        f"PL gamma=3 : inside={r['inside_band']} max_dev={r['max_dev_dex']:.3f} dex"
+        "  (informational: inside OU's 2-4 slope range)"
+    )
     return ok1 and ok2
 
 
@@ -238,16 +250,24 @@ def analyse_pulsar(psr, noise_dir, tim_dir, wn, f0):
         fit["log10_sigma_p"] = 0.5 * fit["log10_sigma_r2"] + np.log10(f0)
         fit["informative"] = bool(k.size >= 3)
         row["fit"] = fit
-        row["band"] = {"f": f[k].tolist(), "lo": lo[k].tolist(),
-                       "med": med[k].tolist(), "hi": hi[k].tolist()}
-        row["band_full"] = {"f": f.tolist(), "lo": lo.tolist(),
-                            "med": med.tolist(), "hi": hi.tolist()}
+        row["band"] = {
+            "f": f[k].tolist(),
+            "lo": lo[k].tolist(),
+            "med": med[k].tolist(),
+            "hi": hi[k].tolist(),
+        }
+        row["band_full"] = {
+            "f": f.tolist(),
+            "lo": lo.tolist(),
+            "med": med.tolist(),
+            "hi": hi.tolist(),
+        }
     return row
 
 
 def read_f0(psr, par_dir):
     """Spin frequency F0 (Hz) from the canonical wideband par file."""
-    path = glob.glob(os.path.join(par_dir, f"{psr}_PINT_*.wb.par"))[0]
+    path = _find_canonical(par_dir, psr, "par")
     with open(path) as f:
         for line in f:
             tok = line.split()
@@ -325,12 +345,22 @@ def plot(rows, path):
     for ax, r in zip(axes.flat, sel):
         b = r["band_full"]
         f = np.array(b["f"])
-        ax.fill_between(f, 10 ** np.array(b["lo"]), 10 ** np.array(b["hi"]),
-                        alpha=0.3, label="NG15 PL 5-95%")
+        ax.fill_between(
+            f,
+            10 ** np.array(b["lo"]),
+            10 ** np.array(b["hi"]),
+            alpha=0.3,
+            label="NG15 PL 5-95%",
+        )
         ax.plot(f, 10 ** np.array(b["med"]), lw=1)
         ft = r["fit"]
-        ax.plot(f, ou_psd_onesided(f, ft["log10_gamma_p"], ft["log10_sigma_r2"]),
-                "k--", lw=1.2, label="best OU")
+        ax.plot(
+            f,
+            ou_psd_onesided(f, ft["log10_gamma_p"], ft["log10_sigma_r2"]),
+            "k--",
+            lw=1.2,
+            label="best OU",
+        )
         ax.axhline(10 ** r["log10_P_white"], color="grey", ls=":", label="white floor")
         ax.axvline(r["band"]["f"][-1], color="grey", lw=0.5)
         ax.set_xscale("log")
@@ -338,7 +368,7 @@ def plot(rows, path):
         tag = "PASS" if ft["inside_band"] else "FAIL"
         ax.set_title(f"{r['psr']}  [{tag}, {r['n_in_band']} bins]", fontsize=9)
         ax.tick_params(labelsize=7)
-    for ax in list(axes.flat)[len(sel):]:
+    for ax in list(axes.flat)[len(sel) :]:
         ax.axis("off")
     axes.flat[0].legend(fontsize=6)
     fig.supxlabel("f [Hz]")
@@ -354,8 +384,11 @@ def main():
     ap.add_argument("--noise-json", default=DEFAULT_NOISE_JSON)
     ap.add_argument("--out-dir", default=DEFAULT_OUT_DIR)
     ap.add_argument("--notes", default=DEFAULT_NOTES)
-    ap.add_argument("--self-test", action="store_true",
-                    help="Validate the OU fitter on synthetic bands and exit")
+    ap.add_argument(
+        "--self-test",
+        action="store_true",
+        help="Validate the OU fitter on synthetic bands and exit",
+    )
     args = ap.parse_args()
 
     if args.self_test:
@@ -367,13 +400,16 @@ def main():
     rows = []
     for psr in psrs:
         f0 = read_f0(psr, os.path.join(root, "par"))
-        r = analyse_pulsar(psr, os.path.join(root, "noise"), os.path.join(root, "tim"),
-                           wn_all[psr], f0)
+        r = analyse_pulsar(
+            psr, os.path.join(root, "noise"), os.path.join(root, "tim"), wn_all[psr], f0
+        )
         tag = ""
         if r["selected"]:
             tag = "PASS" if r["fit"]["inside_band"] else "FAIL"
-        print(f"{psr:<12} red/white@f1 {r['red_over_white_f1_dex']:+6.2f} dex  "
-              f"in-band {r['n_in_band']:3d}  {'SELECTED ' + tag if r['selected'] else ''}")
+        print(
+            f"{psr:<12} red/white@f1 {r['red_over_white_f1_dex']:+6.2f} dex  "
+            f"in-band {r['n_in_band']:3d}  {'SELECTED ' + tag if r['selected'] else ''}"
+        )
         rows.append(r)
 
     os.makedirs(args.out_dir, exist_ok=True)
@@ -382,8 +418,10 @@ def main():
     write_notes(rows, args.notes)
     plot(rows, os.path.join(args.out_dir, "step2_spectra.png"))
     sel = [r for r in rows if r["selected"]]
-    print(f"\n{len(sel)}/{len(rows)} selected; "
-          f"{sum(r['fit']['inside_band'] for r in sel)} pass step 2.")
+    print(
+        f"\n{len(sel)}/{len(rows)} selected; "
+        f"{sum(r['fit']['inside_band'] for r in sel)} pass step 2."
+    )
 
 
 if __name__ == "__main__":

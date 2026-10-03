@@ -1,6 +1,6 @@
 # MDC2 HD-vs-CURN: results
 
-> **Erratum 2026-10-03 (PSD sidedness).** The OU pivot log-PSDs quoted here (e.g. Stage C −6.714) are TWO-sided, but the injected −6.319 is ONE-sided. With the corrected `check_mdc2_truth.py`, Stage C path-sampled reads −6.541 ± 1.80 (one-sided) against −6.319, a bias of −0.12σ, so it still covers. The "matched pair" at the end is off by 0.30 dex (see `kernel_systematic_injection_pair.md`). See `scripts/check_psd_sidedness.py` and `notes/RESULTS_ou_adequacy_ng15.md`. OU-vs-OU comparisons in this note are unaffected.
+> **Erratum 2026-10-03 (PSD sidedness).** The OU pivot log-PSDs quoted here (e.g. Stage C −6.714) are TWO-sided, but the injected −6.319 is ONE-sided. The −6.714 is the pure-HD rung; adding log10 2 gives −6.413 one-sided. The separate path-sampled Stage C run (`mdc2_stageC_path_sampled`, a different sample set), read with the corrected `check_mdc2_truth.py`, gives −6.541 ± 1.80 (one-sided) against −6.319, a bias of −0.12σ, so it still covers. The "matched pair" at the end is off by 0.30 dex (see `kernel_systematic_injection_pair.md`). See `scripts/check_psd_sidedness.py` and `notes/RESULTS_ou_adequacy_ng15.md`. OU-vs-OU comparisons in this note are unaffected.
 
 **Date:** 2026-09-01 · **Branch:** `feat/sgwb-null-calibration` · **Issue:** #111
 **Change:** `openspec/changes/sgwb-detection-route`
