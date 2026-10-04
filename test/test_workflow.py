@@ -465,9 +465,9 @@ base_dir = {{output_id}}
 
         idata = az.from_netcdf(results_path)
         post = idata.posterior
-        # The 2 sampled red-noise sites + derived physicals are present
-        assert "log10_γp_standardized" in post
-        assert "log10_σp_standardized" in post
+        # The 2 red-noise sites are sampled directly as bounded Uniforms
+        assert "log10_γp_standardized" not in post
+        assert "log10_σp_standardized" not in post
         assert "log10_γp" in post
         assert "log10_σp" in post
         # GW is fixed: no sampled GW latents, deterministic at the fixed value
