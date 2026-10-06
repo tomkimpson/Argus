@@ -1,6 +1,7 @@
 """Unit tests for parameter_sampling module."""
 
 import pytest
+import jax
 import jax.numpy as jnp
 import tensorflow_probability.substrates.jax as tfp
 from unittest.mock import Mock, patch, MagicMock
@@ -114,27 +115,64 @@ class TestSampleHierarchicalGammaParameters:
         assert mock_deterministic.call_count >= 2
 
 
-class TestSampleReparameterizedParameters:
-    """Tests for sample_reparameterized_parameters function."""
+class TestSampleUniformParameters:
+    """Tests for sample_uniform_parameters (red_noise_prior = flat).
 
-    @patch("numpyro.sample")
-    @patch("numpyro.deterministic")
-    def test_reparameterization(self, mock_deterministic, mock_sample):
-        """Test parameter reparameterization."""
-        prior_spec = tfpd.Uniform(jnp.array([-10.0, -10.0]), jnp.array([-8.0, -8.0]))
-        n_pulsars = 2
+    The flat red-noise prior must be a genuine bounded per-pulsar Uniform on the
+    box, independent of the number of pulsars. It used to be an unbounded
+    N(mid, (hi - lo) / (6 sqrt N)), which nearly pinned red noise at 33 pulsars.
+    """
 
-        mock_sample.return_value = jnp.zeros(n_pulsars)
-        mock_deterministic.return_value = jnp.array([-9.0, -9.0])
+    @staticmethod
+    def _prior_draws(n_pulsars, n_draws=4000):
+        from numpyro.infer import Predictive
 
-        result = parameter_sampling.sample_reparameterized_parameters(
-            prior_spec, "test_param", n_pulsars
+        spec = tfpd.Uniform(
+            low=jnp.full(n_pulsars, -20.0), high=jnp.full(n_pulsars, -12.0)
         )
 
-        # Should sample standardized parameters
-        mock_sample.assert_called_once()
-        # Should create deterministic transformed parameters
-        mock_deterministic.assert_called_once()
+        def model():
+            parameter_sampling.sample_uniform_parameters(spec, "x", n_pulsars)
+
+        return Predictive(model, num_samples=n_draws)(jax.random.PRNGKey(0))["x"]
+
+    @pytest.mark.parametrize("n_pulsars", [1, 33])
+    def test_prior_draws_are_uniform_on_the_box(self, n_pulsars):
+        draws = self._prior_draws(n_pulsars)
+
+        assert draws.shape[-1] == n_pulsars
+        assert float(draws.min()) >= -20.0
+        assert float(draws.max()) <= -12.0
+        # Uniform(-20, -12): mean -16, sd 8/sqrt(12) = 2.309, whatever N is
+        assert float(draws.mean()) == pytest.approx(-16.0, abs=0.1)
+        assert float(draws.std()) == pytest.approx(8.0 / jnp.sqrt(12.0), rel=0.03)
+
+    def test_log_density_is_flat_and_nuts_space_is_bounded(self):
+        from numpyro import handlers
+
+        n = 2
+        spec = tfpd.Uniform(low=jnp.full(n, -12.0), high=jnp.full(n, -6.0))
+
+        def model():
+            parameter_sampling.sample_uniform_parameters(spec, "x", n)
+
+        trace = handlers.trace(handlers.seed(model, rng_seed=0)).get_trace()
+        site = trace["x"]
+        assert site["type"] == "sample"
+
+        lp = site["fn"].log_prob
+        inside = lp(jnp.array([-11.5, -6.5]))
+        assert jnp.allclose(inside, -jnp.log(6.0))
+        assert jnp.allclose(lp(jnp.array([-9.0, -9.0])), inside)
+
+        # NUTS works in the unconstrained space given by the support; however far
+        # it moves there, the constrained values stay inside the box.
+        from numpyro.distributions.transforms import biject_to
+
+        to_box = biject_to(site["fn"].support)
+        extremes = to_box(jnp.array([-50.0, 50.0]))
+        assert jnp.all(site["fn"].support.check(extremes))
+        assert not jnp.any(site["fn"].support.check(jnp.array([-13.0, -5.0])))
 
 
 class TestSampleLogRatioParameters:
@@ -408,8 +446,8 @@ class TestSampleEmpiricalNoiseParameters:
 class TestFlatModeSampling:
     """Tests for the flat (independent Uniform) red noise sampling path."""
 
-    def test_flat_specs_sample_standardized_sites(self):
-        """Distribution specs dispatch to the reparameterized sampler."""
+    def test_flat_specs_sample_uniform_sites(self):
+        """Distribution specs dispatch to bounded Uniform sample sites."""
         from numpyro import handlers
 
         n = 1
@@ -429,15 +467,15 @@ class TestFlatModeSampling:
 
         trace = handlers.trace(handlers.seed(model, rng_seed=0)).get_trace()
 
-        assert trace["log10_γp_standardized"]["type"] == "sample"
-        assert trace["log10_σp_standardized"]["type"] == "sample"
-        # At n=1 the standardized latent is exactly N(0,1)
-        assert float(trace["log10_γp_standardized"]["fn"].scale[0]) == pytest.approx(
-            1.0
-        )
-        # Deterministic transform: mean + standardized * std
-        expected = -9.0 + trace["log10_γp_standardized"]["value"] * 1.0
-        assert jnp.allclose(trace["log10_γp"]["value"], expected)
+        for name, (low, high) in {
+            "log10_γp": (-12.0, -6.0),
+            "log10_σp": (-20.0, -12.0),
+        }.items():
+            assert trace[name]["type"] == "sample"
+            assert float(trace[name]["fn"].low[0]) == low
+            assert float(trace[name]["fn"].high[0]) == high
+        assert "log10_γp_standardized" not in trace
+        assert "log10_σp_standardized" not in trace
 
 
 class TestCountFreeParametersNewModes:
@@ -537,8 +575,8 @@ class TestNumpyroModelNewModes:
         trace = self._trace(prior_specs)
 
         assert "likelihood" in trace
-        assert "log10_γp_standardized" in trace
-        assert "log10_σp_standardized" in trace
+        assert trace["log10_γp"]["type"] == "sample"
+        assert trace["log10_σp"]["type"] == "sample"
         assert jnp.all(jnp.isfinite(trace["log10_σp"]["value"]))
 
 

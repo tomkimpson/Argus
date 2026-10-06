@@ -239,36 +239,33 @@ def sample_hierarchical_gamma_parameters(hierarchical_specs, n_pulsars):
     return log10_γp
 
 
-def sample_reparameterized_parameters(prior_spec, param_name, n_pulsars):
-    """Sample parameters using reparameterization for efficient NUTS sampling.
+def sample_uniform_parameters(prior_spec, param_name, n_pulsars):
+    """Sample independent per-pulsar parameters from a bounded Uniform prior.
+
+    Used for ``red_noise_prior = flat``. The site is a genuine Uniform, so
+    numpyro moves NUTS to the unconstrained (logit) space and adds the Jacobian
+    itself. An earlier version sampled ``Normal(0, 1/sqrt(n_pulsars))`` and
+    mapped it affinely onto the box. That made the prior an unbounded
+    N(mid, (high - low) / (6 sqrt N)), which nearly pinned red noise at 33
+    pulsars, and differed from the true Uniform the nested sampler uses.
 
     Parameters
     ----------
-    prior_spec : tfpd.Distribution
-        Uniform distribution specification
+    prior_spec : tfpd.Uniform
+        Per-pulsar bounds, ``low`` and ``high`` of shape ``(n_pulsars,)``.
     param_name : str
-        Name of the parameter for sampling
+        Name of the sample site.
     n_pulsars : int
-        Number of pulsars
+        Number of pulsars.
 
     Returns
     -------
     jax.Array
-        Sampled parameter values
+        Sampled parameter values, shape ``(n_pulsars,)``.
     """
-    # Reparameterize uniform distribution using Normal(0,1) + affine transformation
-    low = prior_spec.low
-    high = prior_spec.high
-    mean = (low + high) / 2.0
-    std = (high - low) / 6.0  # 3-sigma rule
-
-    param_standardized = numpyro.sample(
-        f"{param_name}_standardized",
-        dist.Normal(jnp.zeros(n_pulsars), jnp.ones(n_pulsars) / jnp.sqrt(n_pulsars)),
-    )
-    param_values = numpyro.deterministic(param_name, mean + param_standardized * std)
-
-    return param_values
+    low = jnp.broadcast_to(jnp.asarray(prior_spec.low), (n_pulsars,))
+    high = jnp.broadcast_to(jnp.asarray(prior_spec.high), (n_pulsars,))
+    return numpyro.sample(param_name, dist.Uniform(low, high))
 
 
 def sample_log_ratio_parameters(hierarchical_specs, log10_γp, n_pulsars):
@@ -395,7 +392,7 @@ def sample_pulsar_noise_parameters(prior_specs, n_pulsars):
     # Handle log10_gamma_p - flat (Distribution), fixed, or hierarchical
     if isinstance(prior_specs["log10_gamma_p_spec"], tfpd.Distribution):
         # Flat per-pulsar Uniform priors (red_noise_prior = flat)
-        log10_γp = sample_reparameterized_parameters(
+        log10_γp = sample_uniform_parameters(
             prior_specs["log10_gamma_p_spec"], "log10_γp", n_pulsars
         )
     elif prior_specs["log10_gamma_p_spec"] is not None:
@@ -408,7 +405,7 @@ def sample_pulsar_noise_parameters(prior_specs, n_pulsars):
     # Handle log10_sigma_p - flat (Distribution), fixed, or log-ratio
     if isinstance(prior_specs["log10_sigma_p_spec"], tfpd.Distribution):
         # Flat per-pulsar Uniform priors (red_noise_prior = flat)
-        log10_σp = sample_reparameterized_parameters(
+        log10_σp = sample_uniform_parameters(
             prior_specs["log10_sigma_p_spec"], "log10_σp", n_pulsars
         )
     elif prior_specs["log10_sigma_p_spec"] is not None:
