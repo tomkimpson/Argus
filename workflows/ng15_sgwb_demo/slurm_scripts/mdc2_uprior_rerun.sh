@@ -14,6 +14,9 @@
 # beats the editable install of the main checkout), so checking out another branch here cannot
 # change the code under a running job. Data, configs and outputs live in the main checkout.
 #
+# Create the pinned worktree first (once):
+#   git -C /fred/oz022/tkimpson/Argus worktree add --detach /fred/oz022/tkimpson/Argus-uprior 18579c4
+#
 # Submit:
 #   sbatch /fred/oz022/tkimpson/Argus/workflows/ng15_sgwb_demo/slurm_scripts/mdc2_uprior_rerun.sh
 # Read out the 1b ladder once all five rungs exist (the readout must use the same library):
@@ -68,6 +71,9 @@ fi
 mkdir -p "${ROOT}/outputs/logfiles"
 source ~/.bashrc
 conda activate /fred/oz022/tkimpson/conda_envs/Argus
+if [ ! -d "${REPO_PY}/argus" ]; then
+    echo "ERROR: ${REPO_PY} missing; create the pinned worktree (see header)." >&2; exit 1
+fi
 export PYTHONPATH="${REPO_PY}:${PYTHONPATH}"
 
 echo "=== env check (${OUT_ID}, eps=${EPS}) ==="
@@ -81,6 +87,6 @@ time python -u "${ROOT}/run_analysis.py" "${CONFIG}"
 STATUS=$?
 if [ ${STATUS} -eq 0 ]; then
     python "${ROOT}/scripts/stamp_provenance.py" --output-dir "${ROOT}/outputs/${OUT_ID}" \
-        --config "${CONFIG}" --frozen "${FROZEN}"
+        --config "${CONFIG}" --frozen "${FROZEN}" --repo "${LIB}"
 fi
 exit ${STATUS}

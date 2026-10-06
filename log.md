@@ -13,18 +13,18 @@ Reruns: `slurm_scripts/mdc2_uprior_rerun.sh` (array job 18034278). It uses the l
 | | pinned "flat" prior | true Uniform |
 |---|---|---|
 | 1b lnB(HD/CURN) | 3.043 ± 0.011 | **0.407 ± 0.034** (reliable, min integrand ESS 94) |
-| 1b pivot PSD at 1/5 yr (truth −6.91) | −6.24 ± 0.71 | −8.73 ± 1.63 (−1.1σ, covered) |
+| 1b pivot PSD at 1/5 yr, ε=0 rung (truth −6.91) | −6.24 ± 0.71 | −8.73 ± 1.63 (−1.1σ, covered; gate FAIL on R̂ 1.025) |
 | 2b pivot excess at 1/5 yr (truth −6.32) | +1.84 dex (+29σ) | **+0.77 dex** (+2.3σ, covered at 95%) |
 
 - The 1b +3.04 was an artefact of near-fixed red noise. 0.41 is consistent with the ~0.55 implied by Hazboun et al.'s HD/CRN ratio, which resolves that long-open tension.
 - About 60% of the 2b bias was the prior, not OU-vs-power-law misspecification. That revises the attribution accepted on 2026-09-29.
-- With red noise free, NUTS is about 5× slower per step: 9–10 h per rung on 4×A100, against 1.5–2.5 h before. There were 0 divergences, but R̂ on the GW and σp parameters is ≈ 1.03 on 4 of the 5 1b rungs, with GW ESS 104–198. So 0.41 is provisional.
+- With red noise free, NUTS is about 4–7× slower in wall time: 9.1–10.5 h per rung on 4×A100, against 1.5–2.6 h before. There were 0 divergences, but R̂ on the GW and σp parameters is ≈ 1.03 on 4 of the 5 1b rungs, with GW ESS 104–198. So 0.41 is provisional.
 - The ε=0.25 integrand (0.24) dips below its neighbours (0.48 at ε=0, 0.67 at ε=0.5). The readout suggests adding rungs at ε = 0.125 and 0.375.
 
 **Decisions / dead ends.**
 - The 1b validation chain (+3.04 / scramble −0.76 / no-injection −0.013) is superseded. Don't quote it.
 - HD-vs-CURN on 1b was never expected to be strong. The literature's strong 1b detection (B = 23–40) is GW+noise vs noise-only, so that is the next test.
-- `check_mdc2_truth.py` overwrites `outputs/mdc2_truth_gate.{json,png}` on every run. It now holds this session's five verdicts.
+- `check_mdc2_truth.py` overwrites `outputs/mdc2_truth_gate.{json,png}` on every run. It now holds only the two 2b verdicts; the 1b numbers above come from `check_mdc2_truth.py --log10-a -15.18045606445813 --run mdc2_d1_flat_uprior_eps000 --run mdc2_d1_flat_psym_eps000`.
 
 **Open threads.**
 - Compute the GW-vs-noise-only Bayes factor on 1b.
