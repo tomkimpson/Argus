@@ -1,5 +1,38 @@
 # Research log
 
+## 2026-10-06 — The "flat" red-noise prior was a pinned Gaussian; making it uniform collapses 1b lnB 3.04 → 0.41
+
+**Goal.** Fix the red-noise prior bug found in the PR #119 review and find out which MDC2 conclusions survive it.
+
+**What was tried.** The bug was confirmed in `parameter_sampling.sample_reparameterized_parameters`. With `red_noise_prior = flat`, it sampled `Normal(0, 1/sqrt N)` and mapped that affinely onto the box. The effective prior was therefore an unbounded N(mid, (hi−lo)/(6√N)), which at 33 psr is log10γp ~ N(−9, 0.17) and log10σp ~ N(−16, 0.23). The same Gaussian-not-uniform pattern, minus the 1/√N, affects every other NUTS "Uniform": GW pivot-PSD/γa/log10_ha, EFAC/EQUAD and the CW scalars. The user chose to fix red noise only. The fix is on branch `fix/flat-red-noise-prior` (commit 18579c4). `sample_uniform_parameters` now draws plain numpyro `Uniform` sites, numpyro adds the logit transform and Jacobian, and the `*_standardized` latents are gone. Tests now check the prior's moments, that it doesn't depend on N, and that the support is bounded. Note that numpyro's `Uniform.log_prob` does not return −inf outside the support, so the bound is enforced by `biject_to(support)`. Full suite: 424 pass, 1 fail, the known `test_epsilon_gradient_integrates_to_the_likelihood_difference`. The likelihood golden tests pass.
+
+Reruns: `slurm_scripts/mdc2_uprior_rerun.sh` (array job 18034278). It uses the library from a worktree pinned to 18579c4 (`/fred/oz022/tkimpson/Argus-uprior`). It ran the 1b ladder (`mdc2_d1_flat_uprior_eps*`) and the 2b ε=0 rung (`mdc2_flat_uprior_eps000`). The 1b readout was job 18101855 → `outputs/lnb_path_sampling_mdc2_d1_flat_uprior.json`.
+
+**What was learned.**
+
+| | pinned "flat" prior | true Uniform |
+|---|---|---|
+| 1b lnB(HD/CURN) | 3.043 ± 0.011 | **0.407 ± 0.034** (reliable, min integrand ESS 94) |
+| 1b pivot PSD at 1/5 yr (truth −6.91) | −6.24 ± 0.71 | −8.73 ± 1.63 (−1.1σ, covered) |
+| 2b pivot excess at 1/5 yr (truth −6.32) | +1.84 dex (+29σ) | **+0.77 dex** (+2.3σ, covered at 95%) |
+
+- The 1b +3.04 was an artefact of near-fixed red noise. 0.41 is consistent with the ~0.55 implied by Hazboun et al.'s HD/CRN ratio, which resolves that long-open tension.
+- About 60% of the 2b bias was the prior, not OU-vs-power-law misspecification. That revises the attribution accepted on 2026-09-29.
+- With red noise free, NUTS is about 5× slower per step: 9–10 h per rung on 4×A100, against 1.5–2.5 h before. There were 0 divergences, but R̂ on the GW and σp parameters is ≈ 1.03 on 4 of the 5 1b rungs, with GW ESS 104–198. So 0.41 is provisional.
+- The ε=0.25 integrand (0.24) dips below its neighbours (0.48 at ε=0, 0.67 at ε=0.5). The readout suggests adding rungs at ε = 0.125 and 0.375.
+
+**Decisions / dead ends.**
+- The 1b validation chain (+3.04 / scramble −0.76 / no-injection −0.013) is superseded. Don't quote it.
+- HD-vs-CURN on 1b was never expected to be strong. The literature's strong 1b detection (B = 23–40) is GW+noise vs noise-only, so that is the next test.
+- `check_mdc2_truth.py` overwrites `outputs/mdc2_truth_gate.{json,png}` on every run. It now holds this session's five verdicts.
+
+**Open threads.**
+- Compute the GW-vs-noise-only Bayes factor on 1b.
+- Run longer chains to get R̂ below 1.01.
+- Rerun the scramble null and no-injection control under the true prior.
+- Open an issue for the remaining Gaussian-not-uniform NUTS priors.
+- Decide whether the remaining +0.77 dex on 2b is misspecification.
+
 ## 2026-10-02 — 1b holds on the symmetrised Joseph filter; the stack lands as one PR
 
 **Goal.** Check whether the MDC2 1b evidence results, all computed on the unsymmetrised Joseph update, survive the `P = 0.5*(P+P.T)` fix from 2026-09-29.
