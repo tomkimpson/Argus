@@ -1,5 +1,38 @@
 # Research log
 
+## 2026-10-06 (later) — 1b GW-vs-noise-only: Argus does not detect it; the gap to Hazboun is Occam, not the estimator
+
+**Goal.** Compute the MDC2 1b GW+noise vs noise-only Bayes factor, which is the comparison Hazboun et al. (arXiv:1912.12939) report as a strong detection (CRN B = 23, HD B = 40), and explain any disagreement.
+
+**What was tried.** The planned design was a new path (scale the GW process noise by λ), but a read-only look at the existing true-Uniform rungs showed a much cheaper exact route. In ridge mode the pivot log-PSD has a Gaussian prior, and noise-only is the limit s → −∞. Wherever the likelihood is flat in s, p(s|d)/π(s) = Z_noise/Z_model. That is Savage-Dickey on a region, which is the same estimator Hazboun used (lowest log-A bins). It is implemented in `workflows/ng15_sgwb_demo/scripts/lnb_gw_vs_noise.py`, with three safeguards:
+- a plateau gate across thresholds;
+- a KS check that γa is prior-like inside the region;
+- an HD−CURN cross-check against path sampling.
+
+Four analytic toys were added to `test/test_lnb_estimators.py`: flat-tail recovery, a non-flat tail, a strong signal, and a non-prior-like nuisance. All pass (36/36 in that file). Three diagnostics followed:
+- `diag_gw_amplitude_profile.py` (GPU job 18116982) profiles logL along s at stored draws.
+- `diag_gw_noise_tradeoff.py` compares red noise between GW modes.
+- `diag_ou_powerlaw_capture.py` (CPU job 18117045) computes, by time-domain KL after timing-model projection on the real TOAs, how much of the injected power law's expected ΔlnL a common OU can recover.
+
+**What was learned.**
+- lnB(CURN/noise) = **−0.47 ± 0.13**. This is provisional: the curve drifts from −0.17 to −0.64 with depth, and the tail ESS is small.
+- lnB(HD/noise) = **+0.14 ± 0.14**.
+- HD−CURN = 0.61 ± 0.19, consistent with path sampling's 0.41 ± 0.03 (1.1σ).
+- Hazboun get +3.1 (CRN) and +3.7 (HD).
+- The pivot posterior is bimodal and genuinely so: chains hop between modes 70–120 times. The low-amplitude mode switches on per-pulsar OU red noise in J1939+2134, J1909−3744 and J0437−4715 (indices 25, 23 and 3).
+- Those are the only pulsars with detectable GWB auto-power. The expected ΔlnL is 31, 3.6 and 4.8 of the 40.25 total; every other pulsar is ≈ 0.
+- The stored per-draw logL is ~6–8 nats *higher* in the red-noise mode than in the GW mode, for CURN and for HD alike. Cross-correlation information is weak at this amplitude, and the mode balance is set by prior volume.
+- D1's "+98 nats for HD" is measured against each high-mode draw's own red-noise-off baseline, so it is not a fair comparison.
+- The spectral shape is fine: the best common OU captures ≈100% of the power law's expected ΔlnL, at pivot −7.1 against an injected −7.21 (two-sided). The integrated OU is ∝ f⁻⁴ above its corner, not f⁻² as first assumed.
+
+**Decisions / dead ends.**
+- The λ-scaling path needs no new library code. If a certified number is ever needed, the amplitude-shift ladder is config-only: shift `log10_pivot_psd_min/max` by u, and the integrand is E_u[prime]/σ. It was not run, because the region estimator is reliable for a weak signal like this one.
+- Ruled out as causes of the gap: the estimator (same as Hazboun's), the OU-vs-power-law shape, sampling, and the GW amplitude prior (its density at the truth is similar to a log-uniform prior).
+
+**Open threads.**
+- Leading hypothesis, not yet tested: the per-pulsar OU red-noise prior (σp U[−20,−12], γp U[−12,−6]) makes the red-noise explanation cheap. In that mode γp spreads over ~3.5 dex. Compare this with enterprise's power-law red-noise priors.
+- The CURN plateau drift needs more tail samples to settle.
+
 ## 2026-10-06 — The "flat" red-noise prior was a pinned Gaussian; making it uniform collapses 1b lnB 3.04 → 0.41
 
 **Goal.** Fix the red-noise prior bug found in the PR #119 review and find out which MDC2 conclusions survive it.

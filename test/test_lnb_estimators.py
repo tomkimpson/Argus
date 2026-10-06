@@ -448,3 +448,64 @@ def test_refining_the_ladder_clears_the_discretisation_gate(ps):
     res = ps.analyse(_peaked_ladder(np.linspace(0.0, 1.0, 17), seed=3))
     assert res["reliable"], res["failed_diagnostics"]
     assert abs(res["ln_bayes_factor"] - _peaked_truth()) < 0.05
+
+
+# ---------------------------------------------------------------------------
+# GW+noise vs noise-only: Savage-Dickey on a region of the pivot log-PSD
+# ---------------------------------------------------------------------------
+#
+# Toy with a closed form: prior s ~ N(0, 1) and likelihood L(s) = 1 + K N(s; s0, w),
+# which is flat (= the noise-only value 1) away from the bump. Then
+#     Z_noise = 1,  Z = 1 + K N(s0; 0, sqrt(1 + w^2)),  ln B(model/noise) = ln Z,
+# and the posterior is an exact mixture: the prior with weight 1/Z, else the
+# product Gaussian N(s0 / (1 + w^2), w^2 / (1 + w^2)).
+
+
+@pytest.fixture(scope="module")
+def gvn():
+    return _load_script("lnb_gw_vs_noise")
+
+
+def _bump_posterior(k, s0=2.5, w=0.3, n_chain=4, n_draw=4000, seed=0):
+    from scipy.stats import norm
+
+    z = 1.0 + k * norm.pdf(s0, 0.0, math.sqrt(1.0 + w**2))
+    rng = np.random.default_rng(seed)
+    from_prior = rng.uniform(size=(n_chain, n_draw)) < 1.0 / z
+    bump = rng.normal(s0 / (1 + w**2), w / math.sqrt(1 + w**2), size=(n_chain, n_draw))
+    return np.where(from_prior, rng.normal(size=(n_chain, n_draw)), bump), math.log(z)
+
+
+@pytest.mark.parametrize("k", [0.0, 5.0, 30.0])
+def test_region_savage_dickey_recovers_the_analytic_bayes_factor(gvn, k):
+    """With a flat noise-only tail the region ratio is exact at every threshold."""
+    prime, truth = _bump_posterior(k)
+    gamma = np.random.default_rng(9).normal(size=prime.shape)
+    res = gvn.analyse(prime, gamma)
+    assert res["reliable"], res["failed_diagnostics"]
+    assert abs(res["ln_bayes_factor"] - truth) < 3.0 * res["uncert"]
+
+
+def test_region_savage_dickey_flags_a_likelihood_that_is_not_flat(gvn):
+    """A likelihood still rising into the tail (posterior N(-1, 1)) has no plateau."""
+    prime = np.random.default_rng(4).normal(-1.0, 1.0, size=(4, 4000))
+    res = gvn.analyse(prime)
+    assert not res["reliable"]
+    assert any("not plateaued" in m for m in res["failed_diagnostics"])
+    assert res["ln_bayes_factor"] is None
+
+
+def test_region_savage_dickey_refuses_a_strong_signal(gvn):
+    """No draws at low amplitude means no estimate, not a silent extrapolation."""
+    prime = np.random.default_rng(5).normal(3.0, 0.3, size=(4, 4000))
+    res = gvn.analyse(prime)
+    assert not res["reliable"]
+    assert res["ln_bayes_factor"] is None
+
+
+def test_region_savage_dickey_flags_a_non_prior_like_nuisance(gvn):
+    """gamma_a constrained inside the region means the region is not noise-only."""
+    prime = np.random.default_rng(6).normal(size=(4, 4000))
+    gamma = np.random.default_rng(7).normal(1.5, 0.3, size=(4, 4000))
+    res = gvn.analyse(prime, gamma)
+    assert any("gamma_a not prior-like" in m for m in res["failed_diagnostics"])
