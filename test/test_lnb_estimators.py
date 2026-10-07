@@ -509,3 +509,46 @@ def test_region_savage_dickey_flags_a_non_prior_like_nuisance(gvn):
     gamma = np.random.default_rng(7).normal(1.5, 0.3, size=(4, 4000))
     res = gvn.analyse(prime, gamma)
     assert any("gamma_a not prior-like" in m for m in res["failed_diagnostics"])
+
+
+# ---------------------------------------------------------------------------
+# Occam budget (diag_occam_budget.py): KL identity and prior-restriction reweighting
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def occ():
+    return _load_script("diag_occam_budget")
+
+
+def test_block_kl_recovers_the_analytic_occam_factor(occ):
+    """Gaussian posterior N(m, s^2 I) inside a wide uniform box of side W.
+
+    KL = 2 ln W - ln(2 pi e s^2), and <ln L> - KL must equal ln Z = -2 ln W.
+    """
+    w, s, n = 8.0, 0.3, 4000
+    rng = np.random.default_rng(11)
+    x = rng.normal(0.0, s, size=(n, 2))
+    chain = np.repeat(np.arange(4), n // 4)
+    res = occ.block_kl(x, chain, occ.uniform_cross_entropy([(-w / 2, w / 2)] * 2))
+    truth = 2 * math.log(w) - math.log(2 * math.pi * math.e * s**2)
+    assert abs(res["kl_gauss"] - truth) < 0.05
+    assert abs(res["kl_knn"] - truth) < 0.1
+    mean_loglike = -math.log(2 * math.pi * s**2) - 1.0
+    assert abs((mean_loglike - res["kl_knn"]) - (-2 * math.log(w))) < 0.1
+
+
+def test_restricted_lnb_matches_the_analytic_shift(occ):
+    """x | noise ~ N(-1, 1), x | signal ~ N(1, 1), P(noise) = 0.3, R = {x < 0}."""
+    from scipy.stats import norm
+
+    rng = np.random.default_rng(12)
+    below = rng.uniform(size=(4, 20000)) < 0.3
+    x = np.where(below, rng.normal(-1, 1, below.shape), rng.normal(1, 1, below.shape))
+    res = occ.restricted_lnb(x < 0, below)
+    p_noise = norm.cdf(1.0)
+    p_post = 0.3 * p_noise + 0.7 * norm.cdf(-1.0)
+    truth = math.log(p_post) - math.log(p_noise)
+    assert abs(res["dlnb"] - truth) < 4 * res["dlnb_se"]
+    full = occ.restricted_lnb(np.ones_like(below), below)
+    assert full["dlnb"] == 0.0

@@ -1,5 +1,31 @@
 # Research log
 
+## 2026-10-07 — 1b Occam budget: the red-noise mode pays for its better fit in amplitude, not γp width
+
+**Goal.** Test the leading hypothesis from 2026-10-06: the per-pulsar OU red-noise prior makes the "red noise instead of GW" explanation cheap on MDC2 1b, and that is why Argus gets lnB(model/noise) ≈ 0 where Hazboun gets +3.
+
+**What was tried.** Added `workflows/ng15_sgwb_demo/scripts/diag_occam_budget.py`. It only post-processes the existing `outputs/mdc2_d1_flat_uprior_eps{000,100}` draws and runs in about 6 s on CPU.
+- **Part A: Occam budget.** For each pivot mode (low s < −10, high s > −8), it uses the exact identity ln Z_M = ⟨lnL⟩_M − KL(post‖prior|M) + ln π(M). The mode fractions and the stored per-draw logL give the total ΔKL with no approximation. That total is then split over prior blocks: each pulsar's (σp, γp), each pulsar's white noise, and the GW pair.
+- **Entropy estimates.** Block entropies come two ways: a Gaussian (Laplace) estimate, and a Kozachenko–Leonenko kNN estimate whose neighbours are searched only in the *other* chains. Searching the same chain biases kNN low, because neighbouring MCMC draws sit together. Thinning by the worst autocorrelation time (×30) left about 45 draws per mode, which was useless.
+- **Part B: narrower priors.** Restricting the prior to a region R gives exactly ΔlnB = ln P(R|d) − ln P(R|d, noise). P(R|d, noise) is read from the draws in the noise-only region. This was scanned over γp and σp cuts on the top pulsars, the top three, the top six and all pulsars.
+- **Tests.** Two analytic toys were added to `test/test_lnb_estimators.py` (38/38 pass).
+
+**What was learned.**
+- **The modes balance on Occam.** The red-noise mode fits +5.72 ± 0.42 nats better (CURN; HD +7.65) and pays ΔKL = +5.90 ± 0.43 (HD +8.82 ± 0.47) more. The red-noise blocks cost +9.2 (HD +12.2), while the GW pair returns 1.6 (2.0) as it relaxes to its prior. The block sum agrees with the exact total to within about 1.5 nats of between-block correlation. The Gaussian and kNN estimates agree to about 0.3 nats.
+- **Most of the cost is amplitude.** The 1-D marginals give σp +4.4 (HD +6.0) and γp +1.9 (+2.2). The remaining ~3 nats is the within-pulsar σp–γp correlation.
+- **The paying pulsars are not the ones named on 2026-10-06.** By Occam cost they are J1909−3744 (idx 23), J1939+2134 (25), J1600−3053 (14), J1713+0747 (19), then J1024, J0437 and J2129. Correction to 2026-10-06: ranking by median σp shift (which put J0437 on top) is not ranking by evidence cost. J0437 shifts the most but costs only about 0.5 nats.
+- **No γp restriction helps.** No γp restriction on any pulsar or group moves lnB(model/noise) by more than about +0.2. Several lower it, by up to −0.4.
+- **Only σp caps help.** Capping σp of J1909 or J1939 below about −16 would lift lnB by roughly 2–6 nats. This is indicative only: almost no noise-region draws fall in R, so the script refuses it. It is also close to a tautology, since forbidding GW-sized red noise favours the GW.
+
+**Decisions / dead ends.**
+- **Ruled out: 1(b) of the old handoff** (rerunning 1b with narrower γp). The Occam cost is not in γp width, and the exact reweighting shows γp cuts don't move lnB.
+- **The hypothesis "the OU γp prior is too wide" is refuted.** The weaker hypothesis "the balance is Occam" is confirmed.
+- **White noise is fixed at MDC2 truth in these runs**, so it carries no prior volume. The script skips constant blocks.
+
+**Open threads.**
+- New, untested hypothesis for the gap to Hazboun: almost every OU prior draw is a red spectrum, so red noise imitating the GW is cheap. Enterprise's power-law red noise with γ ∈ U[0,7] spends most of its prior volume on flatter spectra, which would make that imitation expensive. A test would compare the prior predictive fraction of "GW-like" spectra under the two priors, or add power-law red noise.
+- Part B cannot quantify σp caps without more noise-region draws.
+
 ## 2026-10-06 (later) — 1b GW-vs-noise-only: Argus does not detect it; the gap to Hazboun is Occam, not the estimator
 
 **Goal.** Compute the MDC2 1b GW+noise vs noise-only Bayes factor, which is the comparison Hazboun et al. (arXiv:1912.12939) report as a strong detection (CRN B = 23, HD B = 40), and explain any disagreement.
