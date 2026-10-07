@@ -552,3 +552,69 @@ def test_restricted_lnb_matches_the_analytic_shift(occ):
     assert abs(res["dlnb"] - truth) < 4 * res["dlnb_se"]
     full = occ.restricted_lnb(np.ones_like(below), below)
     assert full["dlnb"] == 0.0
+
+
+# ---------------------------------------------------------------------------
+# Spectral prior volume (diag_spectral_prior_volume.py): fast likelihood, kernels
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def spv():
+    return _load_script("diag_spectral_prior_volume")
+
+
+def test_amplitude_line_matches_direct_gaussian(spv):
+    """One eigendecomposition reproduces ln N(y; 0, B + aU) and its expectation."""
+    from scipy.stats import multivariate_normal
+
+    rng = np.random.default_rng(21)
+    n = 12
+    x = rng.normal(size=(n, n))
+    base = x @ x.T + n * np.eye(n)
+    z = rng.normal(size=(n, 4))
+    shape = z @ z.T  # rank-deficient, as a Fourier-basis red noise is
+    q = rng.normal(size=(n, n))
+    c_true = q @ q.T + np.eye(n)
+    y = rng.normal(size=n)
+    amps = np.array([0.0, 1e-3, 0.7, 50.0])
+    data, asimov = spv.amplitude_line(base, shape, amps, y, c_true)
+    for k, a in enumerate(amps):
+        c = base + a * shape
+        assert data[k] == pytest.approx(multivariate_normal(cov=c).logpdf(y), abs=1e-8)
+        _, logdet = np.linalg.slogdet(c)
+        expect = -0.5 * (np.trace(np.linalg.solve(c, c_true)) + logdet
+                         + n * math.log(2 * math.pi))
+        assert asimov[k] == pytest.approx(expect, abs=1e-8)
+
+
+def test_ou_covariance_matches_its_psd_after_projection(spv):
+    """Closed-form integrated-OU covariance == the one-sided PSD integral, mid-band corner.
+
+    Both are projected off a quadratic timing model, which removes the non-stationary
+    and below-band parts the PSD integral cannot represent.
+    """
+    t = np.sort(np.random.default_rng(22).uniform(0, 15 * 3.156e7, 120))
+    m = np.column_stack([np.ones_like(t), t / t.max(), (t / t.max()) ** 2])
+    g = spv.projector(m / np.linalg.norm(m, axis=0))
+    lg, f0 = -7.5, 300.0
+    closed = g.T @ spv.ou_covariance(t, lg, f0) @ g
+    gam = 10.0**lg
+
+    def psd(f):
+        w = 2 * math.pi * f
+        return 2.0 / f0**2 / (w**2 * (gam**2 + w**2))
+
+    kern = spv.StationaryKernel(t, t.max() - t.min())
+    numeric = g.T @ kern(psd) @ g
+    rel = np.linalg.norm(closed - numeric) / np.linalg.norm(closed)
+    assert rel < 0.05
+
+
+def test_log_evidence_recovers_a_gaussian_integral(spv):
+    """ln of the prior average of a 2-D Gaussian likelihood well inside a uniform box."""
+    s = np.linspace(-3, 3, 241)
+    a = np.linspace(-5, 5, 401)
+    lnl = -0.5 * ((s[:, None] / 0.4) ** 2 + (a[None, :] / 0.3) ** 2)
+    truth = math.log(2 * math.pi * 0.4 * 0.3) - math.log(6.0 * 10.0)
+    assert spv.log_evidence(lnl) == pytest.approx(truth, abs=1e-4)
