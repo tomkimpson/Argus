@@ -777,9 +777,10 @@ class JaxKalmanFilter:
                 GW-vs-noise-only Bayes factor ~0 instead of a clear detection, which is why
                 it is no longer the default.
             prior_scale: Multiplicative scale α on the informative prior covariance
-                (P_eps → α·P_eps, P_eps⁻¹ → P_eps⁻¹/α). Default 1.0 reproduces the golden
-                likelihood; large α weakens the prior toward the diffuse limit. Ignored when
-                timing_prior="diffuse".
+                (P_eps → α·P_eps, P_eps⁻¹ → P_eps⁻¹/α). With timing_prior="informative",
+                1.0 reproduces the golden likelihood and large α weakens the prior toward
+                the diffuse limit. Must be 1.0 when timing_prior="diffuse", which has no
+                scale to set.
         """
         get_logger().info("Initializing JaxKalmanFilter...")
 
@@ -788,6 +789,13 @@ class JaxKalmanFilter:
                 f"timing_prior must be 'informative' or 'diffuse', got {timing_prior!r}"
             )
         self.timing_prior = timing_prior
+        if timing_prior == "diffuse" and prior_scale != 1.0:
+            raise ValueError(
+                f"prior_scale={prior_scale} scales the informative timing prior, but "
+                f"timing_prior='diffuse' (the default) ignores it. Set "
+                f"timing_prior='informative' to use it."
+            )
+        self.prior_scale = prior_scale
 
         observations = data["processed_residuals"]
 

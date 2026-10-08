@@ -365,11 +365,13 @@ def test_masked_marginal_gradients_are_finite(mock_logger, mask_kind):
     elif mask_kind == "absent_pulsar":
         mask[:, 1] = 0.0
 
+    # The diffuse default refuses a pulsar observed at no epoch, so only that case
+    # needs the informative prior; the others check the production (diffuse) path.
     kf = jk.JaxKalmanFilter(
         data=with_mask(data, mask),
         use_gw=True,
         use_marginal=True,
-        timing_prior="informative",
+        timing_prior="informative" if mask_kind == "absent_pulsar" else "diffuse",
     )
 
     def logl(log10_ha, log10_gamma_a, log10_gamma_p, log10_sigma_p, efac, equad):

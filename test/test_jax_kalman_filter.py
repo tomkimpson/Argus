@@ -867,6 +867,8 @@ class TestDiffuseFilter:
             )
         with pytest.raises(ValueError, match="timing_prior"):
             jax_kalman_filter.JaxKalmanFilter(data=data, timing_prior="bogus")
+        with pytest.raises(ValueError, match="prior_scale"):
+            jax_kalman_filter.JaxKalmanFilter(data=data, prior_scale=100.0)
 
     @patch("argus.io_manager.get_argus_logger")
     def test_default_is_diffuse(self, mock_logger):
