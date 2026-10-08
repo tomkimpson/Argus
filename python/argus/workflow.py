@@ -77,8 +77,9 @@ def setup_data_and_kalman_filter(config, logger, use_gw, signal_model="gwb"):
             phase_parameterization=phase_parameterization,
         )
     else:
+        # Diffuse (flat) timing-model prior by default; see JaxKalmanFilter.timing_prior.
         timing_prior = config.get(
-            "PriorModel", "timing_prior", fallback="informative"
+            "PriorModel", "timing_prior", fallback="diffuse"
         ).strip()
         prior_scale = config.getfloat("PriorModel", "prior_scale", fallback=1.0)
         logger.info(

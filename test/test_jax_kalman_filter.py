@@ -314,7 +314,10 @@ class TestMaskedFilterEquivalence:
         )
 
         kf_default = jax_kalman_filter.JaxKalmanFilter(
-            data=sample_pulsar_data, use_gw=True, use_marginal=use_marginal
+            data=sample_pulsar_data,
+            use_gw=True,
+            use_marginal=use_marginal,
+            timing_prior="informative",
         )
         ll_default = kf_default.get_likelihood(params)
 
@@ -325,7 +328,10 @@ class TestMaskedFilterEquivalence:
         data_masked["processed_residuals"] = residuals
 
         kf_masked = jax_kalman_filter.JaxKalmanFilter(
-            data=data_masked, use_gw=True, use_marginal=use_marginal
+            data=data_masked,
+            use_gw=True,
+            use_marginal=use_marginal,
+            timing_prior="informative",
         )
         ll_masked = kf_masked.get_likelihood(params)
 
@@ -436,7 +442,10 @@ class TestMaskedFilterEquivalence:
                 "mask": mask,
             }
             return jax_kalman_filter.JaxKalmanFilter(
-                data=data, use_gw=True, use_marginal=use_marginal
+                data=data,
+                use_gw=True,
+                use_marginal=use_marginal,
+                timing_prior="informative",
             ).get_likelihood(params)
 
         ll_a = ll_with(base["residuals"][:, 1], base["errors"][:, 1])
@@ -497,6 +506,7 @@ class TestMaskBackendSelection:
             data=self._with_mask(sample_pulsar_data),
             use_gw=True,
             use_marginal=False,
+            timing_prior="informative",
         )
         assert kf.use_marginal is False
 
@@ -690,10 +700,10 @@ class TestMarginalFilter:
         data = _realistic_pulsar_data()
 
         kf_seq = jax_kalman_filter.JaxKalmanFilter(
-            data=data, use_gw=True, use_marginal=False
+            data=data, use_gw=True, use_marginal=False, timing_prior="informative"
         )
         kf_marg = jax_kalman_filter.JaxKalmanFilter(
-            data=data, use_gw=True, use_marginal=True
+            data=data, use_gw=True, use_marginal=True, timing_prior="informative"
         )
 
         ll_seq = kf_seq.get_likelihood(self._params())
@@ -712,10 +722,10 @@ class TestMarginalFilter:
         data = _realistic_pulsar_data()
 
         kf_seq = jax_kalman_filter.JaxKalmanFilter(
-            data=data, use_gw=False, use_marginal=False
+            data=data, use_gw=False, use_marginal=False, timing_prior="informative"
         )
         kf_marg = jax_kalman_filter.JaxKalmanFilter(
-            data=data, use_gw=False, use_marginal=True
+            data=data, use_gw=False, use_marginal=True, timing_prior="informative"
         )
 
         ll_seq = kf_seq.get_likelihood(self._params())
@@ -857,6 +867,18 @@ class TestDiffuseFilter:
             )
         with pytest.raises(ValueError, match="timing_prior"):
             jax_kalman_filter.JaxKalmanFilter(data=data, timing_prior="bogus")
+        with pytest.raises(ValueError, match="prior_scale"):
+            jax_kalman_filter.JaxKalmanFilter(data=data, prior_scale=100.0)
+
+    @patch("argus.io_manager.get_argus_logger")
+    def test_default_is_diffuse(self, mock_logger):
+        """The flat timing prior is the default; the informative one must be asked for."""
+        mock_logger.return_value = Mock()
+        data = _realistic_pulsar_data()
+
+        assert jax_kalman_filter.JaxKalmanFilter(data=data).timing_prior == "diffuse"
+        kf = jax_kalman_filter.JaxKalmanFilter(data=data, timing_prior="informative")
+        assert kf.timing_prior == "informative"
 
     @patch("argus.io_manager.get_argus_logger")
     def test_diffuse_finite_and_shape(self, mock_logger):
@@ -884,13 +906,17 @@ class TestDiffuseFilter:
         kf_diffuse = jax_kalman_filter.JaxKalmanFilter(
             data=data, timing_prior="diffuse"
         )
-        kf_base = jax_kalman_filter.JaxKalmanFilter(data=data, prior_scale=1.0)
+        kf_base = jax_kalman_filter.JaxKalmanFilter(
+            data=data, prior_scale=1.0, timing_prior="informative"
+        )
         ll_diffuse = kf_diffuse.get_likelihood(params)
         _, logdet_Pinv_base = jnp.linalg.slogdet(kf_base.P_eps_inv)
         M_sum = int(kf_diffuse.M_sum)
 
         def predicted(alpha):
-            kf_a = jax_kalman_filter.JaxKalmanFilter(data=data, prior_scale=alpha)
+            kf_a = jax_kalman_filter.JaxKalmanFilter(
+                data=data, prior_scale=alpha, timing_prior="informative"
+            )
             ll_a = kf_a.get_likelihood(params)
             return ll_a - 0.5 * logdet_Pinv_base + 0.5 * M_sum * jnp.log(alpha)
 

@@ -908,6 +908,11 @@ def _data_fingerprint(kalman_filter):
                 np.asarray(kalman_filter.jax_data), dtype=np.float64
             ).tobytes()
         ).hexdigest()[:16],
+        # Likelihood options that no config key is guaranteed to record: the timing
+        # prior's default changed (PR #121), so a run started under one default could
+        # otherwise resume under the other and concatenate draws from two likelihoods.
+        "timing_prior": str(getattr(kalman_filter, "timing_prior", "informative")),
+        "prior_scale": float(getattr(kalman_filter, "prior_scale", 1.0)),
     }
 
 

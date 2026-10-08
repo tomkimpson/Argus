@@ -521,3 +521,28 @@ def test_checkpointing_overhead_is_bounded(tmp_path, staged_pulsar):
         f"\ncheckpoint overhead: {per_segment:.2f} s per segment "
         f"(baseline {baseline:.2f} s, checkpointed {protected:.2f} s)"
     )
+
+
+def test_fingerprint_separates_timing_priors():
+    """A run must not resume under a different timing prior than it started with."""
+    from types import SimpleNamespace
+
+    from argus import bayesian_inference
+
+    def kf(timing_prior, prior_scale=1.0):
+        return SimpleNamespace(
+            hellings_downs_matrix=np.eye(2),
+            Npsr=2,
+            jax_data=np.zeros((3, 2)),
+            M_sum=4,
+            timing_prior=timing_prior,
+            prior_scale=prior_scale,
+        )
+
+    def fp(f):
+        return checkpointing.run_fingerprint(
+            {"data": bayesian_inference._data_fingerprint(f)}
+        )
+
+    assert fp(kf("diffuse")) != fp(kf("informative"))
+    assert fp(kf("informative")) != fp(kf("informative", 100.0))
