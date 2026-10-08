@@ -61,6 +61,36 @@ class TestSetupDataAndKalmanFilter:
         call_kwargs = mock_kf_class.call_args[1]
         assert call_kwargs["use_gw"] is False
 
+    @pytest.mark.parametrize(
+        "setting, expected",
+        [(None, "diffuse"), ("diffuse", "diffuse"), ("informative", "informative")],
+    )
+    @patch("argus.jax_kalman_filter.JaxKalmanFilter")
+    @patch("argus.data_loader.LoadWidebandPulsarData.get_processed_residuals")
+    def test_timing_prior_defaults_to_diffuse(
+        self,
+        mock_get_residuals,
+        mock_kf_class,
+        setting,
+        expected,
+        mock_config,
+        mock_logger,
+    ):
+        """A config without timing_prior gets the diffuse prior; an explicit one is kept."""
+        mock_get_residuals.return_value = {
+            "processed_residuals": {},
+            "metadata": Mock(),
+        }
+        mock_kf_class.return_value = Mock()
+        mock_config.set("Data", "data_path", "/path/to/data")
+        mock_config.set("Data", "excluded_psrs", "")
+        if setting is not None:
+            mock_config.set("PriorModel", "timing_prior", setting)
+
+        workflow.setup_data_and_kalman_filter(mock_config, mock_logger, use_gw=True)
+
+        assert mock_kf_class.call_args[1]["timing_prior"] == expected
+
     @patch("argus.jax_kalman_filter.JaxKalmanFilter")
     @patch("argus.data_loader.LoadWidebandPulsarData.get_processed_residuals")
     def test_pulsar_exclusion(

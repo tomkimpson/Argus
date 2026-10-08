@@ -107,14 +107,17 @@ def test_all_ones_mask_preserves_the_informative_golden(mdc2):
     """An all-ones mask on the marginal path reproduces 63618.93 bit-for-bit."""
     data, params = mdc2
     unmasked = float(
-        jk.JaxKalmanFilter(data=data, use_gw=True, use_marginal=True).get_likelihood(
-            params
-        )
+        jk.JaxKalmanFilter(
+            data=data, use_gw=True, use_marginal=True, timing_prior="informative"
+        ).get_likelihood(params)
     )
     ones = np.ones_like(data["processed_residuals"]["residuals"])
     masked = float(
         jk.JaxKalmanFilter(
-            data=with_mask(data, ones), use_gw=True, use_marginal=True
+            data=with_mask(data, ones),
+            use_gw=True,
+            use_marginal=True,
+            timing_prior="informative",
         ).get_likelihood(params)
     )
     assert abs(unmasked - 63618.93) < 1.0
@@ -165,14 +168,14 @@ def test_masked_marginal_agrees_with_masked_sequential(mock_logger, occupancy):
     )
 
     sequential = float(
-        jk.JaxKalmanFilter(data=masked, use_gw=True, use_marginal=False).get_likelihood(
-            params
-        )
+        jk.JaxKalmanFilter(
+            data=masked, use_gw=True, use_marginal=False, timing_prior="informative"
+        ).get_likelihood(params)
     )
     marginal = float(
-        jk.JaxKalmanFilter(data=masked, use_gw=True, use_marginal=True).get_likelihood(
-            params
-        )
+        jk.JaxKalmanFilter(
+            data=masked, use_gw=True, use_marginal=True, timing_prior="informative"
+        ).get_likelihood(params)
     )
     np.testing.assert_allclose(marginal, sequential, rtol=1e-9)
 
@@ -206,12 +209,12 @@ def test_fully_absent_pulsar_offset_is_parameter_independent(mock_logger):
         reduced_params = _params_for(n_psr - 1, ha)
         masked_ll = float(
             jk.JaxKalmanFilter(
-                data=masked, use_gw=True, use_marginal=True
+                data=masked, use_gw=True, use_marginal=True, timing_prior="informative"
             ).get_likelihood(full_params)
         )
         reduced_ll = float(
             jk.JaxKalmanFilter(
-                data=reduced, use_gw=True, use_marginal=True
+                data=reduced, use_gw=True, use_marginal=True, timing_prior="informative"
             ).get_likelihood(reduced_params)
         )
         gaps.append(masked_ll - reduced_ll)
@@ -249,7 +252,7 @@ def test_absent_pulsar_data_cannot_influence_the_likelihood(mock_logger):
         }
         return float(
             jk.JaxKalmanFilter(
-                data=altered, use_gw=True, use_marginal=True
+                data=altered, use_gw=True, use_marginal=True, timing_prior="informative"
             ).get_likelihood(params)
         )
 
@@ -298,7 +301,10 @@ def test_empty_epoch_receives_no_update(mock_logger, use_marginal):
         }
         return float(
             jk.JaxKalmanFilter(
-                data=altered, use_gw=True, use_marginal=use_marginal
+                data=altered,
+                use_gw=True,
+                use_marginal=use_marginal,
+                timing_prior="informative",
             ).get_likelihood(params)
         )
 
@@ -359,7 +365,12 @@ def test_masked_marginal_gradients_are_finite(mock_logger, mask_kind):
     elif mask_kind == "absent_pulsar":
         mask[:, 1] = 0.0
 
-    kf = jk.JaxKalmanFilter(data=with_mask(data, mask), use_gw=True, use_marginal=True)
+    kf = jk.JaxKalmanFilter(
+        data=with_mask(data, mask),
+        use_gw=True,
+        use_marginal=True,
+        timing_prior="informative",
+    )
 
     def logl(log10_ha, log10_gamma_a, log10_gamma_p, log10_sigma_p, efac, equad):
         return bayesian_inference.log_likelihood_fn(

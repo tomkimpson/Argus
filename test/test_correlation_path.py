@@ -133,7 +133,12 @@ def mdc2_setup():
 def test_epsilon_one_reproduces_the_golden_likelihood(mdc2_setup, use_marginal):
     """Task 1.1: switching the path on at eps=1 must not move the golden value."""
     pulsar_data, make_params = mdc2_setup
-    kf = jk.JaxKalmanFilter(data=pulsar_data, use_gw=True, use_marginal=use_marginal)
+    kf = jk.JaxKalmanFilter(
+        data=pulsar_data,
+        use_gw=True,
+        use_marginal=use_marginal,
+        timing_prior="informative",
+    )
 
     without_path = float(kf.get_likelihood(make_params(orf_epsilon=None)))
     at_epsilon_one = float(kf.get_likelihood(make_params(orf_epsilon=1.0)))
@@ -170,9 +175,17 @@ def test_epsilon_zero_matches_the_curn_construction(mdc2_setup, use_marginal):
     n_psr = np.asarray(pulsar_data["hd_correlation"]).shape[0]
     curn_data["hd_correlation"] = np.eye(n_psr, dtype=float)
 
-    kf_curn = jk.JaxKalmanFilter(data=curn_data, use_gw=True, use_marginal=use_marginal)
+    kf_curn = jk.JaxKalmanFilter(
+        data=curn_data,
+        use_gw=True,
+        use_marginal=use_marginal,
+        timing_prior="informative",
+    )
     kf_path = jk.JaxKalmanFilter(
-        data=pulsar_data, use_gw=True, use_marginal=use_marginal
+        data=pulsar_data,
+        use_gw=True,
+        use_marginal=use_marginal,
+        timing_prior="informative",
     )
 
     curn_likelihood = float(kf_curn.get_likelihood(make_params(orf_epsilon=None)))
