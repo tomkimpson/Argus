@@ -456,3 +456,173 @@ def test_evaluate_refuses_a_config_without_an_explicit_timing_prior(ps, tmp_path
     cfg.write_text("[Data]\ndata_path = .\n\n[PriorModel]\norf_path = fixed\n")
     with pytest.raises(ValueError, match="timing_prior"):
         ps.evaluate_integrand(str(tmp_path / "unused.nc"), str(cfg))
+
+
+# ---------------------------------------------------------------------------
+# GW+noise vs noise-only: Savage-Dickey on a region of the pivot log-PSD
+# ---------------------------------------------------------------------------
+#
+# Toy with a closed form: prior s ~ N(0, 1) and likelihood L(s) = 1 + K N(s; s0, w),
+# which is flat (= the noise-only value 1) away from the bump. Then
+#     Z_noise = 1,  Z = 1 + K N(s0; 0, sqrt(1 + w^2)),  ln B(model/noise) = ln Z,
+# and the posterior is an exact mixture: the prior with weight 1/Z, else the
+# product Gaussian N(s0 / (1 + w^2), w^2 / (1 + w^2)).
+
+
+@pytest.fixture(scope="module")
+def gvn():
+    return _load_script("lnb_gw_vs_noise")
+
+
+def _bump_posterior(k, s0=2.5, w=0.3, n_chain=4, n_draw=4000, seed=0):
+    from scipy.stats import norm
+
+    z = 1.0 + k * norm.pdf(s0, 0.0, math.sqrt(1.0 + w**2))
+    rng = np.random.default_rng(seed)
+    from_prior = rng.uniform(size=(n_chain, n_draw)) < 1.0 / z
+    bump = rng.normal(s0 / (1 + w**2), w / math.sqrt(1 + w**2), size=(n_chain, n_draw))
+    return np.where(from_prior, rng.normal(size=(n_chain, n_draw)), bump), math.log(z)
+
+
+@pytest.mark.parametrize("k", [0.0, 5.0, 30.0])
+def test_region_savage_dickey_recovers_the_analytic_bayes_factor(gvn, k):
+    """With a flat noise-only tail the region ratio is exact at every threshold."""
+    prime, truth = _bump_posterior(k)
+    gamma = np.random.default_rng(9).normal(size=prime.shape)
+    res = gvn.analyse(prime, gamma)
+    assert res["reliable"], res["failed_diagnostics"]
+    assert abs(res["ln_bayes_factor"] - truth) < 3.0 * res["uncert"]
+
+
+def test_region_savage_dickey_flags_a_likelihood_that_is_not_flat(gvn):
+    """A likelihood still rising into the tail (posterior N(-1, 1)) has no plateau."""
+    prime = np.random.default_rng(4).normal(-1.0, 1.0, size=(4, 4000))
+    res = gvn.analyse(prime)
+    assert not res["reliable"]
+    assert any("not plateaued" in m for m in res["failed_diagnostics"])
+    assert res["ln_bayes_factor"] is None
+
+
+def test_region_savage_dickey_refuses_a_strong_signal(gvn):
+    """No draws at low amplitude means no estimate, not a silent extrapolation."""
+    prime = np.random.default_rng(5).normal(3.0, 0.3, size=(4, 4000))
+    res = gvn.analyse(prime)
+    assert not res["reliable"]
+    assert res["ln_bayes_factor"] is None
+
+
+def test_region_savage_dickey_flags_a_non_prior_like_nuisance(gvn):
+    """gamma_a constrained inside the region means the region is not noise-only."""
+    prime = np.random.default_rng(6).normal(size=(4, 4000))
+    gamma = np.random.default_rng(7).normal(1.5, 0.3, size=(4, 4000))
+    res = gvn.analyse(prime, gamma)
+    assert any("gamma_a not prior-like" in m for m in res["failed_diagnostics"])
+
+
+# ---------------------------------------------------------------------------
+# Occam budget (diag_occam_budget.py): KL identity and prior-restriction reweighting
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def occ():
+    return _load_script("diag_occam_budget")
+
+
+def test_block_kl_recovers_the_analytic_occam_factor(occ):
+    """Gaussian posterior N(m, s^2 I) inside a wide uniform box of side W.
+
+    KL = 2 ln W - ln(2 pi e s^2), and <ln L> - KL must equal ln Z = -2 ln W.
+    """
+    w, s, n = 8.0, 0.3, 4000
+    rng = np.random.default_rng(11)
+    x = rng.normal(0.0, s, size=(n, 2))
+    chain = np.repeat(np.arange(4), n // 4)
+    res = occ.block_kl(x, chain, occ.uniform_cross_entropy([(-w / 2, w / 2)] * 2))
+    truth = 2 * math.log(w) - math.log(2 * math.pi * math.e * s**2)
+    assert abs(res["kl_gauss"] - truth) < 0.05
+    assert abs(res["kl_knn"] - truth) < 0.1
+    mean_loglike = -math.log(2 * math.pi * s**2) - 1.0
+    assert abs((mean_loglike - res["kl_knn"]) - (-2 * math.log(w))) < 0.1
+
+
+def test_restricted_lnb_matches_the_analytic_shift(occ):
+    """x | noise ~ N(-1, 1), x | signal ~ N(1, 1), P(noise) = 0.3, R = {x < 0}."""
+    from scipy.stats import norm
+
+    rng = np.random.default_rng(12)
+    below = rng.uniform(size=(4, 20000)) < 0.3
+    x = np.where(below, rng.normal(-1, 1, below.shape), rng.normal(1, 1, below.shape))
+    res = occ.restricted_lnb(x < 0, below)
+    p_noise = norm.cdf(1.0)
+    p_post = 0.3 * p_noise + 0.7 * norm.cdf(-1.0)
+    truth = math.log(p_post) - math.log(p_noise)
+    assert abs(res["dlnb"] - truth) < 4 * res["dlnb_se"]
+    full = occ.restricted_lnb(np.ones_like(below), below)
+    assert full["dlnb"] == 0.0
+
+
+# ---------------------------------------------------------------------------
+# Spectral prior volume (diag_spectral_prior_volume.py): fast likelihood, kernels
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(scope="module")
+def spv():
+    return _load_script("diag_spectral_prior_volume")
+
+
+def test_amplitude_line_matches_direct_gaussian(spv):
+    """One eigendecomposition reproduces ln N(y; 0, B + aU) and its expectation."""
+    from scipy.stats import multivariate_normal
+
+    rng = np.random.default_rng(21)
+    n = 12
+    x = rng.normal(size=(n, n))
+    base = x @ x.T + n * np.eye(n)
+    z = rng.normal(size=(n, 4))
+    shape = z @ z.T  # rank-deficient, as a Fourier-basis red noise is
+    q = rng.normal(size=(n, n))
+    c_true = q @ q.T + np.eye(n)
+    y = rng.normal(size=n)
+    amps = np.array([0.0, 1e-3, 0.7, 50.0])
+    data, asimov = spv.amplitude_line(base, shape, amps, y, c_true)
+    for k, a in enumerate(amps):
+        c = base + a * shape
+        assert data[k] == pytest.approx(multivariate_normal(cov=c).logpdf(y), abs=1e-8)
+        _, logdet = np.linalg.slogdet(c)
+        expect = -0.5 * (np.trace(np.linalg.solve(c, c_true)) + logdet
+                         + n * math.log(2 * math.pi))
+        assert asimov[k] == pytest.approx(expect, abs=1e-8)
+
+
+def test_ou_covariance_matches_its_psd_after_projection(spv):
+    """Closed-form integrated-OU covariance == the one-sided PSD integral, mid-band corner.
+
+    Both are projected off a quadratic timing model, which removes the non-stationary
+    and below-band parts the PSD integral cannot represent.
+    """
+    t = np.sort(np.random.default_rng(22).uniform(0, 15 * 3.156e7, 120))
+    m = np.column_stack([np.ones_like(t), t / t.max(), (t / t.max()) ** 2])
+    g = spv.projector(m / np.linalg.norm(m, axis=0))
+    lg, f0 = -7.5, 300.0
+    closed = g.T @ spv.ou_covariance(t, lg, f0) @ g
+    gam = 10.0**lg
+
+    def psd(f):
+        w = 2 * math.pi * f
+        return 2.0 / f0**2 / (w**2 * (gam**2 + w**2))
+
+    kern = spv.StationaryKernel(t, t.max() - t.min())
+    numeric = g.T @ kern(psd) @ g
+    rel = np.linalg.norm(closed - numeric) / np.linalg.norm(closed)
+    assert rel < 0.05
+
+
+def test_log_evidence_recovers_a_gaussian_integral(spv):
+    """ln of the prior average of a 2-D Gaussian likelihood well inside a uniform box."""
+    s = np.linspace(-3, 3, 241)
+    a = np.linspace(-5, 5, 401)
+    lnl = -0.5 * ((s[:, None] / 0.4) ** 2 + (a[None, :] / 0.3) ** 2)
+    truth = math.log(2 * math.pi * 0.4 * 0.3) - math.log(6.0 * 10.0)
+    assert spv.log_evidence(lnl) == pytest.approx(truth, abs=1e-4)
