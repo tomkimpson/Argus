@@ -1,5 +1,46 @@
 # Research log
 
+## 2026-10-08 to 2026-10-10 — 1b GW-vs-noise deficit traced to the informative timing prior; diffuse is now the default
+
+**Goal.** Explain why Argus got lnB(GW+noise / noise-only) ≈ 0 on MDC2 1b (CURN −0.47, HD +0.14) where Hazboun et al. get +3.1 / +3.7, and fix it.
+
+**What was tried.**
+- **Red-noise prior volume** (`scripts/diag_spectral_prior_volume.py`). For each pulsar it computes lnB(GW at truth / noise) on a grid over the red-noise prior, under the OU prior and under enterprise's power law (30 Fourier modes). It uses both the real residuals (timing model G-projected out) and the Asimov expectation. Implementation details:
+  - one eigendecomposition per spectral shape gives every amplitude in O(n);
+  - the OU covariance uses the closed form for an integrated OU process, so there is no PSD truncation.
+- **The GW model** (`scripts/diag_curn_static_lnb.py`). This integrates the GW parameters too, giving a static-Gaussian CURN lnB for each GW model × red-noise prior.
+  - GW models: power law with γ = 13/3, power law with free γ, OU uniform, and OU under the Gaussian prior NUTS actually uses.
+  - It runs with 33 workers, about 4 minutes; a finer grid took about 30 minutes.
+- **The likelihood itself** (`scripts/diag_kalman_vs_static.py`). At 24 stored posterior draws it compares the Kalman dlogL(GW pivot) sweep with the static Gaussian sweep at identical parameters. There is a `--timing-prior` override.
+- **Confirmation runs.** A 1b rerun with `timing_prior = diffuse`:
+  - `configs/mdc2_d1_flat_diffuse_eps*.ini`, which change only that key from `flat_uprior`;
+  - the library pinned to worktree `Argus-diffuse` at fa65942;
+  - all five rungs, then the path-sampling readout.
+
+**What was learned.**
+- **The red-noise prior is not the cause.** B(power law) − B(OU) is +0.17 over the 4 paying pulsars and +0.51 over all 33; the hypothesis needed about +3. The OU prior's GW-like mass is only 1.5–2× the power law's, and the per-pulsar likelihoods are too broad for that to matter. The earlier hypothesis (2026-10-07) is refuted.
+- **The GW model is not the cause.** Every GW-model × red-noise-prior pair gives static lnB(CURN / noise) of +4.5 to +5.5. Argus's exact model and priors give +4.59, the same on the finer grid, and the GW posterior peaks at the truth.
+- **The Kalman likelihood was the culprit.** Under the default informative timing prior, the Kalman and static dlogL curves differ by 30–120 nats, in both directions:
+  - with red noise on, the GW is penalised much harder;
+  - with red noise off, it is rewarded much more (+40 to +106 against +8 to +27).
+
+  With `timing_prior = diffuse` the two agree to 1–3 nats at all 24 draws. The informative GLS prior (MᵀN⁻¹M)⁻¹ is built from the white noise alone, so it leaves low-frequency power visible that a fitted timing model would absorb. That sharpens the GW-versus-red-noise discrimination artificially and creates the spurious low-amplitude mode.
+- **Diffuse rerun, GW versus noise.** Both endpoint rungs are unimodal at pivot −6.97 / −7.01 (truth −7.21), with r̂ ≤ 1.007 and 0 divergences. There are no draws below −8.9, against 28% below −10 under informative. `lnb_gw_vs_noise.py` refuses because the signal is too strong; the 95% lower bound is lnB ≳ +6 (CURN) and ≳ +5.7 (HD).
+- **Diffuse rerun, HD versus CURN.** lnB(HD/CURN) = 0.693 ± 0.003, flagged reliable, against 0.41 ± 0.03 under informative. Hazboun's implied value is about +0.6.
+
+**Decisions / dead ends.**
+- **PR #121 merged (7d1bb94).** `timing_prior` now defaults to diffuse, in both `JaxKalmanFilter` and the config fallback.
+  - Only the tests that genuinely need informative are pinned to it: the golden value, the sequential backend, zero-epoch pulsars, and α→∞ convergence.
+  - One /check-PR pass found three silent likelihood-mixing hazards, all fixed: the checkpoint fingerprint now includes timing_prior and prior_scale; the `lnb_path_sampling --evaluate` replay refuses a config without an explicit timing_prior; and prior_scale ≠ 1 under diffuse now raises.
+  - The pull_request.yml black job fails on pre-existing workflow scripts, as it did on #120; the test job passes.
+- **Not done: a certified lnB(CURN / noise) for diffuse 1b** (shifted-amplitude ladder or path sampling). It is a clear detection, and the exact number would not change any decision.
+- **Corrected from 2026-10-07.** The "modes balance on Occam" picture was real, but it was an artefact of the informative prior, not a property of the model.
+
+**Open threads.**
+- **Older results are now suspect.** Every informative-prior noise-only result needs re-examining: the 2b excess, the NG15 runs, and the scramble null and no-injection control.
+- **Old configs change meaning.** About 50 tracked configs don't set `timing_prior`, so they now run diffuse. Reproducing old results needs `timing_prior = informative`.
+- **Unexplained static-vs-sampled gap.** Static lnB(CURN / noise) is +4.6, but the sampled lower bound is ≳ +6. The Kalman diffuse filter sits 1–3 nats above static at matched points, which may explain it; it is not resolved.
+
 ## 2026-10-07 — 1b Occam budget: the red-noise mode pays for its better fit in amplitude, not γp width
 
 **Goal.** Test the leading hypothesis from 2026-10-06: the per-pulsar OU red-noise prior makes the "red noise instead of GW" explanation cheap on MDC2 1b, and that is why Argus gets lnB(model/noise) ≈ 0 where Hazboun gets +3.
