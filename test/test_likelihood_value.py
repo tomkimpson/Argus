@@ -90,7 +90,10 @@ def test_likelihood_value():
     # or integrated out analytically.
     for use_marginal in (False, True):
         KF = jk.JaxKalmanFilter(
-            data=pulsar_data, use_gw=True, use_marginal=use_marginal
+            data=pulsar_data,
+            use_gw=True,
+            use_marginal=use_marginal,
+            timing_prior="informative",
         )
         log_likelihood = KF.get_likelihood(params)
         backend = "marginal" if use_marginal else "sequential"

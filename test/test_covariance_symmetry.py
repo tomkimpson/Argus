@@ -32,7 +32,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 def _ill_scaled_problem(seed=0, n_psr=3):
     """A predicted covariance and observation shaped like the PTA problem: per pulsar,
     spin phase variance ~1e-5 observed through 1/f0 alongside a GW redshift variance
-    ~1e-10, measured to ~1e-13. That spread is what makes the Joseph product asymmetric."""
+    ~1e-10, measured to ~1e-13. That spread is what makes the Joseph product asymmetric.
+    """
     rng = np.random.default_rng(seed)
     n = 4 * n_psr
     scales = np.concatenate(
@@ -87,8 +88,12 @@ def _frozen_params(label, base, names):
 def filters(mdc2):  # noqa: F811
     pulsar_data, base = mdc2
     names = [str(n) for n in pulsar_data["metadata"]["name"]]
-    marginal = jk.JaxKalmanFilter(data=pulsar_data, use_gw=True, use_marginal=True)
-    sequential = jk.JaxKalmanFilter(data=pulsar_data, use_gw=True, use_marginal=False)
+    marginal = jk.JaxKalmanFilter(
+        data=pulsar_data, use_gw=True, use_marginal=True, timing_prior="informative"
+    )
+    sequential = jk.JaxKalmanFilter(
+        data=pulsar_data, use_gw=True, use_marginal=False, timing_prior="informative"
+    )
     return marginal, sequential, base, names
 
 

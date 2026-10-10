@@ -450,6 +450,14 @@ def test_refining_the_ladder_clears_the_discretisation_gate(ps):
     assert abs(res["ln_bayes_factor"] - _peaked_truth()) < 0.05
 
 
+def test_evaluate_refuses_a_config_without_an_explicit_timing_prior(ps, tmp_path):
+    """Replaying a rung under a default it was not sampled with must not be silent."""
+    cfg = tmp_path / "rung.ini"
+    cfg.write_text("[Data]\ndata_path = .\n\n[PriorModel]\norf_path = fixed\n")
+    with pytest.raises(ValueError, match="timing_prior"):
+        ps.evaluate_integrand(str(tmp_path / "unused.nc"), str(cfg))
+
+
 # ---------------------------------------------------------------------------
 # GW+noise vs noise-only: Savage-Dickey on a region of the pivot log-PSD
 # ---------------------------------------------------------------------------

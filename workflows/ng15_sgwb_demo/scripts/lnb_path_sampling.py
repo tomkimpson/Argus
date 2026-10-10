@@ -164,6 +164,16 @@ def evaluate_integrand(
     # harness reads them; resolve them the same way so this can be invoked from
     # anywhere rather than only from the workflow directory.
     config = utils.resolve_config_paths(config, config_path)
+    # The integrand must come from the likelihood the rungs were sampled under. The
+    # timing-prior default changed from informative to diffuse (PR #121), and a config
+    # that leaves it unset records nothing about which one its run used: replaying it
+    # under the new default would silently mix two likelihoods. Require it explicitly.
+    if not config.has_option("PriorModel", "timing_prior"):
+        raise ValueError(
+            f"{config_path} does not set [PriorModel] timing_prior. Set it to the prior "
+            f"the rungs were sampled under: runs made before the default became "
+            f"'diffuse' (PR #121) used 'informative'."
+        )
 
     # The Kalman filter logs through the package's own logger, which the run harness
     # normally initialises; do it here so this is usable outside a full run.

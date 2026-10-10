@@ -749,7 +749,7 @@ class JaxKalmanFilter:
         data: dict,
         use_gw: bool = True,
         use_marginal: bool | None = None,
-        timing_prior: str = "informative",
+        timing_prior: str = "diffuse",
         prior_scale: float = 1.0,
     ):
         """Initialize the class.
@@ -766,15 +766,21 @@ class JaxKalmanFilter:
                 4*Npsr, cutting the per-epoch O(d^3) update. Both backends support
                 per-epoch observation masks, so the default (None) selects the marginal
                 filter whether or not the data are masked.
-            timing_prior: Prior on the linearized timing-model parameters β. "informative"
-                (default) uses the data-matched GLS prior P_eps = (MᵀN⁻¹M)⁻¹ and reproduces
-                the golden likelihood. "diffuse" takes the flat/improper limit P_eps⁻¹ → 0
-                (the community-standard PTA treatment), fully projecting the timing-model
-                subspace out of the data; only supported on the marginal backend.
+            timing_prior: Prior on the linearized timing-model parameters β. "diffuse"
+                (default) takes the flat/improper limit P_eps⁻¹ → 0 (the community-standard
+                PTA treatment), fully projecting the timing-model subspace out of the data;
+                only supported on the marginal backend. "informative" uses the data-matched
+                GLS prior P_eps = (MᵀN⁻¹M)⁻¹ and reproduces the original golden likelihood;
+                the augmented-state backend (use_marginal=False) needs it. The informative
+                prior is built from the white noise alone, so it leaves low-frequency power
+                visible that a fitted timing model would absorb. On MDC2 1b that made the
+                GW-vs-noise-only Bayes factor ~0 instead of a clear detection, which is why
+                it is no longer the default.
             prior_scale: Multiplicative scale α on the informative prior covariance
-                (P_eps → α·P_eps, P_eps⁻¹ → P_eps⁻¹/α). Default 1.0 reproduces the golden
-                likelihood; large α weakens the prior toward the diffuse limit. Ignored when
-                timing_prior="diffuse".
+                (P_eps → α·P_eps, P_eps⁻¹ → P_eps⁻¹/α). With timing_prior="informative",
+                1.0 reproduces the golden likelihood and large α weakens the prior toward
+                the diffuse limit. Must be 1.0 when timing_prior="diffuse", which has no
+                scale to set.
         """
         get_logger().info("Initializing JaxKalmanFilter...")
 
@@ -783,6 +789,13 @@ class JaxKalmanFilter:
                 f"timing_prior must be 'informative' or 'diffuse', got {timing_prior!r}"
             )
         self.timing_prior = timing_prior
+        if timing_prior == "diffuse" and prior_scale != 1.0:
+            raise ValueError(
+                f"prior_scale={prior_scale} scales the informative timing prior, but "
+                f"timing_prior='diffuse' (the default) ignores it. Set "
+                f"timing_prior='informative' to use it."
+            )
+        self.prior_scale = prior_scale
 
         observations = data["processed_residuals"]
 
