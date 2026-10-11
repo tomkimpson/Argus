@@ -519,6 +519,33 @@ def test_region_savage_dickey_flags_a_non_prior_like_nuisance(gvn):
     assert any("gamma_a not prior-like" in m for m in res["failed_diagnostics"])
 
 
+def test_lower_bound_is_the_rule_of_three_on_independent_draws(gvn):
+    """No draws below c in n i.i.d. draws: ln B >= ln(Phi(c) n / 3.0)."""
+    from scipy.stats import norm
+
+    prime = np.random.default_rng(5).normal(3.0, 0.3, size=(4, 4000))
+    lb = gvn.lower_bound(prime, c=-0.5)
+    assert lb["n_below"] == 0
+    expect = math.log(norm.cdf(-0.5) * lb["ess"] / (0.5 * 5.991464547107979))
+    assert lb["ln_bayes_factor_lower"] == pytest.approx(expect)
+    assert lb["ess"] > 0.8 * prime.size
+
+
+@pytest.mark.parametrize("k", [0.0, 5.0, 30.0])
+def test_lower_bound_sits_below_the_analytic_bayes_factor(gvn, k):
+    prime, truth = _bump_posterior(k)
+    assert gvn.lower_bound(prime)["ln_bayes_factor_lower"] < truth
+
+
+def test_lower_bound_uses_effective_not_raw_draws(gvn):
+    """Strongly autocorrelated chains must give a weaker bound than i.i.d. ones."""
+    rng = np.random.default_rng(8)
+    iid = rng.normal(3.0, 0.3, size=(4, 4000))
+    sticky = np.repeat(iid[:, :400], 10, axis=1)
+    assert (gvn.lower_bound(sticky)["ln_bayes_factor_lower"]
+            < gvn.lower_bound(iid)["ln_bayes_factor_lower"] - 1.5)
+
+
 # ---------------------------------------------------------------------------
 # Occam budget (diag_occam_budget.py): KL identity and prior-restriction reweighting
 # ---------------------------------------------------------------------------

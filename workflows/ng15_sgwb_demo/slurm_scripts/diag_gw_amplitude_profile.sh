@@ -30,4 +30,5 @@ nvidia-smi -L
 
 time python -u "${ROOT}/scripts/diag_gw_amplitude_profile.py" \
     --run "${ROOT}/outputs/${RUN}" \
+    --timing-prior informative \
     --out "${ROOT}/outputs/diag_gw_amplitude_profile_${RUN}"

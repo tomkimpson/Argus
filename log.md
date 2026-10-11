@@ -20,12 +20,12 @@
 **What was learned.**
 - **The red-noise prior is not the cause.** B(power law) − B(OU) is +0.17 over the 4 paying pulsars and +0.51 over all 33; the hypothesis needed about +3. The OU prior's GW-like mass is only 1.5–2× the power law's, and the per-pulsar likelihoods are too broad for that to matter. The earlier hypothesis (2026-10-07) is refuted.
 - **The GW model is not the cause.** Every GW-model × red-noise-prior pair gives static lnB(CURN / noise) of +4.5 to +5.5. Argus's exact model and priors give +4.59, the same on the finer grid, and the GW posterior peaks at the truth.
-- **The Kalman likelihood was the culprit.** Under the default informative timing prior, the Kalman and static dlogL curves differ by 30–120 nats, in both directions:
+- **The Kalman likelihood was the culprit.** Under the default informative timing prior, the Kalman and static dlogL curves differ by 17–120 nats (max |difference| per draw), in both directions:
   - with red noise on, the GW is penalised much harder;
   - with red noise off, it is rewarded much more (+40 to +106 against +8 to +27).
 
   With `timing_prior = diffuse` the two agree to 1–3 nats at all 24 draws. The informative GLS prior (MᵀN⁻¹M)⁻¹ is built from the white noise alone, so it leaves low-frequency power visible that a fitted timing model would absorb. That sharpens the GW-versus-red-noise discrimination artificially and creates the spurious low-amplitude mode.
-- **Diffuse rerun, GW versus noise.** Both endpoint rungs are unimodal at pivot −6.97 / −7.01 (truth −7.21), with r̂ ≤ 1.007 and 0 divergences. There are no draws below −8.9, against 28% below −10 under informative. `lnb_gw_vs_noise.py` refuses because the signal is too strong; the 95% lower bound is lnB ≳ +6 (CURN) and ≳ +5.7 (HD).
+- **Diffuse rerun, GW versus noise.** Both endpoint rungs are unimodal at pivot −6.97 / −7.01 (truth −7.21), with r̂ ≤ 1.007 and 0 divergences. Only 1 (CURN) and 3 (HD) of 4000 draws fall below −8.9 (minimum −9.71), against 27.9% (CURN) and 17.7% (HD) below −10 under informative; the middle rung eps025 has a 0.3% tail below −10 (minimum −11.4), not a mode. `lnb_gw_vs_noise.py` refuses because the signal is too strong; its 95% lower bound is lnB ≥ +5.2 (CURN) and ≥ +4.8 (HD). *Corrected at PR #122 review (2026-10-11): the first quote, ≳ +6 / +5.7, was a hand rule of three on the raw 4000 draws; the bound now comes from the script and uses the pivot's tail ESS (1823 / 1422).*
 - **Diffuse rerun, HD versus CURN.** lnB(HD/CURN) = 0.693 ± 0.003, flagged reliable, against 0.41 ± 0.03 under informative. Hazboun's implied value is about +0.6.
 
 **Decisions / dead ends.**
@@ -39,7 +39,7 @@
 **Open threads.**
 - **Older results are now suspect.** Every informative-prior noise-only result needs re-examining: the 2b excess, the NG15 runs, and the scramble null and no-injection control.
 - **Old configs change meaning.** About 50 tracked configs don't set `timing_prior`, so they now run diffuse. Reproducing old results needs `timing_prior = informative`.
-- **Unexplained static-vs-sampled gap.** Static lnB(CURN / noise) is +4.6, but the sampled lower bound is ≳ +6. The Kalman diffuse filter sits 1–3 nats above static at matched points, which may explain it; it is not resolved.
+- **Static-vs-sampled gap (mostly closed).** Static lnB(CURN / noise) is +4.6 and the ESS-corrected sampled lower bound is ≥ +5.2, a ~0.6-nat gap. The Kalman diffuse filter sits 0.7–3 nats above static at matched points, which covers it.
 
 ## 2026-10-07 — 1b Occam budget: the red-noise mode pays for its better fit in amplitude, not γp width
 

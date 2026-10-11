@@ -17,13 +17,16 @@ pivot log-PSD s with everything else at the draw's values and records
 
 from the Kalman filter (``bayesian_inference.log_likelihood_fn``, GW off = log10_ha -30)
 and from the static Gaussian (per-pulsar G^T r ~ N(0, W + RN_OU + 10^s GW_OU), GW off =
-no GW term). Constants, including the Kalman timing-model prior, cancel in each
-difference. If the curves agree, the likelihood is fine. If the Kalman curve is lower,
+no GW term). Constant normalisations cancel in each difference, but the Kalman
+timing-model prior does NOT: it changes how much low-frequency power the timing model
+absorbs, so it reshapes dlogL(s). That is why --timing-prior is required (the library
+default changed to diffuse in PR #121, and the 1b run configs do not set it). The static
+side projects the timing model out, which is the diffuse limit. If the curves agree, the likelihood is fine. If the Kalman curve is lower,
 the filter is losing GW information. Both use CURN, with eps fixed at the run's value.
 
 Run on a GPU node:
     python scripts/diag_kalman_vs_static.py --run outputs/mdc2_d1_flat_uprior_eps000 \
-        --out outputs/diag_kalman_vs_static_mdc2_d1_flat_uprior_eps000
+        --timing-prior informative --out outputs/diag_kalman_vs_static_mdc2_d1_flat_uprior_eps000
 """
 
 import argparse
@@ -72,9 +75,9 @@ def main():
     p.add_argument("--out", required=True, help="Output prefix (.json/.npz/.png).")
     p.add_argument("--per-group", type=int, default=8)
     p.add_argument("--seed", type=int, default=0)
-    p.add_argument("--timing-prior", choices=("informative", "diffuse"), default=None,
-                   help="Override the run's Kalman timing prior. 'diffuse' is the flat-prior "
-                        "limit, which projects the timing model out as the static side does.")
+    p.add_argument("--timing-prior", choices=("informative", "diffuse"), required=True,
+                   help="Kalman timing prior. 'diffuse' is the flat-prior limit, which "
+                        "projects the timing model out as the static side does.")
     args = p.parse_args()
 
     import arviz as az
@@ -93,9 +96,8 @@ def main():
         config, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..",
                              "configs", os.path.basename(ini[0])))
     w = 2.0 * math.pi * config.getfloat("PriorModel", "gw_pivot_freq_hz")
-    if args.timing_prior:
-        config.set("PriorModel", "timing_prior", args.timing_prior)
-    timing_prior = config.get("PriorModel", "timing_prior", fallback="informative")
+    config.set("PriorModel", "timing_prior", args.timing_prior)
+    timing_prior = args.timing_prior
     print(f"Kalman timing prior: {timing_prior}")
     io_manager.setup_single_logger(config, enable_file_logging=False)
     logger = logging.getLogger("diag_kalman_vs_static")

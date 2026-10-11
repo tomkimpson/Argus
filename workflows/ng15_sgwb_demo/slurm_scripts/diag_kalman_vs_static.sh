@@ -3,7 +3,7 @@
 # (scripts/diag_kalman_vs_static.py). The Kalman side needs the GPU; the static side is
 # numpy on the host.
 #
-#   sbatch slurm_scripts/diag_kalman_vs_static.sh
+#   sbatch slurm_scripts/diag_kalman_vs_static.sh                  # informative (unsuffixed output)
 #   sbatch --export=ALL,TP=diffuse slurm_scripts/diag_kalman_vs_static.sh
 
 #SBATCH --job-name=kal_vs_static
@@ -18,8 +18,9 @@
 
 ROOT=/fred/oz022/tkimpson/Argus/workflows/ng15_sgwb_demo
 RUN="${RUN:-mdc2_d1_flat_uprior_eps000}"
-TP="${TP:-}"  # Kalman timing prior override: informative | diffuse
-SUFFIX="${TP:+_tp${TP}}"
+TP="${TP:-informative}"  # Kalman timing prior: informative | diffuse
+SUFFIX=""
+[ "${TP}" != informative ] && SUFFIX="_tp${TP}"
 
 source ~/.bashrc
 conda activate /fred/oz022/tkimpson/conda_envs/Argus
@@ -29,5 +30,5 @@ nvidia-smi -L
 
 time python -u "${ROOT}/scripts/diag_kalman_vs_static.py" \
     --run "${ROOT}/outputs/${RUN}" \
-    ${TP:+--timing-prior ${TP}} \
+    --timing-prior "${TP}" \
     --out "${ROOT}/outputs/diag_kalman_vs_static_${RUN}${SUFFIX}"

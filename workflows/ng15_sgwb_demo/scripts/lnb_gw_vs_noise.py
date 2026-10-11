@@ -30,6 +30,18 @@ that, and no headline number is reported without it. Like every density-ratio
 estimator, this is reliable when the signal is weak (the posterior keeps mass at low
 amplitude) and fails, visibly, when the detection is strong (no draws below c).
 
+For a strong detection the script still reports a one-sided LOWER BOUND. If at most
+an expected mu_up effective draws fall below c (a Poisson 95% upper limit on the
+observed count), then P_post(prime < c) <= mu_up / ESS and
+
+    ln B(model / noise) >= ln[ Phi(c) * ESS / mu_up ].
+
+ESS is an effective sample size, not the draw count, because neighbouring draws are
+correlated. It is the indicator's ESS, or the pivot's tail ESS when no draw falls below
+c (an all-zero indicator has no ESS of its own), whichever is smaller. This also needs the GW
+not to be DISFAVOURED below c (L >= L_noise there), which holds whenever the
+likelihood is flat or rising in s at that depth.
+
 Run (CPU, no JAX):
     python workflows/ng15_sgwb_demo/scripts/lnb_gw_vs_noise.py \
         --run outputs/mdc2_d1_flat_uprior_eps000 --run outputs/mdc2_d1_flat_uprior_eps100 \
@@ -45,7 +57,7 @@ import os
 import sys
 
 import numpy as np
-from scipy.stats import kstest, norm
+from scipy.stats import chi2, kstest, norm
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lnb_path_sampling import effective_sample_size  # noqa: E402
@@ -94,6 +106,30 @@ def threshold_estimate(prime, c):
     return out
 
 
+def lower_bound(prime, c=max(DEFAULT_THRESHOLDS), cl=0.95):
+    """One-sided ln B(model/noise) bound at threshold c (see the module docstring)."""
+    import arviz as az
+
+    prime = np.atleast_2d(np.asarray(prime, dtype=float))
+    indicator = (prime < c).astype(float)
+    frac = float(indicator.mean())
+    # The pivot's tail ESS stands in for the indicator's, which is undefined when no
+    # draw falls below c; take the smaller whenever the indicator has one.
+    ess = float(az.ess(prime, method="tail"))
+    if 0.0 < frac < 1.0:
+        ess = min(ess, effective_sample_size(indicator))
+    k_eff = frac * ess
+    mu_up = 0.5 * chi2.ppf(cl, 2.0 * (k_eff + 1.0))
+    frac_up = min(mu_up / ess, 1.0)
+    return {
+        "c": float(c),
+        "cl": cl,
+        "n_below": int(indicator.sum()),
+        "ess": ess,
+        "ln_bayes_factor_lower": float(math.log(norm.cdf(c) / frac_up)),
+    }
+
+
 def flatness_check(prime, gamma_prime, c):
     """KS test of the GW nuisance parameter against its N(0,1) prior inside the region.
 
@@ -106,7 +142,6 @@ def flatness_check(prime, gamma_prime, c):
     if sel.size < 20:
         return None
     # Thin so draws are closer to independent; KS assumes i.i.d.
-    n_chain, n_draw = prime.shape
     tau = max(prime.size / max(effective_sample_size(gamma_prime), 1.0), 1.0)
     step = max(int(round(tau)), 1)
     thinned = gamma_prime[:, ::step][prime[:, ::step] < c]
@@ -176,6 +211,7 @@ def analyse(prime, gamma_prime=None, thresholds=DEFAULT_THRESHOLDS):
         "reliable": reliable,
         "failed_diagnostics": failed,
         "flatness": flat,
+        "lower_bound": lower_bound(prime),
         "thresholds": rows,
     }
 
@@ -252,6 +288,11 @@ def print_report(name, res, mu, sigma):
                 f"  provisional ln B = {res['provisional_ln_bayes_factor']:+.3f} ± "
                 f"{res['provisional_uncert']:.3f}"
             )
+    lb = res["lower_bound"]
+    print(
+        f"  {lb['cl']:.0%} lower bound: ln B >= {lb['ln_bayes_factor_lower']:+.2f} "
+        f"(c={lb['c']}, {lb['n_below']} draws below, ESS {lb['ess']:.0f})"
+    )
 
 
 def plot(results, path):
@@ -321,10 +362,16 @@ def main():
     summary = {"runs": [res for _, res in results.values()]}
 
     by_eps = {res["orf_epsilon"]: res for _, res in results.values()}
-    if args.hd_curn and 0.0 in by_eps and 1.0 in by_eps:
+    pair = (by_eps.get(1.0), by_eps.get(0.0))
+    if args.hd_curn and None in pair:
+        args.hd_curn = None
+    elif args.hd_curn and None in [r["provisional_ln_bayes_factor"] for r in pair]:
+        print("\n  cross-check lnB(HD/CURN) skipped: no region estimate (signal too strong)")
+        args.hd_curn = None
+    if args.hd_curn:
         with open(args.hd_curn) as f:
             ps = json.load(f)
-        hd, curn = by_eps[1.0], by_eps[0.0]
+        hd, curn = pair
         diff = hd["provisional_ln_bayes_factor"] - curn["provisional_ln_bayes_factor"]
         # The two runs are independent chains, so their errors add in quadrature.
         sig = math.hypot(hd["provisional_uncert"], curn["provisional_uncert"])

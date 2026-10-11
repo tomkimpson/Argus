@@ -30,7 +30,7 @@ sampler, not the model.
 
     python scripts/diag_curn_static_lnb.py --data data/mdc2_d1_all \
         --truth-noise ../data/IPTA_MockDataChallenge2/group1_psr_noise.json \
-        --log10-a -15.18045606445813 --workers 32 \
+        --log10-a -15.18045606445813 --workers 33 \
         --out outputs/diag_curn_static_lnb_mdc2_d1.json
 """
 
@@ -54,8 +54,8 @@ SEC_PER_YEAR = 365.25 * 86400.0
 PIVOT_W = 2 * math.pi / (5.0 * SEC_PER_YEAR)  # Argus ridge pivot, f = 1/(5 yr)
 PL_GW = {"amp": (-18.0, -11.0), "gamma": (0.0, 7.0)}
 OU_GW = {"pivot": (-13.0, -5.0), "lga": (-11.0, -6.0)}
-OU_PIVOT_GRID = (-16.0, -5.0)
-FAILED = [0]  # per-process count of non-PD GW points  # wider than the uniform box, for the Gaussian prior's tail
+OU_PIVOT_GRID = (-16.0, -5.0)  # wider than the uniform box, for the Gaussian prior's tail
+FAILED = [0]  # per-process count of non-PD GW points
 
 
 def rng(lo, hi, step):
@@ -98,8 +98,10 @@ def gw_log_weights(grids):
         return norm.pdf(x, 0.5 * (lo + hi), (hi - lo) / 6.0) * trapezoid(x)
     w = np.outer(gauss(lga, *OU_GW["lga"]), gauss(piv, *OU_GW["pivot"]))
     out["ou_nuts"] = np.log(w / w.sum())
+    lo, hi = OU_GW["pivot"]
+    mid, sd = 0.5 * (lo + hi), (hi - lo) / 6.0
     out["ou_nuts_mass_on_grid"] = float(
-        (norm.cdf(OU_PIVOT_GRID[1], -9.0, 8 / 6) - norm.cdf(OU_PIVOT_GRID[0], -9.0, 8 / 6)))
+        norm.cdf(OU_PIVOT_GRID[1], mid, sd) - norm.cdf(OU_PIVOT_GRID[0], mid, sd))
     return out
 
 

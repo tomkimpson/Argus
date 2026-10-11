@@ -25,7 +25,7 @@ replaced by fixed values, to separate the spectral shape from the amplitude.
 
 Run on a GPU node (one A100 is plenty):
     python scripts/diag_gw_amplitude_profile.py \
-        --run outputs/mdc2_d1_flat_uprior_eps000 \
+        --run outputs/mdc2_d1_flat_uprior_eps000 --timing-prior informative \
         --out outputs/diag_gw_amplitude_profile_mdc2_d1_flat_uprior_eps000
 """
 
@@ -73,6 +73,9 @@ def main():
     )
     p.add_argument("--run", required=True, help="Run output dir (.nc + .ini).")
     p.add_argument("--out", required=True, help="Output prefix (.npz/.json/.png).")
+    p.add_argument("--timing-prior", choices=("informative", "diffuse"), required=True,
+                   help="Kalman timing prior. Required: the 1b run configs predate the "
+                        "diffuse default (PR #121) and do not set it.")
     p.add_argument("--per-group", type=int, default=20)
     p.add_argument("--seed", type=int, default=0)
     p.add_argument(
@@ -97,6 +100,7 @@ def main():
         raise SystemExit(f"{run_dir}: need exactly one .ini and one *_results.nc")
     config = configparser.ConfigParser()
     config.read(ini[0])
+    config.set("PriorModel", "timing_prior", args.timing_prior)
     if config.get("PriorModel", "gw_parameterization", fallback="direct") != "ridge":
         raise SystemExit("needs a ridge-parameterised run")
     # The copied .ini sits one level below the original config; data paths are
@@ -156,6 +160,7 @@ def main():
     )
 
     summary = {"run": os.path.basename(run_dir), "orf_epsilon": eps,
+               "timing_prior": args.timing_prior,
                "grid": grid.tolist(), "variants": variants, "groups": {}}
     for g, r in results.items():
         cv = r["curves"]
