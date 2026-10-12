@@ -8,8 +8,10 @@
 #
 # Each config is the rung template with ONE change, timing_prior = diffuse (inserted ahead of the
 # red-noise block, where mdc2_d1_flat_diffuse_* carries it), plus output_id
-# mdc2_d1_<KIND>_diffuse_eps<TAG>. Free check: null eps000 is CURN for any geometry, so its
-# integrand must match mdc2_d1_flat_diffuse_eps000 within MC error.
+# mdc2_d1_<KIND>_diffuse_eps<TAG>. Null eps000 is CURN for any geometry, so its POSTERIOR
+# matches mdc2_d1_flat_diffuse_eps000; its integrand does not (it depends on the ORF through
+# dC/d eps = Gamma - I). Confirm the scramble landed via "[SCRAMBLE] Overrode hd_correlation"
+# in the logs. (The config comments that say otherwise are kept byte-identical for provenance.)
 #
 # The library comes from a worktree pinned at 66e060a (main after PR #122). Its likelihood is
 # identical to the fa65942 one the flat_diffuse ladder used when timing_prior is explicit; the

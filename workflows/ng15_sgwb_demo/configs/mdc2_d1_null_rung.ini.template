@@ -31,9 +31,10 @@
 # borrowed from the signal run. This ladder is that full-warmup baseline.
 #
 # Note eps = 0 is CURN for ANY geometry -- correlation_path interpolates toward the
-# identity, which does not depend on the ORF. The eps000 rung must therefore reproduce
-# mdc2_d1_flat_eps000 (integrand 4.695 +/- 0.061) within MC error; that is a free check
-# that the override landed correctly.
+# identity, which does not depend on the ORF. So the eps000 *posterior* matches the signal
+# ladder's, but the eps000 *integrand* does NOT: it is d lnL/d eps with dC/d eps = Gamma - I,
+# which depends on the ORF. To confirm the override landed, grep the sampling and readout
+# logs for "[SCRAMBLE] Overrode hd_correlation".
 #
 # The rung value is substituted by the SLURM script; this file is the template and is not
 # run directly.

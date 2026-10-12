@@ -20,9 +20,10 @@
 # outcome informs.
 #
 # All five rungs are run fresh rather than reusing the existing eps000. At eps=0 the model
-# never touches the ORF (correlation_path interpolates toward the identity), so
-# mdc2_d1_null_eps000 MUST reproduce mdc2_d1_flat_eps000 (integrand 4.695 +/- 0.061) within
-# MC error -- a free check that the override landed. Array tasks run concurrently, so the
+# never touches the ORF (correlation_path interpolates toward the identity), so the
+# mdc2_d1_null_eps000 POSTERIOR matches mdc2_d1_flat_eps000's. Its integrand does not (it
+# depends on the ORF through dC/d eps = Gamma - I); confirm the override landed via
+# "[SCRAMBLE] Overrode hd_correlation" in the logs. Array tasks run concurrently, so the
 # fifth rung costs no wall clock.
 #
 # Read the Bayes factor afterwards with the WRAPPER, not the estimator directly:
