@@ -1,5 +1,32 @@
 # Research log
 
+## 2026-10-12 to 2026-10-13 — 1000-scramble ensemble: the 1b HD/CURN evidence is ~1σ against random geometries
+
+**Goal.** Decide whether the MDC2 1b diffuse-prior lnB(HD/CURN) = +0.693 is special relative to random sky geometries. One scramble had given +0.346, and N=1 cannot say.
+
+**What was tried.**
+- Reading `lnb_path_sampling.py` and `jax_kalman_filter.py` showed the eps 0 integrand is exactly linear in the ORF. C(eps) = (1−eps)I + eps·Γ, and C(0) = I for every Γ, so d lnL/d eps|₀ = Σ_ij G_ij (Γ − I)_ij with G = ∂lnL/∂C at C = I. One reverse-mode gradient per draw with respect to the full matrix (called with `orf_epsilon=None`, input = I) scores ANY number of scrambles by dot product. The 100-scramble proxy in the previous handoff became a 1000-scramble one at the same cost.
+- New `workflows/ng15_sgwb_demo/scripts/scramble_ensemble_eps0.py` and `slurm_scripts/scramble_ensemble_eps0.sh`. Job 18474671, milan CPU, ~1 h. Library = `Argus-diffuse` (fa65942), the one that read out the flat_diffuse ladder. Draws = `outputs/mdc2_d1_flat_diffuse_eps000` (4000).
+- Ensemble: `data/scrambles/mdc2_d1_scrambles_ens1000.npz` (seed 0, threshold 0.2, 1000/1000 accepted, mean match 0.034, max 0.18). Index 0 equals the old single scramble to 7e-16. Not committed: 5 MB, regenerable from seed 0.
+
+**What was learned.**
+- Validation passed at machine precision: on 100 draws the contraction matches the stock estimator's scalar d lnL/d eps per draw to ~1e-15, for both the true ORF and the old scramble 0. Over all draws it reproduces the stored 0.9930 and 0.4266.
+- **The true ORF's eps 0 integrand (0.993 ± 0.007) sits at the 88th percentile of 1000 scrambles: one-sided p = 0.12, z = 1.2.**
+- The scrambles have mean +0.03, std 0.78, 5–95% range [−1.09, +1.46], max 2.83. Per-scramble MC error is ~0.006, so the spread is geometric scatter, not noise.
+- The old single scramble (0.43) is near the ensemble median: it was never anomalous.
+- Conclusion: on 1b, lnB(HD/CURN) = +0.69 is a correct number but is not distinguishable from a random array geometry. That fits Hazboun's implied ~+0.6.
+- Per-draw G is saved in `outputs/scramble_ensemble_eps0_mdc2_d1_flat_diffuse.npz`, so new ensembles can be rescored for free.
+
+**Decisions / dead ends.**
+- The pre-registered scramble-null bar ("clearly negative") was wrong in general. Scrambles centre on zero, and their signs scatter both ways. This corrects the 2026-09-07 claim that a scramble on signal-bearing data must come out negative.
+- This is an eps 0-slope proxy p-value, not an lnB p-value: lnB is not linear in Γ.
+- Full ladders for random scrambles would waste GPU. If the proxy is ever confirmed at lnB level, run ladders only for the ~95th/99th-percentile scrambles (~60 GPU-h).
+- Corrected the misleading "eps000 integrand must reproduce the signal's" comments in `configs/mdc2_d1_null_rung.ini.template`, `slurm_scripts/mdc2_d1_controls_diffuse.sh` and `slurm_scripts/mdc2_d1_null_ladder.sh`. The five `mdc2_d1_null_diffuse_eps*.ini` run configs were left byte-identical, because `provenance.json` records their sha256.
+
+**Open threads.**
+- 2b under the diffuse prior: the eps 0 pivot excess, and whether it still samples. To be done on a fresh branch from main.
+- Optional lnB-level confirmation of the proxy, as above.
+
 ## 2026-10-11 to 2026-10-12 — 1b controls rerun under the diffuse timing prior: no-injection passes, scramble null comes out positive
 
 **Goal.** Re-validate the two MDC2 1b controls (sky-scramble null, no-injection control) under the diffuse timing prior, now the default (PR #121), against the diffuse signal ladder's lnB(HD/CURN) = 0.693 ± 0.003.
