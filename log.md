@@ -1,5 +1,56 @@
 # Research log
 
+## 2026-10-12 to 2026-10-13 — 1000-scramble ensemble: the 1b HD/CURN evidence is ~1σ against random geometries
+
+**Goal.** Decide whether the MDC2 1b diffuse-prior lnB(HD/CURN) = +0.693 is special relative to random sky geometries. One scramble had given +0.346, and N=1 cannot say.
+
+**What was tried.**
+- Reading `lnb_path_sampling.py` and `jax_kalman_filter.py` showed the eps 0 integrand is exactly linear in the ORF. C(eps) = (1−eps)I + eps·Γ, and C(0) = I for every Γ, so d lnL/d eps|₀ = Σ_ij G_ij (Γ − I)_ij with G = ∂lnL/∂C at C = I. One reverse-mode gradient per draw with respect to the full matrix (called with `orf_epsilon=None`, input = I) scores ANY number of scrambles by dot product. The 100-scramble proxy in the previous handoff became a 1000-scramble one at the same cost.
+- New `workflows/ng15_sgwb_demo/scripts/scramble_ensemble_eps0.py` and `slurm_scripts/scramble_ensemble_eps0.sh`. Job 18474671, milan CPU, ~1 h. Library = `Argus-diffuse` (fa65942), the one that read out the flat_diffuse ladder. Draws = `outputs/mdc2_d1_flat_diffuse_eps000` (4000).
+- Ensemble: `data/scrambles/mdc2_d1_scrambles_ens1000.npz` (seed 0, threshold 0.2, 1000/1000 accepted, mean match 0.034, max 0.18). Index 0 equals the old single scramble to 7e-16. Not committed: 5 MB, regenerable from seed 0.
+
+**What was learned.**
+- Validation passed at machine precision: on 100 draws the contraction matches the stock estimator's scalar d lnL/d eps per draw to ~1e-15, for both the true ORF and the old scramble 0. Over all draws it reproduces the stored 0.9930 and 0.4266.
+- **The true ORF's eps 0 integrand (0.993 ± 0.007) sits at the 88th percentile of 1000 scrambles: one-sided p = 0.12, z = 1.2.**
+- The scrambles have mean +0.03, std 0.78, 5–95% range [−1.09, +1.46], max 2.83. Per-scramble MC error is ~0.006, so the spread is geometric scatter, not noise.
+- The old single scramble (0.43) is near the ensemble median: it was never anomalous.
+- Conclusion: on 1b, lnB(HD/CURN) = +0.69 is a correct number but is not distinguishable from a random array geometry. That fits Hazboun's implied ~+0.6.
+- Per-draw G is saved in `outputs/scramble_ensemble_eps0_mdc2_d1_flat_diffuse.npz`, so new ensembles can be rescored for free.
+
+**Decisions / dead ends.**
+- The pre-registered scramble-null bar ("clearly negative") was wrong in general. Scrambles centre on zero, and their signs scatter both ways. This corrects the 2026-09-07 claim that a scramble on signal-bearing data must come out negative.
+- This is an eps 0-slope proxy p-value, not an lnB p-value: lnB is not linear in Γ.
+- Full ladders for random scrambles would waste GPU. If the proxy is ever confirmed at lnB level, run ladders only for the ~95th/99th-percentile scrambles (~60 GPU-h).
+- Corrected the misleading "eps000 integrand must reproduce the signal's" comments in `configs/mdc2_d1_null_rung.ini.template`, `slurm_scripts/mdc2_d1_controls_diffuse.sh` and `slurm_scripts/mdc2_d1_null_ladder.sh`. The five `mdc2_d1_null_diffuse_eps*.ini` run configs were left byte-identical, because `provenance.json` records their sha256.
+
+**Open threads.**
+- 2b under the diffuse prior: the eps 0 pivot excess, and whether it still samples. To be done on a fresh branch from main.
+- Optional lnB-level confirmation of the proxy, as above.
+
+## 2026-10-11 to 2026-10-12 — 1b controls rerun under the diffuse timing prior: no-injection passes, scramble null comes out positive
+
+**Goal.** Re-validate the two MDC2 1b controls (sky-scramble null, no-injection control) under the diffuse timing prior, now the default (PR #121), against the diffuse signal ladder's lnB(HD/CURN) = 0.693 ± 0.003.
+
+**What was tried.**
+- New SLURM script `workflows/ng15_sgwb_demo/slurm_scripts/mdc2_d1_controls_diffuse.sh` (`KIND=null|nogwb`, 5-rung array). It builds each config from `configs/mdc2_d1_{null,nogwb}_rung.ini.template` with one inserted line, `timing_prior = diffuse`, plus output id `mdc2_d1_<KIND>_diffuse_eps<TAG>`. Diffed against the old `_psym` configs before submitting: only those two lines change.
+- Library pinned to a new worktree, `/fred/oz022/tkimpson/Argus-controls-diffuse` at 66e060a. With timing_prior explicit, its likelihood is the same as fa65942 (the flat_diffuse ladder's library); only the #121 guards differ.
+- Jobs 18420976 (null, through `run_scrambled.py`) and 18420981 (nogwb). Each rung took ~5.5–6 h on 4×A100. Readouts: 18438184 (`lnb_scrambled_readout.sh`) and 18439205 (`lnb_readout.sh`), ~4 h each on CPU.
+
+**What was learned.**
+- All 10 rungs sampled cleanly: r̂ ≤ 1.010, 0 divergences.
+- **No-injection control: lnB = −0.071 ± 0.001, reliable.** PASSES the pre-registered |lnB| < 1 (informative era: −0.013).
+- **Scramble null: lnB = +0.346 ± 0.001, reliable.** FAILS its pre-registered bar ("clearly negative, well below +0.693"); informative era was −0.766. The ±0.001 is path-sampling MC precision only; scramble-to-scramble scatter is unknown from one scramble.
+- The scramble did reach both stages: the sampling log and the readout log (`outputs/logfiles/lnb_scr_readout_18438184.out`) both print the `[SCRAMBLE]` override with match 0.0025, and the integrands differ from the signal's on identical posteriors (eps 0: null 0.427 vs signal 0.993; eps 1: 0.284 vs 0.472).
+- The null and signal amplitude posteriors (`log10_ha` ≈ −13.31 ± 0.32) are identical at EVERY rung, not just eps 0. Under informative the null was ~3× wider at eps 0.75. So under diffuse the ORF carries little amplitude information, and the 0.69 vs 0.35 gap comes entirely from the integrand (signal ≈ 2× null at each rung). That fits weak but real cross-correlation evidence (Hazboun's implied HD/CURN is also ~+0.6), but it is a hypothesis, not a test result.
+
+**Decisions / dead ends.**
+- **Correction to the config comments (and to what was said this session):** "null eps000 integrand must reproduce the signal's eps000" is wrong. The eps 0 *posterior* is ORF-independent (it matches), but the eps 0 *integrand* is E[d lnL/dε] with dC/dε = Γ − I, which depends on the ORF. That check proves nothing; the `[SCRAMBLE]` log lines and the differing integrands are the real evidence that the override landed.
+- **Correction to 2026-10-0x memory (`project_null_scramble_result`):** "a scramble on signal-bearing data must be negative" held when the HD evidence was strong (3.04, Gaussian-"flat"/informative era). At 0.69 it is not a safe expectation from one scramble.
+
+**Open threads.**
+- The +0.693 HD/CURN is not certified until a scramble ensemble places the true ORF in the tail. Cheap route: generate N scrambles (`scripts/sky_scrambles.py`; the current npz holds 1), then evaluate the eps 0 integrand for each on the existing `mdc2_d1_flat_diffuse_eps000` draws (CPU only, valid because the eps 0 posterior is ORF-independent). See where 0.993 falls.
+- Still pending from the 2026-10-10 handoff: 2b under diffuse, worktree cleanup, the Gaussian-not-uniform priors issue.
+
 ## 2026-10-08 to 2026-10-10 — 1b GW-vs-noise deficit traced to the informative timing prior; diffuse is now the default
 
 **Goal.** Explain why Argus got lnB(GW+noise / noise-only) ≈ 0 on MDC2 1b (CURN −0.47, HD +0.14) where Hazboun et al. get +3.1 / +3.7, and fix it.
