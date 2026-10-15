@@ -22,5 +22,8 @@ dependencies:
       - tqdm==4.66.5
       - numpyro==0.16.1
       - arviz==0.20.0
+      - xarray==2026.9.0
+      - h5netcdf==1.8.1
+      - h5py==3.14.0
       - matplotlib==3.9.2
       - pytest==8.3.3
