@@ -458,16 +458,16 @@ therefore **pivots** with a named next step, not stops.
 **Goal:** retire the superseded plans so this spec is the single source of truth.
 **Done when:** `openspec/` is gone from main, issue #111 points at `spec/spec.md`, and PLAN.md
 carries a superseded banner.
-**PR:** _not started_
+**PR:** #127 (merged 2026-10-16)
 
-- [ ] 0.1 Delete `openspec/` (change + archive) in one commit; record in its message which
+- [x] 0.1 Delete `openspec/` (change + archive) in one commit; record in its message which
       tasks were done (groups 1–4) — verify by `git ls-files openspec | wc -l` = 0 and tests still pass.
       _(Note, 2026-10-16: there was no archive, only the change and `config.yaml`. Group 4
       was done except 4.3/4.4/4.6/4.7, which were deferred. The commit message records the
       exact state.)_
-- [ ] 0.2 Add a "superseded by spec/spec.md" banner to `workflows/ng15_sgwb_demo/PLAN.md` and
+- [x] 0.2 Add a "superseded by spec/spec.md" banner to `workflows/ng15_sgwb_demo/PLAN.md` and
       the top of `TASKS.md` — verify by grep for the banner.
-- [ ] 0.3 Comment on issue #111 pointing at the spec — verify by `gh api` read-back.
+- [x] 0.3 Comment on issue #111 pointing at the spec — verify by `gh api` read-back.
 
 ### Phase 1 — Reference baseline in Discovery (the cheapest killer)
 
