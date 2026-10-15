@@ -1,5 +1,9 @@
 # PLAN — SGWB detection on real NG15 wideband data with Argus
 
+> **⛔ SUPERSEDED by [`spec/spec.md`](../../spec/spec.md) (2026-10-16).** The SGWB detection
+> campaign now targets the NG15 *narrowband* data via Discovery's feathers; this wideband plan
+> and issue #111's M3 are retired. Kept for history only.
+
 > **⚠️ HISTORICAL (closed 2026-07-19).** This plan ran through T3.4 (6-pulsar lnB = 2.11 ± 0.12)
 > and T3.5's machinery, but the full-joint 68-pulsar NUTS run in acceptance item 4 was ruled
 > **unsamplable** (issue #109). Active work continues under the two-stage-noise roadmap in

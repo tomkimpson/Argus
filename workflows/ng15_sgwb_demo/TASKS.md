@@ -1,5 +1,9 @@
 # TASKS — NG15 wideband SGWB demo
 
+> **⛔ SUPERSEDED by [`spec/spec.md`](../../spec/spec.md) (2026-10-16).** The SGWB detection
+> campaign now targets the NG15 *narrowband* data via Discovery's feathers; this wideband task list
+> and issue #111's M3 are retired. Kept for history only.
+
 > Read [`PLAN.md`](./PLAN.md) first (context, environment, data paths, code reuse map).
 > Then do **the next unchecked task** below, in order. Each task lists its
 > dependency, whether it needs a GPU, the concrete work, and how to know it's done.
