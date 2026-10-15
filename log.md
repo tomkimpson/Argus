@@ -16,6 +16,12 @@
 - The posterior now has an upper-limit shape on every rung. The one-sided 95th percentile is −6.06 to −6.21, 0.1–0.26 dex above the injection, which sits inside the upper tail. That mirrors Hazboun et al.'s 2b upper limit of 1.4e-15 against 1.3e-15 injected. Sidedness trap: the sampled `log10_pivot_psd` is the TWO-sided density, so its raw percentiles (−6.36 to −6.51) must be shifted up by log10 2 = 0.301 before comparing with the injection or `check_mdc2_truth`.
 - **lnB(HD/CURN) = −0.252 ± 0.005 [reliable].** Integrands from eps 0 to 1: −0.300, −0.268, −0.243, −0.238, −0.211 (each ±0.01). The Romberg correction is −0.0009. The readout's suggested extra rungs (0.625, 0.875) were not run: the integrand is smooth and every diagnostic passes.
 - Hazboun's 2b HD/CRN rows give ln(2.3/2.6) = −0.12 (fixed WN) and ln(1.8/2.6) = −0.37 (free WN), so −0.25 sits inside that range. Their rows are each GW+noise vs noise-only, so this is a rough cross-check.
+- **GW+noise vs noise-only (after the PR #124 merge).** Savage-Dickey on a region, `workflows/ng15_sgwb_demo/scripts/lnb_gw_vs_noise.py` on the eps 0 and eps 1 rungs (CPU, ~1 min; `outputs/lnb_gw_vs_noise_mdc2_flat_diffuse.json`).
+  - lnB(CURN/noise) = +0.70 ± 0.12 (B ≈ 2.0); lnB(HD/noise) = +0.57 ± 0.11 (B ≈ 1.8).
+  - The plateau gate and the γa KS checks pass (p = 0.56, 0.78).
+  - Hazboun Table 5 for 2b gives CRN 2.6, HD 2.3 (fixed WN) and HD 1.8 (free WN). We fix WN from truth, so the fixed-WN row is the like-for-like one: we sit ~0.25 nats lower, within ~2σ. The CRN > HD ordering matches, and everything is below their B = 3 threshold.
+  - The difference HD/noise − CURN/noise = −0.13 ± 0.16 is consistent with the path-sampled −0.252.
+  - Caveat: the estimator uses the Gaussian pivot prior's Φ(c), so it is tied to issue #125.
 
 **Decisions / dead ends.**
 - Switching the timing prior to diffuse removes the residual 2b excess, the same lever as the 1b GW-vs-noise deficit (2026-10-09). This is a one-variable change against `mdc2_flat_uprior_eps000`.
@@ -28,8 +34,7 @@
 
 **Open threads.**
 - A 2b scramble ensemble is now cheap, via the eps 0 gradient trick on the `mdc2_flat_diffuse_eps000` draws. `slurm_scripts/scramble_ensemble_eps0.sh` hard-codes the 1b data path and ensemble name. Check that the pulsar ordering matches before reusing `mdc2_d1_scrambles_ens1000.npz`. It is low priority, since 2b is a non-detection.
-- GW+noise vs noise-only (`lnb_gw_vs_noise.py`) on 2b would compare directly with Hazboun's Table 5 (B ≈ 1–2.6).
-- Housekeeping from the 2026-10-13 handoff is still pending: remove the worktrees `Argus-diffuse-default`, `Argus-uprior` and `Argus-fix-psym` (keep `Argus-diffuse`), and file the issue for the remaining Gaussian-not-uniform NUTS priors.
+- Housekeeping done on 2026-10-15. Removed the worktrees `Argus-diffuse-default`, `Argus-uprior` and `Argus-fix-psym`; kept `Argus-diffuse` and `Argus-controls-diffuse`. Filed issue #125 for the remaining Gaussian-not-uniform NUTS priors (GW pivot/γa/ha, EFAC/EQUAD, CW/chi). On 2b the lower edge of the GW interval is set by that Gaussian prior. Fixing the pivot prior also means updating `lnb_gw_vs_noise.py`.
 - Noted arXiv:2610.08906 (Moreschi et al., t-process GWB spectrum plus per-frequency optimal statistic) as a possible future GW-model extension (memory `reference_tprocess_moreschi2026`).
 
 ## 2026-10-12 to 2026-10-13 — 1000-scramble ensemble: the 1b HD/CURN evidence is ~1σ against random geometries
