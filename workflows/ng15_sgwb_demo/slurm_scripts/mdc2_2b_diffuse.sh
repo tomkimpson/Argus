@@ -4,6 +4,14 @@
 # The configs (configs/mdc2_flat_diffuse_eps*.ini) are mdc2_flat_uprior_eps000.ini with only
 # orf_epsilon_value, timing_prior = diffuse and output_id changed. Apart from data_path and
 # output_id they are identical to the 1b ladder mdc2_d1_flat_diffuse_eps*.ini.
+# The "Original header" block inherited inside each config still calls it a template whose rung
+# the SLURM script substitutes. That is stale: these configs are run directly with eps fixed.
+# The configs are kept byte-identical because provenance.json records their sha256.
+#
+# Data: data_path = ../data/mdc2_all (gitignored). Build it once from the tracked par/tim files
+# (from the repo root, Argus env):
+#   python scripts/ingest_par_tim.py workflows/data/IPTA_MockDataChallenge2/dataset_2b \
+#       workflows/ng15_sgwb_demo/data/mdc2_all
 #
 # Same pinned library as the 1b diffuse ladder (worktree Argus-diffuse at fa65942). Between
 # fa65942 and main the library differs only in the timing_prior DEFAULT and the checkpoint

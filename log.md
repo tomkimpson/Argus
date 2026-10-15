@@ -11,16 +11,16 @@
 - eps 0 ran first (job 18496199) as a go/no-go. Its first checkpoint was checked per chain for freezing (step size, inverse mass, potential energy), not only for r̂. Rungs 1–4 followed (job 18516756), then the readout (job 18587581, `lnb_readout.sh`, `LADDER=mdc2_flat_diffuse`, 5.5 h on milan).
 
 **What was learned.**
-- **2b samples cleanly under diffuse.** All 5 rungs have 0 divergences, max r̂ ≤ 1.008 and min ESS ≥ 987. Every rung took ~6.5 h on 4×A100. No chain froze: on eps 0 the step sizes were 0.061–0.065 across chains and potential energies agreed within 7 nats.
-- **The eps 0 pivot excess is gone.** `check_mdc2_truth.py` gives a pivot (1/5 yr) log10 PSD of −7.19 ± 1.35, 95% CI [−10.8, −5.9], against the injected −6.32: −0.64σ. Under the informative prior the same rung (`mdc2_flat_uprior_eps000`) gave −5.55 ± 0.34, +2.28σ.
-- The posterior now has an upper-limit shape on every rung. The 95th percentile is −6.36 to −6.51, just under the injection. That mirrors Hazboun et al.'s 2b upper limit of 1.4e-15 against 1.3e-15 injected.
+- **2b samples cleanly under diffuse.** All 5 rungs have 0 divergences, max r̂ ≤ 1.008, min bulk ESS ≥ 987 and min tail ESS ≥ 605. Every rung took ~6.5 h on 4×A100. No chain froze: on eps 0 the step sizes were 0.061–0.065 across chains, and the final potential energies span 9 nats.
+- **The eps 0 pivot excess is gone.** `check_mdc2_truth.py` gives a one-sided pivot (1/5 yr) log10 PSD of −7.19 ± 1.35 (median ± sd; the mean is −7.60 because the posterior is skewed), 95% CI [−10.8, −5.9], against the injected −6.32: −0.64σ. Under the informative prior the same rung (`mdc2_flat_uprior_eps000`) gave −5.55 ± 0.34, +2.28σ. The median moved down 1.64 dex, so this is not just a wider posterior. The lower CI bound is set by the GW pivot prior (N(−9, 1.33), still Gaussian on the NUTS path), because the posterior sd ≈ the prior sd.
+- The posterior now has an upper-limit shape on every rung. The one-sided 95th percentile is −6.06 to −6.21, 0.1–0.26 dex above the injection, which sits inside the upper tail. That mirrors Hazboun et al.'s 2b upper limit of 1.4e-15 against 1.3e-15 injected. Sidedness trap: the sampled `log10_pivot_psd` is the TWO-sided density, so its raw percentiles (−6.36 to −6.51) must be shifted up by log10 2 = 0.301 before comparing with the injection or `check_mdc2_truth`.
 - **lnB(HD/CURN) = −0.252 ± 0.005 [reliable].** Integrands from eps 0 to 1: −0.300, −0.268, −0.243, −0.238, −0.211 (each ±0.01). The Romberg correction is −0.0009. The readout's suggested extra rungs (0.625, 0.875) were not run: the integrand is smooth and every diagnostic passes.
 - Hazboun's 2b HD/CRN rows give ln(2.3/2.6) = −0.12 (fixed WN) and ln(1.8/2.6) = −0.37 (free WN), so −0.25 sits inside that range. Their rows are each GW+noise vs noise-only, so this is a rough cross-check.
 
 **Decisions / dead ends.**
-- The residual 2b excess was the informative timing prior, the same cause as the 1b GW-vs-noise deficit (2026-10-09).
-  - This supersedes the 2026-09-29 and 2026-10-03 attributions of the 2b bias to OU-vs-power-law red-noise misspecification. It also supersedes the "+0.77 dex" excess after the uniform-prior fix (PR #120).
-  - OU adequacy may still matter on real NG15, but it is not what biased 2b.
+- Switching the timing prior to diffuse removes the residual 2b excess, the same lever as the 1b GW-vs-noise deficit (2026-10-09). This is a one-variable change against `mdc2_flat_uprior_eps000`.
+  - OU-vs-power-law red-noise misspecification is therefore not needed to explain the 2b excess. That revises the 2026-09-29 attribution and the "+0.77 dex" excess after the uniform-prior fix (PR #120, 2026-10-06).
+  - It does NOT rule out a smaller misspecification bias. At a posterior width of 1.35 dex, a 0.3–0.5 dex shift like the self-gen leakage would be invisible. OU adequacy can still matter on real NG15.
 - The earlier 2b ladder value of +0.175 ± 0.017 (empirical priors, informative timing prior) is superseded.
 - With diffuse, both MDC2 datasets now behave like the published analysis:
   - 1b: +0.69, about 1σ against scrambled geometries.
