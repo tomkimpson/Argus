@@ -1,5 +1,37 @@
 # Research log
 
+## 2026-10-13 to 2026-10-15 — MDC2 2b under the diffuse timing prior: clean sampling, no amplitude excess, lnB(HD/CURN) = −0.25
+
+**Goal.** Carry the diffuse timing prior (default since PR #121) through MDC2 2b. Does 2b still sample, does the eps 0 pivot excess survive, and what is lnB(HD/CURN)?
+
+**What was tried.**
+- Branch `feat/2b-diffuse`. Five configs, `workflows/ng15_sgwb_demo/configs/mdc2_flat_diffuse_eps{000,025,050,075,100}.ini`. Each is `mdc2_flat_uprior_eps000.ini` (true-uniform red-noise prior, run under the informative timing prior) with three changes: the rung eps, `timing_prior = diffuse`, and output_id.
+- Without comments, these configs match the 1b ladder `mdc2_d1_flat_diffuse_eps*` except for `data_path` and `output_id`. So 1b and 2b differ only by dataset.
+- Script `slurm_scripts/mdc2_2b_diffuse.sh`, with the library pinned to worktree `Argus-diffuse` (fa65942), the same library as the 1b diffuse ladder. Between fa65942 and main the library changes only in the timing_prior default and the checkpoint fingerprint, so with diffuse set explicitly the likelihood is the same.
+- eps 0 ran first (job 18496199) as a go/no-go. Its first checkpoint was checked per chain for freezing (step size, inverse mass, potential energy), not only for r̂. Rungs 1–4 followed (job 18516756), then the readout (job 18587581, `lnb_readout.sh`, `LADDER=mdc2_flat_diffuse`, 5.5 h on milan).
+
+**What was learned.**
+- **2b samples cleanly under diffuse.** All 5 rungs have 0 divergences, max r̂ ≤ 1.008 and min ESS ≥ 987. Every rung took ~6.5 h on 4×A100. No chain froze: on eps 0 the step sizes were 0.061–0.065 across chains and potential energies agreed within 7 nats.
+- **The eps 0 pivot excess is gone.** `check_mdc2_truth.py` gives a pivot (1/5 yr) log10 PSD of −7.19 ± 1.35, 95% CI [−10.8, −5.9], against the injected −6.32: −0.64σ. Under the informative prior the same rung (`mdc2_flat_uprior_eps000`) gave −5.55 ± 0.34, +2.28σ.
+- The posterior now has an upper-limit shape on every rung. The 95th percentile is −6.36 to −6.51, just under the injection. That mirrors Hazboun et al.'s 2b upper limit of 1.4e-15 against 1.3e-15 injected.
+- **lnB(HD/CURN) = −0.252 ± 0.005 [reliable].** Integrands from eps 0 to 1: −0.300, −0.268, −0.243, −0.238, −0.211 (each ±0.01). The Romberg correction is −0.0009. The readout's suggested extra rungs (0.625, 0.875) were not run: the integrand is smooth and every diagnostic passes.
+- Hazboun's 2b HD/CRN rows give ln(2.3/2.6) = −0.12 (fixed WN) and ln(1.8/2.6) = −0.37 (free WN), so −0.25 sits inside that range. Their rows are each GW+noise vs noise-only, so this is a rough cross-check.
+
+**Decisions / dead ends.**
+- The residual 2b excess was the informative timing prior, the same cause as the 1b GW-vs-noise deficit (2026-10-09).
+  - This supersedes the 2026-09-29 and 2026-10-03 attributions of the 2b bias to OU-vs-power-law red-noise misspecification. It also supersedes the "+0.77 dex" excess after the uniform-prior fix (PR #120).
+  - OU adequacy may still matter on real NG15, but it is not what biased 2b.
+- The earlier 2b ladder value of +0.175 ± 0.017 (empirical priors, informative timing prior) is superseded.
+- With diffuse, both MDC2 datasets now behave like the published analysis:
+  - 1b: +0.69, about 1σ against scrambled geometries.
+  - 2b: −0.25, with a correct upper limit.
+
+**Open threads.**
+- A 2b scramble ensemble is now cheap, via the eps 0 gradient trick on the `mdc2_flat_diffuse_eps000` draws. `slurm_scripts/scramble_ensemble_eps0.sh` hard-codes the 1b data path and ensemble name. Check that the pulsar ordering matches before reusing `mdc2_d1_scrambles_ens1000.npz`. It is low priority, since 2b is a non-detection.
+- GW+noise vs noise-only (`lnb_gw_vs_noise.py`) on 2b would compare directly with Hazboun's Table 5 (B ≈ 1–2.6).
+- Housekeeping from the 2026-10-13 handoff is still pending: remove the worktrees `Argus-diffuse-default`, `Argus-uprior` and `Argus-fix-psym` (keep `Argus-diffuse`), and file the issue for the remaining Gaussian-not-uniform NUTS priors.
+- Noted arXiv:2610.08906 (Moreschi et al., t-process GWB spectrum plus per-frequency optimal statistic) as a possible future GW-model extension (memory `reference_tprocess_moreschi2026`).
+
 ## 2026-10-12 to 2026-10-13 — 1000-scramble ensemble: the 1b HD/CURN evidence is ~1σ against random geometries
 
 **Goal.** Decide whether the MDC2 1b diffuse-prior lnB(HD/CURN) = +0.693 is special relative to random sky geometries. One scramble had given +0.346, and N=1 cannot say.
