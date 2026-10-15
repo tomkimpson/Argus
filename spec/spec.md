@@ -1,7 +1,7 @@
 # Spec: First state-space detection of the SGWB on NANOGrav 15-yr data
 
 **Status:** draft
-**Created:** 2026-10-15  ·  **Last amended:** —
+**Created:** 2026-10-15  ·  **Last amended:** 2026-10-16
 **Supersedes:** `openspec/changes/sgwb-detection-route` (to be deleted, task 0.1) and the
 wideband M3 plan in issue #111 / `workflows/ng15_sgwb_demo/PLAN.md`.
 
@@ -12,9 +12,12 @@ wideband M3 plan in issue #111 / `workflows/ng15_sgwb_demo/PLAN.md`.
 > gravitational-wave background, finds Hellings–Downs inter-pulsar correlations favoured over
 > an uncorrelated common red process with a Bayes factor of at least 10 ("positive evidence";
 > benchmarked against NANOGrav's published hdγ-vs-curnγ value of 200–1000). Its correlation detection statistic is significant
-> against a sky-scramble null at a level comparable to NANOGrav's (sky-scramble p = 1.6 × 10⁻³
-> on their Bayes factor and p < 10⁻⁴ on their optimal statistic), and the common-process
-> amplitude is consistent with NANOGrav's.
+> against a sky-scramble null at p ≤ 5 × 10⁻³, the same order as NANOGrav's sky-scramble
+> p = 1.6 × 10⁻³ on their Bayes factor, and the common-process amplitude is consistent with
+> NANOGrav's.
+>
+> We do not claim parity with their optimal-statistic p < 10⁻⁴: ≥ 5000 scrambles resolve
+> p only down to 2 × 10⁻⁴.
 
 This is the first SGWB detection with a non-Fourier, state-space pipeline. It confirms the
 NANOGrav result with an independent likelihood, i.e. Paper A of issue #110. Every number is
@@ -52,8 +55,9 @@ Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not
 - **Validated on MDC2 under the current configuration:** diffuse timing prior, true-uniform
   red-noise prior, ridge GW basis, marginalised filter, frozen path-sampling evidence
   procedure (`configs/frozen/evidence_procedure_v1.json`).
-  - 1b (PR #123): lnB(HD/CURN) = +0.69, at the 88th percentile of 1000 sky scrambles. The
-    no-injection control passes.
+  - 1b (PR #123): lnB(HD/CURN) = +0.69. The true ORF's eps0 integrand (0.993) sits at the
+    88th percentile of 1000 sky scrambles (p = 0.12), so the +0.69 is about 1σ and not
+    significant. The no-injection control passes.
   - 2b (PR #124): −0.25. The GW-vs-noise result matches Hazboun et al.
 - **Filter:** one scalar measurement per pulsar per time step (`model.py:124-249`). R is
   diagonal with a single EFAC/EQUAD per pulsar (`model.py:110-121`), and there is no ECORR.
@@ -64,8 +68,16 @@ Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not
 - **Real-data history:**
   - 6-psr wideband NG15 amplitude recovery (T3.3).
   - The 68-psr wideband union grid exists (`data/aligned_full/`, 189 epochs, 41.6% occupancy,
-    M_sum = 994, 0.26 s per likelihood evaluation on one A100). Its joint NUTS run never
-    converged, but that predates the ridge, diffuse and uniform-prior fixes.
+    M_sum = 994). Its joint NUTS run never converged, but that predates the ridge, diffuse and
+    uniform-prior fixes.
+  - **The only cost measurements at this scale are on the wrong path.** They come from
+    `notes/T3.5_status_and_next_steps.md` and were taken on the *sequential* augmented-state
+    filter (nx = 1266), before the masked-marginal port:
+    - 0.26 s per likelihood-only evaluation on one A100 (job 14173193);
+    - the quick-look run (17.7 h for 800 iterations at tree depth ≤ 7), which implies
+      ≳ 0.6 s per value-plus-gradient evaluation.
+  - The marginal path is ~5.4× cheaper on masked data (log.md, masked-marginal entry).
+    Neither number is a baseline for D2. Task 2.6 measures the real one.
   - Wideband ingest drops all DMX columns (`build_aligned_feathers.py:203-231`). After binning
     to one point per epoch DMX is degenerate, and dropping it hides red power
     (`notes/RESULTS_ou_adequacy_ng15.md`). That defect is one motivation for this spec.
@@ -101,11 +113,17 @@ Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not
 **Assumptions and approximations.**
 - **A1. The state is constant within a compression window.** Each window is one DMX window,
   or a grid cell of width Δ. The GW and red-noise states are taken as constant within it.
-  - At nHz frequencies, where the GW corner sits below 1/T, the error scales as
-    (2π f Δ)² with f ≲ 1/T. For Δ = 7 d, T = 16 yr that is ~10⁻⁵.
-  - The assumption breaks for red-noise power near 1/Δ. A shallow-spectrum pulsar has
-    proportionally more such power, so check those explicitly.
-  - Measured in Phase 2.
+  - At nHz frequencies, where the GW corner sits below 1/T, the *fractional* power error scales
+    as (2π f Δ)² with f ≲ 1/T. For Δ = 7 d, T = 16.03 yr that is ≈ 6 × 10⁻⁵, and it grows as Δ².
+  - **That fraction does not bound the error in nats.** What C1 tests is the within-window
+    signal drift compared with each window's white-noise σ_w, summed over ~10³ windows.
+    - For a strong-red-noise pulsar (µs-level red noise) at Δ = 7 d, the drift can be tens of
+      ns. That is comparable to σ_w, so the error can exceed C1's 0.01-nat tolerance.
+    - So the passing Δ may be set by the reddest pulsar, not by the GW.
+  - The assumption also breaks for red-noise power near 1/Δ. A shallow-spectrum pulsar has
+    proportionally more such power, so C1 includes one explicitly.
+  - Measured in Phase 2 (C1 against a continuous-time oracle). There is no a-priori estimate
+    we trust.
 - **A2. White noise is fixed** at NANOGrav's MAP noise dictionaries. This is exactly
   NANOGrav's own GWB practice. It is not a simplification relative to the target.
 - **A3. Single-corner OU red noise** (residual PSD between f⁻² and f⁻⁴, i.e. a
@@ -124,19 +142,29 @@ Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not
   re-window.
 
 **Correctness checks** (each is a gate in §11):
-- **C1. Compression is exact.** For each of 2 pulsars, compare the Argus compressed likelihood
-  with a dense brute-force Gaussian likelihood on the raw TOAs. The dense calculation uses the
-  same OU covariance, per-backend white noise plus ECORR blocks, and the full M including DMX,
-  under the diffuse prior.
+- **C1. Compression is accurate** (exact up to A1). For each of 3 pulsars, compare the Argus
+  compressed likelihood with a dense brute-force Gaussian likelihood on the raw TOAs.
+  - The dense calculation uses:
+    - the **continuous-time** OU covariance evaluated at every raw TOA time, i.e. the analytic
+      kernel, *not* the filter's gridded transitions, so that the oracle does not share A1;
+    - per-backend white noise plus ECORR blocks;
+    - the full M including DMX, after the same rank rule as D2;
+    - the diffuse prior.
   - Tolerance: after removing one parameter-independent constant, the spread of
     ΔlnL across 20 random parameter points is **≤ 0.01 nats**.
   - Gradients agree to a relative error of **≤ 1e-4**.
-  - The pulsars are J1909−3744 (high precision, little red noise) and one strong-red-noise
-    pulsar (J1713+0747 or B1937+21).
-- **C2. The goldens are preserved.** With no compression and zero initial accumulators, the
-  MDC2 goldens are reproduced bit-for-bit: 63618.93 (informative) and 59420.06 (diffuse), in
-  `test/test_likelihood_value.py`, `test/test_masked_marginal_filter.py` and
-  `test/test_correlation_path.py`.
+  - The pulsars are:
+    - J1909−3744 (high precision, little red noise);
+    - one strong-red-noise pulsar (J1713+0747 or B1937+21);
+    - one shallow-spectrum pulsar, J1012+5307 (γ_PL ≲ 1 in `RESULTS_ou_adequacy_ng15.md`),
+      because A1 is most exposed there.
+- **C2. The goldens are preserved.** With no compression and zero initial accumulators:
+  - the MDC2 goldens pass their existing tests: 63618.93 (informative) and 59420.06
+    (diffuse), in `test/test_likelihood_value.py`, `test/test_masked_marginal_filter.py` and
+    `test/test_correlation_path.py`;
+  - **and** a new test asserts exact equality (`==`) between the log-likelihood with default
+    zero accumulators and without the new argument. The golden tests use atol = 1.0, so they
+    alone cannot show bit-for-bit.
 - **C3. The reference reproduces the publication.** Discovery with NANOGrav's model (power-law
   red noise, 30 modes; curnγ vs hdγ with 14 modes; fixed white noise), using our path-sampling
   estimator, gives lnB(HD/CURN) within **±0.7 nats (a factor of 2) of ln 200 = 5.30**.
@@ -193,12 +221,28 @@ Within a window w, the model is
   resolution.** The step count, and so the cost, is set by the grid width Δ. K3 will likely
   force Δ to 2–4 weeks, which is the same time-gridding approximation the wideband pipeline
   already makes.
-- Two ingest edge cases need an explicit rule:
-  - A window observed at a single radio frequency has D_w ∝ 1. Projecting out DMX then also
-    removes s_w, so the window carries no achromatic information. Count these windows, and
-    either drop them or keep them without DMX.
-  - ECORR epochs need not coincide with DMX windows. N_w is then block-structured, and the
-    projection must use the full N_w metric.
+- Four ingest edge cases need an explicit rule:
+  - **Single-frequency windows: drop.** A window observed at a single radio frequency has
+    D_w exactly ∝ 1. Projecting out DMX then also removes s_w, so the window carries no
+    achromatic information.
+    - Dropping it is exact, and matches what NANOGrav/Discovery effectively see.
+    - Keeping it without DMX would change the model relative to the reference, so it is not
+      allowed.
+    - Near-single-frequency windows need no rule: their large σ_w² already down-weights them.
+  - **Several ECORR epochs inside one window.** N_w is block-structured, and the projection
+    must use the full N_w metric.
+  - **An ECORR epoch straddling two windows or grid cells.** The noise is then correlated
+    across windows, and the independent scalar per window is no longer exact. Merge the
+    affected windows into one before compressing.
+  - **Rank rule for the timing model.** A global chromatic column lies (nearly) in the span of
+    the DMX columns when the windows tile all TOAs: DM exactly, DM1/DM2 approximately.
+    - After local projection such a column is ~0, which makes A₀ + A singular and breaks the
+      −½ log|A| term of the diffuse marginal.
+    - Rule: after projection, drop M columns whose projected norm falls below a relative
+      tolerance (SVD on the stacked projected M). Record the dropped columns per pulsar.
+    - The dense oracle (C1) applies the same rule. A column that is fully degenerate with
+      DMX is unconstrained by the data under the flat prior, so dropping it changes lnL only
+      by a constant.
 - **Lock-in:** fixed white noise is baked into the preprocessing. Sampling white noise later
   would need recompression at every sample.
 
@@ -264,8 +308,9 @@ NANOGrav's log-uniform amplitude prior.
 - Phase shifts are a Fourier-basis construct with no natural time-domain analogue.
 
 **Alternatives considered:**
-- *A null on lnB itself.* It needs a full ladder per scramble. About 50 tail scrambles for
-  p ≈ 10⁻³ is ~8000 A100-h, which is unaffordable.
+- *A null on lnB itself.* It needs a full ladder per scramble, ~800 A100-h each (§5).
+  Resolving p ≈ 10⁻³ needs thousands of scrambles, i.e. ≳ 10⁶ A100-h. Even 50 ladders is
+  ~4 × 10⁴ A100-h. Unaffordable.
 - The scrambled-lnB proxy is still unverified at lnB level (open handoff item), so it is not
   used for the claim.
 
@@ -295,15 +340,20 @@ NANOGrav's log-uniform amplitude prior.
 - **Compute** (rough):
   - Discovery reference: ~50 A100-h.
   - Argus single-pulsar stage: ~70 jobs × ~1 A100-h.
-  - Argus 67-psr ladder: 5 rungs × ~40 h × 4 A100 ≈ 800 A100-h. This assumes a per-evaluation
-    cost of ≲ 0.5 s; Phase 2 measures it.
+  - Argus 67-psr ladder: 5 rungs × ~40 h × 4 A100 ≈ 800 A100-h. This assumes ≲ 0.5 s per
+    likelihood-plus-gradient evaluation; Phase 2 measures it.
+  - Not yet counted, and to be added once measured:
+    - extra Romberg rungs if the readout asks (0.625, 0.875; ~2 × 160 A100-h);
+    - the Phase 4 MDC2 reruns (2 rungs at 33 psr);
+    - the Phase 3 Discovery single-pulsar runs.
   - Scrambles: CPU.
-  - Total ≈ 1000 A100-h **at ≤ 0.5 s per evaluation**.
-  - Cost scales linearly with evaluation time, about 1.4 ms per filter step at 68 psr (T3.5:
-    0.26 s over 189 steps). The grid width Δ is therefore the budget dial:
-    - 189 steps ≈ 0.26 s per evaluation;
-    - an unaligned union grid of 2000–5000 steps ≈ 3–7 s per evaluation, i.e. ~5000–15000
-      A100-h, which is unaffordable.
+  - Total ≈ 1000 A100-h **at ≤ 0.5 s per evaluation, with no extra rungs**.
+  - Cost scales linearly with evaluation time, and evaluation time scales with the number of
+    grid steps. The grid width Δ is therefore the budget dial.
+  - **There is no trustworthy per-step rate on the marginal path yet** (§2: the T3.5 numbers
+    are sequential-filter numbers). If the per-step value-plus-gradient cost turns out
+    comparable to the sequential quick-look (≳ 0.6 s at 189 steps), the 0.5 s target already
+    binds at Δ ≈ 1 month. Task 2.6 settles this before any compute is committed.
   - K3 is set to match this budget.
   - **Budget: ~1000 A100-h, confirmed by the user on 2026-10-15.** K3 stops and re-budgets
     above 1 s per evaluation.
@@ -357,14 +407,18 @@ therefore **pivots** with a named next step, not stops.
     (`project_ou_adequacy_ng15`), or a CARMA sum of OUs.
   - It gets its own scoped spec.
 - **K3 (Phase 2). Compression fails.** Two ways:
-  - C1 fails at every Δ ≥ 1 d: pivot to vector observations per window.
+  - C1 fails even at Δ = the DMX window (the finest Δ the compression allows): pivot to vector
+    observations per window.
   - The cost per 67-psr likelihood-plus-gradient evaluation on one A100 is > 0.5 s at every Δ
     that passes C1: coarsen Δ (re-measuring A1), or revisit the #108 parallel filter, whose
     crossover needs exactly the larger T that a fine grid produces.
   - The cost is > 1 s even at the coarsest passing Δ: stop and re-budget with the user.
-- **K4 (Phase 5). The 67-psr joint posterior won't sample.** That means max r̂ > 1.05, or
-  divergences > 1%, or any chain frozen by the per-chain-median check, after three levers:
-  dense GW block, target_accept 0.95, tree depth 8.
+- **K4 (Phase 5). The 67-psr joint posterior won't sample.** That means the pilot still fails
+  the Phase 5 Done-when thresholds (r̂ ≤ 1.01, divergences ≤ 0.5%, bulk ESS ≥ 400, no frozen
+  chain) after three levers. The thresholds are the same, so there is no limbo band.
+  - The levers are: a dense GW block, target_accept 0.95, and tree depth 8.
+  - T3.5 capped tree depth at 7 only to finish within walltime. Checkpointed segmented runs
+    now remove that reason.
   - Pivot to the ≥ 10 yr long-baseline subset as an interim result, and open a geometry
     investigation.
 - **K5 (no hard stop).** The user decided on 2026-10-15 to set no time box. The campaign keeps
@@ -392,7 +446,7 @@ therefore **pivots** with a named next step, not stops.
 | OU kernel too stiff, so the HD evidence is diluted (A3) | Discovery-OU lnB ≪ Discovery-PL lnB in Phase 1 (K2) |
 | Compression error at shallow-spectrum pulsars (A1) | C1 spread grows with red-noise slope; per-pulsar C4 outliers concentrated in γ_PL ≲ 1 |
 | 136-D sampling geometry | Phase 5 pilot (ε=0, 500+500) step size < 0.01, or per-chain medians split |
-| Per-step cost blows up at 67 psr on the union grid (step count × O((4N)³)) | Phase 2 benchmark. At ≈ 1.4 ms/step for 68 psr (T3.5: 0.26 s / 189 steps), 2000–5000 unaligned steps give 3–7 s per evaluation, so Δ will be forced to 2–4 weeks |
+| Per-step cost blows up at 67 psr on the union grid (step count × O((4N)³)) | Task 2.6 benchmark of value-plus-gradient on the marginal path. There is no trustworthy prior rate (§2); if it is near the sequential quick-look (≳ 0.6 s at 189 steps), Δ is forced to ≳ 1 month |
 | Discovery env / jax version conflicts | Task 1.2 fails to install; fall back to a container |
 | Path-sampling integrand steep near ε=1 at lnB ~ 5 | Frozen-procedure Romberg check flags extra rungs (0.625, 0.875) |
 | Fourier-vs-time-domain gap makes C5 unattainable even when both are right | Discovery-OU lnB moves by > 1 nat when its mode count changes (task 1.5) |
@@ -408,6 +462,9 @@ carries a superseded banner.
 
 - [ ] 0.1 Delete `openspec/` (change + archive) in one commit; record in its message which
       tasks were done (groups 1–4) — verify by `git ls-files openspec | wc -l` = 0 and tests still pass.
+      _(Note, 2026-10-16: there was no archive, only the change and `config.yaml`. Group 4
+      was done except 4.3/4.4/4.6/4.7, which were deferred. The commit message records the
+      exact state.)_
 - [ ] 0.2 Add a "superseded by spec/spec.md" banner to `workflows/ng15_sgwb_demo/PLAN.md` and
       the top of `TASKS.md` — verify by grep for the banner.
 - [ ] 0.3 Comment on issue #111 pointing at the spec — verify by `gh api` read-back.
@@ -426,11 +483,18 @@ evaluated.
       it and evaluating the published single-pulsar likelihood for J1909−3744.
 - [ ] 1.3 Build the reference driver `workflows/ng15_nb/reference/` with: (a) the NANOGrav
       power-law model (30-mode RN, 14-mode common, fixed WN) and (b) the OU-PSD model using
-      Argus's exact one-sided PSD conventions (`ou_psd`, sidedness note); fixed-ε ORF
-      (1−ε)I + εHD — verify by checking that the OU PSD function matches Argus's `ou_psd` to
-      1e-12, and that ε=1 reproduces Discovery's built-in HD likelihood to 1e-8.
-- [ ] 1.4 Run the PL ladder (5 rungs) and apply our path-sampling estimator — verify against C3
-      (lnB within ±0.7 of 5.30; A_HD,13/3 within 1σ).
+      Argus's exact one-sided PSD conventions (sidedness note); fixed-ε ORF (1−ε)I + εHD.
+      There is no `ou_psd` in `python/argus`. The references to match are:
+      - the common process in the ridge basis:
+        `workflows/ng15_sgwb_demo/scripts/diag_ou_powerlaw_capture.py::ou_psd`;
+      - per-pulsar red noise: `scripts/ng15_red_noise_budget.py::ou_psd_onesided`.
+      Before use, first check both against the filter's own stationary Q (the ground truth).
+      — verify by the OU PSD functions matching those references to 1e-12, and ε=1
+      reproducing Discovery's built-in HD likelihood to 1e-8.
+- [ ] 1.4 Run the PL ladder (5 rungs, variable γ) and apply our path-sampling estimator. Add
+      one fixed-γ = 13/3 HD run for the A_HD,13/3 check: conditioning the variable-γ posterior
+      at 13/3 is not the same fit. — verify against C3 (lnB within ±0.7 of 5.30; A_HD,13/3
+      within 1σ).
 - [ ] 1.5 Run the OU ladder at 14 and 30 common modes; compute lnB(HD/CURN) and lnB(CURN/noise)
       — verify by the reliability gate passing; record the mode-count sensitivity (input to C5).
 - [ ] 1.6 Write N2 (kernel systematic: PL vs OU lnB and amplitude at 1/T and 1/(5 yr)) and
@@ -439,7 +503,7 @@ evaluated.
 ### Phase 2 — Exact epoch compression (S0 feasibility)
 
 **Goal:** show the narrowband TOAs can be fed to the existing filter exactly (C1) and cheaply.
-**Done when:** C1 passes for both test pulsars at the chosen Δ, C2 passes, and the 67-psr cost
+**Done when:** C1 passes for all three test pulsars at the chosen Δ, C2 passes, and the 67-psr cost
 benchmark is ≤ 0.5 s per evaluation, with K3 evaluated.
 **PR:** _not started_. **Runs in parallel with Phase 1**: the two are independent until K2 is
 evaluated, and Phase 1 has an unverified dependency (Discovery accepting a custom PSD and a
@@ -449,18 +513,24 @@ mixed ORF) that could stall it.
       that keeps per-TOA backend, radio frequency, ECORR epoch id, DMX window id and the full
       M with column names — verify by round-tripping two pulsars and checking TOA counts and
       column names against the feather. Report the DMX-window length distribution, the number
-      of single-frequency windows and the rule applied to them, and the number of windows that
-      span more than one ECORR epoch.
+      of single-frequency windows (dropped, D2), the number of windows that span more than
+      one ECORR epoch, the number of ECORR epochs that straddle a window boundary (merged,
+      D2), and the timing-model columns dropped by the rank rule.
 - [ ] 2.2 Implement compression (D2) as a pure numpy/JAX preprocessing module with unit tests on
       a synthetic pulsar where the exact answer is known. The synthetic pulsar includes a
-      window with two ECORR epochs and a single-frequency window — verify by matching the compressed
-      vs dense likelihood on the synthetic case to 1e-10.
+      window with two ECORR epochs, an ECORR epoch straddling two windows, a single-frequency
+      window, and a DM column degenerate with DMX — verify by matching the compressed vs dense
+      likelihood on the synthetic case to 1e-10, with a constant state per window so A1 holds
+      exactly.
 - [ ] 2.3 Add initial accumulators (A₀, b₀, c₀) to `_run_kalman_filter_marginal` — verify by C2
-      (goldens bit-for-bit) and a test showing nonzero A₀ equals appending the equivalent rows.
-- [ ] 2.4 Build the dense brute-force oracle (raw TOAs, OU covariance from the same F/Q, WN +
-      ECORR, full M, diffuse) — verify by checking it on the synthetic pulsar against 2.2.
-- [ ] 2.5 Run C1 on J1909−3744 and one strong-red-noise pulsar at Δ ∈ {DMX window, 7 d, 14 d,
-      30 d} — verify by the ΔlnL spread and gradient error tables in N1; choose the largest Δ that passes.
+      (the golden tests pass, plus a new exact-equality test of zero accumulators against the
+      unmodified call) and a test showing nonzero A₀ equals appending the equivalent rows.
+- [ ] 2.4 Build the dense brute-force oracle: raw TOAs, the **continuous-time** analytic OU
+      covariance at each TOA time (not the gridded F/Q), WN + ECORR, full M after the rank
+      rule, diffuse — verify by checking it on the synthetic pulsar against 2.2, and on a
+      single-step grid against the filter.
+- [ ] 2.5 Run C1 on J1909−3744, one strong-red-noise pulsar and J1012+5307 (shallow) at
+      Δ ∈ {DMX window, 7 d, 14 d, 30 d} — verify by the ΔlnL spread and gradient error tables in N1; choose the largest Δ that passes.
 - [ ] 2.6 Compress all 67, build the union grid with masks, benchmark the likelihood plus
       gradient on one A100 — verify by the recorded seconds per evaluation and memory; evaluate K3.
 
@@ -471,7 +541,9 @@ mixed ORF) that could stall it.
 **PR:** _not started_
 
 - [ ] 3.1 Single-pulsar Argus NUTS for all 67 (SLURM array, flat OU priors, fixed WN) — verify
-      by 100% meeting r̂ ≤ 1.01, ESS ≥ 400, 0 divergences, with none railing against a prior edge.
+      by 100% meeting r̂ ≤ 1.01, ESS ≥ 400 and 0 divergences. No pulsar with
+      detected red noise may rail against a prior edge. For pulsars without detected red noise,
+      piling up at the lower amplitude edge is expected; report it, don't fail on it.
 - [ ] 3.2 Matching single-pulsar Discovery-OU runs — verify by the same diagnostics.
 - [ ] 3.3 Produce F4 and the outlier table, flagging shallow-spectrum pulsars — verify against C4.
 
@@ -480,7 +552,7 @@ mixed ORF) that could stall it.
 **Goal:** the NUTS GW prior equals the configured box.
 **Done when:** prior-predictive draws of `log10_pivot_psd` and `log10_gamma_a` match U(lo, hi)
 (KS p > 0.05 on 10⁵ draws), `lnb_gw_vs_noise.py` handles the bounded pivot, the goldens pass,
-and the MDC2 1b eps0 rung reruns with the change in lnB reported.
+and the MDC2 1b eps0 and eps1 rungs rerun with the change in lnB reported.
 **PR:** _not started_ (can run in parallel with Phases 2–3)
 **Divergence from #125's stated acceptance:** this phase covers the GW sites only (EFAC/EQUAD
 stay fixed, A2) and reruns only the eps0 and eps1 rungs, not both full MDC2 ladders. Edit #125
@@ -529,4 +601,36 @@ kernel statement (N2) and the scope bound.
 
 ## 12. Amendment log
 
-_No amendments yet._
+### 2026-10-16 — pre-merge review fixes (PR #127)
+
+**Trigger:** the `/check-PR` review of the PR that first lands this spec
+(`PR_REVIEW_127_2026-10-16.md`) found 4 major and 13 minor issues. The main ones:
+- the cost baseline came from the sequential filter;
+- C1's oracle could share A1;
+- task 3.1 was unpassable for pulsars with no red noise;
+- DM is degenerate with DMX after projection.
+
+**Change:**
+- §1: the significance claim is set against NANOGrav's Bayes-factor scramble p, and we
+  disclaim parity with their optimal-statistic p.
+- §2: the 88th percentile is attributed to the eps0 integrand; the T3.5 timings are
+  relabelled as sequential-filter numbers.
+- A1: the estimate is corrected to ≈ 6e-5 and no longer read as a nats bound.
+- C1: the oracle uses continuous-time OU; a shallow-spectrum pulsar (J1012+5307) is added.
+- C2: an exact-equality test is added.
+- D2: drop single-frequency windows, merge windows that share an ECORR epoch, and add a rank
+  rule for degenerate timing columns.
+- D6: scramble-cost arithmetic corrected.
+- §5: no assumed per-step rate; uncounted compute listed.
+- K3: the C1 trigger is the DMX-window Δ.
+- K4: the same thresholds as the Phase 5 Done-when; tree depth 8 justified by checkpointing.
+- §10: the cost-risk row is updated.
+- Tasks 0.1 (annotated), 1.3, 1.4, 2.1–2.5, 3.1 and the Phase 2 and Phase 4 Done-when are
+  updated to match.
+
+**Defaults taken without a user decision** (the user said "go" without picking):
+- cost re-baselining is deferred to task 2.6;
+- §1 is toned down rather than adding scrambles;
+- J1012+5307 is the shallow pulsar.
+
+**Sections touched:** §1, §2, §3, §4, §5, §8, §10, §11
