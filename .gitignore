@@ -121,3 +121,5 @@ workflows/data/IPTA_MockDataChallenge2/dataset_*/
 .claude
 CLAUDE.md
 handoff.md
+# NG15 narrowband campaign (spec/spec.md): regenerable caches and run outputs
+workflows/ng15_nb/data/

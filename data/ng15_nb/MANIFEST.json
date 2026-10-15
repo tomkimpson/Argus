@@ -1,0 +1,481 @@
+{
+  "source": "https://github.com/nanograv/discovery",
+  "commit": "18ab4c010b2e8e09eb81fdb145b296da024659fa",
+  "dataset": "NANOGrav 15-yr narrowband",
+  "dataset_version": "1.1.0",
+  "dataset_tag": "v1p1_de440_pint_bipm2019",
+  "n_pulsars": 67,
+  "pulsars": [
+    "B1855+09",
+    "B1937+21",
+    "B1953+29",
+    "J0023+0923",
+    "J0030+0451",
+    "J0340+4130",
+    "J0406+3039",
+    "J0437-4715",
+    "J0509+0856",
+    "J0557+1551",
+    "J0605+3757",
+    "J0610-2100",
+    "J0613-0200",
+    "J0636+5128",
+    "J0645+5158",
+    "J0709+0458",
+    "J0740+6620",
+    "J0931-1902",
+    "J1012+5307",
+    "J1012-4235",
+    "J1022+1001",
+    "J1024-0719",
+    "J1125+7819",
+    "J1312+0051",
+    "J1453+1902",
+    "J1455-3330",
+    "J1600-3053",
+    "J1614-2230",
+    "J1630+3734",
+    "J1640+2224",
+    "J1643-1224",
+    "J1705-1903",
+    "J1713+0747",
+    "J1719-1438",
+    "J1730-2304",
+    "J1738+0333",
+    "J1741+1351",
+    "J1744-1134",
+    "J1745+1017",
+    "J1747-4036",
+    "J1751-2857",
+    "J1802-2124",
+    "J1811-2405",
+    "J1832-0836",
+    "J1843-1113",
+    "J1853+1303",
+    "J1903+0327",
+    "J1909-3744",
+    "J1910+1256",
+    "J1911+1347",
+    "J1918-0642",
+    "J1923+2515",
+    "J1944+0907",
+    "J1946+3417",
+    "J2010-1323",
+    "J2017+0603",
+    "J2033+1734",
+    "J2043+1711",
+    "J2124-3358",
+    "J2145-0750",
+    "J2214+3000",
+    "J2229+2643",
+    "J2234+0611",
+    "J2234+0944",
+    "J2302+4442",
+    "J2317+1439",
+    "J2322+2057"
+  ],
+  "feathers": [
+    {
+      "pulsar": "B1855+09",
+      "file": "v1p1_de440_pint_bipm2019-B1855+09.feather",
+      "sha256": "acf4796aaf6c084d6d1e987643032932cb229b7b882cf8cd1b7613a45bdd596e",
+      "bytes": 3086002
+    },
+    {
+      "pulsar": "B1937+21",
+      "file": "v1p1_de440_pint_bipm2019-B1937+21.feather",
+      "sha256": "0c9a7d498ac57f4fb910611646473bdd3d1c52113b53b0e6de38e1617f51f7c9",
+      "bytes": 8386818
+    },
+    {
+      "pulsar": "B1953+29",
+      "file": "v1p1_de440_pint_bipm2019-B1953+29.feather",
+      "sha256": "50b06c74528332ce1d0b79b57380cd515aaece492bc3fb2ecbeb29173dc042bb",
+      "bytes": 1998418
+    },
+    {
+      "pulsar": "J0023+0923",
+      "file": "v1p1_de440_pint_bipm2019-J0023+0923.feather",
+      "sha256": "39ec4ed4367682f98468ae74356366e7f29d89f164afd80112b73769e20d9651",
+      "bytes": 6985002
+    },
+    {
+      "pulsar": "J0030+0451",
+      "file": "v1p1_de440_pint_bipm2019-J0030+0451.feather",
+      "sha256": "dca88c7bda428d32aff06697f2b6c0c25f5e210206ee497e87bfa66c4942a503",
+      "bytes": 7142594
+    },
+    {
+      "pulsar": "J0340+4130",
+      "file": "v1p1_de440_pint_bipm2019-J0340+4130.feather",
+      "sha256": "665880ffc081b78d19094776fb55f4a1092854335e01bc86f727d9ac73805e01",
+      "bytes": 3775818
+    },
+    {
+      "pulsar": "J0406+3039",
+      "file": "v1p1_de440_pint_bipm2019-J0406+3039.feather",
+      "sha256": "46d3b8c2a8e9cf6e2b2ae5880227061dfce1a4db873553f63bb8492922895ab1",
+      "bytes": 903954
+    },
+    {
+      "pulsar": "J0437-4715",
+      "file": "v1p1_de440_pint_bipm2019-J0437-4715.feather",
+      "sha256": "1872441d7759deb26837b3dfcbd8d295d5dc3349d21a54e90a90d1c8cfafb9dd",
+      "bytes": 2078642
+    },
+    {
+      "pulsar": "J0509+0856",
+      "file": "v1p1_de440_pint_bipm2019-J0509+0856.feather",
+      "sha256": "2297601c2f81d5f4a09b35f34fa109155ffafa76d89c22b09c68fea87a134143",
+      "bytes": 794410
+    },
+    {
+      "pulsar": "J0557+1551",
+      "file": "v1p1_de440_pint_bipm2019-J0557+1551.feather",
+      "sha256": "df88ab0a54f9cfc94c5c72f036ef0b42c61cf1f99462cc9865222e086937d8a1",
+      "bytes": 236690
+    },
+    {
+      "pulsar": "J0605+3757",
+      "file": "v1p1_de440_pint_bipm2019-J0605+3757.feather",
+      "sha256": "4d223aa1834ab48e130db39ba5f3c59eb13fd5b1439d758e603b5cc9854b2fb8",
+      "bytes": 235218
+    },
+    {
+      "pulsar": "J0610-2100",
+      "file": "v1p1_de440_pint_bipm2019-J0610-2100.feather",
+      "sha256": "3156aa722108487b7c3f104173e7cb63c9c3839a33d5f83afbeedb9d2d5fb568",
+      "bytes": 1958482
+    },
+    {
+      "pulsar": "J0613-0200",
+      "file": "v1p1_de440_pint_bipm2019-J0613-0200.feather",
+      "sha256": "f2b6cb5e7030039e504635ba0f000cffff3d2926f756e88d8c8e3cac3df40765",
+      "bytes": 6914130
+    },
+    {
+      "pulsar": "J0636+5128",
+      "file": "v1p1_de440_pint_bipm2019-J0636+5128.feather",
+      "sha256": "b4c78df77f82e2ca01127c9268c4b00e8ef4dc87493057205eb4be53adddbbeb",
+      "bytes": 12595866
+    },
+    {
+      "pulsar": "J0645+5158",
+      "file": "v1p1_de440_pint_bipm2019-J0645+5158.feather",
+      "sha256": "2a8f392cacf0ef6236b62cc9581d919213e84687c5aa978512f575df55b56d19",
+      "bytes": 3593386
+    },
+    {
+      "pulsar": "J0709+0458",
+      "file": "v1p1_de440_pint_bipm2019-J0709+0458.feather",
+      "sha256": "6e0caa14aba9ffbdae7f94c88ac4dda57baf7657be2d43c8a67d8c61db407c9b",
+      "bytes": 1144682
+    },
+    {
+      "pulsar": "J0740+6620",
+      "file": "v1p1_de440_pint_bipm2019-J0740+6620.feather",
+      "sha256": "70ac4e42afc32bbd84eee7d25515e2f1ba3e1a6e47e987957a32ae8c3de6b50a",
+      "bytes": 5343482
+    },
+    {
+      "pulsar": "J0931-1902",
+      "file": "v1p1_de440_pint_bipm2019-J0931-1902.feather",
+      "sha256": "e2f9ccc6de2e643448acdfbead4eb03e300aea6ed68db52457b37d67ce7a1e30",
+      "bytes": 1824906
+    },
+    {
+      "pulsar": "J1012+5307",
+      "file": "v1p1_de440_pint_bipm2019-J1012+5307.feather",
+      "sha256": "9ff38fb08bda3de1ebcc5f64463732812764caa82b6f163dced674d0e9611a6f",
+      "bytes": 10520994
+    },
+    {
+      "pulsar": "J1012-4235",
+      "file": "v1p1_de440_pint_bipm2019-J1012-4235.feather",
+      "sha256": "a3a9454c8da30d0f6b603b302b3935e8107824a608d514f21247a2326f1806ac",
+      "bytes": 324090
+    },
+    {
+      "pulsar": "J1022+1001",
+      "file": "v1p1_de440_pint_bipm2019-J1022+1001.feather",
+      "sha256": "33a4afcae780f11b9c27a1c2eea2ed84419f4606216b5db52e8c8dd12b51601d",
+      "bytes": 1631178
+    },
+    {
+      "pulsar": "J1024-0719",
+      "file": "v1p1_de440_pint_bipm2019-J1024-0719.feather",
+      "sha256": "b2b726790caea69f1765c5fb6c4caa7c386c1ab8f0d17bbf43beff6f11fc190c",
+      "bytes": 4715994
+    },
+    {
+      "pulsar": "J1125+7819",
+      "file": "v1p1_de440_pint_bipm2019-J1125+7819.feather",
+      "sha256": "5e09f7bcc1f8558eaa3216e1e20c7b0b3f0d0e90c703ad9c7853d5d8fb67a843",
+      "bytes": 3288986
+    },
+    {
+      "pulsar": "J1312+0051",
+      "file": "v1p1_de440_pint_bipm2019-J1312+0051.feather",
+      "sha256": "d0512e3eb1b8a7b1428bbaf2e95ae69b6634bf60784facabd9c80770244228dd",
+      "bytes": 642946
+    },
+    {
+      "pulsar": "J1453+1902",
+      "file": "v1p1_de440_pint_bipm2019-J1453+1902.feather",
+      "sha256": "147026cc0e43859644497c5f5429995f911a4519add5dd6181cb9d0bd2ef5671",
+      "bytes": 879226
+    },
+    {
+      "pulsar": "J1455-3330",
+      "file": "v1p1_de440_pint_bipm2019-J1455-3330.feather",
+      "sha256": "e570a27a0d7b95a62c75097d756c76cc10f2319cddd7bdf7b989d493365b00a5",
+      "bytes": 4090626
+    },
+    {
+      "pulsar": "J1600-3053",
+      "file": "v1p1_de440_pint_bipm2019-J1600-3053.feather",
+      "sha256": "3aeeaf4f1e87a5147e101932f63ffc3c4086499b7d11cb0a51b5d4128df121c8",
+      "bytes": 9373674
+    },
+    {
+      "pulsar": "J1614-2230",
+      "file": "v1p1_de440_pint_bipm2019-J1614-2230.feather",
+      "sha256": "434c89ac6fcff7bf9f50ec15df800185dc133f01a363ba8858849492337753e6",
+      "bytes": 7002354
+    },
+    {
+      "pulsar": "J1630+3734",
+      "file": "v1p1_de440_pint_bipm2019-J1630+3734.feather",
+      "sha256": "634042f8cd1c464d847fc06f993d683c40f2c50df57cd04b3d4b5135f6a85eb6",
+      "bytes": 714898
+    },
+    {
+      "pulsar": "J1640+2224",
+      "file": "v1p1_de440_pint_bipm2019-J1640+2224.feather",
+      "sha256": "a50e690721a303c963f944b3dd0cba6e8a1523529dbc861a50f554dd15374b46",
+      "bytes": 5969650
+    },
+    {
+      "pulsar": "J1643-1224",
+      "file": "v1p1_de440_pint_bipm2019-J1643-1224.feather",
+      "sha256": "b81a0b7ab19be349fdd61dca87970427dfdcbd66c612b4075c887287baa998fd",
+      "bytes": 9008354
+    },
+    {
+      "pulsar": "J1705-1903",
+      "file": "v1p1_de440_pint_bipm2019-J1705-1903.feather",
+      "sha256": "df6f694ebc1c186219583f7a8da6095df8ebd54e83d06b28babd0e6add56e358",
+      "bytes": 4078162
+    },
+    {
+      "pulsar": "J1713+0747",
+      "file": "v1p1_de440_pint_bipm2019-J1713+0747.feather",
+      "sha256": "36d9cad2c2ea51617c5009aa18997bc1e02a9d71692171bbacdb12fd624eebc9",
+      "bytes": 23957250
+    },
+    {
+      "pulsar": "J1719-1438",
+      "file": "v1p1_de440_pint_bipm2019-J1719-1438.feather",
+      "sha256": "0aa203579a8ce9e8ab8c3676f9c64cc75e55661eaf6fb0139eea2ed8a65cc3c0",
+      "bytes": 2415162
+    },
+    {
+      "pulsar": "J1730-2304",
+      "file": "v1p1_de440_pint_bipm2019-J1730-2304.feather",
+      "sha256": "d26264fbf65f0dea1c931f47388370367648cacd6ab71038279737216adf1245",
+      "bytes": 1659282
+    },
+    {
+      "pulsar": "J1738+0333",
+      "file": "v1p1_de440_pint_bipm2019-J1738+0333.feather",
+      "sha256": "696fde0b222c9d795367813806572ac28e1e9653d379610c28ccc7d8f2e2042f",
+      "bytes": 3308986
+    },
+    {
+      "pulsar": "J1741+1351",
+      "file": "v1p1_de440_pint_bipm2019-J1741+1351.feather",
+      "sha256": "ab38f2fa1e94b88b2236bc9cc6876a878ac9fd4ff6a2d77fa69b0888a5a96955",
+      "bytes": 2262786
+    },
+    {
+      "pulsar": "J1744-1134",
+      "file": "v1p1_de440_pint_bipm2019-J1744-1134.feather",
+      "sha256": "316716c6cb0355ee419305160c7964a530312334000d0b13b108efaf213590ca",
+      "bytes": 6293242
+    },
+    {
+      "pulsar": "J1745+1017",
+      "file": "v1p1_de440_pint_bipm2019-J1745+1017.feather",
+      "sha256": "25add375fde73b000a0286d4db794ae576dbef614620cf0112a91eee01c8ab0a",
+      "bytes": 1113066
+    },
+    {
+      "pulsar": "J1747-4036",
+      "file": "v1p1_de440_pint_bipm2019-J1747-4036.feather",
+      "sha256": "50a283ed83b0c1e0432f1f130382ca1797dce58f628890f563c95eede325781c",
+      "bytes": 3647650
+    },
+    {
+      "pulsar": "J1751-2857",
+      "file": "v1p1_de440_pint_bipm2019-J1751-2857.feather",
+      "sha256": "04258b82354afef13df85e8e01f70eea1cf0238bd057a69d80dd13321477355d",
+      "bytes": 767714
+    },
+    {
+      "pulsar": "J1802-2124",
+      "file": "v1p1_de440_pint_bipm2019-J1802-2124.feather",
+      "sha256": "130f7fe97922c7b352538e3cf0d436fe80b59aa2a75816f68ab3735b4cbf49e4",
+      "bytes": 2519186
+    },
+    {
+      "pulsar": "J1811-2405",
+      "file": "v1p1_de440_pint_bipm2019-J1811-2405.feather",
+      "sha256": "9639201647048c3a2a8a179a444774ed818f8df5c7b5e275ed07098bfc6f570a",
+      "bytes": 1985866
+    },
+    {
+      "pulsar": "J1832-0836",
+      "file": "v1p1_de440_pint_bipm2019-J1832-0836.feather",
+      "sha256": "c11be9d712486f72ab3afeea63ac4e86bd6491510d3d1a176052b37850930661",
+      "bytes": 2564450
+    },
+    {
+      "pulsar": "J1843-1113",
+      "file": "v1p1_de440_pint_bipm2019-J1843-1113.feather",
+      "sha256": "22658103b2ef51005e721870e2bf08eac3c37f7fd1c418fd691033b9acd83f8f",
+      "bytes": 1508626
+    },
+    {
+      "pulsar": "J1853+1303",
+      "file": "v1p1_de440_pint_bipm2019-J1853+1303.feather",
+      "sha256": "2e7937c9d6f3d2da8e665d1cc184a882ca11a8fb49b4396a47b784eb37aeaf42",
+      "bytes": 1758730
+    },
+    {
+      "pulsar": "J1903+0327",
+      "file": "v1p1_de440_pint_bipm2019-J1903+0327.feather",
+      "sha256": "8eebb8d02397b88043cfb394cf79d492ab5694361ccf055db7136a061af2da81",
+      "bytes": 2788186
+    },
+    {
+      "pulsar": "J1909-3744",
+      "file": "v1p1_de440_pint_bipm2019-J1909-3744.feather",
+      "sha256": "a7897cd289928d6c88beb34df46e406d435e8d0436dbde71da6011e9f8b99196",
+      "bytes": 13505162
+    },
+    {
+      "pulsar": "J1910+1256",
+      "file": "v1p1_de440_pint_bipm2019-J1910+1256.feather",
+      "sha256": "b73f7886554f9e15637c5c6044fbb3dd192c47e41e1ac9408fa490b5bcf53051",
+      "bytes": 2470666
+    },
+    {
+      "pulsar": "J1911+1347",
+      "file": "v1p1_de440_pint_bipm2019-J1911+1347.feather",
+      "sha256": "9d2204ebe502027d6850af0a0c88bc6700b3fea371abb027ebe97ab747036bf4",
+      "bytes": 1316650
+    },
+    {
+      "pulsar": "J1918-0642",
+      "file": "v1p1_de440_pint_bipm2019-J1918-0642.feather",
+      "sha256": "010e676e0f635f2895928774d1b7fa5ac477176f138e6d2adfd9dc4b33564568",
+      "bytes": 7290994
+    },
+    {
+      "pulsar": "J1923+2515",
+      "file": "v1p1_de440_pint_bipm2019-J1923+2515.feather",
+      "sha256": "f8599fafea8f5ad30e32b4119f84c3879e806681cb1fbaa6e7f552f90fbd894e",
+      "bytes": 1376586
+    },
+    {
+      "pulsar": "J1944+0907",
+      "file": "v1p1_de440_pint_bipm2019-J1944+0907.feather",
+      "sha256": "4e0a10257f92b22525425da3a2b22f543b5718cb4fafa32211c269cecab81031",
+      "bytes": 1870946
+    },
+    {
+      "pulsar": "J1946+3417",
+      "file": "v1p1_de440_pint_bipm2019-J1946+3417.feather",
+      "sha256": "7a02f8ce528815dcef93199490060282c68f39add93bb138ac30129030b28cc4",
+      "bytes": 1838034
+    },
+    {
+      "pulsar": "J2010-1323",
+      "file": "v1p1_de440_pint_bipm2019-J2010-1323.feather",
+      "sha256": "3d583e597fe4407a103b1f3fa0f95930b024b3b89f5b5cbb301ab45a91f766aa",
+      "bytes": 5692866
+    },
+    {
+      "pulsar": "J2017+0603",
+      "file": "v1p1_de440_pint_bipm2019-J2017+0603.feather",
+      "sha256": "2edc543bad5690e189bd022744673944071f5de2bc529b80228d3a51f37c9941",
+      "bytes": 1349674
+    },
+    {
+      "pulsar": "J2033+1734",
+      "file": "v1p1_de440_pint_bipm2019-J2033+1734.feather",
+      "sha256": "f4d7460eac15d6e8b6e8d061ade0b4ae317dc41e9d90bdc661810aae311b7779",
+      "bytes": 1464970
+    },
+    {
+      "pulsar": "J2043+1711",
+      "file": "v1p1_de440_pint_bipm2019-J2043+1711.feather",
+      "sha256": "09b7ee4d011ee4269f2e22a16976458169100c79e75bd6f41eeb2dacd9792295",
+      "bytes": 3083490
+    },
+    {
+      "pulsar": "J2124-3358",
+      "file": "v1p1_de440_pint_bipm2019-J2124-3358.feather",
+      "sha256": "68344ad668d1d123b1acbe0048b2c84ae4681865233a0b8db5e56c936c2e9c8b",
+      "bytes": 1646114
+    },
+    {
+      "pulsar": "J2145-0750",
+      "file": "v1p1_de440_pint_bipm2019-J2145-0750.feather",
+      "sha256": "13b1742373ea38308cb6ae26661c3e98170c205f6a7eaa4f0d1ac46bfa397fe4",
+      "bytes": 7561858
+    },
+    {
+      "pulsar": "J2214+3000",
+      "file": "v1p1_de440_pint_bipm2019-J2214+3000.feather",
+      "sha256": "ee0200ee7fa7cbe886bd3df1edb2c3ef34ba63e791ed6257ad573d2235e40001",
+      "bytes": 2793626
+    },
+    {
+      "pulsar": "J2229+2643",
+      "file": "v1p1_de440_pint_bipm2019-J2229+2643.feather",
+      "sha256": "e1198ea72005413b8c8ed20e759d1d9c11f73d4705d0755ace357a899a570582",
+      "bytes": 1443866
+    },
+    {
+      "pulsar": "J2234+0611",
+      "file": "v1p1_de440_pint_bipm2019-J2234+0611.feather",
+      "sha256": "4e7fec54092e3fe5e092ef78a8ac029a0aabe9d9de0e759195c762599950b44b",
+      "bytes": 1401818
+    },
+    {
+      "pulsar": "J2234+0944",
+      "file": "v1p1_de440_pint_bipm2019-J2234+0944.feather",
+      "sha256": "b86385a114e7c87f88908d17dd97f375615a847961a058a6f9925b59dffe7f17",
+      "bytes": 2796074
+    },
+    {
+      "pulsar": "J2302+4442",
+      "file": "v1p1_de440_pint_bipm2019-J2302+4442.feather",
+      "sha256": "ae41c11fd9a19c59e0e2f5c8a5e6ca86c532f3b855184253e67812bfd513b035",
+      "bytes": 4005442
+    },
+    {
+      "pulsar": "J2317+1439",
+      "file": "v1p1_de440_pint_bipm2019-J2317+1439.feather",
+      "sha256": "f0216910efe7b8d87c154018f723534691e20f59daf11ac53cc66e68a2808c2a",
+      "bytes": 5735642
+    },
+    {
+      "pulsar": "J2322+2057",
+      "file": "v1p1_de440_pint_bipm2019-J2322+2057.feather",
+      "sha256": "ed1abbb9b168d95abd86f8ccbd7e03761b5f5c0b3015beccda0eec8218cfc034",
+      "bytes": 1062314
+    }
+  ]
+}
