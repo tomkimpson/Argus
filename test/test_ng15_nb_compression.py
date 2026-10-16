@@ -178,3 +178,99 @@ def test_grid_cells_are_stamped_at_their_centres():
     k = (comp["times"] - compress.T0_DEFAULT) / (30.0 * DAY) - 0.5
     np.testing.assert_allclose(k, np.round(k), atol=1e-12)
     assert np.all(np.diff(comp["times"]) > 0)
+
+
+# --------------------------------------------------------------------------- #
+# Dense oracle vs the filter (task 2.4)
+# --------------------------------------------------------------------------- #
+import types  # noqa: E402
+
+import jax  # noqa: E402
+import jax.numpy as jnp  # noqa: E402
+
+import oracle  # noqa: E402
+
+# (log10 ha, log10 γa, log10 σp, log10 γp) with µs-level signal and γ·span ≳ 1, so the
+# state is not absorbed by the F0/F1 columns and the gradients are O(0.1–1).
+POINTS = [
+    (-12.0, -6.0, -13.0, -6.0),
+    (-11.5, -6.5, -13.5, -5.5),
+    (-12.5, -5.5, -12.5, -6.5),
+]
+
+
+def _jitter_free_filter_module():
+    """The library filter with its two 1e-9 PD jitters set to zero (test-only copy)."""
+    src = (REPO / "python" / "argus" / "jax_kalman_filter.py").read_text()
+    edits = [
+        ("return 1e-9 * (jnp.sum", "return 0.0 * (jnp.sum"),
+        ("return 1e-9 * jnp.sum", "return 0.0 * jnp.sum"),
+        ("jitter = 1e-9 * (jnp.trace", "jitter = 0.0 * (jnp.trace"),
+    ]
+    for old, new in edits:
+        assert src.count(old) == 1, f"jitter site moved: {old!r}"
+        src = src.replace(old, new)
+    mod = types.ModuleType("argus._jk_nojitter")
+    mod.__package__ = "argus"
+    exec(compile(src, "jk_nojitter", "exec"), mod.__dict__)
+    return mod
+
+
+def _collapsed_synthetic():
+    """The synthetic pulsar with each cell's TOAs moved onto one time, so A1 is exact
+    for the continuous-time model too."""
+    cache = synthetic_pulsar()
+    cell = compress.compress_pulsar(cache)["cell"]
+    t = cache["toas"].copy()
+    for k in np.unique(cell):
+        t[cell == k] = t[cell == k].min()
+    return dict(cache, toas=t)
+
+
+@pytest.fixture(scope="module")
+def collapsed():
+    cache = _collapsed_synthetic()
+    comp = compress.compress_pulsar(cache)
+    return comp, oracle.oracle_inputs(cache, comp), oracle.filter_inputs(comp)
+
+
+@pytest.mark.parametrize("p", POINTS)
+def test_oracle_equals_jitter_free_filter(collapsed, p, monkeypatch):
+    """With A1 exact, the only filter–oracle difference is the filter's PD jitter."""
+    comp, oi, fi = collapsed
+    monkeypatch.setattr(oracle, "jk", _jitter_free_filter_module())
+    p = jnp.asarray(p)
+    lo = float(oracle.oracle_loglike(p, oi))
+    lf = float(oracle.filter_loglike(p, fi)) + comp["const"]
+    assert abs(lf - lo) <= 1e-10 * abs(lo), (lf, lo)
+    go = np.asarray(jax.grad(oracle.oracle_loglike)(p, oi))
+    gf = np.asarray(jax.grad(oracle.filter_loglike)(p, fi))
+    assert np.max(np.abs(go)) > 0.1  # the parameters matter at these points
+    np.testing.assert_allclose(gf, go, rtol=1e-6, atol=1e-6 * np.max(np.abs(go)))
+
+
+@pytest.mark.parametrize("p", POINTS)
+def test_oracle_matches_stock_filter(collapsed, p):
+    """The production filter (with jitter) agrees well inside C1's tolerances."""
+    comp, oi, fi = collapsed
+    p = jnp.asarray(p)
+    lo = float(oracle.oracle_loglike(p, oi))
+    lf = float(oracle.filter_loglike(p, fi)) + comp["const"]
+    assert abs(lf - lo) <= 1e-4, (lf, lo)
+    go = np.asarray(jax.grad(oracle.oracle_loglike)(p, oi))
+    gf = np.asarray(jax.grad(oracle.filter_loglike)(p, fi))
+    assert np.max(np.abs(gf - go)) <= 1e-4 * np.max(np.abs(go))
+
+
+def test_single_step_grid():
+    """All TOAs at one time and one grid cell: a one-step filter equals the oracle."""
+    cache = synthetic_pulsar()
+    cache = dict(cache, toas=np.full_like(cache["toas"], cache["toas"].min()))
+    comp = compress.compress_pulsar(cache, delta_days=1e5)
+    assert comp["times"].size == 1
+    oi, fi = oracle.oracle_inputs(cache, comp), oracle.filter_inputs(comp)
+    for p in POINTS:
+        p = jnp.asarray(p)
+        lo = float(oracle.oracle_loglike(p, oi))
+        lf = float(oracle.filter_loglike(p, fi)) + comp["const"]
+        assert abs(lf - lo) <= 1e-10 * abs(lo), (lf, lo)
