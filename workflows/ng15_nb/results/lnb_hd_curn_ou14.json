@@ -1,0 +1,87 @@
+{
+  "estimator": "path_sampling",
+  "n_rungs": 5,
+  "eps_grid": [
+    0.0,
+    0.25,
+    0.5,
+    0.75,
+    1.0
+  ],
+  "ln_bayes_factor": 5.492523533662899,
+  "uncert": 0.05794063152273521,
+  "reliable": true,
+  "failed_diagnostics": [],
+  "diagnostics": {
+    "mcmc_uncert": 0.04465591757689021,
+    "quadrature_method": "romberg",
+    "trapezoid": 5.988434593659756,
+    "quadrature_correction": -0.4959110599968568,
+    "residual_discretisation": 0.036918366792416,
+    "min_integrand_ess": 237.01306149057342,
+    "covers_endpoints": true,
+    "romberg": {
+      "integral": 5.492523533662899,
+      "residual": 0.036918366792416,
+      "trapezoid_h": 5.988434593659756,
+      "trapezoid_2h": 7.365412673273076,
+      "trapezoid_4h": 11.211998486067607,
+      "simpson_h": 5.529441900455315,
+      "simpson_2h": 6.083217402341565
+    }
+  },
+  "rungs": [
+    {
+      "eps": 0.0,
+      "mean": 24.57136922291092,
+      "uncert": 0.171752465629376,
+      "ess": 576.6315141091186,
+      "n_draws": 4000,
+      "path": "workflows/ng15_nb/outputs/ng15nb_ou14_eps000/samples.nc"
+    },
+    {
+      "eps": 0.25,
+      "mean": 8.970638227938126,
+      "uncert": 0.13028960962566838,
+      "ess": 237.01306149057342,
+      "n_draws": 4000,
+      "path": "workflows/ng15_nb/outputs/ng15nb_ou14_eps025/samples.nc"
+    },
+    {
+      "eps": 0.5,
+      "mean": 3.5188268604785424,
+      "uncert": 0.06240425063515724,
+      "ess": 362.9704450713491,
+      "n_draws": 4000,
+      "path": "workflows/ng15_nb/outputs/ng15nb_ou14_eps050/samples.nc"
+    },
+    {
+      "eps": 0.75,
+      "mean": 0.25227480015474263,
+      "uncert": 0.05216948152928082,
+      "ess": 552.5582189736647,
+      "n_draws": 4000,
+      "path": "workflows/ng15_nb/outputs/ng15nb_ou14_eps075/samples.nc"
+    },
+    {
+      "eps": 1.0,
+      "mean": -2.147372250775705,
+      "uncert": 0.06133059774445889,
+      "ess": 680.5757656628928,
+      "n_draws": 4000,
+      "path": "workflows/ng15_nb/outputs/ng15nb_ou14_eps100/samples.nc"
+    }
+  ],
+  "refinement": {
+    "worst_interval": [
+      0.0,
+      0.5
+    ],
+    "suggested_new_eps": [
+      0.125,
+      0.375
+    ],
+    "meets_target": true,
+    "target_uncert": 0.5
+  }
+}

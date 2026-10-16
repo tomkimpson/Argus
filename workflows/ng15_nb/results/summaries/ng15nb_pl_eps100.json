@@ -1,0 +1,21 @@
+{
+  "output_id": "ng15nb_pl_eps100",
+  "eps": 1.0,
+  "n_pulsars": 67,
+  "device": "cuda:0",
+  "sample_wall_s": 7992.285763869993,
+  "integrand_wall_s": 15.98152193299029,
+  "divergences": 0,
+  "divergence_fraction": 0.0,
+  "mean_num_steps": 114.136,
+  "max_r_hat": 1.0128863700872748,
+  "min_n_eff": 299.23216478175874,
+  "integrand_mean": -2.777375711015894,
+  "integrand_sd": 1.6766170880648683,
+  "integrand_chain_means": [
+    -2.876041134514483,
+    -2.7904223639326227,
+    -2.7492471744371985,
+    -2.693792171179273
+  ]
+}
