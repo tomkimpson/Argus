@@ -594,6 +594,7 @@ def _run_kalman_filter_marginal(
     P_eps_inv,
     mask_matrices,
     diffuse=False,
+    accum0=None,
 ):
     """Marginalized (Rao-Blackwellized) Kalman filter log likelihood.
 
@@ -639,6 +640,12 @@ def _run_kalman_filter_marginal(
     *every* epoch contributes no information to its own timing-model block and leaves Λ
     singular. That pulsar carries no data at all and does not belong in the dataset; the
     filter rejects it at construction rather than returning a meaningless likelihood.
+
+    `accum0`, if given, is a tuple (A₀, b₀, c₀) of shapes (M_sum, M_sum), (M_sum, 1) and
+    () added to the accumulators before marginalizing. It carries static, β-only data
+    that never touch the dynamic state: e.g. the orthogonal remainder left by epoch
+    compression, which contributes A₀ = Σ Ψ' N⁻¹ Ψ etc. exactly as if those rows had been
+    filtered. None (the default) leaves the likelihood bit-for-bit unchanged.
     """
     Γ = _effective_orf(hellings_downs_matrix, θ.orf_epsilon)
     σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, Γ)
@@ -704,6 +711,12 @@ def _run_kalman_filter_marginal(
     # Accumulate inside the carry (no stacked outputs) to avoid materialising a
     # (T, M_sum, M_sum) array of per-epoch A contributions.
     (x, P, Xi, A, b, c, L), _ = lax.scan(step, (x, P, Xi, A, b, c, L), inputs)
+
+    if accum0 is not None:
+        A0, b0, c0 = accum0
+        A = A + A0
+        b = b + b0
+        c = c + c0
 
     if diffuse:
         # Flat/improper prior limit P_eps⁻¹ → 0: Λ = A, and the logdet(P_eps⁻¹) term is
