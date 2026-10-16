@@ -487,7 +487,7 @@ carries a superseded banner.
 evidence on real NG15 at all, before any Argus engineering.
 **Done when:** C3 passes, and N2 records Discovery-OU lnB(HD/CURN) and lnB(CURN/noise), with K2
 evaluated.
-**PR:** #128
+**PR:** #128 (merged 2026-10-16)
 
 - [x] 1.1 Fetch Discovery at a pinned commit; write `MANIFEST.json` (commit, feather hashes,
       67 pulsar names, data-set version) — verify by 67 feathers hashed and version string recorded.
