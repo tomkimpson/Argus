@@ -5,7 +5,11 @@
 #   lnb_hd_curn_{pl,ou14,ou30}.json     path-sampling lnB(HD/CURN), frozen procedure v1
 #   lnb_curn_noise_{pl,ou14,ou30}.json  region Savage-Dickey lnB(CURN/noise) from eps = 0
 #   n2_psd.json                         N2: common-process PSD at 1/T, 1/(5 yr); A_HD,13/3
+# then copies them, with each rung's summary.json and provenance.json, to the tracked
+# workflows/ng15_nb/results/ that notes/N2_kernel_systematic.md cites.
 #
+# SLURM does not create the log directory, so on a fresh clone first run
+#   mkdir -p workflows/ng15_nb/outputs/logfiles
 #   sbatch workflows/ng15_nb/reference/slurm/readout.sh
 
 #SBATCH --job-name=ng15nb-readout
@@ -31,3 +35,12 @@ for id in pl ou14 ou30; do
 done
 echo "===== N2 kernel systematic"
 python workflows/ng15_nb/reference/kernel_systematic.py --out "${O}/readouts/n2_psd.json"
+
+R=workflows/ng15_nb/results
+mkdir -p "${R}/summaries" "${R}/provenance"
+cp ${O}/readouts/*.json "${R}/"
+for run in ${O}/ng15nb_*_eps*/; do
+    n=$(basename "${run}")
+    cp "${run}/summary.json" "${R}/summaries/${n}.json"
+    cp "${run}/provenance.json" "${R}/provenance/${n}.json"
+done

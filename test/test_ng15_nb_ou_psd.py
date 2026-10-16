@@ -112,7 +112,7 @@ def test_structure_function_filter_matches_closed_form(gamma, tau_days):
     else:
         # get_Q_block's q11 = [dt - 2(1-e^{-x})/γ + (1-e^{-2x})/(2γ)]/γ² cancels to ~x³/3 out of
         # O(x) terms, so it carries a relative rounding error of order eps/x². At the bottom of the
-        # MDC2 γ_p box (1e-12 rad/s) and a weekly step that is ~1e-4: small next to the white noise,
+        # MDC2 γ_p box (1e-12 rad/s) and a weekly step that is ~6e-4: small next to the white noise,
         # but not exact. Pinned here so a change in either direction is noticed.
         assert got == pytest.approx(want, rel=max(1e-10, 10 * np.finfo(float).eps / x**2))
 

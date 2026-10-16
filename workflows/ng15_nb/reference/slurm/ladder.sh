@@ -9,6 +9,7 @@
 #
 # Code runs from a pinned worktree so edits to the main checkout cannot reach a queued job:
 #   git -C /fred/oz022/tkimpson/Argus worktree add --detach /fred/oz022/tkimpson/Argus-ng15nb <commit>
+#   mkdir -p workflows/ng15_nb/outputs/logfiles   # SLURM does not create it
 #   sbatch --export=ALL,REPO=/fred/oz022/tkimpson/Argus-ng15nb workflows/ng15_nb/reference/slurm/ladder.sh
 # Outputs land in the main checkout's workflows/ng15_nb/outputs/<output_id>_eps<NNN>/ (gitignored):
 # samples.nc, summary.json, resolved_config.ini, provenance.json. Readout (Argus env, CPU):

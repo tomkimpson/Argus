@@ -1,0 +1,17 @@
+{
+  "frozen_procedure_version": "v1",
+  "frozen_procedure_file": "../Argus-ng15nb/workflows/ng15_sgwb_demo/configs/frozen/evidence_procedure_v1.json",
+  "frozen_procedure_sha256": "dcc45416da60ede1dd86916507a1e4969be5d4f28b228646d66d52c6769d625f",
+  "estimator": "path_sampling",
+  "git_sha": "57126d1efd89d75dc0f734c2f87c48b3fc7a0270",
+  "config": "workflows/ng15_nb/outputs/ng15nb_pl_eps050/resolved_config.ini",
+  "config_sha256": "44ce2ee232868c7933d9477c128f1013b30f52332499472a50607a9a2c2c082a",
+  "data_path": "/fred/oz022/tkimpson/external/discovery",
+  "orf_epsilon_value": "0.5",
+  "red_noise_prior": "flat",
+  "empirical_priors_path": null,
+  "host": "gina6",
+  "slurm_job_id": "18649902",
+  "slurm_array_task_id": "2",
+  "stamped_utc": "2026-10-16T05:54:16+00:00"
+}

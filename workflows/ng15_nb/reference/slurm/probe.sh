@@ -3,6 +3,7 @@
 # its gradient at 67 pulsars for both kernels, then runs a short NUTS probe (100 + 100, 4 chains)
 # so the full rungs can be sized against the ~50 A100-h budget in spec §5.
 #
+#   mkdir -p workflows/ng15_nb/outputs/logfiles   # SLURM does not create it
 #   sbatch workflows/ng15_nb/reference/slurm/probe.sh            # power law
 #   sbatch --export=ALL,KERNEL=ou workflows/ng15_nb/reference/slurm/probe.sh
 

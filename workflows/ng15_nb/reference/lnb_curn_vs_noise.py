@@ -15,12 +15,12 @@ plateau gate, γ flatness KS test, Poisson lower bound) is reused unchanged.
 
 NANOGrav's published curnγ-vs-noise B exceeds 10¹⁴, so no draw is expected anywhere near
 the lower edge: the estimator will report reliable: false and a one-sided lower bound of
-order ln(prior mass × ESS) ≈ 5–8 nats. That bound is the reportable number; K2 turns on
-lnB(HD/CURN) only.
+order ln(prior mass × ESS), ≈ 4–6 nats at these run lengths. That bound is the
+reportable number; K2 turns on lnB(HD/CURN) only.
 
     conda activate Argus
     python workflows/ng15_nb/reference/lnb_curn_vs_noise.py \\
-        workflows/ng15_nb/outputs/ng15nb_pl_eps000 --out .../lnb_curn_vs_noise_pl.json
+        workflows/ng15_nb/outputs/ng15nb_pl_eps000 --out .../lnb_curn_noise_pl.json
 """
 
 import argparse

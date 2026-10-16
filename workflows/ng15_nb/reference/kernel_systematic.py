@@ -3,16 +3,18 @@
 Spec task 1.6. Each run's posterior draws are pushed through its own one-sided residual
 PSD (s²/Hz): Discovery's ``powerlaw`` for the PL runs, ``ou_psd.gw_psd_onesided`` for the
 OU runs. The result is a like-for-like amplitude across kernels, which a log10 A and an h_a
-are not. T is the array span Discovery uses (``getspan``: first to last TOA over all 67
-feathers).
+are not. T is the array span Discovery uses (``getspan``: first to last TOA over the 67
+feathers pinned in data/ng15_nb/MANIFEST.json).
 
     conda activate Argus
-    python workflows/ng15_nb/reference/kernel_systematic.py --out .../readouts/n2_psd.json
+    python workflows/ng15_nb/reference/kernel_systematic.py [--discovery-dir DIR] \\
+        --out .../readouts/n2_psd.json
 """
 
 import argparse
 import json
 import math
+import os
 from pathlib import Path
 
 import numpy as np
@@ -22,17 +24,20 @@ from ou_psd import gw_psd_onesided
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 OUTPUTS = REPO_ROOT / "workflows/ng15_nb/outputs"
-DATA = Path("/fred/oz022/tkimpson/external/discovery/data")
+DEFAULT_DISCOVERY_DIR = os.environ.get("NG15_DISCOVERY_DIR", "/fred/oz022/tkimpson/external/discovery")
 YR_S = 365.25 * 86400.0
 FYR = 1.0 / YR_S  # discovery.const.fyr
 RUNS = [f"ng15nb_{k}_eps{e}" for k in ("pl", "ou14", "ou30") for e in ("000", "100")] + ["ng15nb_pl13_eps100"]
 
 
-def array_span_s():
+def array_span_s(discovery_dir):
+    entries = json.loads((REPO_ROOT / "data/ng15_nb/MANIFEST.json").read_text())["feathers"]
     lo, hi = math.inf, -math.inf
-    for f in sorted(DATA.glob("v1p1_de440_pint_bipm2019-*.feather")):
-        t = pf.read_table(f, columns=["toas"]).column("toas").to_numpy()
+    for e in entries:
+        t = pf.read_table(Path(discovery_dir) / "data" / e["file"], columns=["toas"]).column("toas").to_numpy()
         lo, hi = min(lo, t.min()), max(hi, t.max())
+    if len(entries) != 67 or not hi > lo:
+        raise SystemExit(f"array span from {len(entries)} manifest feathers is {hi - lo}; expected 67 and > 0")
     return hi - lo
 
 
@@ -55,9 +60,10 @@ def log10_psd_draws(run, f):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--discovery-dir", default=DEFAULT_DISCOVERY_DIR, help="Discovery clone (default $NG15_DISCOVERY_DIR)")
     ap.add_argument("--out")
     args = ap.parse_args()
-    span = array_span_s()
+    span = array_span_s(args.discovery_dir)
     freqs = {"1/T": 1.0 / span, "1/(5 yr)": 1.0 / (5.0 * YR_S)}
     res = {"T_yr": span / YR_S, "freqs_hz": freqs, "units": "log10 one-sided residual PSD, s^2/Hz", "runs": {}}
     for run in RUNS:

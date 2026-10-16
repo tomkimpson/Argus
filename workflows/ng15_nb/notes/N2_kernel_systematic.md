@@ -26,8 +26,12 @@ kernel extension before Phase 3.
 - Estimator: the frozen path-sampling procedure (`evidence_procedure_v1.json`), 5 rungs
   ε ∈ {0, .25, .5, .75, 1} with Γ(ε) = (1 − ε) I + ε Γ_HD, 4 chains × 1000 + 1000 NUTS.
 - Code: pinned worktree at `57126d1`; ladder SLURM array 18649549 (16 tasks, one A100
-  each); readout job 18682477 (`reference/slurm/readout.sh`). The numbers below are copied
-  from the JSON in `workflows/ng15_nb/results/`.
+  each); readout `reference/slurm/readout.sh`, which also copies its JSON, each rung's
+  `summary.json` and `provenance.json` into `workflows/ng15_nb/results/`. The numbers below
+  come from those files except where a diagnostic is named explicitly.
+- Published values: Agazie et al. 2023, ApJL 951, L8 (the NANOGrav 15-yr GWB paper). The
+  benchmarks (B(HD/CURN) ≈ 200 for hdγ vs curnγ; B(curnγ/noise) > 10¹⁴; A_HD,13/3) are the
+  ones spec §2 takes from it.
 
 ## Evidence
 
@@ -39,7 +43,12 @@ kernel extension before Phase 3.
 | Discovery-OU, 30 modes | **5.382 ± 0.051** | 128 | 0.022 | ≥ 4.16 |
 
 All three HD/CURN readouts pass every gate of the frozen procedure (5 rungs, residual
-≤ 0.1, integrand ESS ≥ 50, endpoints covered). Integrands ⟨∂lnL/∂ε⟩ at ε = 0 … 1:
+≤ 0.1, integrand ESS ≥ 50, endpoints covered). The quoted ± is the estimator's
+Monte Carlo error only. With 5 rungs the Romberg value is Boole's rule, and the
+trapezoid sequence is not yet in its asymptotic regime (successive differences 4.07 and
+1.43, ratio 2.85 rather than 4). Other reasonable interpolants of the same five means move
+each lnB by up to ~0.15 nat, so the realistic uncertainty is about ±0.15. The kernel shifts
+below are differences on a shared grid and hold under every interpolant tried. Integrands ⟨∂lnL/∂ε⟩ at ε = 0 … 1:
 
 - PL: 25.13, 8.87, 3.03, −0.39, −2.78
 - OU14: 24.57, 8.97, 3.52, 0.25, −2.15
@@ -50,7 +59,9 @@ All three HD/CURN readouts pass every gate of the frozen procedure (5 rungs, res
 - **Mode-count sensitivity (input to C5):** OU30 − OU14 = −0.11 ± 0.08 nats. The §10 risk
   trigger ("Discovery-OU lnB moves by > 1 nat when its mode count changes") is not hit. This
   is the measured Fourier-truncation part of the C5 DRAFT 1-nat tolerance.
-- **CURN vs noise is a bound, not a measurement.** The region Savage-Dickey estimator
+- **CURN vs noise is a bound, not a measurement. Task 1.5's verify clause ("reliability
+  gate passing") is therefore not met for lnB(CURN/noise); a spec amendment recording it
+  as a bound is proposed in PR #128 and pending.** The region Savage-Dickey estimator
   (`reference/lnb_curn_vs_noise.py`) found no ε = 0 draw below the shallowest threshold
   (the lowest 31% of the amplitude prior), so it reports only a 95% lower bound. The bound
   is set by the amplitude site's ESS (2443, 1482, 622 draws) and so by the run length, not by
@@ -77,32 +88,45 @@ percentile], from each run's own spectral model (`reference/kernel_systematic.py
   under HD, OU14 is +0.08 dex and OU30 is +0.10 dex above PL, against a 1σ width of
   ≈ 0.12 dex.
 - **At 1/T the kernels diverge, and more so with more modes:** OU14 is −0.10 dex and OU30
-  −0.36 dex relative to PL (1σ ≈ 0.2 dex). The OU spectrum flattens below its corner γ_a,
-  so it puts less power at the lowest frequency than a γ ≈ 3.2 power law.
-- **The OU corner is unconstrained.** The `gw_log10_γ_a` posterior spans its whole box
-  [−11, −6] in every OU run and reaches or comes within 0.2 dex of the −11 edge, so the 1/T amplitude's lower tail is
-  set partly by the prior. The pivot PSD is well inside its box (posterior −6.4 to −5.4 in a
-  [−13, −3] box). This matches §7's non-goal: under OU we claim amplitude and correlation,
-  not spectral shape.
+  −0.36 dex relative to PL (1σ ≈ 0.2 dex for PL, 0.26–0.40 dex for OU). The OU spectrum goes
+  as f⁻² below its corner γ_a/2π and f⁻⁴ above it. With the corner near 5 nHz, between 1/T
+  and 1/(5 yr), it puts less power at 1/T than a γ ≈ 3.2 power law.
+- **The OU corner is weakly constrained.** `gw_log10_gamma_a` has a mode near −7.5
+  (medians −7.77, −7.58, −7.52, −7.23 for OU14 ε = 0, 1 and OU30 ε = 0, 1) and a long tail
+  toward the −11 edge (13% of OU14 ε = 0 draws below −10; 0.9% for OU30 ε = 1). In the
+  ridge basis the PSD is pinned at 1/(5 yr), so a small γ_a steepens the in-band spectrum
+  and raises the power at 1/T. The −11 edge therefore truncates the *upper* tail of the 1/T
+  amplitude; the −6 edge bounds the lower tail. The pivot PSD is well inside its box
+  (posterior −6.4 to −5.4 in a [−13, −3] box). This matches §7's non-goal: under OU we claim
+  amplitude and correlation, not spectral shape.
 - **C3 amplitude:** A_HD,13/3 = 2.39 × 10⁻¹⁵, 68% [2.02, 2.78], 90% [1.79, 3.04] × 10⁻¹⁵,
   against NANOGrav's 2.4 (+0.7, −0.6) × 10⁻¹⁵ (median and 90% interval). The medians agree
   to 1%, and the 90% interval width matches the published one (−0.60, +0.65).
-- The variable-γ PL common index is γ = 3.25 (68% [2.90, 3.61]; full range 2.06–4.86)
-  under HD. This matches NANOGrav's curnγ/hdγ posterior and does not rail on the [0, 7] box.
+- The variable-γ PL common index under HD (ε = 1) is γ = 3.25, 68% [2.90, 3.61], full range
+  2.07–4.74. It is consistent with the published γ_HD = 3.2 ± 0.6 (spec §2),
+  and it does not rail on the [0, 7] box.
 
 ## Sampling quality
 
 - All 16 runs: 0 divergences.
-- Integrand r̂ ≤ 1.034 and integrand ESS ≥ 128 on every rung.
-- Worst site overall: the ou30 ε = 0 rung's `log10_sigma_p` for J0030+0451 (r̂ 1.23,
-  ESS 13), a per-pulsar spin-noise nuisance. On that rung `loglik` has r̂ 1.07 (ESS 47) and
-  the integrand r̂ 1.025 (ESS 189). Its effect on lnB is bounded by the endpoint's
+- Integrand r̂ ≤ 1.034 and integrand ESS ≥ 128 on every rung (ArviZ rank-normalised r̂
+  and bulk ESS, as the frozen estimator uses).
+- Worst site overall: the ou30 ε = 0 rung's `log10_sigma_p` for J0030+0451, a per-pulsar
+  spin-noise nuisance. ArviZ gives r̂ 1.23, ESS 13. numpyro's split r̂, which
+  `summary.json` records as `max_r_hat`/`min_n_eff`, gives 1.37, ESS 4.5. On that rung
+  `loglik` has ArviZ r̂ 1.07 (ESS 47) and the integrand r̂ 1.025 (ESS 189).
+- The frozen procedure's sampler block lists r̂ ≤ 1.01 as a convergence threshold. That
+  threshold is not one of the estimator's reliability gates, and every rung exceeds it on
+  some nuisance site (summary `max_r_hat` 1.013–1.043 for PL, 1.02–1.09 for OU14 and
+  1.07–1.37 for OU30).
+  The OU30 ε = 0 rung is the one to rerun with a fresh seed if the ± is to be tightened. Its effect on lnB is bounded by the endpoint's
   quadrature weight: a one-chain deficit of ~1.5 nats in ⟨∂lnL/∂ε⟩ at ε = 0 moves lnB by
   ≲ 0.1 nat, and it cannot move it anywhere near ln 10.
 - Cost: 73.4 A100-h (SLURM `Elapsed`), against §5's ~50 A100-h estimate. The ou30 rungs
   took ~9.6 h each, ~4× an ou14 rung, and account for 48 of the 73 h. `summary.json`'s
-  `sample_wall_s` reads higher (up to 4.2 h for a 2.3 h job) because it includes time the
-  job spent suspended.
+  `sample_wall_s` reads higher than `Elapsed` (4.2 h against 2.3 h for some ou14 and pl
+  rungs, 11.9 h against 10.0 h for ou30 ε = 1) because it includes time the job spent
+  suspended.
 
 ## Findings from the reference build (tasks 1.2–1.3)
 
@@ -112,6 +136,6 @@ percentile], from each run's own spectral model (`reference/kernel_systematic.py
   nats higher and close to the published MAP. The ladders sample red noise, so they are
   unaffected; `reference/check_env.py` asserts the sign and corrects it.
 - **`argus.model.get_Q_block` q11 cancels catastrophically at γ·dt ≪ 1.** Relative error
-  ≈ ε/(γ dt)², e.g. ~5 × 10⁻⁵ at γ = 10⁻¹¹ s⁻¹, dt = 1 d. Pinned in
+  ≈ ε/(γ dt)², e.g. ~3–4 × 10⁻⁴ at γ = 10⁻¹¹ s⁻¹, dt = 1 d (4.0 × 10⁻⁴ measured). Pinned in
   `test/test_ng15_nb_ou_psd.py`, not fixed here. It matters for Phase 3/4, where the γ_a
   posterior reaches 10⁻¹¹.

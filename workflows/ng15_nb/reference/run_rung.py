@@ -167,7 +167,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--config", required=True)
     ap.add_argument("--eps", type=float, required=True)
-    ap.add_argument("--gw-components", type=int, help="override [Model] gw_components (suffixes the output id)")
+    ap.add_argument("--gw-components", type=int, help="override [Model] gw_components; pass --output-id too, or the run overwrites the config's output dir")
     ap.add_argument("--gw-gamma", help="override [Model] gw_gamma, e.g. 4.333333333333333")
     ap.add_argument("--output-id", help="override [Output] output_id")
     ap.add_argument("--n-pulsars", type=int, help="override [Data] n_pulsars (probes only)")
