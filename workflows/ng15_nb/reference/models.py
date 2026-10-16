@@ -73,16 +73,19 @@ def make_epsilon_gp(psrs, prior, components, T, hd=None, name=GW_NAME):
     def invprior(params):
         orf = orf_path(hd, params[EPS])
         phi = phi_of(params)
-        return jnp.kron(jnp.linalg.inv(orf), jnp.diag(1.0 / phi)), nf * jnp.linalg.slogdet(orf)[1] + npsr * jnp.sum(
-            jnp.log(phi)
-        )
+        return jnp.kron(
+            jnp.linalg.inv(orf), jnp.diag(1.0 / phi)
+        ), nf * jnp.linalg.slogdet(orf)[1] + npsr * jnp.sum(jnp.log(phi))
 
     invprior.params = priorfunc.params
     invprior.type = jax.Array
 
     gp = matrix.GlobalVariableGP(matrix.NoiseMatrix12D_var(priorfunc), fmats)
     gp.Phi_inv, gp.factors = invprior, None
-    gp.index = {f"{psr.name}_{name}_coefficients({nf})": slice(nf * i, nf * (i + 1)) for i, psr in enumerate(psrs)}
+    gp.index = {
+        f"{psr.name}_{name}_coefficients({nf})": slice(nf * i, nf * (i + 1))
+        for i, psr in enumerate(psrs)
+    }
     gp.pos = [psr.pos for psr in psrs]
     gp.name = [psr.name for psr in psrs]
     return gp
@@ -124,13 +127,20 @@ def red_noise_prior(kernel):
     return {"pl": ds.powerlaw, "ou": ou_psd.ou_rn_prior}[kernel]
 
 
-def make_model(psrs, kernel="pl", rn_components=30, gw_components=14, gw_gamma=None, gw=True):
+def make_model(
+    psrs, kernel="pl", rn_components=30, gw_components=14, gw_gamma=None, gw=True
+):
     """The array likelihood. ``gw=False`` drops the common process (intrinsic noise only)."""
     T = ds.getspan(psrs)
-    rngp = ds.makecommongp_fourier(psrs, red_noise_prior(kernel), rn_components, T=T, name=RN_NAME)
-    globalgp = make_epsilon_gp(psrs, common_prior(kernel, gw_gamma), gw_components, T) if gw else None
+    rngp = ds.makecommongp_fourier(
+        psrs, red_noise_prior(kernel), rn_components, T=T, name=RN_NAME
+    )
+    globalgp = (
+        make_epsilon_gp(psrs, common_prior(kernel, gw_gamma), gw_components, T)
+        if gw
+        else None
+    )
     return ds.ArrayLikelihood(pulsar_models(psrs), commongp=rngp, globalgp=globalgp)
-
 
 
 def _argnames(fn):

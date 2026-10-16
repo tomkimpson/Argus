@@ -59,17 +59,29 @@ def log10_ha_from_pivot(log10_pivot_psd, log10_gamma_a, pivot_f=PIVOT_F_HZ):
     """
     ga = 10.0**log10_gamma_a
     wp = TWO_PI * pivot_f
-    return 0.5 * (LOG10_12 + log10_pivot_psd + 2.0 * math.log10(wp) + np.log10(ga**2 + wp**2) - log10_gamma_a)
+    return 0.5 * (
+        LOG10_12
+        + log10_pivot_psd
+        + 2.0 * math.log10(wp)
+        + np.log10(ga**2 + wp**2)
+        - log10_gamma_a
+    )
 
 
 def spin_psd_onesided(f, log10_gamma_p, log10_sigma_p, f0):
     """One-sided spin-noise residual PSD for a pulsar of spin frequency ``f0`` (Hz)."""
-    return 2.0 * ou_psd_twosided(f, 10.0 ** (2.0 * log10_sigma_p) / f0**2, 10.0**log10_gamma_p)
+    return 2.0 * ou_psd_twosided(
+        f, 10.0 ** (2.0 * log10_sigma_p) / f0**2, 10.0**log10_gamma_p
+    )
 
 
 def ou_rn_prior(f, df, log10_gamma_p, log10_sigma_r):
     """Discovery prior for per-pulsar spin noise; σ_r = σ_p / f0."""
-    return 2.0 * ou_psd_twosided(f, 10.0 ** (2.0 * log10_sigma_r), 10.0**log10_gamma_p) * df
+    return (
+        2.0
+        * ou_psd_twosided(f, 10.0 ** (2.0 * log10_sigma_r), 10.0**log10_gamma_p)
+        * df
+    )
 
 
 def ou_gw_prior(f, df, log10_pivot_psd, log10_gamma_a):

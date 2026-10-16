@@ -50,7 +50,10 @@ def _load(path, name):
 
 @pytest.fixture(scope="module")
 def ou():
-    return _load(os.path.join(REPO_ROOT, "workflows", "ng15_nb", "reference", "ou_psd.py"), "ng15_nb_ou_psd")
+    return _load(
+        os.path.join(REPO_ROOT, "workflows", "ng15_nb", "reference", "ou_psd.py"),
+        "ng15_nb_ou_psd",
+    )
 
 
 def _structure_closed_form(sigma2, gamma, tau):
@@ -74,38 +77,71 @@ def _structure_from_psd(s1, tau, gamma):
     norm = s1(a)
     h = lambda x: s1(a * x) / norm  # noqa: E731
     wvar = 2 * math.pi * a * tau
-    low, _ = quad(lambda x: h(x) * 2 * (1 - math.cos(wvar * x)), 0, 1, epsabs=0, epsrel=1e-12, limit=500)
-    flat, _ = quad(lambda u: h(math.exp(u)) * math.exp(u), 0, 40, epsabs=0, epsrel=1e-12, limit=1000)
+    low, _ = quad(
+        lambda x: h(x) * 2 * (1 - math.cos(wvar * x)),
+        0,
+        1,
+        epsabs=0,
+        epsrel=1e-12,
+        limit=500,
+    )
+    flat, _ = quad(
+        lambda u: h(math.exp(u)) * math.exp(u),
+        0,
+        40,
+        epsabs=0,
+        epsrel=1e-12,
+        limit=1000,
+    )
     osc, _ = quad(h, 1, np.inf, weight="cos", wvar=wvar, limlst=200)
     return a * norm * (low + 2 * flat - 2 * osc)
 
 
 @pytest.mark.parametrize("gamma,sigma2", [(1e-11, 1.0), (3e-9, 2.5e-3), (1e-7, 7.0)])
 def test_velocity_variance_matches_stationary_q(ou, gamma, sigma2):
-    w2s1 = lambda f: (2 * math.pi * f) ** 2 * 2.0 * ou.ou_psd_twosided(f, sigma2, gamma)  # noqa: E731
+    w2s1 = (
+        lambda f: (2 * math.pi * f) ** 2 * 2.0 * ou.ou_psd_twosided(f, sigma2, gamma)
+    )  # noqa: E731
     u0 = math.log(gamma / (2 * math.pi))
-    from_psd, _ = quad(lambda u: w2s1(math.exp(u)) * math.exp(u), u0 - 40, u0 + 40, epsabs=0, epsrel=1e-12, limit=1000)
+    from_psd, _ = quad(
+        lambda u: w2s1(math.exp(u)) * math.exp(u),
+        u0 - 40,
+        u0 + 40,
+        epsabs=0,
+        epsrel=1e-12,
+        limit=1000,
+    )
     q22_inf = sigma2 * float(get_Q_block(gamma, 1e3 / gamma)[1, 1])
     assert q22_inf == pytest.approx(sigma2 / (2 * gamma), rel=1e-14)
     assert from_psd == pytest.approx(q22_inf, rel=1e-8)
 
 
 # (γ [rad/s], σ², τ [days]) with γτ between 0.03 and 100, where the quadrature is well conditioned.
-PSD_CASES = [(3e-9, 2.5e-3, 30.0), (3e-9, 2.5e-3, 1000.0), (1e-7, 7.0, 30.0), (1e-7, 7.0, 1000.0), (1e-11, 1.0, 1e5)]
+PSD_CASES = [
+    (3e-9, 2.5e-3, 30.0),
+    (3e-9, 2.5e-3, 1000.0),
+    (1e-7, 7.0, 30.0),
+    (1e-7, 7.0, 1000.0),
+    (1e-11, 1.0, 1e5),
+]
 
 
 @pytest.mark.parametrize("gamma,sigma2,tau_days", PSD_CASES)
 def test_structure_function_psd_matches_closed_form(ou, gamma, sigma2, tau_days):
     tau = tau_days * DAY
     s1 = lambda f: 2.0 * ou.ou_psd_twosided(f, sigma2, gamma)  # noqa: E731
-    assert _structure_from_psd(s1, tau, gamma) == pytest.approx(_structure_closed_form(sigma2, gamma, tau), rel=1e-5)
+    assert _structure_from_psd(s1, tau, gamma) == pytest.approx(
+        _structure_closed_form(sigma2, gamma, tau), rel=1e-5
+    )
 
 
 @pytest.mark.parametrize("gamma", [1e-11, 1e-10, 3e-9, 1e-7, 1e-6])
 @pytest.mark.parametrize("tau_days", [1.0, 7.0, 30.0, 1000.0])
 def test_structure_function_filter_matches_closed_form(gamma, tau_days):
     tau = tau_days * DAY
-    got, want = _structure_from_filter(1.3, gamma, tau), _structure_closed_form(1.3, gamma, tau)
+    got, want = _structure_from_filter(1.3, gamma, tau), _structure_closed_form(
+        1.3, gamma, tau
+    )
     x = gamma * tau
     if x >= 1e-3:
         assert got == pytest.approx(want, rel=1e-10)
@@ -114,11 +150,15 @@ def test_structure_function_filter_matches_closed_form(gamma, tau_days):
         # O(x) terms, so it carries a relative rounding error of order eps/x². At the bottom of the
         # MDC2 γ_p box (1e-12 rad/s) and a weekly step that is ~6e-4: small next to the white noise,
         # but not exact. Pinned here so a change in either direction is noticed.
-        assert got == pytest.approx(want, rel=max(1e-10, 10 * np.finfo(float).eps / x**2))
+        assert got == pytest.approx(
+            want, rel=max(1e-10, 10 * np.finfo(float).eps / x**2)
+        )
 
 
 def test_gw_psd_matches_ridge_reference(ou):
-    ref = _load(os.path.join(SCRIPTS, "diag_ou_powerlaw_capture.py"), "diag_ou_powerlaw_capture")
+    ref = _load(
+        os.path.join(SCRIPTS, "diag_ou_powerlaw_capture.py"), "diag_ou_powerlaw_capture"
+    )
     f = np.logspace(-10, -6.5, 200)
     for pivot, lga in [(-6.1, -8.5), (-13.0, -11.0), (-3.0, -6.0)]:
         got = ou.gw_psd_onesided(f, pivot, lga, pivot_f=ref.PIVOT_F)
@@ -134,25 +174,41 @@ def test_gw_psd_is_the_filters_sigma_a2(ou):
         log10_ha = ou.log10_ha_from_pivot(pivot, lga)
         sigma_a2 = float(_compute_sigma_matrix(10.0 ** (2 * log10_ha), 10.0**lga, 1.0))
         np.testing.assert_allclose(
-            ou.gw_psd_onesided(f, pivot, lga), 2.0 * ou.ou_psd_twosided(f, sigma_a2, 10.0**lga), rtol=1e-12
+            ou.gw_psd_onesided(f, pivot, lga),
+            2.0 * ou.ou_psd_twosided(f, sigma_a2, 10.0**lga),
+            rtol=1e-12,
         )
         df = np.full_like(f, 1e-9)
-        np.testing.assert_allclose(ou.ou_gw_prior(f, df, pivot, lga), ou.gw_psd_onesided(f, pivot, lga) * df, rtol=1e-12)
+        np.testing.assert_allclose(
+            ou.ou_gw_prior(f, df, pivot, lga),
+            ou.gw_psd_onesided(f, pivot, lga) * df,
+            rtol=1e-12,
+        )
 
 
 def test_spin_psd_matches_budget_reference(ou):
     sys.path.insert(0, SCRIPTS)
     try:
-        ref = _load(os.path.join(SCRIPTS, "ng15_red_noise_budget.py"), "ng15_red_noise_budget")
+        ref = _load(
+            os.path.join(SCRIPTS, "ng15_red_noise_budget.py"), "ng15_red_noise_budget"
+        )
     finally:
         sys.path.remove(SCRIPTS)
     f = np.logspace(-10, -6.5, 200)
-    for lgp, lsp, f0 in [(-8.0, -12.0, 339.3), (-11.0, -15.0, 29.0), (-6.0, -6.0, 641.9)]:
+    for lgp, lsp, f0 in [
+        (-8.0, -12.0, 339.3),
+        (-11.0, -15.0, 29.0),
+        (-6.0, -6.0, 641.9),
+    ]:
         log10_sigma_r2 = 2 * lsp - 2 * math.log10(f0)
         np.testing.assert_allclose(
-            ou.spin_psd_onesided(f, lgp, lsp, f0), ref.ou_psd_onesided(f, lgp, log10_sigma_r2), rtol=1e-12
+            ou.spin_psd_onesided(f, lgp, lsp, f0),
+            ref.ou_psd_onesided(f, lgp, log10_sigma_r2),
+            rtol=1e-12,
         )
         df = np.full_like(f, 1e-9)
         np.testing.assert_allclose(
-            ou.ou_rn_prior(f, df, lgp, lsp - math.log10(f0)), ou.spin_psd_onesided(f, lgp, lsp, f0) * df, rtol=1e-12
+            ou.ou_rn_prior(f, df, lgp, lsp - math.log10(f0)),
+            ou.spin_psd_onesided(f, lgp, lsp, f0) * df,
+            rtol=1e-12,
         )

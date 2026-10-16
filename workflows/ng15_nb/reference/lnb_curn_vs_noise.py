@@ -39,7 +39,10 @@ from lnb_gw_vs_noise import analyse  # noqa: E402
 # (amplitude site, its config box key), (index site, its config box key), per kernel.
 SITES = {
     "pl": (("gw_log10_A", "gw_log10_A"), ("gw_gamma", "gw_gamma")),
-    "ou": (("gw_log10_pivot_psd", "log10_pivot_psd"), ("gw_log10_gamma_a", "log10_gamma_a")),
+    "ou": (
+        ("gw_log10_pivot_psd", "log10_pivot_psd"),
+        ("gw_log10_gamma_a", "log10_gamma_a"),
+    ),
 }
 
 
@@ -59,14 +62,23 @@ def run(run_dir):
     cfg.read(run_dir / "resolved_config.ini")
     eps = cfg.getfloat("PriorModel", "orf_epsilon_value")
     if eps != 0.0:
-        raise SystemExit(f"{run_dir}: eps = {eps}; CURN vs noise needs the eps = 0 rung")
+        raise SystemExit(
+            f"{run_dir}: eps = {eps}; CURN vs noise needs the eps = 0 rung"
+        )
     kernel = cfg.get("Model", "kernel")
     (amp_site, amp_key), (idx_site, idx_key) = SITES[kernel]
-    box = lambda key: (cfg.getfloat("PriorModel", f"{key}_min"), cfg.getfloat("PriorModel", f"{key}_max"))  # noqa: E731
+    box = lambda key: (
+        cfg.getfloat("PriorModel", f"{key}_min"),
+        cfg.getfloat("PriorModel", f"{key}_max"),
+    )  # noqa: E731
 
     post = az.from_netcdf(run_dir / "samples.nc").posterior
     prime = to_latent(post[amp_site].values, *box(amp_key))
-    gamma_prime = to_latent(post[idx_site].values, *box(idx_key)) if idx_site in post.data_vars else None
+    gamma_prime = (
+        to_latent(post[idx_site].values, *box(idx_key))
+        if idx_site in post.data_vars
+        else None
+    )
     res = analyse(prime, gamma_prime)
     res.update(
         run=str(run_dir),

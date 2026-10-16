@@ -40,7 +40,12 @@ def main():
     args = ap.parse_args()
 
     subprocess.run(
-        [sys.executable, str(REPO_ROOT / "workflows/ng15_nb/scripts/build_manifest.py"), args.discovery_dir, "--check"],
+        [
+            sys.executable,
+            str(REPO_ROOT / "workflows/ng15_nb/scripts/build_manifest.py"),
+            args.discovery_dir,
+            "--check",
+        ],
         check=True,
     )
     manifest = json.loads((REPO_ROOT / "data/ng15_nb/MANIFEST.json").read_text())
@@ -53,23 +58,33 @@ def main():
             ds.makenoise_measurement(psr, psr.noisedict),
             ds.makegp_ecorr(psr, psr.noisedict),
             ds.makegp_timing(psr, svd=True),
-            ds.makegp_fourier(psr, ds.powerlaw, 30, T=ds.getspan(psr), name="red_noise"),
+            ds.makegp_fourier(
+                psr, ds.powerlaw, 30, T=ds.getspan(psr), name="red_noise"
+            ),
         ]
     )
     logl = model.logL
     params = {p: psr.noisedict[p] for p in logl.params}
     stored_gamma = params[f"{PSR}_red_noise_gamma"]
-    assert stored_gamma < 0, "feather red_noise_gamma is no longer sign-flipped; drop the correction"
+    assert (
+        stored_gamma < 0
+    ), "feather red_noise_gamma is no longer sign-flipped; drop the correction"
     params[f"{PSR}_red_noise_gamma"] = -stored_gamma
 
     eager = float(logl(params))
     jitted = float(jax.jit(logl)(params))
     grad = jax.grad(logl)(params)
 
-    print(f"discovery {ds.__file__}  jax {jax.__version__}  backend {jax.default_backend()}")
-    print(f"{PSR}: {len(psr.toas)} TOAs, M {psr.Mmat.shape}, backends {sorted(set(psr.backend_flags))}")
+    print(
+        f"discovery {ds.__file__}  jax {jax.__version__}  backend {jax.default_backend()}"
+    )
+    print(
+        f"{PSR}: {len(psr.toas)} TOAs, M {psr.Mmat.shape}, backends {sorted(set(psr.backend_flags))}"
+    )
     print(f"params at published values: {params}")
-    print(f"lnL eager = {eager:.6f}   jit = {jitted:.6f}   |diff| = {abs(eager - jitted):.2e}")
+    print(
+        f"lnL eager = {eager:.6f}   jit = {jitted:.6f}   |diff| = {abs(eager - jitted):.2e}"
+    )
     print(f"grad: {{{', '.join(f'{k}: {float(v):.4e}' for k, v in grad.items())}}}")
 
     assert np.isfinite(eager), "lnL not finite"

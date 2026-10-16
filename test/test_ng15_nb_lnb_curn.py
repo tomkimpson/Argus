@@ -19,7 +19,9 @@ LO, HI = -18.0, -11.0
 
 @pytest.fixture(scope="module")
 def mod():
-    path = os.path.join(REPO_ROOT, "workflows", "ng15_nb", "reference", "lnb_curn_vs_noise.py")
+    path = os.path.join(
+        REPO_ROOT, "workflows", "ng15_nb", "reference", "lnb_curn_vs_noise.py"
+    )
     spec = importlib.util.spec_from_file_location("lnb_curn_vs_noise", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

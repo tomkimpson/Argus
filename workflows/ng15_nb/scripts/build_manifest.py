@@ -42,8 +42,12 @@ def sha256(path):
 
 def build(discovery_dir):
     discovery_dir = Path(discovery_dir).resolve()
-    commit = subprocess.check_output(["git", "-C", str(discovery_dir), "rev-parse", "HEAD"], text=True).strip()
-    dirty = subprocess.check_output(["git", "-C", str(discovery_dir), "status", "--porcelain", "data"], text=True)
+    commit = subprocess.check_output(
+        ["git", "-C", str(discovery_dir), "rev-parse", "HEAD"], text=True
+    ).strip()
+    dirty = subprocess.check_output(
+        ["git", "-C", str(discovery_dir), "status", "--porcelain", "data"], text=True
+    )
     if dirty.strip():
         sys.exit(f"Discovery data/ has local modifications:\n{dirty}")
 
@@ -54,17 +58,26 @@ def build(discovery_dir):
         if m is None:
             sys.exit(f"unexpected feather name: {path.name}")
         tag, major, minor, ephem, psr = m.groups()
-        meta = json.loads(feather.read_table(path, columns=["toas"]).schema.metadata[b"json"])
+        meta = json.loads(
+            feather.read_table(path, columns=["toas"]).schema.metadata[b"json"]
+        )
         if meta["name"] != psr:
             sys.exit(f"{path.name}: embedded name {meta['name']} != filename {psr}")
         versions.add((tag, f"{major}.{minor}.0", ephem))
-        entries.append({"pulsar": psr, "file": path.name, "sha256": sha256(path), "bytes": path.stat().st_size})
+        entries.append(
+            {
+                "pulsar": psr,
+                "file": path.name,
+                "sha256": sha256(path),
+                "bytes": path.stat().st_size,
+            }
+        )
 
     if len(entries) != N_PULSARS:
         sys.exit(f"expected {N_PULSARS} feathers, found {len(entries)}")
     if len(versions) != 1:
         sys.exit(f"mixed data-set versions: {versions}")
-    (tag, version, ephem), = versions
+    ((tag, version, ephem),) = versions
 
     return {
         "source": "https://github.com/nanograv/discovery",
@@ -81,22 +94,32 @@ def build(discovery_dir):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("discovery_dir")
-    ap.add_argument("--check", action="store_true", help="compare against the committed manifest; write nothing")
+    ap.add_argument(
+        "--check",
+        action="store_true",
+        help="compare against the committed manifest; write nothing",
+    )
     args = ap.parse_args()
 
     manifest = build(args.discovery_dir)
     if args.check:
         committed = json.loads(MANIFEST.read_text())
         if committed != manifest:
-            sys.exit("MISMATCH: Discovery checkout differs from committed MANIFEST.json")
-        print(f"OK: {manifest['n_pulsars']} feathers match {MANIFEST.relative_to(REPO_ROOT)}")
+            sys.exit(
+                "MISMATCH: Discovery checkout differs from committed MANIFEST.json"
+            )
+        print(
+            f"OK: {manifest['n_pulsars']} feathers match {MANIFEST.relative_to(REPO_ROOT)}"
+        )
         return
 
     MANIFEST.parent.mkdir(parents=True, exist_ok=True)
     MANIFEST.write_text(json.dumps(manifest, indent=2) + "\n")
-    print(f"wrote {MANIFEST.relative_to(REPO_ROOT)}: commit {manifest['commit'][:10]}, "
-          f"{manifest['dataset']} v{manifest['dataset_version']} ({manifest['dataset_tag']}), "
-          f"{manifest['n_pulsars']} feathers hashed")
+    print(
+        f"wrote {MANIFEST.relative_to(REPO_ROOT)}: commit {manifest['commit'][:10]}, "
+        f"{manifest['dataset']} v{manifest['dataset_version']} ({manifest['dataset_tag']}), "
+        f"{manifest['n_pulsars']} feathers hashed"
+    )
 
 
 if __name__ == "__main__":

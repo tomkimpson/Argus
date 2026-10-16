@@ -33,7 +33,9 @@ REPO_ROOT = HERE.parents[2]
 sys.path.insert(0, str(HERE))
 import models  # noqa: E402
 
-DISCOVERY_DIR = Path(os.environ.get("NG15_DISCOVERY_DIR", "/fred/oz022/tkimpson/external/discovery"))
+DISCOVERY_DIR = Path(
+    os.environ.get("NG15_DISCOVERY_DIR", "/fred/oz022/tkimpson/external/discovery")
+)
 N_PSR = 5
 N_POINTS = 4
 
@@ -52,7 +54,9 @@ def _draw(params, rng):
     out = {}
     for p in params:
         if p.endswith("log10_A"):
-            out[p] = rng.uniform(-20, -11) if "red_noise" in p else rng.uniform(-15.5, -13.5)
+            out[p] = (
+                rng.uniform(-20, -11) if "red_noise" in p else rng.uniform(-15.5, -13.5)
+            )
         elif p.endswith("gamma"):
             out[p] = rng.uniform(1, 6)
         elif p == models.EPS:
@@ -116,5 +120,7 @@ def test_eps_gradient_matches_finite_difference(psrs, kernel):
 def test_ou_model_parameters(psrs):
     params = models.make_model(psrs, kernel="ou").logL.params
     assert set(params) == {models.EPS, "gw_log10_pivot_psd", "gw_log10_gamma_a"} | {
-        f"{psr.name}_red_noise_{a}" for psr in psrs for a in ("log10_gamma_p", "log10_sigma_r")
+        f"{psr.name}_red_noise_{a}"
+        for psr in psrs
+        for a in ("log10_gamma_p", "log10_sigma_r")
     }

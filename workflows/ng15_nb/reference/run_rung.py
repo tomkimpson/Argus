@@ -54,12 +54,20 @@ BATCH = 100
 
 def load_pulsars(data_dir, n_pulsars):
     subprocess.run(
-        [sys.executable, str(REPO_ROOT / "workflows/ng15_nb/scripts/build_manifest.py"), str(data_dir), "--check"],
+        [
+            sys.executable,
+            str(REPO_ROOT / "workflows/ng15_nb/scripts/build_manifest.py"),
+            str(data_dir),
+            "--check",
+        ],
         check=True,
     )
     manifest = json.loads((REPO_ROOT / "data/ng15_nb/MANIFEST.json").read_text())
     entries = manifest["feathers"][:n_pulsars]
-    return [ds.Pulsar.read_feather(str(Path(data_dir) / "data" / e["file"])) for e in entries]
+    return [
+        ds.Pulsar.read_feather(str(Path(data_dir) / "data" / e["file"]))
+        for e in entries
+    ]
 
 
 class Sampler:
@@ -79,28 +87,44 @@ class Sampler:
         ).logL
         self.names = [p.name for p in psrs]
         pm = cfg["PriorModel"]
-        box = lambda key: (float(pm[f"{key}_min"]), float(pm[f"{key}_max"]))  # noqa: E731
+        box = lambda key: (
+            float(pm[f"{key}_min"]),
+            float(pm[f"{key}_max"]),
+        )  # noqa: E731
         if self.kernel == "pl":
-            self.rn_sites = {"rn_log10_A": ("log10_A", box("rn_log10_A")), "rn_gamma": ("gamma", box("rn_gamma"))}
+            self.rn_sites = {
+                "rn_log10_A": ("log10_A", box("rn_log10_A")),
+                "rn_gamma": ("gamma", box("rn_gamma")),
+            }
             self.gw_sites = {"gw_log10_A": box("gw_log10_A")}
             if self.gw_gamma is None:
                 self.gw_sites["gw_gamma"] = box("gw_gamma")
         else:
-            f0_cat = json.loads((REPO_ROOT / cfg.get("Data", "f0_catalog")).read_text())["f0_hz"]
+            f0_cat = json.loads(
+                (REPO_ROOT / cfg.get("Data", "f0_catalog")).read_text()
+            )["f0_hz"]
             self.log10_f0 = jnp.array([np.log10(f0_cat[n]) for n in self.names])
             self.rn_sites = {
                 "log10_gamma_p": ("log10_gamma_p", box("log10_gamma_p")),
                 "log10_sigma_p": ("log10_sigma_r", box("log10_sigma_p")),
             }
-            self.gw_sites = {"gw_log10_pivot_psd": box("log10_pivot_psd"), "gw_log10_gamma_a": box("log10_gamma_a")}
+            self.gw_sites = {
+                "gw_log10_pivot_psd": box("log10_pivot_psd"),
+                "gw_log10_gamma_a": box("log10_gamma_a"),
+            }
         expected = set(self.logl.params)
         got = set(self.to_params(self.midpoint()).keys())
         if got != expected:
-            raise RuntimeError(f"parameter mismatch: missing {expected - got}, extra {got - expected}")
+            raise RuntimeError(
+                f"parameter mismatch: missing {expected - got}, extra {got - expected}"
+            )
 
     def midpoint(self):
         n = len(self.psrs)
-        out = {s: jnp.full(n, 0.5 * (lo + hi)) for s, (_, (lo, hi)) in self.rn_sites.items()}
+        out = {
+            s: jnp.full(n, 0.5 * (lo + hi))
+            for s, (_, (lo, hi)) in self.rn_sites.items()
+        }
         out.update({s: 0.5 * (lo + hi) for s, (lo, hi) in self.gw_sites.items()})
         return out
 
@@ -119,8 +143,16 @@ class Sampler:
 
     def model(self):
         n = len(self.psrs)
-        sites = {s: numpyro.sample(s, dist.Uniform(lo, hi).expand([n])) for s, (_, (lo, hi)) in self.rn_sites.items()}
-        sites.update({s: numpyro.sample(s, dist.Uniform(lo, hi)) for s, (lo, hi) in self.gw_sites.items()})
+        sites = {
+            s: numpyro.sample(s, dist.Uniform(lo, hi).expand([n]))
+            for s, (_, (lo, hi)) in self.rn_sites.items()
+        }
+        sites.update(
+            {
+                s: numpyro.sample(s, dist.Uniform(lo, hi))
+                for s, (lo, hi) in self.gw_sites.items()
+            }
+        )
         numpyro.factor("loglik", self.logl(self.to_params(sites)))
 
     def integrand(self, sites):
@@ -167,14 +199,24 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--config", required=True)
     ap.add_argument("--eps", type=float, required=True)
-    ap.add_argument("--gw-components", type=int, help="override [Model] gw_components; pass --output-id too, or the run overwrites the config's output dir")
-    ap.add_argument("--gw-gamma", help="override [Model] gw_gamma, e.g. 4.333333333333333")
+    ap.add_argument(
+        "--gw-components",
+        type=int,
+        help="override [Model] gw_components; pass --output-id too, or the run overwrites the config's output dir",
+    )
+    ap.add_argument(
+        "--gw-gamma", help="override [Model] gw_gamma, e.g. 4.333333333333333"
+    )
     ap.add_argument("--output-id", help="override [Output] output_id")
-    ap.add_argument("--n-pulsars", type=int, help="override [Data] n_pulsars (probes only)")
+    ap.add_argument(
+        "--n-pulsars", type=int, help="override [Data] n_pulsars (probes only)"
+    )
     ap.add_argument("--num-warmup", type=int)
     ap.add_argument("--num-samples", type=int)
     ap.add_argument("--out-root", default=str(REPO_ROOT / "workflows/ng15_nb/outputs"))
-    ap.add_argument("--benchmark", action="store_true", help="time lnL and its gradient, then exit")
+    ap.add_argument(
+        "--benchmark", action="store_true", help="time lnL and its gradient, then exit"
+    )
     args = ap.parse_args()
 
     cfg = configparser.ConfigParser()
@@ -195,8 +237,11 @@ def main():
 
     psrs = load_pulsars(cfg.get("Data", "data_path"), cfg.getint("Data", "n_pulsars"))
     sampler = Sampler(cfg, psrs, args.eps)
-    print(f"{output_id}: {len(psrs)} pulsars, kernel {sampler.kernel}, {len(sampler.logl.params)} likelihood params, "
-          f"device {jax.devices()[0]}", flush=True)
+    print(
+        f"{output_id}: {len(psrs)} pulsars, kernel {sampler.kernel}, {len(sampler.logl.params)} likelihood params, "
+        f"device {jax.devices()[0]}",
+        flush=True,
+    )
 
     if args.benchmark:
         print(json.dumps(benchmark(sampler), indent=2))
@@ -224,10 +269,15 @@ def main():
         progress_bar=False,
     )
     t0 = time.perf_counter()
-    mcmc.run(jax.random.PRNGKey(int(nuts_cfg["seed"])), extra_fields=("diverging", "num_steps"))
+    mcmc.run(
+        jax.random.PRNGKey(int(nuts_cfg["seed"])),
+        extra_fields=("diverging", "num_steps"),
+    )
     sample_s = time.perf_counter() - t0
 
-    samples = {k: np.asarray(v) for k, v in mcmc.get_samples(group_by_chain=True).items()}
+    samples = {
+        k: np.asarray(v) for k, v in mcmc.get_samples(group_by_chain=True).items()
+    }
     t0 = time.perf_counter()
     loglik, integrand = evaluate_integrand(sampler, samples)
     integrand_s = time.perf_counter() - t0
@@ -243,9 +293,13 @@ def main():
 
         idata.posterior["gw_log10_ha"] = (
             dims,
-            ou_psd.log10_ha_from_pivot(samples["gw_log10_pivot_psd"], samples["gw_log10_gamma_a"]),
+            ou_psd.log10_ha_from_pivot(
+                samples["gw_log10_pivot_psd"], samples["gw_log10_gamma_a"]
+            ),
         )
-    idata.posterior.attrs.update({"pulsars": json.dumps(sampler.names), "config": output_id})
+    idata.posterior.attrs.update(
+        {"pulsars": json.dumps(sampler.names), "config": output_id}
+    )
     idata.to_netcdf(out_dir / "samples.nc")
 
     extra = mcmc.get_extra_fields(group_by_chain=True)
