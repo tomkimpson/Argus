@@ -1,0 +1,32 @@
+# Reference-pipeline env for the NG15 narrowband campaign (spec/spec.md, D3).
+# Kept separate from `Argus`; the two exchange only feathers, JSON and .nc files.
+# Discovery itself is installed from a local clone at the commit pinned in
+# data/ng15_nb/MANIFEST.json. The clone is needed anyway: the feathers live in its data/.
+#   git clone https://github.com/nanograv/discovery.git $DISCOVERY_DIR
+#   git -C $DISCOVERY_DIR checkout 18ab4c010b2e8e09eb81fdb145b296da024659fa
+#   conda env create -f envs/discovery.yml
+#   conda activate discovery
+#   pip install --no-deps $DISCOVERY_DIR
+# The jax[cuda12] wheels are several GB; on OzSTAR set PIP_NO_CACHE_DIR=1 (or point
+# PIP_CACHE_DIR at /fred) or the home quota fills and the install dies part-way.
+# Verify with: python workflows/ng15_nb/reference/check_env.py <DISCOVERY_DIR>
+name: discovery
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pip
+  - pip:
+      - jax[cuda12]==0.4.38
+      - numpy==1.26.4
+      - scipy==1.13.1
+      - pandas==2.2.3
+      - pyarrow==17.0.0
+      - tqdm==4.66.5
+      - numpyro==0.16.1
+      - arviz==0.20.0
+      - xarray==2026.9.0
+      - h5netcdf==1.8.1
+      - h5py==3.14.0
+      - matplotlib==3.9.2
+      - pytest==8.3.3

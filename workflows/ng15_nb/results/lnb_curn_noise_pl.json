@@ -1,0 +1,174 @@
+{
+  "estimator": "region_savage_dickey",
+  "ln_bayes_factor": null,
+  "uncert": null,
+  "provisional_ln_bayes_factor": null,
+  "provisional_uncert": null,
+  "headline_threshold": null,
+  "reliable": false,
+  "failed_diagnostics": [
+    "only 0 threshold(s) with >= 50 effective draws below; need 3 for a plateau (signal too strong for a density-ratio estimate)"
+  ],
+  "flatness": null,
+  "lower_bound": {
+    "c": -0.5,
+    "cl": 0.95,
+    "n_below": 0,
+    "ess": 2442.71832872611,
+    "ln_bayes_factor_lower": 5.5277663053642145
+  },
+  "thresholds": [
+    {
+      "c": -0.5,
+      "post_frac": 0.0,
+      "prior_frac": 0.3085375387259869,
+      "n_below": 0,
+      "ess": 4000.0,
+      "effective_below": 0.0,
+      "per_chain_lnb": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "lnb": null,
+      "uncert": null
+    },
+    {
+      "c": -0.75,
+      "post_frac": 0.0,
+      "prior_frac": 0.2266273523768682,
+      "n_below": 0,
+      "ess": 4000.0,
+      "effective_below": 0.0,
+      "per_chain_lnb": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "lnb": null,
+      "uncert": null
+    },
+    {
+      "c": -1.0,
+      "post_frac": 0.0,
+      "prior_frac": 0.15865525393145707,
+      "n_below": 0,
+      "ess": 4000.0,
+      "effective_below": 0.0,
+      "per_chain_lnb": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "lnb": null,
+      "uncert": null
+    },
+    {
+      "c": -1.25,
+      "post_frac": 0.0,
+      "prior_frac": 0.10564977366685535,
+      "n_below": 0,
+      "ess": 4000.0,
+      "effective_below": 0.0,
+      "per_chain_lnb": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "lnb": null,
+      "uncert": null
+    },
+    {
+      "c": -1.5,
+      "post_frac": 0.0,
+      "prior_frac": 0.06680720126885807,
+      "n_below": 0,
+      "ess": 4000.0,
+      "effective_below": 0.0,
+      "per_chain_lnb": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "lnb": null,
+      "uncert": null
+    },
+    {
+      "c": -1.75,
+      "post_frac": 0.0,
+      "prior_frac": 0.040059156863817086,
+      "n_below": 0,
+      "ess": 4000.0,
+      "effective_below": 0.0,
+      "per_chain_lnb": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "lnb": null,
+      "uncert": null
+    },
+    {
+      "c": -2.0,
+      "post_frac": 0.0,
+      "prior_frac": 0.022750131948179195,
+      "n_below": 0,
+      "ess": 4000.0,
+      "effective_below": 0.0,
+      "per_chain_lnb": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "lnb": null,
+      "uncert": null
+    },
+    {
+      "c": -2.25,
+      "post_frac": 0.0,
+      "prior_frac": 0.012224472655044696,
+      "n_below": 0,
+      "ess": 4000.0,
+      "effective_below": 0.0,
+      "per_chain_lnb": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "lnb": null,
+      "uncert": null
+    },
+    {
+      "c": -2.5,
+      "post_frac": 0.0,
+      "prior_frac": 0.006209665325776132,
+      "n_below": 0,
+      "ess": 4000.0,
+      "effective_below": 0.0,
+      "per_chain_lnb": [
+        null,
+        null,
+        null,
+        null
+      ],
+      "lnb": null,
+      "uncert": null
+    }
+  ],
+  "run": "workflows/ng15_nb/outputs/ng15nb_pl_eps000",
+  "kernel": "pl",
+  "amplitude_site": "gw_log10_A",
+  "amplitude_box": [
+    -18.0,
+    -11.0
+  ],
+  "prior_mapping": "prime = Phi^-1((s - lo)/(hi - lo)); Phi(c) is the uniform prior mass below s_c"
+}

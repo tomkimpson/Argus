@@ -475,13 +475,13 @@ carries a superseded banner.
 evidence on real NG15 at all, before any Argus engineering.
 **Done when:** C3 passes, and N2 records Discovery-OU lnB(HD/CURN) and lnB(CURN/noise), with K2
 evaluated.
-**PR:** _not started_
+**PR:** #128
 
-- [ ] 1.1 Fetch Discovery at a pinned commit; write `MANIFEST.json` (commit, feather hashes,
+- [x] 1.1 Fetch Discovery at a pinned commit; write `MANIFEST.json` (commit, feather hashes,
       67 pulsar names, data-set version) — verify by 67 feathers hashed and version string recorded.
-- [ ] 1.2 Create and pin the `discovery` conda env (`envs/discovery.yml`) — verify by importing
+- [x] 1.2 Create and pin the `discovery` conda env (`envs/discovery.yml`) — verify by importing
       it and evaluating the published single-pulsar likelihood for J1909−3744.
-- [ ] 1.3 Build the reference driver `workflows/ng15_nb/reference/` with: (a) the NANOGrav
+- [x] 1.3 Build the reference driver `workflows/ng15_nb/reference/` with: (a) the NANOGrav
       power-law model (30-mode RN, 14-mode common, fixed WN) and (b) the OU-PSD model using
       Argus's exact one-sided PSD conventions (sidedness note); fixed-ε ORF (1−ε)I + εHD.
       There is no `ou_psd` in `python/argus`. The references to match are:
@@ -491,13 +491,14 @@ evaluated.
       Before use, first check both against the filter's own stationary Q (the ground truth).
       — verify by the OU PSD functions matching those references to 1e-12, and ε=1
       reproducing Discovery's built-in HD likelihood to 1e-8.
-- [ ] 1.4 Run the PL ladder (5 rungs, variable γ) and apply our path-sampling estimator. Add
+- [x] 1.4 Run the PL ladder (5 rungs, variable γ) and apply our path-sampling estimator. Add
       one fixed-γ = 13/3 HD run for the A_HD,13/3 check: conditioning the variable-γ posterior
       at 13/3 is not the same fit. — verify against C3 (lnB within ±0.7 of 5.30; A_HD,13/3
       within 1σ).
-- [ ] 1.5 Run the OU ladder at 14 and 30 common modes; compute lnB(HD/CURN) and lnB(CURN/noise)
-      — verify by the reliability gate passing; record the mode-count sensitivity (input to C5).
-- [ ] 1.6 Write N2 (kernel systematic: PL vs OU lnB and amplitude at 1/T and 1/(5 yr)) and
+- [x] 1.5 Run the OU ladder at 14 and 30 common modes; compute lnB(HD/CURN) and lnB(CURN/noise)
+      — verify by the reliability gate passing for lnB(HD/CURN), and lnB(CURN/noise) recorded
+      as a 95% lower bound (amended 2026-10-17); record the mode-count sensitivity (input to C5).
+- [x] 1.6 Write N2 (kernel systematic: PL vs OU lnB and amplitude at 1/T and 1/(5 yr)) and
       evaluate K2 — verify by the committed note stating the K2 outcome explicitly.
 
 ### Phase 2 — Exact epoch compression (S0 feasibility)
@@ -634,3 +635,20 @@ kernel statement (N2) and the scope bound.
 - J1012+5307 is the shallow pulsar.
 
 **Sections touched:** §1, §2, §3, §4, §5, §8, §10, §11
+
+### 2026-10-17 — lnB(CURN/noise) is a lower bound (PR #128)
+
+**Trigger:** the Phase 1 readout. All three lnB(CURN/noise) estimates (PL, OU14, OU30) report
+`reliable: false`. The `/check-PR` review (`PR_REVIEW_128_2026-10-17.md`) flagged that task 1.5's
+verify clause could not be met as written.
+
+**Change:**
+- Task 1.5: the reliability gate applies to lnB(HD/CURN) only. lnB(CURN/noise) is recorded as
+  a 95% lower bound: 5.53 (PL), 5.03 (OU14), 4.16 (OU30). A density-ratio estimate from a
+  posterior run cannot reach the published B > 10¹⁴, so a bound is the most it can give.
+- T1 (assembled in task 6.4) will report lnB(CURN/noise) for the Discovery rows as a lower bound.
+
+**Approved by the user** on 2026-10-17. PR #128's other proposed amendments (§9 Q1/Q3, the
+`ou.ini` boxes as binding priors, the C5 tolerance and the §5 budget) are not applied here.
+
+**Sections touched:** §11
