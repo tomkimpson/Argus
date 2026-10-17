@@ -13,6 +13,13 @@ timed after compilation. The point is the Phase 1 Discovery-OU posterior mean wh
 available, which only matters for the finiteness check; the cost does not depend on it.
 
 K3 (spec §8): ≤ 0.5 s per evaluation is the target, > 1 s stops for a re-budget.
+
+Reverse mode through the library's single `lax.scan` saves every step's residuals,
+~15 MB per step at 67 psr (dominated by the M_sum² accumulator), so 220 GB here. The
+gradient is therefore timed on a benchmark-only copy of the filter whose scan is split
+into segments, each under `jax.checkpoint` (√T rematerialisation). Its arithmetic is
+the library's, so its value must equal the stock value, which is checked. The library is
+not edited; adopting the split there is a separate change.
 """
 
 import argparse
@@ -26,6 +33,8 @@ import numpy as np
 REPO = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO / "workflows" / "ng15_nb" / "compression"))
 sys.path.insert(0, str(REPO / "workflows" / "ng15_nb" / "scripts"))
+import types  # noqa: E402
+
 import compress  # noqa: E402
 import ingest  # noqa: E402
 import union  # noqa: E402
@@ -53,6 +62,38 @@ def posterior_mean_point(names):
             mean("log10_gamma_p")[idx],
         ]
     )
+
+
+SCAN = "    (x, P, Xi, A, b, c, L), _ = lax.scan(step, (x, P, Xi, A, b, c, L), inputs)"
+SEGMENTED = """    _n = inputs[0].shape[0]
+    _seg = SEGMENT
+    _inputs = jax.tree_util.tree_map(
+        lambda a: a.reshape((_n // _seg, _seg) + a.shape[1:]), inputs
+    )
+
+    @jax.checkpoint
+    def _segment(carry, seg_inputs):
+        carry, _ = lax.scan(step, carry, seg_inputs)
+        return carry, None
+
+    (x, P, Xi, A, b, c, L), _ = lax.scan(_segment, (x, P, Xi, A, b, c, L), _inputs)"""
+
+
+def segmented_filter_module(segment):
+    """The library filter with its scan split into checkpointed segments (bench-only)."""
+    src = (REPO / "python" / "argus" / "jax_kalman_filter.py").read_text()
+    assert src.count(SCAN) == 1, "scan site moved"
+    src = src.replace(SCAN, SEGMENTED.replace("SEGMENT", str(segment)))
+    mod = types.ModuleType("argus._jk_segmented")
+    mod.__package__ = "argus"
+    exec(compile(src, "jk_segmented", "exec"), mod.__dict__)
+    return mod
+
+
+def segment_length(n):
+    """The divisor of n closest to √n (the scan runs n = T − 1 steps)."""
+    ds = [d for d in range(1, n + 1) if n % d == 0]
+    return min(ds, key=lambda d: abs(np.log(d) - 0.5 * np.log(n)))
 
 
 def timed(f, *args, repeats):
@@ -83,17 +124,24 @@ def main():
           f"compression {compress_s:.0f} s", flush=True)
 
     p = jnp.asarray(posterior_mean_point(names))
-    value = jax.jit(union.array_loglike)
-    vg = jax.jit(jax.value_and_grad(union.array_loglike))
 
+    # Value: the stock library filter.
+    value = jax.jit(union.array_loglike)
+    t = time.perf_counter()
+    jax.block_until_ready(value(p, inp))
+    compile_v = time.perf_counter() - t
+    ll_stock, ts_v = timed(value, p, inp, repeats=args.repeats)
+    print(f"value {np.median(ts_v):.3f} s", flush=True)
+
+    # Value and gradient: the segmented copy.
+    seg = segment_length(T - 1)
+    union.jk = segmented_filter_module(seg)
+    vg = jax.jit(jax.value_and_grad(union.array_loglike))
     t = time.perf_counter()
     jax.block_until_ready(vg(p, inp))
     compile_vg = time.perf_counter() - t
     (ll, g), ts_vg = timed(vg, p, inp, repeats=args.repeats)
-    t = time.perf_counter()
-    jax.block_until_ready(value(p, inp))
-    compile_v = time.perf_counter() - t
-    _, ts_v = timed(value, p, inp, repeats=args.repeats)
+    print(f"value+grad {np.median(ts_vg):.3f} s (segment {seg})", flush=True)
 
     dev = jax.devices()[0]
     stats = dev.memory_stats() or {}
@@ -108,6 +156,8 @@ def main():
         "mask_occupancy": occupancy,
         "H_bytes": int(inp["H_matrices"].nbytes),
         "compression_s": compress_s,
+        "segment": seg,
+        "segmented_minus_stock_lnL": float(ll) - float(ll_stock),
         "compile_value_and_grad_s": compile_vg,
         "value_and_grad_s": ts_vg,
         "value_and_grad_s_median": float(np.median(ts_vg)),

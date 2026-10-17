@@ -94,7 +94,9 @@ def array_loglike(p, inp):
 
     p = (log10 ha, log10 γa, log10 σp[N], log10 γp[N]).
     """
-    N = inp["Npsr"]
+    # Sizes from shapes, so `inp` can be a jit argument.
+    N = inp["data"].shape[1]
+    M_sum = inp["H_matrices"].shape[-1] - 4 * N
     θ = bayesian_inference.Parameters(
         log10_gamma_a=p[1],
         γa=10.0 ** p[1],
@@ -104,7 +106,6 @@ def array_loglike(p, inp):
         EFAC=jnp.ones(N),
         EQUAD=jnp.zeros(N),
     )
-    M_sum = inp["M_sum"]
     return inp["offset"] + jk._run_kalman_filter_marginal(
         θ=θ,
         data=inp["data"],
