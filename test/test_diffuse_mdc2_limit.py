@@ -70,7 +70,7 @@ def test_diffuse_golden_is_the_large_alpha_limit(mdc2):
         data=data, use_gw=True, use_marginal=True, timing_prior="diffuse"
     )
     ll_diffuse = float(kf.get_likelihood(params))
-    assert abs(ll_diffuse - 59454.72) < 1e-2
+    assert abs(ll_diffuse - 59454.725) < 1e-2
 
     kf_base = jk.JaxKalmanFilter(
         data=data, use_marginal=True, prior_scale=1.0, timing_prior="informative"

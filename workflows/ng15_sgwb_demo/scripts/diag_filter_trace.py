@@ -132,6 +132,8 @@ def replay(KF, θ, symmetrise=False):
 
     if KF.timing_prior == "diffuse":
         n = A.shape[0]
+        # NB: this mirrors the library's diffuse branch *before* 2026-10-17 (PR #129), whose
+        # 1e-9·trace/n jitter biased lnL by ~35 nat on MDC2; it no longer matches the library.
         Lam = 0.5 * (A + A.T); Lam = Lam + 1e-9 * (jnp.trace(Lam) / n) * jnp.eye(n)
         sgn, ldL = jnp.linalg.slogdet(Lam)
         ll = -0.5 * (c + L - (b.T @ jnp.linalg.solve(Lam, b))[0, 0] + ldL)

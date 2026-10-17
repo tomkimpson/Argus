@@ -59,12 +59,17 @@ Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not
     88th percentile of 1000 sky scrambles (p = 0.12), so the +0.69 is about 1σ and not
     significant. The no-injection control passes.
   - 2b (PR #124): −0.25. The GW-vs-noise result matches Hazboun et al.
-  - **Caveat (2026-10-17):** every diffuse result from PR #121 to the Λ-jitter fix carries a
+  - **Caveat (2026-10-17):** every diffuse result from PR #107 (where the diffuse prior
+    was added; it became the default in #121) to the Λ-jitter fix carries a
     parameter-dependent bias. A jitter of 1e-9·trace(Λ)/n shifted the MDC2 golden by
-    −34.7 nat. The shift barely depends on ε (3–5e-3 nat between ε = 0 and 1), so the
-    lnB(HD/CURN) values above move by ≲ 0.01 nat. It does depend on the GW amplitude
-    (0.26 nat across ha = 1–5e-15) and on the noise parameters (~2.5 nat), so the
-    GW-vs-noise and amplitude results are exposed until rerun. See §12, 2026-10-17.
+    −34.7 nat.
+    - The shift barely depends on ε: lnL(ε=1) − lnL(ε=0) moves by ≤ 7e-3 nat at 8 fixed
+      parameter points. So the lnB(HD/CURN) values above are *expected* to move by
+      ≲ 0.01 nat. That is a fixed-parameter estimate, not verified by a rerun.
+    - It does depend on the GW amplitude (0.26 nat across ha = 1–5e-15) and on the noise
+      parameters: 28–40 nat across 60 MDC2 prior draws, a spread of ~10 nat.
+    - So the GW-vs-noise and amplitude results are exposed until rerun: #122's diffuse 1b
+      evidence for the #121 default switch, and #123/#124. See §12, 2026-10-17.
 - **Filter:** one scalar measurement per pulsar per time step (`model.py:124-249`). R is
   diagonal with a single EFAC/EQUAD per pulsar (`model.py:110-121`), and there is no ECORR.
   Masks support union grids (`jax_kalman_filter.py:209-220`, `:429-437`).
@@ -455,7 +460,7 @@ therefore **pivots** with a named next step, not stops.
 | Per-step cost blows up at 67 psr on the union grid (step count × O((4N)³)) | Task 2.6 benchmark of value-plus-gradient on the marginal path. There is no trustworthy prior rate (§2); if it is near the sequential quick-look (≳ 0.6 s at 189 steps), Δ is forced to ≳ 1 month |
 | Discovery env / jax version conflicts | Task 1.2 fails to install; fall back to a container |
 | Path-sampling integrand steep near ε=1 at lnB ~ 5 | Frozen-procedure Romberg check flags extra rungs (0.625, 0.875) |
-| Diffuse results since PR #121 carry the Λ-jitter bias (fixed 2026-10-17) | GW-vs-noise and amplitude numbers from #123/#124 move by ≳ 0.1 nat on rerun; lnB(HD/CURN) should move by ≲ 0.01 |
+| Diffuse results since PR #107 carry the Λ-jitter bias (fixed 2026-10-17) | GW-vs-noise and amplitude numbers from #122/#123/#124 move by ≳ 0.1 nat on rerun; lnB(HD/CURN) is expected (fixed-parameter estimate) to move by ≲ 0.01 |
 | Fourier-vs-time-domain gap makes C5 unattainable even when both are right | Discovery-OU lnB moves by > 1 nat when its mode count changes (task 1.5) |
 
 ## 11. Task list
@@ -662,7 +667,8 @@ verify clause could not be met as written.
 
 ### 2026-10-17 — the diffuse Λ jitter biased the diffuse golden
 
-**Trigger:** task 2.5's C1 on B1855+09. Against the dense oracle, the stock filter's ΔlnL
+**Trigger:** task 2.5's C1 on B1855+09, a small pulsar run first on CPU to shake down the
+driver before the GPU runs on the three C1 pulsars (it does not replace any of them). Against the dense oracle, the stock filter's ΔlnL
 spread was 4.2e-2 nat at the DMX-window Δ, and 3.0e-4 once the diffuse branch's jitter of
 1e-9·trace(Λ)/n was zeroed. On MDC2 at the golden parameters:
 - stock value: 59420.06;
@@ -681,8 +687,9 @@ diagonal), so the jitter swamped real directions. The C2 golden was itself the b
   it against the α → ∞ limit on MDC2 (5e-3 nat at α = 1e10).
 - The diffuse value now carries ~1e-3 nat of rounding noise from Λ's conditioning (it was
   ~6e-6 with the jitter). The gradient is unaffected. Two test tolerances were widened to
-  match, and C1's 0.01 nat bound has 10× margin over it.
-- §2 and §10: diffuse results since PR #121 are flagged as exposed. Rerunning #123/#124 is
-  left to the user.
+  match (plus one test's sparse mask made identifiable), and C1's 0.01 nat bound has 10×
+  margin over it.
+- §2 and §10: diffuse results since PR #107 (the jitter's origin, `git log -S`) are flagged
+  as exposed. Rerunning #122/#123/#124 is left to the user.
 
 **Sections touched:** §2, §3, §10, §12

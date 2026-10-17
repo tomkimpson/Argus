@@ -713,7 +713,9 @@ def _run_kalman_filter_marginal(
         # parameter-dependently (it biased the old MDC2 diffuse golden by −34.7 nat).
         # Instead Λ is equilibrated to unit diagonal, D⁻¹ᐟ² Λ D⁻¹ᐟ², which is exact
         # (logdet Λ = logdet of the scaled matrix + Σ log dᵢ) and removes the column-unit
-        # dynamic range, then Cholesky-factored. A non-PD Λ returns -inf.
+        # dynamic range, then Cholesky-factored. A non-PD Λ returns -inf; its gradient is
+        # NaN (the NaN Cholesky backpropagates through the where), which NUTS treats as a
+        # divergence but which poisons any sum of gradients over a batch of points.
         Lambda = 0.5 * (A + A.T)
         d = jnp.diag(Lambda)
         s = jnp.where(d > 0, 1.0 / jnp.sqrt(jnp.where(d > 0, d, 1.0)), 1.0)

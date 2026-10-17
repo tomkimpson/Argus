@@ -518,8 +518,9 @@ class TestMaskBackendSelection:
 
         On the informative path such a pulsar only shifts the likelihood by a
         constant, so it is allowed. In the diffuse limit Lambda = A, so its
-        timing-model block has no information at all and the jitter — not the data —
-        would set the log-determinant. Refused rather than silently meaningless.
+        timing-model block has no information at all and the likelihood is -inf (or,
+        at rounding level, set by noise rather than the data). Refused rather than
+        silently meaningless.
         """
         mock_logger.return_value = Mock()
         data = self._with_mask(sample_pulsar_data)
