@@ -22,8 +22,9 @@ LOW, HIGH = -10.0, -8.0
 
 
 def main():
-    p = argparse.ArgumentParser(description=__doc__,
-                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     p.add_argument("--run", required=True)
     p.add_argument("--out", default=None)
     args = p.parse_args()
@@ -55,11 +56,13 @@ def main():
     chains = []
     for c in range(s.shape[0]):
         mode = np.where(s[c] < LOW, 0, np.where(s[c] > HIGH, 2, 1))
-        chains.append({
-            "frac_low": float((mode == 0).mean()),
-            "frac_high": float((mode == 2).mean()),
-            "low_high_transitions": int(np.sum(np.abs(np.diff(mode)) == 2)),
-        })
+        chains.append(
+            {
+                "frac_low": float((mode == 0).mean()),
+                "frac_high": float((mode == 2).mean()),
+                "low_high_transitions": int(np.sum(np.abs(np.diff(mode)) == 2)),
+            }
+        )
     res = {
         "run": os.path.basename(args.run.rstrip("/")),
         "n_low": int(lo.sum()),
@@ -71,12 +74,16 @@ def main():
     }
     print(f"{res['run']}: {res['n_low']} low-s / {res['n_high']} high-s draws")
     for k, c in enumerate(chains):
-        print(f"  chain {k}: low {c['frac_low']:.2f} high {c['frac_high']:.2f} "
-              f"transitions {c['low_high_transitions']}")
+        print(
+            f"  chain {k}: low {c['frac_low']:.2f} high {c['frac_high']:.2f} "
+            f"transitions {c['low_high_transitions']}"
+        )
     print("  psr  sigma_p low -> high   (shift)   gamma_p low / high")
     for r in pulsars[:8]:
-        print(f"  {r['index']:3d}  {r['sigma_p_low']:6.2f} -> {r['sigma_p_high']:6.2f}  "
-              f"({r['sigma_p_shift']:+.2f})   {r['gamma_p_low']:.2f} / {r['gamma_p_high']:.2f}")
+        print(
+            f"  {r['index']:3d}  {r['sigma_p_low']:6.2f} -> {r['sigma_p_high']:6.2f}  "
+            f"({r['sigma_p_shift']:+.2f})   {r['gamma_p_low']:.2f} / {r['gamma_p_high']:.2f}"
+        )
     if args.out:
         with open(args.out, "w") as f:
             json.dump(res, f, indent=2)

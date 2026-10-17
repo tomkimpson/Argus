@@ -206,9 +206,14 @@ def load_pulsar(path, truth):
     tr = truth[meta["name"]]
     white = (tr["efac"] * sig) ** 2 + 10.0 ** (2.0 * tr["equad"])
     return {
-        "name": meta["name"], "toas": toas, "f0": float(meta["F0"]), "white": white,
+        "name": meta["name"],
+        "toas": toas,
+        "f0": float(meta["F0"]),
+        "white": white,
         "residuals": t.column("residuals").to_numpy().astype(float),
-        "G": projector(mmat), "rn_log10_a": tr["rn_log10_A"], "rn_gamma": tr["rn_spec_ind"],
+        "G": projector(mmat),
+        "rn_log10_a": tr["rn_log10_A"],
+        "rn_gamma": tr["rn_spec_ind"],
     }
 
 
@@ -243,8 +248,11 @@ def analyse(psr, t_array, args, grids):
         for kind, ln_n, ln_g in (("data", noise_d, gwm_d), ("asimov", noise_a, gwm_a)):
             z_n, z_g = log_evidence(ln_n), log_evidence(ln_g)
             r[kind] = {
-                "lnz_noise": z_n, "lnz_gw": z_g, "b_gw_vs_noise": z_g - z_n,
-                "max_lnl_noise": float(ln_n.max()), "max_lnl_gw": float(ln_g.max()),
+                "lnz_noise": z_n,
+                "lnz_gw": z_g,
+                "b_gw_vs_noise": z_g - z_n,
+                "max_lnl_noise": float(ln_n.max()),
+                "max_lnl_gw": float(ln_g.max()),
                 "gw_like_fraction": gw_like_fraction(ln_n),
                 "ln_gw_like_fraction": math.log(max(gw_like_fraction(ln_n), 1e-300)),
             }
@@ -252,7 +260,8 @@ def analyse(psr, t_array, args, grids):
         maps[prior] = {"noise_data": noise_d, "noise_asimov": noise_a}
     for kind in ("data", "asimov"):
         res[f"delta_pl_minus_ou_{kind}"] = (
-            res["pl"][kind]["b_gw_vs_noise"] - res["ou"][kind]["b_gw_vs_noise"])
+            res["pl"][kind]["b_gw_vs_noise"] - res["ou"][kind]["b_gw_vs_noise"]
+        )
     return res, maps
 
 
@@ -269,8 +278,14 @@ def make_grids(step_amp, step_ou, step_pl):
         return np.linspace(lo, hi, int(round((hi - lo) / step)) + 1)
 
     return {
-        "ou": {"amp": rng(*OU_PRIOR["amp"], step_amp), "shape": rng(*OU_PRIOR["shape"], step_ou)},
-        "pl": {"amp": rng(*PL_PRIOR["amp"], step_amp), "shape": rng(*PL_PRIOR["shape"], step_pl)},
+        "ou": {
+            "amp": rng(*OU_PRIOR["amp"], step_amp),
+            "shape": rng(*OU_PRIOR["shape"], step_ou),
+        },
+        "pl": {
+            "amp": rng(*PL_PRIOR["amp"], step_amp),
+            "shape": rng(*PL_PRIOR["shape"], step_pl),
+        },
     }
 
 
@@ -283,21 +298,31 @@ def plot(results, maps, grids, path):
     n = len(results)
     fig, axes = plt.subplots(n + 1, 2, figsize=(9, 2.6 * (n + 1)), squeeze=False)
     for i, (r, m) in enumerate(zip(results, maps)):
-        for j, (prior, xl, yl) in enumerate((("ou", "log10 sigma_p", "log10 gamma_p"),
-                                             ("pl", "log10 A", "gamma"))):
+        for j, (prior, xl, yl) in enumerate(
+            (("ou", "log10 sigma_p", "log10 gamma_p"), ("pl", "log10 A", "gamma"))
+        ):
             ax = axes[i, j]
             z = m[prior]["noise_data"]
             g = grids[prior]
-            ax.pcolormesh(g["amp"], g["shape"], np.clip(z - z.max(), -30, 0), shading="auto")
-            ax.contour(g["amp"], g["shape"], z - z.max(), levels=[-GW_LIKE_NATS], colors="w")
-            ax.set_title(f"{r['name']} {prior.upper()}: GW-like frac "
-                         f"{r[prior]['data']['gw_like_fraction']:.2e}", fontsize=8)
+            ax.pcolormesh(
+                g["amp"], g["shape"], np.clip(z - z.max(), -30, 0), shading="auto"
+            )
+            ax.contour(
+                g["amp"], g["shape"], z - z.max(), levels=[-GW_LIKE_NATS], colors="w"
+            )
+            ax.set_title(
+                f"{r['name']} {prior.upper()}: GW-like frac "
+                f"{r[prior]['data']['gw_like_fraction']:.2e}",
+                fontsize=8,
+            )
             ax.set_xlabel(xl, fontsize=8)
             ax.set_ylabel(yl, fontsize=8)
     ax = axes[n, 0]
     x = np.arange(n)
     for off, kind in ((-0.2, "data"), (0.2, "asimov")):
-        ax.bar(x + off, [r[f"delta_pl_minus_ou_{kind}"] for r in results], 0.4, label=kind)
+        ax.bar(
+            x + off, [r[f"delta_pl_minus_ou_{kind}"] for r in results], 0.4, label=kind
+        )
     ax.set_xticks(x, [r["name"] for r in results], rotation=60, fontsize=7)
     ax.axhline(0, color="k", lw=0.5)
     ax.set_ylabel("B(PL) - B(OU) [nats]")
@@ -309,19 +334,27 @@ def plot(results, maps, grids, path):
 
 def main():
     p = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     p.add_argument("--data", required=True, help="Directory of per-pulsar feathers.")
     p.add_argument("--truth-noise", required=True, help="MDC2 group1_psr_noise.json.")
     p.add_argument("--log10-a", type=float, required=True, help="Injected GWB log10 A.")
     p.add_argument("--pulsars", default="all", help="Comma-separated names, or 'all'.")
-    p.add_argument("--headline", default="J1909-3744,J1939+2134,J1600-3053,J1713+0747",
-                   help="Pulsars summed for the headline Delta.")
+    p.add_argument(
+        "--headline",
+        default="J1909-3744,J1939+2134,J1600-3053,J1713+0747",
+        help="Pulsars summed for the headline Delta.",
+    )
     p.add_argument("--n-freqs", type=int, default=30, help="Enterprise Fourier pairs.")
     p.add_argument("--step-amp", type=float, default=0.05)
     p.add_argument("--step-ou", type=float, default=0.1)
     p.add_argument("--step-pl", type=float, default=0.1)
-    p.add_argument("--no-asimov-intrinsic-rn", dest="asimov_intrinsic_rn",
-                   action="store_false", help="Leave injected red noise out of C_true.")
+    p.add_argument(
+        "--no-asimov-intrinsic-rn",
+        dest="asimov_intrinsic_rn",
+        action="store_false",
+        help="Leave injected red noise out of C_true.",
+    )
     p.add_argument("--out", default=None)
     p.add_argument("--plot", default=None)
     args = p.parse_args()
@@ -330,8 +363,9 @@ def main():
         truth = json.load(f)
     files = sorted(glob.glob(os.path.join(args.data, "*.feather")))
     psrs_all = [load_pulsar(f, truth) for f in files]
-    t_array = (max(p_["toas"].max() for p_ in psrs_all)
-               - min(p_["toas"].min() for p_ in psrs_all))
+    t_array = max(p_["toas"].max() for p_ in psrs_all) - min(
+        p_["toas"].min() for p_ in psrs_all
+    )
     want = None if args.pulsars == "all" else set(args.pulsars.split(","))
     psrs = [p_ for p_ in psrs_all if want is None or p_["name"] in want]
     grids = make_grids(args.step_amp, args.step_ou, args.step_pl)
@@ -341,37 +375,52 @@ def main():
         r, m = analyse(psr, t_array, args, grids)
         results.append(r)
         maps.append(m)
-        print(f"  {r['name']:12s}  B_OU data {r['ou']['data']['b_gw_vs_noise']:+7.2f}"
-              f"  B_PL data {r['pl']['data']['b_gw_vs_noise']:+7.2f}"
-              f"  Delta data {r['delta_pl_minus_ou_data']:+6.2f}"
-              f"  asimov {r['delta_pl_minus_ou_asimov']:+6.2f}"
-              f"  GW-like frac OU {r['ou']['data']['gw_like_fraction']:.1e}"
-              f" PL {r['pl']['data']['gw_like_fraction']:.1e}", flush=True)
+        print(
+            f"  {r['name']:12s}  B_OU data {r['ou']['data']['b_gw_vs_noise']:+7.2f}"
+            f"  B_PL data {r['pl']['data']['b_gw_vs_noise']:+7.2f}"
+            f"  Delta data {r['delta_pl_minus_ou_data']:+6.2f}"
+            f"  asimov {r['delta_pl_minus_ou_asimov']:+6.2f}"
+            f"  GW-like frac OU {r['ou']['data']['gw_like_fraction']:.1e}"
+            f" PL {r['pl']['data']['gw_like_fraction']:.1e}",
+            flush=True,
+        )
 
     head = set(args.headline.split(","))
     summary = {}
     for kind in ("data", "asimov"):
-        d_head = sum(r[f"delta_pl_minus_ou_{kind}"] for r in results if r["name"] in head)
+        d_head = sum(
+            r[f"delta_pl_minus_ou_{kind}"] for r in results if r["name"] in head
+        )
         d_all = sum(r[f"delta_pl_minus_ou_{kind}"] for r in results)
         summary[kind] = {
-            "delta_headline": d_head, "delta_all_analysed": d_all,
+            "delta_headline": d_head,
+            "delta_all_analysed": d_all,
             "b_ou_all_analysed": sum(r["ou"][kind]["b_gw_vs_noise"] for r in results),
             "b_pl_all_analysed": sum(r["pl"][kind]["b_gw_vs_noise"] for r in results),
             "verdict_headline": verdict(d_head),
         }
-        print(f"\n[{kind}] Delta (headline {len(head & {r['name'] for r in results})} psr) "
-              f"= {d_head:+.2f};  all {len(results)} analysed = {d_all:+.2f}")
+        print(
+            f"\n[{kind}] Delta (headline {len(head & {r['name'] for r in results})} psr) "
+            f"= {d_head:+.2f};  all {len(results)} analysed = {d_all:+.2f}"
+        )
         print(f"[{kind}] {summary[kind]['verdict_headline']}")
 
     out = {
-        "log10_a_gw": args.log10_a, "gw_gamma": GW_GAMMA, "n_freqs": args.n_freqs,
-        "t_array_s": t_array, "priors": {"ou": OU_PRIOR, "pl": PL_PRIOR},
-        "grid_steps": {"amp": args.step_amp, "ou_shape": args.step_ou,
-                       "pl_shape": args.step_pl},
+        "log10_a_gw": args.log10_a,
+        "gw_gamma": GW_GAMMA,
+        "n_freqs": args.n_freqs,
+        "t_array_s": t_array,
+        "priors": {"ou": OU_PRIOR, "pl": PL_PRIOR},
+        "grid_steps": {
+            "amp": args.step_amp,
+            "ou_shape": args.step_ou,
+            "pl_shape": args.step_pl,
+        },
         "asimov_intrinsic_rn": args.asimov_intrinsic_rn,
-        "headline_pulsars": sorted(head), "thresholds": {"supported": SUPPORTED,
-                                                         "refuted": REFUTED},
-        "summary": summary, "pulsars": results,
+        "headline_pulsars": sorted(head),
+        "thresholds": {"supported": SUPPORTED, "refuted": REFUTED},
+        "summary": summary,
+        "pulsars": results,
     }
     if args.out:
         with open(args.out, "w") as f:

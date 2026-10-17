@@ -161,9 +161,7 @@ def apply_scramble(data, scrambled_orf):
     return scrambled
 
 
-def install_scramble_override(
-    npz_path, index, match_threshold=DEFAULT_MATCH_THRESHOLD
-):
+def install_scramble_override(npz_path, index, match_threshold=DEFAULT_MATCH_THRESHOLD):
     """Patch the data loader so this process analyses a scrambled ORF.
 
     The scramble has to reach BOTH the sampler and the path-sampling integrand

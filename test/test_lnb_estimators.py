@@ -542,8 +542,10 @@ def test_lower_bound_uses_effective_not_raw_draws(gvn):
     rng = np.random.default_rng(8)
     iid = rng.normal(3.0, 0.3, size=(4, 4000))
     sticky = np.repeat(iid[:, :400], 10, axis=1)
-    assert (gvn.lower_bound(sticky)["ln_bayes_factor_lower"]
-            < gvn.lower_bound(iid)["ln_bayes_factor_lower"] - 1.5)
+    assert (
+        gvn.lower_bound(sticky)["ln_bayes_factor_lower"]
+        < gvn.lower_bound(iid)["ln_bayes_factor_lower"] - 1.5
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -618,8 +620,9 @@ def test_amplitude_line_matches_direct_gaussian(spv):
         c = base + a * shape
         assert data[k] == pytest.approx(multivariate_normal(cov=c).logpdf(y), abs=1e-8)
         _, logdet = np.linalg.slogdet(c)
-        expect = -0.5 * (np.trace(np.linalg.solve(c, c_true)) + logdet
-                         + n * math.log(2 * math.pi))
+        expect = -0.5 * (
+            np.trace(np.linalg.solve(c, c_true)) + logdet + n * math.log(2 * math.pi)
+        )
         assert asimov[k] == pytest.approx(expect, abs=1e-8)
 
 

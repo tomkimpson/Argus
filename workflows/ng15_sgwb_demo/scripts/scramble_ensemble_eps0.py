@@ -58,7 +58,9 @@ VALIDATION_RTOL = 1e-6
 
 def _load(name):
     """Import a sibling script by path (they are scripts, not package modules)."""
-    spec = importlib.util.spec_from_file_location(name, os.path.join(HERE, name + ".py"))
+    spec = importlib.util.spec_from_file_location(
+        name, os.path.join(HERE, name + ".py")
+    )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
@@ -200,7 +202,9 @@ def main():
     true_orf = np.asarray(kalman_filter.hellings_downs_matrix, dtype=float)
     flat, n_chain, n_draw = load_draws(args.rung)
     n_draws = n_chain * n_draw
-    print(f"rung: {args.rung}\n  {n_chain} chains x {n_draw} draws, {true_orf.shape[0]} pulsars")
+    print(
+        f"rung: {args.rung}\n  {n_chain} chains x {n_draw} draws, {true_orf.shape[0]} pulsars"
+    )
 
     with np.load(args.scrambles) as archive:
         scramble_orfs = np.asarray(archive["orfs"], dtype=float)
@@ -209,7 +213,9 @@ def main():
         raise ValueError("Ensemble archive's true_orf differs from the config's ORF.")
     matches = np.array([sky.orf_match(o, true_orf) for o in scramble_orfs])
     if matches.max() >= sky.DEFAULT_MATCH_THRESHOLD:
-        raise ValueError(f"Ensemble contains a scramble with match {matches.max():.3f}.")
+        raise ValueError(
+            f"Ensemble contains a scramble with match {matches.max():.3f}."
+        )
 
     grad_batched, eps_batched = make_gradient_fns(kalman_filter)
 
@@ -229,7 +235,9 @@ def main():
         max_abs = float(np.max(np.abs(contracted - direct)))
         max_rel = float(max_abs / max(np.max(np.abs(direct)), 1e-300))
         validation[name] = {"max_abs_diff": max_abs, "max_rel_diff": max_rel}
-        print(f"  {name}: max |contracted - direct| = {max_abs:.3e} (rel {max_rel:.3e})")
+        print(
+            f"  {name}: max |contracted - direct| = {max_abs:.3e} (rel {max_rel:.3e})"
+        )
         if max_rel > VALIDATION_RTOL:
             raise SystemExit(f"VALIDATION FAILED for {name}; not scoring the ensemble.")
 

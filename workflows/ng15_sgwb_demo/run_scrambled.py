@@ -42,8 +42,9 @@ jax.config.update("jax_enable_x64", True)
 
 def load_sky_scrambles():
     """Import scripts/sky_scrambles.py by path (it is a script, not a package module)."""
-    path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                        "scripts", "sky_scrambles.py")
+    path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "scripts", "sky_scrambles.py"
+    )
     spec = importlib.util.spec_from_file_location("sky_scrambles", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -53,7 +54,9 @@ def load_sky_scrambles():
 def main():
     parser = argparse.ArgumentParser(description="Run inference under a scrambled ORF.")
     parser.add_argument("config", type=str, help="Path to the configuration file")
-    parser.add_argument("--scramble-npz", required=True, help="Archive from sky_scrambles.py")
+    parser.add_argument(
+        "--scramble-npz", required=True, help="Archive from sky_scrambles.py"
+    )
     parser.add_argument("--scramble-index", type=int, default=0)
     args = parser.parse_args()
 
