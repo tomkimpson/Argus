@@ -46,7 +46,9 @@ sys.path.append(os.path.join(os.path.dirname(os.path.dirname(HERE)), "python"))
 
 def _load(name):
     """Import a sibling script by path (they are scripts, not package modules)."""
-    spec = importlib.util.spec_from_file_location(name, os.path.join(HERE, name + ".py"))
+    spec = importlib.util.spec_from_file_location(
+        name, os.path.join(HERE, name + ".py")
+    )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module

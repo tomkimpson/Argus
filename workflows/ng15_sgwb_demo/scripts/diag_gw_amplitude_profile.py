@@ -50,8 +50,11 @@ def ridge_log10_ha(s, log10_gamma_a, w):
     """Invert the two-sided OU pivot PSD for log10_ha (as parameter_sampling does)."""
     ga = 10.0**log10_gamma_a
     return 0.5 * (
-        math.log10(12.0) + s + 2.0 * math.log10(w)
-        + np.log10(ga**2 + w**2) - log10_gamma_a
+        math.log10(12.0)
+        + s
+        + 2.0 * math.log10(w)
+        + np.log10(ga**2 + w**2)
+        - log10_gamma_a
     )
 
 
@@ -73,9 +76,13 @@ def main():
     )
     p.add_argument("--run", required=True, help="Run output dir (.nc + .ini).")
     p.add_argument("--out", required=True, help="Output prefix (.npz/.json/.png).")
-    p.add_argument("--timing-prior", choices=("informative", "diffuse"), required=True,
-                   help="Kalman timing prior. Required: the 1b run configs predate the "
-                        "diffuse default (PR #121) and do not set it.")
+    p.add_argument(
+        "--timing-prior",
+        choices=("informative", "diffuse"),
+        required=True,
+        help="Kalman timing prior. Required: the 1b run configs predate the "
+        "diffuse default (PR #121) and do not set it.",
+    )
     p.add_argument("--per-group", type=int, default=20)
     p.add_argument("--seed", type=int, default=0)
     p.add_argument(
@@ -106,15 +113,22 @@ def main():
     # The copied .ini sits one level below the original config; data paths are
     # relative to the workflow directory, so resolve against a sibling of configs/.
     config = utils.resolve_config_paths(
-        config, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..",
-                             "configs", os.path.basename(ini[0]))
+        config,
+        os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "..",
+            "configs",
+            os.path.basename(ini[0]),
+        ),
     )
     f_piv = config.getfloat("PriorModel", "gw_pivot_freq_hz")
     w = 2.0 * math.pi * f_piv
 
     io_manager.setup_single_logger(config, enable_file_logging=False)
     logger = logging.getLogger("diag_gw_amplitude_profile")
-    _, kalman_filter = workflow.setup_data_and_kalman_filter(config, logger, use_gw=True)
+    _, kalman_filter = workflow.setup_data_and_kalman_filter(
+        config, logger, use_gw=True
+    )
 
     post = az.from_netcdf(nc[0]).posterior
     eps = float(np.unique(np.round(post["orf_epsilon"].values, 12)).item())
@@ -122,7 +136,13 @@ def main():
 
     def loglik(log10_ha, log10_gamma_a, lgp, lsp, efac, equad):
         return bayesian_inference.log_likelihood_fn(
-            kalman_filter, log10_ha, log10_gamma_a, lgp, lsp, efac, equad,
+            kalman_filter,
+            log10_ha,
+            log10_gamma_a,
+            lgp,
+            lsp,
+            efac,
+            equad,
             orf_epsilon=eps,
         )
 
@@ -144,11 +164,16 @@ def main():
                 lha = ridge_log10_ha(grid, lga, w)
                 lga_vec = np.full(grid.size + 1, lga)
                 lha_vec = np.concatenate([[NOISE_ONLY_LOG10_HA], lha])
-                ll = np.asarray(sweep(jnp.asarray(lha_vec), jnp.asarray(lga_vec), *noise))
+                ll = np.asarray(
+                    sweep(jnp.asarray(lha_vec), jnp.asarray(lga_vec), *noise)
+                )
                 curves[i, j] = ll[1:] - ll[0]
-            print(f"  {group} draw {i + 1}/{len(idx)} (s = {draw_s[-1]:.2f}): "
-                  f"max dlogL(own) = {np.nanmax(curves[i, 0]):+.2f} at "
-                  f"s = {grid[np.nanargmax(curves[i, 0])]:.2f}", flush=True)
+            print(
+                f"  {group} draw {i + 1}/{len(idx)} (s = {draw_s[-1]:.2f}): "
+                f"max dlogL(own) = {np.nanmax(curves[i, 0]):+.2f} at "
+                f"s = {grid[np.nanargmax(curves[i, 0])]:.2f}",
+                flush=True,
+            )
         results[group] = {"curves": curves, "draw_s": np.asarray(draw_s)}
 
     np.savez(
@@ -159,9 +184,14 @@ def main():
         **{f"{g}_draw_s": r["draw_s"] for g, r in results.items()},
     )
 
-    summary = {"run": os.path.basename(run_dir), "orf_epsilon": eps,
-               "timing_prior": args.timing_prior,
-               "grid": grid.tolist(), "variants": variants, "groups": {}}
+    summary = {
+        "run": os.path.basename(run_dir),
+        "orf_epsilon": eps,
+        "timing_prior": args.timing_prior,
+        "grid": grid.tolist(),
+        "variants": variants,
+        "groups": {},
+    }
     for g, r in results.items():
         cv = r["curves"]
         if cv.size == 0:
@@ -187,15 +217,22 @@ def main():
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    fig, axes = plt.subplots(1, len(variants), figsize=(4.2 * len(variants), 4),
-                             sharey=True)
+    fig, axes = plt.subplots(
+        1, len(variants), figsize=(4.2 * len(variants), 4), sharey=True
+    )
     colours = {"low": "C0", "mid": "C1", "high": "C3"}
     for j, v in enumerate(variants):
         ax = axes[j]
         for g, r in results.items():
             for k, curve in enumerate(r["curves"][:, j]):
-                ax.plot(grid, curve, color=colours[g], alpha=0.25, lw=0.8,
-                        label=f"{g}-s draws" if k == 0 else None)
+                ax.plot(
+                    grid,
+                    curve,
+                    color=colours[g],
+                    alpha=0.25,
+                    lw=0.8,
+                    label=f"{g}-s draws" if k == 0 else None,
+                )
         ax.axhline(0, color="k", lw=0.5)
         ax.set_title(f"gamma_a: {v}")
         ax.set_xlabel("log10 pivot PSD (two-sided)")

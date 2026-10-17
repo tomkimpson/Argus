@@ -157,7 +157,7 @@ def test_epsilon_one_reproduces_the_diffuse_golden(mdc2_setup):
     without_path = float(kf.get_likelihood(make_params(orf_epsilon=None)))
     at_epsilon_one = float(kf.get_likelihood(make_params(orf_epsilon=1.0)))
 
-    assert np.isclose(without_path, 59420.06, atol=1.0)
+    assert np.isclose(without_path, 59454.72, atol=1.0)
     np.testing.assert_allclose(at_epsilon_one, without_path, rtol=0, atol=0)
 
 
@@ -359,13 +359,14 @@ def test_epsilon_gradient_matches_finite_differences(mdc2_setup):
         return float(kf.get_likelihood(base.replace(orf_epsilon=eps)))
 
     # The step is deliberately large. The log-likelihood is O(6e4) while its
-    # derivative in eps is O(6), so a central difference subtracts two nearly equal
-    # numbers: below h ~ 1e-3 the result is dominated by the filter's own numerical
-    # noise, not by the derivative. Measured here, h=1e-2 agrees with autodiff to
-    # 1.6e-3 while h=1e-5 is wrong by a factor of two. The precise check on the
-    # gradient is the integral identity in the next test, which does not cancel.
+    # derivative in eps is O(4), so a central difference subtracts two nearly equal
+    # numbers carrying the filter's rounding noise. On the diffuse path that noise is
+    # ~1e-3 nat: Λ = A is badly conditioned (equilibrated condition number ~1e12) and
+    # nothing regularises it. (Before 2026-10-17 a jitter on Λ smoothed it to ~6e-6
+    # nat, at the cost of a −35 nat bias.) Measured here: h=1e-2 is off by 1.3%, h=0.1
+    # by 1.5e-5. The noise is in the value only; the autodiff gradient is smooth.
     eps0 = 0.5
-    step = 1e-2
+    step = 1e-1
     finite_difference = (logl(eps0 + step) - logl(eps0 - step)) / (2.0 * step)
     autodiff = float(
         jax.grad(lambda e: kf.get_likelihood(base.replace(orf_epsilon=e)))(eps0)
@@ -405,4 +406,8 @@ def test_epsilon_gradient_integrates_to_the_likelihood_difference(mdc2_setup):
     direct = float(kf.get_likelihood(base.replace(orf_epsilon=1.0))) - float(
         kf.get_likelihood(base.replace(orf_epsilon=0.0))
     )
-    np.testing.assert_allclose(integral, direct, rtol=1e-5)
+    # `direct` differences two values that each carry ~1e-3 nat of rounding noise on
+    # the diffuse path (see the test above), so the identity holds to that level, not
+    # to the quadrature's precision. 5e-3 nat is still far below any gradient error
+    # that would matter for path sampling (whose lnB uncertainties are ≳ 5e-3).
+    np.testing.assert_allclose(integral, direct, rtol=0, atol=5e-3)

@@ -70,14 +70,19 @@ def static_curve(psrs, grid, lga, lgp, lsp, efac, equad):
 
 def main():
     p = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     p.add_argument("--run", required=True)
     p.add_argument("--out", required=True, help="Output prefix (.json/.npz/.png).")
     p.add_argument("--per-group", type=int, default=8)
     p.add_argument("--seed", type=int, default=0)
-    p.add_argument("--timing-prior", choices=("informative", "diffuse"), required=True,
-                   help="Kalman timing prior. 'diffuse' is the flat-prior limit, which "
-                        "projects the timing model out as the static side does.")
+    p.add_argument(
+        "--timing-prior",
+        choices=("informative", "diffuse"),
+        required=True,
+        help="Kalman timing prior. 'diffuse' is the flat-prior limit, which "
+        "projects the timing model out as the static side does.",
+    )
     args = p.parse_args()
 
     import arviz as az
@@ -93,15 +98,23 @@ def main():
     config = configparser.ConfigParser()
     config.read(ini[0])
     config = utils.resolve_config_paths(
-        config, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..",
-                             "configs", os.path.basename(ini[0])))
+        config,
+        os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "..",
+            "configs",
+            os.path.basename(ini[0]),
+        ),
+    )
     w = 2.0 * math.pi * config.getfloat("PriorModel", "gw_pivot_freq_hz")
     config.set("PriorModel", "timing_prior", args.timing_prior)
     timing_prior = args.timing_prior
     print(f"Kalman timing prior: {timing_prior}")
     io_manager.setup_single_logger(config, enable_file_logging=False)
     logger = logging.getLogger("diag_kalman_vs_static")
-    _, kalman_filter = workflow.setup_data_and_kalman_filter(config, logger, use_gw=True)
+    _, kalman_filter = workflow.setup_data_and_kalman_filter(
+        config, logger, use_gw=True
+    )
 
     # Static side: same feathers, same (sorted) order as the loader.
     data_dir = config.get("Data", "data_path")
@@ -111,13 +124,16 @@ def main():
         meta = json.loads(t.schema.metadata[b"json"])
         mcols = [c for c in t.column_names if c.startswith("Mmat_")]
         mmat = np.column_stack([t.column(c).to_numpy() for c in mcols]).astype(float)
-        psrs.append({
-            "name": meta["name"], "f0": float(meta["F0"]),
-            "toas": t.column("toas").to_numpy().astype(float),
-            "sig": t.column("toaerrs").to_numpy().astype(float),
-            "residuals": t.column("residuals").to_numpy().astype(float),
-            "G": spv.projector(mmat / np.linalg.norm(mmat, axis=0)),
-        })
+        psrs.append(
+            {
+                "name": meta["name"],
+                "f0": float(meta["F0"]),
+                "toas": t.column("toas").to_numpy().astype(float),
+                "sig": t.column("toaerrs").to_numpy().astype(float),
+                "residuals": t.column("residuals").to_numpy().astype(float),
+                "G": spv.projector(mmat / np.linalg.norm(mmat, axis=0)),
+            }
+        )
 
     post = az.from_netcdf(nc[0]).posterior
     eps = float(np.unique(np.round(post["orf_epsilon"].values, 12)).item())
@@ -125,8 +141,15 @@ def main():
 
     def loglik(log10_ha, log10_gamma_a, lgp, lsp, efac, equad):
         return bayesian_inference.log_likelihood_fn(
-            kalman_filter, log10_ha, log10_gamma_a, lgp, lsp, efac, equad,
-            orf_epsilon=eps)
+            kalman_filter,
+            log10_ha,
+            log10_gamma_a,
+            lgp,
+            lsp,
+            efac,
+            equad,
+            orf_epsilon=eps,
+        )
 
     sweep = jax.jit(jax.vmap(loglik, in_axes=(0, 0, None, None, None, None)))
 
@@ -137,36 +160,60 @@ def main():
             v = {s: np.asarray(post[s].values[c, d]) for s in SITES}
             lga = float(v["log10_gamma_a"])
             lha = np.concatenate([[NOISE_ONLY_LOG10_HA], ridge_log10_ha(GRID, lga, w)])
-            ll = np.asarray(sweep(jnp.asarray(lha), jnp.asarray(np.full(lha.size, lga)),
-                                  *[jnp.asarray(v[k]) for k in SITES[1:]]))
+            ll = np.asarray(
+                sweep(
+                    jnp.asarray(lha),
+                    jnp.asarray(np.full(lha.size, lga)),
+                    *[jnp.asarray(v[k]) for k in SITES[1:]],
+                )
+            )
             kal = ll[1:] - ll[0]
-            sta = static_curve(psrs, GRID, lga, v["log10_γp"], v["log10_σp"],
-                               v["efac"], v["equad"])
+            sta = static_curve(
+                psrs, GRID, lga, v["log10_γp"], v["log10_σp"], v["efac"], v["equad"]
+            )
             curves["kalman"].append(kal)
             curves["static"].append(sta)
             row = {
-                "group": group, "chain": int(c), "draw": int(d),
-                "draw_s": float(post["log10_pivot_psd"].values[c, d]), "lga": lga,
-                "kalman_max": float(kal.max()), "kalman_argmax_s": float(GRID[kal.argmax()]),
-                "static_max": float(sta.max()), "static_argmax_s": float(GRID[sta.argmax()]),
+                "group": group,
+                "chain": int(c),
+                "draw": int(d),
+                "draw_s": float(post["log10_pivot_psd"].values[c, d]),
+                "lga": lga,
+                "kalman_max": float(kal.max()),
+                "kalman_argmax_s": float(GRID[kal.argmax()]),
+                "static_max": float(sta.max()),
+                "static_argmax_s": float(GRID[sta.argmax()]),
                 "max_abs_diff": float(np.max(np.abs(kal - sta))),
             }
             rows.append(row)
-            print(f"  {group:4s} s={row['draw_s']:6.2f} lga={lga:6.2f}  "
-                  f"max dlogL Kalman {row['kalman_max']:+7.2f} @ {row['kalman_argmax_s']:.2f}"
-                  f"  static {row['static_max']:+7.2f} @ {row['static_argmax_s']:.2f}"
-                  f"  max|diff| {row['max_abs_diff']:.2f}", flush=True)
+            print(
+                f"  {group:4s} s={row['draw_s']:6.2f} lga={lga:6.2f}  "
+                f"max dlogL Kalman {row['kalman_max']:+7.2f} @ {row['kalman_argmax_s']:.2f}"
+                f"  static {row['static_max']:+7.2f} @ {row['static_argmax_s']:.2f}"
+                f"  max|diff| {row['max_abs_diff']:.2f}",
+                flush=True,
+            )
 
     kal, sta = np.asarray(curves["kalman"]), np.asarray(curves["static"])
-    summary = {"run": os.path.basename(run_dir), "orf_epsilon": eps, "grid": GRID.tolist(),
-               "timing_prior": timing_prior,
-               "median_kalman_minus_static_at_peak": float(np.median(
-                   [r["kalman_max"] - r["static_max"] for r in rows])),
-               "draws": rows}
+    summary = {
+        "run": os.path.basename(run_dir),
+        "orf_epsilon": eps,
+        "grid": GRID.tolist(),
+        "timing_prior": timing_prior,
+        "median_kalman_minus_static_at_peak": float(
+            np.median([r["kalman_max"] - r["static_max"] for r in rows])
+        ),
+        "draws": rows,
+    }
     with open(f"{args.out}.json", "w") as f:
         json.dump(summary, f, indent=2)
-    np.savez(f"{args.out}.npz", grid=GRID, kalman=kal, static=sta,
-             groups=np.asarray([r["group"] for r in rows]))
+    np.savez(
+        f"{args.out}.npz",
+        grid=GRID,
+        kalman=kal,
+        static=sta,
+        groups=np.asarray([r["group"] for r in rows]),
+    )
 
     import matplotlib
 

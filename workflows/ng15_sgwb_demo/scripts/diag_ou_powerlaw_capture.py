@@ -82,7 +82,7 @@ def covariance_from_psd(toas, psd_fn, t_span):
 def projector(mmat):
     """Orthonormal basis G of the complement of the timing-model design matrix."""
     u, _, _ = np.linalg.svd(mmat, full_matrices=True)
-    return u[:, mmat.shape[1]:]
+    return u[:, mmat.shape[1] :]
 
 
 def kl_gauss(c_true, c_model):
@@ -123,7 +123,9 @@ def main():
     p.add_argument("--out", default=None)
     args = p.parse_args()
 
-    psrs = [load_pulsar(f) for f in sorted(glob.glob(os.path.join(args.data, "*.feather")))]
+    psrs = [
+        load_pulsar(f) for f in sorted(glob.glob(os.path.join(args.data, "*.feather")))
+    ]
     pivot_grid = np.round(np.arange(-10.0, -4.99, 0.1), 3)
     gamma_grid = np.round(np.arange(-11.0, -5.99, 0.25), 3)
 
@@ -134,8 +136,13 @@ def main():
         span = t.max() - t.min()
         G = psr["G"]
         white = G.T @ np.diag(psr["white"]) @ G
-        c_gw = G.T @ covariance_from_psd(
-            t, lambda f: powerlaw_psd(f, args.log10_a, args.gamma), span) @ G
+        c_gw = (
+            G.T
+            @ covariance_from_psd(
+                t, lambda f: powerlaw_psd(f, args.log10_a, args.gamma), span
+            )
+            @ G
+        )
         c_true = white + c_gw
         kl_white[i] = kl_gauss(c_true, white)
         # OU covariance is linear in 10**pivot, so build the unit-pivot one per gamma_a.
@@ -143,8 +150,11 @@ def main():
             unit = G.T @ covariance_from_psd(t, lambda f: ou_psd(f, 0.0, lga), span) @ G
             for j, s in enumerate(pivot_grid):
                 kl_ou[i, j, k] = kl_gauss(c_true, white + 10.0**s * unit)
-        print(f"  {psr['name']}: KL(true||white) = {kl_white[i]:.2f}  "
-              f"best own OU KL = {kl_ou[i].min():.2f}", flush=True)
+        print(
+            f"  {psr['name']}: KL(true||white) = {kl_white[i]:.2f}  "
+            f"best own OU KL = {kl_ou[i].min():.2f}",
+            flush=True,
+        )
 
     total_white = kl_white.sum()
     common = kl_ou.sum(axis=0)
@@ -159,8 +169,9 @@ def main():
             "log10_gamma_a": float(gamma_grid[k]),
             "kl_to_true": float(common[j, k]),
             "capture_fraction": float(1.0 - common[j, k] / total_white),
-            "on_grid_edge": bool(j in (0, pivot_grid.size - 1)
-                                 or k in (0, gamma_grid.size - 1)),
+            "on_grid_edge": bool(
+                j in (0, pivot_grid.size - 1) or k in (0, gamma_grid.size - 1)
+            ),
         },
         "per_pulsar_ou_best": {
             "kl_to_true": float(per_psr_best),
@@ -170,18 +181,30 @@ def main():
             math.log10(powerlaw_psd(PIVOT_F, args.log10_a, args.gamma) / 2.0)
         ),
         "pulsars": [
-            {"name": psr["name"], "kl_true_vs_white": float(kl_white[i]),
-             "kl_true_vs_common_ou": float(kl_ou[i, j, k])}
+            {
+                "name": psr["name"],
+                "kl_true_vs_white": float(kl_white[i]),
+                "kl_true_vs_common_ou": float(kl_ou[i, j, k]),
+            }
             for i, psr in enumerate(psrs)
         ],
     }
-    print(f"\nExpected ln L gain of the true power law over white only: {total_white:.2f}")
+    print(
+        f"\nExpected ln L gain of the true power law over white only: {total_white:.2f}"
+    )
     c = res["common_ou_best"]
-    print(f"Best common OU: pivot {c['log10_pivot_psd_two_sided']:.1f}, "
-          f"log10 gamma_a {c['log10_gamma_a']:.2f} -> KL {c['kl_to_true']:.2f}, "
-          f"capture {c['capture_fraction']:.2f}" + (" (GRID EDGE)" if c["on_grid_edge"] else ""))
-    print(f"Per-pulsar best OU: capture {res['per_pulsar_ou_best']['capture_fraction']:.2f}")
-    print(f"Injected two-sided pivot log-PSD: {res['injected_log10_pivot_psd_two_sided']:.2f}")
+    print(
+        f"Best common OU: pivot {c['log10_pivot_psd_two_sided']:.1f}, "
+        f"log10 gamma_a {c['log10_gamma_a']:.2f} -> KL {c['kl_to_true']:.2f}, "
+        f"capture {c['capture_fraction']:.2f}"
+        + (" (GRID EDGE)" if c["on_grid_edge"] else "")
+    )
+    print(
+        f"Per-pulsar best OU: capture {res['per_pulsar_ou_best']['capture_fraction']:.2f}"
+    )
+    print(
+        f"Injected two-sided pivot log-PSD: {res['injected_log10_pivot_psd_two_sided']:.2f}"
+    )
     if args.out:
         with open(args.out, "w") as f:
             json.dump(res, f, indent=2)

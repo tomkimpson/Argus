@@ -59,7 +59,9 @@ def main():
     )
     p.add_argument(
         "--repo",
-        default=os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..")),
+        default=os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "..", "..", "..")
+        ),
         help="Repo root, for the git SHA",
     )
     args = p.parse_args()

@@ -1,7 +1,7 @@
 # Spec: First state-space detection of the SGWB on NANOGrav 15-yr data
 
 **Status:** draft
-**Created:** 2026-10-15  ·  **Last amended:** 2026-10-16
+**Created:** 2026-10-15  ·  **Last amended:** 2026-10-17
 **Supersedes:** `openspec/changes/sgwb-detection-route` (to be deleted, task 0.1) and the
 wideband M3 plan in issue #111 / `workflows/ng15_sgwb_demo/PLAN.md`.
 
@@ -59,6 +59,17 @@ Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not
     88th percentile of 1000 sky scrambles (p = 0.12), so the +0.69 is about 1σ and not
     significant. The no-injection control passes.
   - 2b (PR #124): −0.25. The GW-vs-noise result matches Hazboun et al.
+  - **Caveat (2026-10-17):** every diffuse result from PR #107 (where the diffuse prior
+    was added; it became the default in #121) to the Λ-jitter fix carries a
+    parameter-dependent bias. A jitter of 1e-9·trace(Λ)/n shifted the MDC2 golden by
+    −34.7 nat.
+    - The shift barely depends on ε: lnL(ε=1) − lnL(ε=0) moves by ≤ 7e-3 nat at 8 fixed
+      parameter points. So the lnB(HD/CURN) values above are *expected* to move by
+      ≲ 0.01 nat. That is a fixed-parameter estimate, not verified by a rerun.
+    - It does depend on the GW amplitude (0.26 nat across ha = 1–5e-15) and on the noise
+      parameters: 28–40 nat across 60 MDC2 prior draws, a spread of ~10 nat.
+    - So the GW-vs-noise and amplitude results are exposed until rerun: #122's diffuse 1b
+      evidence for the #121 default switch, and #123/#124. See §12, 2026-10-17.
 - **Filter:** one scalar measurement per pulsar per time step (`model.py:124-249`). R is
   diagonal with a single EFAC/EQUAD per pulsar (`model.py:110-121`), and there is no ECORR.
   Masks support union grids (`jax_kalman_filter.py:209-220`, `:429-437`).
@@ -159,8 +170,8 @@ Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not
     - one shallow-spectrum pulsar, J1012+5307 (γ_PL ≲ 1 in `RESULTS_ou_adequacy_ng15.md`),
       because A1 is most exposed there.
 - **C2. The goldens are preserved.** With no compression and zero initial accumulators:
-  - the MDC2 goldens pass their existing tests: 63618.93 (informative) and 59420.06
-    (diffuse), in `test/test_likelihood_value.py`, `test/test_masked_marginal_filter.py` and
+  - the MDC2 goldens pass their existing tests: 63618.93 (informative) and 59454.72
+    (diffuse; 59420.06 before the Λ-jitter fix of 2026-10-17, which was biased), in `test/test_likelihood_value.py`, `test/test_masked_marginal_filter.py` and
     `test/test_correlation_path.py`;
   - **and** a new test asserts exact equality (`==`) between the log-likelihood with default
     zero accumulators and without the new argument. The golden tests use atol = 1.0, so they
@@ -449,6 +460,7 @@ therefore **pivots** with a named next step, not stops.
 | Per-step cost blows up at 67 psr on the union grid (step count × O((4N)³)) | Task 2.6 benchmark of value-plus-gradient on the marginal path. There is no trustworthy prior rate (§2); if it is near the sequential quick-look (≳ 0.6 s at 189 steps), Δ is forced to ≳ 1 month |
 | Discovery env / jax version conflicts | Task 1.2 fails to install; fall back to a container |
 | Path-sampling integrand steep near ε=1 at lnB ~ 5 | Frozen-procedure Romberg check flags extra rungs (0.625, 0.875) |
+| Diffuse results since PR #107 carry the Λ-jitter bias (fixed 2026-10-17) | GW-vs-noise and amplitude numbers from #122/#123/#124 move by ≳ 0.1 nat on rerun; lnB(HD/CURN) is expected (fixed-parameter estimate) to move by ≲ 0.01 |
 | Fourier-vs-time-domain gap makes C5 unattainable even when both are right | Discovery-OU lnB moves by > 1 nat when its mode count changes (task 1.5) |
 
 ## 11. Task list
@@ -652,3 +664,32 @@ verify clause could not be met as written.
 `ou.ini` boxes as binding priors, the C5 tolerance and the §5 budget) are not applied here.
 
 **Sections touched:** §11
+
+### 2026-10-17 — the diffuse Λ jitter biased the diffuse golden
+
+**Trigger:** task 2.5's C1 on B1855+09, a small pulsar run first on CPU to shake down the
+driver before the GPU runs on the three C1 pulsars (it does not replace any of them). Against the dense oracle, the stock filter's ΔlnL
+spread was 4.2e-2 nat at the DMX-window Δ, and 3.0e-4 once the diffuse branch's jitter of
+1e-9·trace(Λ)/n was zeroed. On MDC2 at the golden parameters:
+- stock value: 59420.06;
+- jitter zeroed: 59454.725;
+- independent check, the informative filter as α → ∞: 59454.547 (α = 1e6), 59454.722
+  (1e8) and 59454.725 (1e10).
+
+Λ's equilibrated condition number is 1.6e12 (smallest eigenvalue 2.9e-12 relative to its
+diagonal), so the jitter swamped real directions. The C2 golden was itself the biased value.
+
+**Change:**
+- The diffuse branch of `_run_kalman_filter_marginal` takes logdet Λ from a Cholesky of
+  the unit-diagonal equilibrated Λ, with no jitter, and returns −inf if Λ is not PD. This
+  shipped as its own PR (`fix/diffuse-lambda-jitter`) before Phase 2's.
+- C2: the diffuse golden is 59454.72. A new test, `test/test_diffuse_mdc2_limit.py`, checks
+  it against the α → ∞ limit on MDC2 (5e-3 nat at α = 1e10).
+- The diffuse value now carries ~1e-3 nat of rounding noise from Λ's conditioning (it was
+  ~6e-6 with the jitter). The gradient is unaffected. Two test tolerances were widened to
+  match (plus one test's sparse mask made identifiable), and C1's 0.01 nat bound has 10×
+  margin over it.
+- §2 and §10: diffuse results since PR #107 (the jitter's origin, `git log -S`) are flagged
+  as exposed. Rerunning #122/#123/#124 is left to the user.
+
+**Sections touched:** §2, §3, §10, §12

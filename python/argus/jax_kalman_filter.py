@@ -707,18 +707,27 @@ def _run_kalman_filter_marginal(
 
     if diffuse:
         # Flat/improper prior limit P_eps⁻¹ → 0: Λ = A, and the logdet(P_eps⁻¹) term is
-        # dropped (a parameter-independent constant). A can be weakly conditioned when the
-        # timing params are poorly constrained, so mirror the `_log_likelihood` /
-        # `_update_marginal` policy: symmetrise, add magnitude-scaled jitter, and reject a
-        # residually non-PD matrix by returning -inf.
-        n = A.shape[0]
+        # dropped (a parameter-independent constant). No jitter is added: Λ's smallest
+        # eigenvalues sit many orders below its mean whenever red noise absorbs a timing
+        # direction, so a jitter scaled to trace(Λ)/n shifts −½ logdet Λ by tens of nats,
+        # parameter-dependently (it biased the old MDC2 diffuse golden by −34.7 nat).
+        # Instead Λ is equilibrated to unit diagonal, D⁻¹ᐟ² Λ D⁻¹ᐟ², which is exact
+        # (logdet Λ = logdet of the scaled matrix + Σ log dᵢ) and removes the column-unit
+        # dynamic range, then Cholesky-factored. A non-PD Λ returns -inf; its gradient is
+        # NaN (the NaN Cholesky backpropagates through the where), which NUTS treats as a
+        # divergence but which poisons any sum of gradients over a batch of points.
         Lambda = 0.5 * (A + A.T)
-        jitter = 1e-9 * (jnp.trace(Lambda) / n)
-        Lambda = Lambda + jitter * jnp.eye(n)
-        sign, logdet_Lambda = jnp.linalg.slogdet(Lambda)
-        bLb = (b.T @ jnp.linalg.solve(Lambda, b))[0, 0]
+        d = jnp.diag(Lambda)
+        s = jnp.where(d > 0, 1.0 / jnp.sqrt(jnp.where(d > 0, d, 1.0)), 1.0)
+        chol = jnp.linalg.cholesky(Lambda * s[:, None] * s[None, :])
+        logdet_Lambda = 2.0 * jnp.sum(jnp.log(jnp.diag(chol))) - 2.0 * jnp.sum(
+            jnp.log(s)
+        )
+        y = jax.scipy.linalg.solve_triangular(chol, s[:, None] * b, lower=True)
+        bLb = jnp.sum(y**2)
         logL = -0.5 * (c + L - bLb + logdet_Lambda)
-        return jnp.where(sign > 0, logL, -jnp.inf)
+        ok = jnp.all(d > 0) & jnp.all(jnp.isfinite(chol))
+        return jnp.where(ok & jnp.isfinite(logL), logL, -jnp.inf)
 
     # Analytic marginalization of β with prior precision P_eps_inv.
     Lambda = P_eps_inv + A
@@ -815,8 +824,8 @@ class JaxKalmanFilter:
         # timing-model block of A is zero, so Λ falls back to the prior precision and
         # the -logdet(P_eps_inv) term cancels it exactly, leaving only a constant
         # offset. In the diffuse limit Λ = A, so that block is left singular and the
-        # jitter — not the data — sets its log-determinant. That is a meaningless
-        # likelihood rather than an offset one, so it is refused.
+        # likelihood is -inf (or, at rounding level, set by noise rather than the data).
+        # That is a meaningless likelihood rather than an offset one, so it is refused.
         if self.mask is not None and timing_prior == "diffuse":
             unobserved = np.nonzero(np.asarray(self.mask).sum(axis=0) == 0)[0]
             if unobserved.size:

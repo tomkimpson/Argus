@@ -265,8 +265,14 @@ def print_report(name, res, mu, sigma):
     print(f"\n=== {name} ===")
     print("    c  pivot<   post   prior  n_eff_below   lnB(model/noise)   per-chain")
     for r in res["thresholds"]:
-        lnb = "     --      " if r["lnb"] is None else f"{r['lnb']:+.3f} ± {r['uncert']:.3f}"
-        chains = ", ".join("--" if x is None else f"{x:+.2f}" for x in r["per_chain_lnb"])
+        lnb = (
+            "     --      "
+            if r["lnb"] is None
+            else f"{r['lnb']:+.3f} ± {r['uncert']:.3f}"
+        )
+        chains = ", ".join(
+            "--" if x is None else f"{x:+.2f}" for x in r["per_chain_lnb"]
+        )
         print(
             f"  {r['c']:5.2f}  {mu + r['c'] * sigma:6.2f}  {r['post_frac']:.3f}  "
             f"{r['prior_frac']:.3f}  {r['effective_below']:10.1f}   {lnb}   [{chains}]"
@@ -278,7 +284,9 @@ def print_report(name, res, mu, sigma):
             f"(prior 0, 1), KS p = {f['ks_p']:.3g} (n={f['n']})"
         )
     if res["reliable"]:
-        print(f"  ln B(model/noise) = {res['ln_bayes_factor']:+.3f} ± {res['uncert']:.3f}")
+        print(
+            f"  ln B(model/noise) = {res['ln_bayes_factor']:+.3f} ± {res['uncert']:.3f}"
+        )
     else:
         print("  UNRELIABLE:")
         for msg in res["failed_diagnostics"]:
@@ -320,10 +328,17 @@ def plot(results, path):
     axes[0].invert_xaxis()
     axes[0].legend(fontsize=8)
     run0 = next(iter(results.values()))[0]
-    grid = np.linspace(run0["pivot_mu"] - 4 * run0["pivot_sigma"],
-                       run0["pivot_mu"] + 4 * run0["pivot_sigma"], 200)
-    axes[1].plot(grid, norm.pdf(grid, run0["pivot_mu"], run0["pivot_sigma"]), "k--",
-                 label="prior")
+    grid = np.linspace(
+        run0["pivot_mu"] - 4 * run0["pivot_sigma"],
+        run0["pivot_mu"] + 4 * run0["pivot_sigma"],
+        200,
+    )
+    axes[1].plot(
+        grid,
+        norm.pdf(grid, run0["pivot_mu"], run0["pivot_sigma"]),
+        "k--",
+        label="prior",
+    )
     axes[1].set_xlabel("log10 pivot PSD (two-sided)")
     axes[1].legend(fontsize=8)
     fig.tight_layout()
@@ -366,7 +381,9 @@ def main():
     if args.hd_curn and None in pair:
         args.hd_curn = None
     elif args.hd_curn and None in [r["provisional_ln_bayes_factor"] for r in pair]:
-        print("\n  cross-check lnB(HD/CURN) skipped: no region estimate (signal too strong)")
+        print(
+            "\n  cross-check lnB(HD/CURN) skipped: no region estimate (signal too strong)"
+        )
         args.hd_curn = None
     if args.hd_curn:
         with open(args.hd_curn) as f:

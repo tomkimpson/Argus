@@ -54,7 +54,10 @@ SEC_PER_YEAR = 365.25 * 86400.0
 PIVOT_W = 2 * math.pi / (5.0 * SEC_PER_YEAR)  # Argus ridge pivot, f = 1/(5 yr)
 PL_GW = {"amp": (-18.0, -11.0), "gamma": (0.0, 7.0)}
 OU_GW = {"pivot": (-13.0, -5.0), "lga": (-11.0, -6.0)}
-OU_PIVOT_GRID = (-16.0, -5.0)  # wider than the uniform box, for the Gaussian prior's tail
+OU_PIVOT_GRID = (
+    -16.0,
+    -5.0,
+)  # wider than the uniform box, for the Gaussian prior's tail
 FAILED = [0]  # per-process count of non-PD GW points
 
 
@@ -67,8 +70,11 @@ def gw_grids(step_amp, step_shape):
     gam = rng(*PL_GW["gamma"], step_shape)
     piv = rng(*OU_PIVOT_GRID, step_amp)
     lga = rng(*OU_GW["lga"], step_shape)
-    return {"pl13": {"amp": amp}, "pl": {"amp": amp, "gamma": gam},
-            "ou": {"pivot": piv, "lga": lga}}
+    return {
+        "pl13": {"amp": amp},
+        "pl": {"amp": amp, "gamma": gam},
+        "ou": {"pivot": piv, "lga": lga},
+    }
 
 
 def trapezoid(x):
@@ -87,21 +93,26 @@ def gw_log_weights(grids):
     out["pl"] = np.log(w / w.sum())
     piv, lga = grids["ou"]["pivot"], grids["ou"]["lga"]
     # Uniform pivot box inside the wider grid: trapezoid weights with half-weight ends.
-    idx = np.flatnonzero((piv >= OU_GW["pivot"][0] - 1e-9) & (piv <= OU_GW["pivot"][1] + 1e-9))
+    idx = np.flatnonzero(
+        (piv >= OU_GW["pivot"][0] - 1e-9) & (piv <= OU_GW["pivot"][1] + 1e-9)
+    )
     wp = np.zeros_like(piv)
     wp[idx] = trapezoid(piv[idx])
     w = np.outer(trapezoid(lga), wp)
     with np.errstate(divide="ignore"):
         out["ou"] = np.log(w / w.sum())
+
     # NUTS prior: N(mid, (hi - lo)/6) on both ridge coordinates (prior_models._reparam).
     def gauss(x, lo, hi):
         return norm.pdf(x, 0.5 * (lo + hi), (hi - lo) / 6.0) * trapezoid(x)
+
     w = np.outer(gauss(lga, *OU_GW["lga"]), gauss(piv, *OU_GW["pivot"]))
     out["ou_nuts"] = np.log(w / w.sum())
     lo, hi = OU_GW["pivot"]
     mid, sd = 0.5 * (lo + hi), (hi - lo) / 6.0
     out["ou_nuts_mass_on_grid"] = float(
-        norm.cdf(OU_PIVOT_GRID[1], mid, sd) - norm.cdf(OU_PIVOT_GRID[0], mid, sd))
+        norm.cdf(OU_PIVOT_GRID[1], mid, sd) - norm.cdf(OU_PIVOT_GRID[0], mid, sd)
+    )
     return out
 
 
@@ -149,29 +160,49 @@ def analyse_pulsar(job):
     kern = spv.StationaryKernel(t, span)
     fmat, ff = spv.fourier_basis(t, t_array, args.n_freqs)
     rn_shapes = {
-        "ou": [proj(spv.ou_covariance(t, s, psr["f0"])) for s in rn_grids["ou"]["shape"]],
-        "pl": [proj(spv.pl_covariance(fmat, ff, t_array, s)) for s in rn_grids["pl"]["shape"]],
+        "ou": [
+            proj(spv.ou_covariance(t, s, psr["f0"])) for s in rn_grids["ou"]["shape"]
+        ],
+        "pl": [
+            proj(spv.pl_covariance(fmat, ff, t_array, s))
+            for s in rn_grids["pl"]["shape"]
+        ],
     }
     out = {"name": psr["name"], "noise": {}, "pl13": {}, "pl": {}, "ou": {}}
     for rp in ("ou", "pl"):
         out["noise"][rp] = rn_lnz(w, rn_shapes[rp], rn_grids[rp]["amp"], y)
 
     # GW unit covariances. The stationary GW integral is linear in A^2 at fixed gamma.
-    pl_units = {g: psd_clip(proj(kern(lambda f, g=g: powerlaw_psd(f, 0.0, g))))
-                for g in np.append(grids["pl"]["gamma"], 13.0 / 3.0)}
+    pl_units = {
+        g: psd_clip(proj(kern(lambda f, g=g: powerlaw_psd(f, 0.0, g))))
+        for g in np.append(grids["pl"]["gamma"], 13.0 / 3.0)
+    }
     ou_units = {lg: psd_clip(proj(ou_gw_unit(t, lg))) for lg in grids["ou"]["lga"]}
 
     for rp in ("ou", "pl"):
         sh, ag = rn_shapes[rp], rn_grids[rp]["amp"]
         u13 = pl_units[13.0 / 3.0]
-        out["pl13"][rp] = [rn_lnz(w + 10.0 ** (2 * a) * u13, sh, ag, y)
-                           for a in grids["pl13"]["amp"]]
-        out["pl"][rp] = [[rn_lnz(w + 10.0 ** (2 * a) * pl_units[g], sh, ag, y)
-                          for a in grids["pl"]["amp"]] for g in grids["pl"]["gamma"]]
-        out["ou"][rp] = [[rn_lnz(w + 10.0**p * ou_units[lg], sh, ag, y)
-                          for p in grids["ou"]["pivot"]] for lg in grids["ou"]["lga"]]
+        out["pl13"][rp] = [
+            rn_lnz(w + 10.0 ** (2 * a) * u13, sh, ag, y) for a in grids["pl13"]["amp"]
+        ]
+        out["pl"][rp] = [
+            [
+                rn_lnz(w + 10.0 ** (2 * a) * pl_units[g], sh, ag, y)
+                for a in grids["pl"]["amp"]
+            ]
+            for g in grids["pl"]["gamma"]
+        ]
+        out["ou"][rp] = [
+            [
+                rn_lnz(w + 10.0**p * ou_units[lg], sh, ag, y)
+                for p in grids["ou"]["pivot"]
+            ]
+            for lg in grids["ou"]["lga"]
+        ]
     out["n_non_pd"] = FAILED[0]
-    print(f"  done {psr['name']} (non-PD GW points scored -inf: {FAILED[0]})", flush=True)
+    print(
+        f"  done {psr['name']} (non-PD GW points scored -inf: {FAILED[0]})", flush=True
+    )
     return out
 
 
@@ -180,19 +211,28 @@ def combine(per_psr, logw):
     res = {}
     for rp in ("ou", "pl"):
         noise = sum(p["noise"][rp] for p in per_psr)
-        for gm, key in (("pl13", "pl13"), ("pl", "pl"), ("ou", "ou"), ("ou_nuts", "ou")):
+        for gm, key in (
+            ("pl13", "pl13"),
+            ("pl", "pl"),
+            ("ou", "ou"),
+            ("ou_nuts", "ou"),
+        ):
             tot = sum(np.asarray(p[key][rp]) for p in per_psr)
             lp = logw[gm] + tot
             lnz = float(logsumexp(lp[np.isfinite(lp)]))
             post = np.exp(lp - lnz)
-            res[f"{gm}|{rp}"] = {"lnB": lnz - noise, "max_lnl_gain": float(tot.max() - noise),
-                                 "post": post}
+            res[f"{gm}|{rp}"] = {
+                "lnB": lnz - noise,
+                "max_lnl_gain": float(tot.max() - noise),
+                "post": post,
+            }
     return res
 
 
 def main():
     p = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+        description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     p.add_argument("--data", required=True)
     p.add_argument("--truth-noise", required=True)
     p.add_argument("--log10-a", type=float, required=True, help="Injected GWB log10 A.")
@@ -225,8 +265,10 @@ def main():
         per_psr = [analyse_pulsar(j) for j in jobs]
 
     res = combine(per_psr, logw)
-    print(f"\nStatic CURN lnB(GW / noise-only), {len(psrs)} pulsars "
-          f"(Hazboun CURN +3.1, Argus CURN -0.47):")
+    print(
+        f"\nStatic CURN lnB(GW / noise-only), {len(psrs)} pulsars "
+        f"(Hazboun CURN +3.1, Argus CURN -0.47):"
+    )
     print("  GW model   red noise   lnB      max lnL gain   posterior peak")
     summary = {}
     for k, r in res.items():
@@ -239,17 +281,31 @@ def main():
             peak = f"gamma {grids['pl']['gamma'][i]:.1f}, log10A {grids['pl']['amp'][j]:.1f}"
         else:
             i, j = np.unravel_index(np.argmax(post), post.shape)
-            peak = f"lga {grids['ou']['lga'][i]:.1f}, pivot {grids['ou']['pivot'][j]:.1f}"
-        print(f"  {gm:8s}   {rp:9s}   {r['lnB']:+6.2f}   {r['max_lnl_gain']:+8.2f}       {peak}")
+            peak = (
+                f"lga {grids['ou']['lga'][i]:.1f}, pivot {grids['ou']['pivot'][j]:.1f}"
+            )
+        print(
+            f"  {gm:8s}   {rp:9s}   {r['lnB']:+6.2f}   {r['max_lnl_gain']:+8.2f}       {peak}"
+        )
         summary[k] = {"lnB": r["lnB"], "max_lnl_gain": r["max_lnl_gain"], "peak": peak}
 
     if args.out:
         out = {
-            "log10_a_injected": args.log10_a, "n_pulsars": len(psrs),
-            "priors": {"pl_gw": PL_GW, "ou_gw": OU_GW, "ou_pivot_grid": OU_PIVOT_GRID,
-                       "rn_ou": spv.OU_PRIOR, "rn_pl": spv.PL_PRIOR},
-            "steps": {"gw_amp": args.gw_step_amp, "gw_shape": args.gw_step_shape,
-                      "rn_amp": args.rn_step_amp, "rn_shape": args.rn_step_shape},
+            "log10_a_injected": args.log10_a,
+            "n_pulsars": len(psrs),
+            "priors": {
+                "pl_gw": PL_GW,
+                "ou_gw": OU_GW,
+                "ou_pivot_grid": OU_PIVOT_GRID,
+                "rn_ou": spv.OU_PRIOR,
+                "rn_pl": spv.PL_PRIOR,
+            },
+            "steps": {
+                "gw_amp": args.gw_step_amp,
+                "gw_shape": args.gw_step_shape,
+                "rn_amp": args.rn_step_amp,
+                "rn_shape": args.rn_step_shape,
+            },
             "ou_nuts_mass_on_grid": logw["ou_nuts_mass_on_grid"],
             "summary": summary,
             "per_pulsar_noise_lnz": {q["name"]: q["noise"] for q in per_psr},
@@ -257,9 +313,11 @@ def main():
         }
         with open(args.out, "w") as f:
             json.dump(out, f, indent=2)
-        np.savez(os.path.splitext(args.out)[0] + ".npz",
-                 **{k.replace("|", "__"): r["post"] for k, r in res.items()},
-                 **{f"grid_{gm}_{ax}": v for gm, g in grids.items() for ax, v in g.items()})
+        np.savez(
+            os.path.splitext(args.out)[0] + ".npz",
+            **{k.replace("|", "__"): r["post"] for k, r in res.items()},
+            **{f"grid_{gm}_{ax}": v for gm, g in grids.items() for ax, v in g.items()},
+        )
         print(f"wrote {args.out}")
 
 

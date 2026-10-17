@@ -32,7 +32,9 @@ import numpy as np
 
 jax.config.update("jax_enable_x64", True)
 
-REPO_PY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "python")
+REPO_PY = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "python"
+)
 sys.path.insert(0, os.path.abspath(REPO_PY))
 
 from jax import random  # noqa: E402
@@ -40,7 +42,13 @@ from jax.flatten_util import ravel_pytree  # noqa: E402
 from numpyro.infer import NUTS  # noqa: E402
 from numpyro.infer.util import initialize_model  # noqa: E402
 
-from argus import bayesian_inference, io_manager, prior_models, utils, workflow  # noqa: E402
+from argus import (
+    bayesian_inference,
+    io_manager,
+    prior_models,
+    utils,
+    workflow,
+)  # noqa: E402
 
 EPS_GRID = [1e-14, 1e-12, 1e-10, 1e-8, 1e-6, 1e-4, 1e-3, 1e-2, 1e-1, 1.0]
 
@@ -71,8 +79,7 @@ def build(config_path):
     seed = config.getint("NUTS", "seed", fallback=42)
     n_chains = config.getint("NUTS", "num_chains", fallback=2)
     n_warm = config.getint("NUTS", "num_warmup", fallback=2000)
-    pe_fn = (
-        initialize_model(random.PRNGKey(0), model).potential_fn)
+    pe_fn = initialize_model(random.PRNGKey(0), model).potential_fn
     return kernel, seed, n_chains, n_warm, names, pe_fn, KF
 
 
@@ -80,9 +87,11 @@ def grad_report(pe_fn, z, label, names):
     pe, g = jax.value_and_grad(pe_fn)(z)
     flat_g, _ = ravel_pytree(g)
     flat_g = np.asarray(flat_g)
-    print(f"  {label}: PE = {float(pe):.3f}  finite PE: {bool(np.isfinite(pe))}  "
-          f"finite grad: {bool(np.all(np.isfinite(flat_g)))}  "
-          f"|grad| = {np.linalg.norm(flat_g):.3e}")
+    print(
+        f"  {label}: PE = {float(pe):.3f}  finite PE: {bool(np.isfinite(pe))}  "
+        f"finite grad: {bool(np.all(np.isfinite(flat_g)))}  "
+        f"|grad| = {np.linalg.norm(flat_g):.3e}"
+    )
     rows = []
     for site, v in g.items():
         v = np.atleast_1d(np.asarray(v))
@@ -122,12 +131,16 @@ def mass_report(inv_mass):
     for site, m in blocks:
         m = np.asarray(m)
         if m.ndim == 1:
-            print(f"      inv-mass {str(site)[:60]:<60s} diag  [{m.min():.2e}, {m.max():.2e}]"
-                  f"  n<=0: {(m <= 0).sum()} / {m.size}")
+            print(
+                f"      inv-mass {str(site)[:60]:<60s} diag  [{m.min():.2e}, {m.max():.2e}]"
+                f"  n<=0: {(m <= 0).sum()} / {m.size}"
+            )
         else:
             ev = np.linalg.eigvalsh(m)
-            print(f"      inv-mass {str(site)[:60]:<60s} dense eig [{ev.min():.2e}, {ev.max():.2e}]"
-                  f"  diag {np.round(np.diag(m), 8)}")
+            print(
+                f"      inv-mass {str(site)[:60]:<60s} dense eig [{ev.min():.2e}, {ev.max():.2e}]"
+                f"  diag {np.round(np.diag(m), 8)}"
+            )
 
 
 def main():
@@ -144,14 +157,18 @@ def main():
     for c in range(n_chains):
         st = kernel.init(keys[c], n_warm, None, (), {})
         post = kernel.postprocess_fn((), {})(st.z)
-        print(f" chain {c}: heuristic initial step size = {float(st.adapt_state.step_size):.3e}")
+        print(
+            f" chain {c}: heuristic initial step size = {float(st.adapt_state.step_size):.3e}"
+        )
         for k in ("log10_pivot_psd", "log10_ha", "log10_gamma_a"):
             if k in post:
                 print(f"      init {k} = {float(post[k]):.3f}")
         sp = np.asarray(post.get("log10_σp", np.nan))
         gp = np.asarray(post.get("log10_γp", np.nan))
-        print(f"      init log10_σp range [{sp.min():.2f}, {sp.max():.2f}]  "
-              f"log10_γp range [{gp.min():.2f}, {gp.max():.2f}]")
+        print(
+            f"      init log10_σp range [{sp.min():.2f}, {sp.max():.2f}]  "
+            f"log10_γp range [{gp.min():.2f}, {gp.max():.2f}]"
+        )
         grad_report(pe_fn, st.z, "init", names)
 
     if not args.checkpoint:
@@ -162,8 +179,12 @@ def main():
     for c in range(n_chains):
         z = jax.tree.map(lambda a: jnp.asarray(a)[c], s.z)
         step = float(np.asarray(s.adapt_state.step_size)[c])
-        inv_m = jax.tree.map(lambda a: jnp.asarray(a)[c], s.adapt_state.inverse_mass_matrix)
-        m_sqrt = jax.tree.map(lambda a: jnp.asarray(a)[c], s.adapt_state.mass_matrix_sqrt)
+        inv_m = jax.tree.map(
+            lambda a: jnp.asarray(a)[c], s.adapt_state.inverse_mass_matrix
+        )
+        m_sqrt = jax.tree.map(
+            lambda a: jnp.asarray(a)[c], s.adapt_state.mass_matrix_sqrt
+        )
         post = kernel.postprocess_fn((), {})(z)
         piv = float(post["log10_pivot_psd"]) if "log10_pivot_psd" in post else np.nan
         print(f" chain {c}: adapted step = {step:.3e}  pivot (two-sided) = {piv:.3f}")
@@ -171,6 +192,7 @@ def main():
         grad_report(pe_fn, z, "final", names)
         for eps, dh in leapfrog_dH(pe_fn, z, inv_m, m_sqrt, random.PRNGKey(c)):
             print(f"      eps {eps:8.0e}  dH = {dh: .4e}")
+
 
 if __name__ == "__main__":
     main()
