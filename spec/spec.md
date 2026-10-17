@@ -1,7 +1,7 @@
 # Spec: First state-space detection of the SGWB on NANOGrav 15-yr data
 
 **Status:** draft
-**Created:** 2026-10-15  ·  **Last amended:** 2026-10-17
+**Created:** 2026-10-15  ·  **Last amended:** 2026-10-18
 **Supersedes:** `openspec/changes/sgwb-detection-route` (to be deleted, task 0.1) and the
 wideband M3 plan in issue #111 / `workflows/ng15_sgwb_demo/PLAN.md`.
 
@@ -135,6 +135,13 @@ Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not
     proportionally more such power, so C1 includes one explicitly.
   - Measured in Phase 2 (C1 against a continuous-time oracle). There is no a-priori estimate
     we trust.
+  - **Measured 2026-10-18: a constant state fails.** With one scalar per DMX window, C1
+    misses by 0.5–5 nat on all three pulsars. The spin phase drifts linearly within a window
+    at the spin velocity, whose stationary variance σp²/2γp is large at small γp (B1937+21's
+    error tracks γp with correlation 0.99). D2 therefore emits a second, velocity scalar per
+    window, and A1 now reads: **the state is linear in time within a window** (constant
+    velocity). It still fails where the red noise decorrelates within a window (J1012+5307,
+    correlation time ≈ 12 d against 14 d windows). See §12, 2026-10-18.
 - **A2. White noise is fixed** at NANOGrav's MAP noise dictionaries. This is exactly
   NANOGrav's own GWB practice. It is not a simplification relative to the target.
 - **A3. Single-corner OU red noise** (residual PSD between f⁻² and f⁻⁴, i.e. a
@@ -219,9 +226,17 @@ Within a window w, the model is
 - After projecting out D_w, the data split exactly (in the projected-noise metric) into two
   parts:
   - a scalar ŝ_w = s_w + m_wᵀβ + e_w, where e_w ~ N(0, σ_w²) and ECORR is included in σ_w²;
+  - a second, **velocity** scalar v̂_w = ṡ_w + m'_wᵀβ + e'_w along the projected (t − t_w)
+    direction, with t_w the weighted mean time of ŝ_w. It is orthogonal to ŝ_w's direction
+    by construction of t_w, so e'_w is independent of e_w (amended 2026-10-18; one scalar
+    failed C1, see A1);
   - an orthogonal remainder that depends only on β. It is static, so its contribution to the
     marginal filter's (A, b, c) accumulators is a **constant, precomputed once**.
-- The filter keeps one scalar per pulsar per step. Its H row is [−1 on GW r, 1/f0 on phase, m_w].
+- The filter keeps one scalar per pulsar per step, taking each window as **two steps at t_w
+  with dt = 0** between them. The position step's H row is [−1 on GW r, 1/f0 on phase, m_w];
+  the velocity step's is [−1 on GW ṙ, 1/f0 on phase rate, m'_w]. This doubles the step count.
+  A window with too few TOAs to fix a slope emits the position scalar only (the velocity step
+  is masked).
   The only library change is that the marginal filter accepts initial accumulators
   (A₀, b₀, c₀). With zero defaults this preserves the goldens.
 - M_sum stays at the non-DMX timing columns, roughly the ~994 we have today. That avoids the
@@ -420,6 +435,13 @@ therefore **pivots** with a named next step, not stops.
 - **K3 (Phase 2). Compression fails.** Two ways:
   - C1 fails even at Δ = the DMX window (the finest Δ the compression allows): pivot to vector
     observations per window.
+    - Triggered 2026-10-18 for one scalar per window. The first pivot taken is two scalars
+      per window (position and velocity, D2), which doubles the union-grid steps. Task 2.6
+      measures that cost **before** deciding the remaining C1 misses (J1909−3744 and
+      B1937+21 gradients; J1012+5307 value and gradient). The user then chooses among
+      relaxing C1's gradient bound, per-ECORR-epoch steps with DMX carried as a per-window
+      state, or that treatment only for pulsars whose red-noise correlation time is shorter
+      than their windows.
   - The cost per 67-psr likelihood-plus-gradient evaluation on one A100 is > 0.5 s at every Δ
     that passes C1: coarsen Δ (re-measuring A1), or revisit the #108 parallel filter, whose
     crossover needs exactly the larger T that a fine grid produces.
@@ -455,7 +477,7 @@ therefore **pivots** with a named next step, not stops.
 | Risk | Early warning |
 |---|---|
 | OU kernel too stiff, so the HD evidence is diluted (A3) | Discovery-OU lnB ≪ Discovery-PL lnB in Phase 1 (K2) |
-| Compression error at shallow-spectrum pulsars (A1) | C1 spread grows with red-noise slope; per-pulsar C4 outliers concentrated in γ_PL ≲ 1 |
+| Compression error at shallow-spectrum pulsars (A1) | C1 spread grows with red-noise slope; per-pulsar C4 outliers concentrated in γ_PL ≲ 1. Realised 2026-10-18: one scalar per window failed everywhere; two scalars still miss J1012+5307 and two gradient bounds (§12) |
 | 136-D sampling geometry | Phase 5 pilot (ε=0, 500+500) step size < 0.01, or per-chain medians split |
 | Per-step cost blows up at 67 psr on the union grid (step count × O((4N)³)) | Task 2.6 benchmark of value-plus-gradient on the marginal path. There is no trustworthy prior rate (§2); if it is near the sequential quick-look (≳ 0.6 s at 189 steps), Δ is forced to ≳ 1 month |
 | Discovery env / jax version conflicts | Task 1.2 fails to install; fall back to a container |
@@ -544,8 +566,13 @@ mixed ORF) that could stall it.
       single-step grid against the filter.
 - [ ] 2.5 Run C1 on J1909−3744, one strong-red-noise pulsar and J1012+5307 (shallow) at
       Δ ∈ {DMX window, 7 d, 14 d, 30 d} — verify by the ΔlnL spread and gradient error tables in N1; choose the largest Δ that passes.
+      (amended 2026-10-18: one scalar per window fails at every Δ; rerun C1 with the
+      two-scalar D2 at the DMX window, and leave the remaining misses to the user's
+      decision after 2.6 — see §12)
 - [ ] 2.6 Compress all 67, build the union grid with masks, benchmark the likelihood plus
       gradient on one A100 — verify by the recorded seconds per evaluation and memory; evaluate K3.
+      (amended 2026-10-18: on the two-scalar union grid, two steps per window; run before
+      the 2.5 decision)
 
 ### Phase 3 — Per-pulsar validation
 
@@ -693,3 +720,37 @@ diagonal), so the jitter swamped real directions. The C2 golden was itself the b
   as exposed. Rerunning #122/#123/#124 is left to the user.
 
 **Sections touched:** §2, §3, §10, §12
+
+### 2026-10-18 — two scalars per compression window
+
+**Trigger:** task 2.5's C1 at the DMX-window Δ (20 Discovery-OU posterior draws per pulsar,
+spread / max gradient relative error; bounds 0.01 nat / 1e-4):
+
+| Pulsar | one scalar (D2 as written) | two scalars (position + velocity) |
+|---|---|---|
+| B1855+09 (control) | 3.0e-4 / 1.4e-4 | 1.5e-6 / 2.5e-7 |
+| J1909−3744 | 1.58 / 0.90 | 5.3e-4 / 3.5e-4 |
+| B1937+21 | 5.2 / 1.5 | 8.6e-3 / 1.1e-2 |
+| J1012+5307 | 0.54 / 0.27 | 5.4e-2 / 3.8e-2 |
+
+The 7, 14 and 30 d grids are worse than the DMX window with one scalar. The cause is the
+within-window drift (t − t_w)·ṡ, which a constant-state compression puts into the β-only
+remainder. It is largest at small γp, where the stationary spin-velocity variance σp²/2γp is
+large: B1937+21's error correlates 0.99 with γp. J1012+5307's red-noise correlation time
+(≈ 12 d) is shorter than its 14 d windows, so even the velocity changes within a window.
+
+Separately, `model.get_Q_block`'s q11 loses precision at small γ·dt (5% at γ = 1e-12 s⁻¹,
+dt = 1 d). Fixing it in a diagnostic copy moved C1 by ≈ 0.03 nat; the library fix needs its
+own approval and is not part of this amendment.
+
+**Change:**
+- D2 emits a second, velocity scalar per window along the projected (t − t_w) direction,
+  fed as a second filter step at dt = 0. A1 now assumes a state linear in time within a
+  window.
+- K3: the two-scalar pivot is taken; it doubles the union-grid steps. Task 2.6 runs on that
+  grid before the user decides the remaining C1 misses.
+- Tasks 2.5 and 2.6 annotated accordingly. §10's A1 row records the outcome.
+
+**Approved by the user** on 2026-10-18.
+
+**Sections touched:** §3, §4, §8, §10, §11, §12
