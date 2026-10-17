@@ -9,7 +9,8 @@ The synthetic pulsar carries every ingest edge case D2 names:
   tile all TOAs (the rank rule must drop it);
 - two backends, a backend JUMP and a quadratic spin-down.
 
-With the state held constant within each cell, A1 holds exactly, so the compressed
+With the state held constant within each cell (one scalar per cell), or linear in time
+within each cell (two scalars, position and velocity), A1 holds exactly, so the compressed
 likelihood must equal the dense flat-prior likelihood on the raw TOAs (DMX and timing
 columns marginalised together) up to the tracked constant `const`, for any state
 covariance. Tolerance 1e-10 relative to |lnL|.
@@ -119,10 +120,18 @@ def synthetic_pulsar(seed=0):
 
 
 def _dense(cache, comp, K_cells):
-    """Dense flat-prior lnL on the raw TOAs with a state constant per cell."""
+    """Dense flat-prior lnL on the raw TOAs with a state constant per cell, or (for a
+    (2 n_cells)² K_cells) linear per cell: s(t) = s_w + ṡ_w (t − t_w)."""
     n = cache["toas"].size
-    U = np.zeros((n, comp["cell"].max() + 1))
-    U[np.arange(n), comp["cell"]] = 1.0
+    nc = comp["cell"].max() + 1
+    rows = np.arange(n)
+    if K_cells.shape[0] == 2 * nc:
+        U = np.zeros((n, 2 * nc))
+        U[rows, 2 * comp["cell"]] = 1.0
+        U[rows, 2 * comp["cell"] + 1] = cache["toas"] - comp["times"][comp["cell"]]
+    else:
+        U = np.zeros((n, nc))
+        U[rows, comp["cell"]] = 1.0
     N = np.diag(cache["white_var"])
     for e in np.unique(cache["ecorr_epoch"]):
         s = cache["ecorr_epoch"] == e
@@ -138,12 +147,23 @@ def _K(times, amp, tau_days):
     return amp**2 * np.exp(-dt / tau_days) + 1e-30 * np.eye(times.size)
 
 
+def _K2(times, amp, tau_days):
+    """(position, velocity) covariance interleaved per cell: independent exponential
+    kernels, the velocity one scaled to a rate of amp per tau."""
+    Kp = _K(times, amp, tau_days)
+    K = np.zeros((2 * times.size,) * 2)
+    K[0::2, 0::2] = Kp
+    K[1::2, 1::2] = Kp / (tau_days * DAY) ** 2
+    return K
+
+
+@pytest.mark.parametrize("velocity", [False, True])
 @pytest.mark.parametrize("delta_days", [None, 30.0])
 @pytest.mark.parametrize("amp,tau", [(3e-7, 50.0), (2e-6, 400.0), (1e-9, 5.0)])
-def test_compressed_equals_dense(delta_days, amp, tau):
+def test_compressed_equals_dense(velocity, delta_days, amp, tau):
     cache = synthetic_pulsar()
-    comp = compress.compress_pulsar(cache, delta_days=delta_days)
-    K = _K(comp["times"], amp, tau)
+    comp = compress.compress_pulsar(cache, delta_days=delta_days, velocity=velocity)
+    K = (_K2 if velocity else _K)(comp["times"], amp, tau)
     ll_dense = _dense(cache, comp, K)
     ll_comp = compress.compressed_dense_loglike(comp, K) + comp["const"]
     assert abs(ll_comp - ll_dense) <= 1e-10 * abs(ll_dense), (ll_comp, ll_dense)
@@ -159,6 +179,10 @@ def test_edge_cases_are_handled():
     single = np.unique(comp["cell"][cache["freqs"] == 1400.0])
     assert single.size == 1 and not comp["has_scalar"][single[0]]
     assert comp["has_scalar"].sum() == n_windows - 2
+    # Every cell with a position scalar spans enough time to fix a slope, except none:
+    # the single-frequency cell has neither scalar.
+    assert not comp["has_velocity"][single[0]]
+    assert np.array_equal(comp["has_velocity"], comp["has_scalar"])
     # DM is degenerate with DMX: exactly one direction is dropped, and DM dominates it.
     assert comp["dropped"].tolist() == ["DM"]
     assert comp["basis"].shape == (5, 4)
@@ -174,7 +198,7 @@ def test_edge_cases_are_handled():
 
 def test_grid_cells_are_stamped_at_their_centres():
     cache = synthetic_pulsar()
-    comp = compress.compress_pulsar(cache, delta_days=30.0)
+    comp = compress.compress_pulsar(cache, delta_days=30.0, velocity=False)
     k = (comp["times"] - compress.T0_DEFAULT) / (30.0 * DAY) - 0.5
     np.testing.assert_allclose(k, np.round(k), atol=1e-12)
     assert np.all(np.diff(comp["times"]) > 0)
@@ -279,3 +303,71 @@ def test_single_step_grid():
         lo = float(oracle.oracle_loglike(p, oi))
         lf = float(oracle.filter_loglike(p, fi)) + comp["const"]
         assert abs(lf - lo) <= 1e-10 * abs(lo), (lf, lo)
+
+
+def _iou_joint_cov(t, gamma, sigma2):
+    """Exact (position, velocity) covariance of an integrated OU at times t (from the
+    origin, stationary velocity), interleaved per time: ∂ of the oracle's position kernel."""
+
+    def k(s, u):
+        return oracle._iou_cov(jnp.array([s, u]), gamma, sigma2)[0, 1]
+
+    k_sv = jax.grad(k, argnums=1)
+    k_vv = jax.grad(k_sv, argnums=0)
+    S, U = jnp.meshgrid(t, t, indexing="ij")
+    f = lambda g: jax.vmap(jax.vmap(g))(S, U)  # noqa: E731
+    xx = oracle._iou_cov(t, gamma, sigma2)
+    xv, vv = f(k_sv), f(k_vv)
+    # On the diagonal the kernel's kink at s = u makes autodiff one-sided, so use
+    # Cov[x(t), v(t)] = ½ d Var x(t)/dt and the stationary Var v = σ²/2γ.
+    dvar = jax.vmap(jax.grad(lambda s: 0.5 * k(s, s)))(t)
+    xv = xv.at[jnp.diag_indices(t.size)].set(dvar)
+    vv = vv.at[jnp.diag_indices(t.size)].set(sigma2 / (2.0 * gamma))
+    K = jnp.zeros((2 * t.size,) * 2)
+    K = K.at[0::2, 0::2].set(xx).at[0::2, 1::2].set(xv)
+    K = K.at[1::2, 0::2].set(xv.T).at[1::2, 1::2].set(vv)
+    return np.asarray(K)
+
+
+@pytest.mark.parametrize("p", POINTS)
+def test_two_step_filter_equals_compressed_dense(p, monkeypatch):
+    """Two filter steps per cell at dt = 0 reproduce the two-scalar compressed likelihood
+    under the exact joint (s, ṡ) covariance, including the masked single-frequency cell."""
+    cache = synthetic_pulsar()
+    comp = compress.compress_pulsar(cache)
+    fi = oracle.filter_inputs(comp)
+    assert int(np.sum(np.asarray(fi["mask_matrices"]) == 0)) == 0  # no lone positions
+    monkeypatch.setattr(oracle, "jk", _jitter_free_filter_module())
+    ha, ga, sp, gp = oracle.physical(jnp.asarray(p))
+    has = comp["has_scalar"]
+    t = jnp.asarray(comp["times"] - comp["times"][has][0])
+    K = _iou_joint_cov(t, ga, ha**2 * ga / 12.0) + _iou_joint_cov(t, gp, sp**2) / comp[
+        "f0"
+    ] ** 2
+    ll_dense = compress.compressed_dense_loglike(comp, K)
+    ll_filt = float(oracle.filter_loglike(jnp.asarray(p), fi))
+    assert abs(ll_filt - ll_dense) <= 1e-9 * abs(ll_dense), (ll_filt, ll_dense)
+
+
+def test_masked_velocity_step_offset():
+    """A cell without a velocity scalar is a masked step; `offset` cancels its log 2π."""
+    cache = synthetic_pulsar()
+    comp = compress.compress_pulsar(cache)
+    i = int(np.nonzero(comp["has_velocity"])[0][3])
+    comp_m = dict(comp, has_velocity=comp["has_velocity"].copy())
+    comp_m["has_velocity"][i] = False
+    fi = oracle.filter_inputs(comp_m)
+    assert int(np.sum(np.asarray(fi["mask_matrices"]) == 0)) == 1
+    assert fi["offset"] == pytest.approx(0.5 * np.log(2 * np.pi))
+    # Same likelihood as dropping that velocity row from the dense compressed form.
+    p = jnp.asarray(POINTS[0])
+    ha, ga, sp, gp = oracle.physical(p)
+    has = comp["has_scalar"]
+    t = jnp.asarray(comp["times"] - comp["times"][has][0])
+    K = _iou_joint_cov(t, ga, ha**2 * ga / 12.0) + _iou_joint_cov(t, gp, sp**2) / comp[
+        "f0"
+    ] ** 2
+    ll_dense = compress.compressed_dense_loglike(comp_m, K)
+    ll_filt = float(oracle.filter_loglike(p, fi))
+    # The removed scalar's own −½[log 2πσ_v²] is part of `const`, not of either side.
+    assert abs(ll_filt - ll_dense) <= 1e-6 * abs(ll_dense), (ll_filt, ll_dense)

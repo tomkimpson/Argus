@@ -13,8 +13,15 @@ by N's Cholesky factor and projecting out D, the data split exactly into
 - an orthogonal remainder that depends on β alone. Its quadratic form adds a static
   (A₀, b₀, c₀) to the marginal filter's accumulators (`accum0`).
 
-The result is exact for a constant state per cell: `const` is the parameter-independent
-offset such that
+With `velocity=True` (the default since the 2026-10-18 amendment) a second scalar per cell
+measures the state's rate: v̂ = ṡ + m'ᵀβ + e', along the projected direction of
+τ = t − t_w, where t_w is ŝ's weighted mean time. That choice of t_w makes the τ direction
+orthogonal to ŝ's, so e' is independent of e. One scalar per cell failed C1 because the
+within-cell drift τ·ṡ went into the β-only remainder (spec §12, 2026-10-18).
+
+The result is exact for a state constant per cell (one scalar) or linear in time per cell,
+s(t) = s_w + ṡ_w (t − t_w) (two scalars): `const` is the parameter-independent offset such
+that
 
     dense_gls(z; C, [D, M_kept]) = filter_or_gls(ŝ, σ², m, accum0) + const,
 
@@ -27,7 +34,9 @@ Edge-case rules (spec D2):
 - Several ECORR epochs inside one cell: handled by the full N metric.
 - A cell observed at a single radio frequency has D ∝ 1, so projecting out D removes the
   achromatic direction too (a = 0). It emits no scalar; its β-only remainder is still
-  kept in (A₀, b₀, c₀), which is exactly what the dense likelihood sees.
+  kept in (A₀, b₀, c₀), which is exactly what the dense likelihood sees. The same rule
+  drops the velocity scalar of a cell whose projected τ direction vanishes (too few TOAs
+  or frequencies to fix a slope beyond DMX and the mean).
 - Rank rule: after projection, SVD of the stacked projected design (columns normalised by
   their unprojected norms). Directions whose squared singular-value ratio falls below
   `rank_tol` (numerically in the DMX span) are dropped, and β is re-expressed in the
@@ -105,6 +114,7 @@ def compress_pulsar(
     delta_days=None,
     t0=T0_DEFAULT,
     rank_tol=1e-14,
+    velocity=True,
 ):
     """Compress one pulsar's TOAs. See the module docstring for the model.
 
@@ -113,8 +123,11 @@ def compress_pulsar(
         delta_days: grid cell width; None compresses each (merged) DMX window alone.
         t0: grid origin (s). Cell k is [t0 + kΔ, t0 + (k+1)Δ), stamped at its centre.
         rank_tol: rank-rule threshold on the squared singular-value ratio.
+        velocity: emit the second (rate) scalar per cell. The cells are then stamped at
+            t_w, not at the grid centre, since the rate scalar is defined about t_w.
 
     Returns a dict: times (cell timestamps, s), s_hat, sigma2, m (cells × kept, scaled),
+    v_hat, sigma2_v, m_v, has_velocity (the rate scalar; zero/inf/False if velocity=False),
     accum0 = (A0, b0, c0), const, basis (non-DMX timing columns -> the β' the filter
     sees), dropped (the column dominating each dropped direction), singular_ratio2,
     cell (id per TOA), t_weighted (per-cell weighted mean TOA time), has_scalar per cell.
@@ -134,6 +147,9 @@ def compress_pulsar(
     a = np.zeros(n_cells)
     s_hat = np.zeros(n_cells)
     m = np.zeros((n_cells, K))
+    b_v = np.zeros(n_cells)
+    v_hat = np.zeros(n_cells)
+    m_v = np.zeros((n_cells, K))
     t_w = np.zeros(n_cells)
     rem_M, rem_z = [], []  # β-only remainder rows (whitened, projected)
     unproj_norm2 = np.zeros(K)
@@ -180,6 +196,20 @@ def compress_pulsar(
             e = p1 / np.sqrt(a_c)
             Qb = np.column_stack([QD, e])
             const += -0.5 * ((n - 1) * LN2PI + logdetN + logdetDWD - np.log(1.0 / a_c))
+            if velocity:
+                # τ = t − t_w is ⟂ e analytically (t_w is ŝ's weighted mean); the explicit
+                # Gram–Schmidt step removes the roundoff.
+                tau_t = w(t_all[idx] - t_w[c])
+                pt = proj(tau_t)
+                pt = pt - e * (e @ pt)
+                b_c = pt @ pt
+                if b_c > 1e-16 * (tau_t @ tau_t):
+                    b_v[c] = b_c
+                    v = pt / b_c  # v̂ = vᵀ z̃: unit response to ṡ, zero to s and D
+                    v_hat[c] = v @ zt
+                    m_v[c] = Mtt.T @ v
+                    Qb = np.column_stack([Qb, pt / np.sqrt(b_c)])
+                    const += -0.5 * (-LN2PI + np.log(b_c))
         else:
             Qb = QD
             t_w[c] = np.mean(t_all[idx])
@@ -190,6 +220,7 @@ def compress_pulsar(
     rem_M = np.vstack(rem_M)
     rem_z = np.concatenate(rem_z)
     has = a > 0
+    has_v = b_v > 0
 
     # Rank rule: SVD of the stacked projected design [remainder; √a m], columns
     # normalised by their unprojected norms. Directions whose squared singular-value
@@ -199,26 +230,36 @@ def compress_pulsar(
     # relative jitter). Under the flat prior only the column space matters, so the
     # basis change is exact: the dense oracle uses the same basis (`basis`).
     norm = np.sqrt(unproj_norm2)
-    stacked = np.vstack([rem_M, np.sqrt(a[has])[:, None] * m[has]]) / norm
+    stacked = (
+        np.vstack(
+            [
+                rem_M,
+                np.sqrt(a[has])[:, None] * m[has],
+                np.sqrt(b_v[has_v])[:, None] * m_v[has_v],
+            ]
+        )
+        / norm
+    )
     _, S, Vt = np.linalg.svd(stacked, full_matrices=False)
     ratio2 = (S / S[0]) ** 2
     keep = ratio2 >= rank_tol
     T = (Vt[keep].T / norm[:, None]) / S[keep]  # prescaled columns -> β'
     # Name each dropped direction after the column that dominates it.
     dropped = [Mt_names[int(np.argmax(np.abs(v)))] for v in Vt[~keep]]
-    rem_M, m = rem_M @ T, m @ T
+    rem_M, m, m_v = rem_M @ T, m @ T, m_v @ T
     basis = pre[:, None] * T  # original timing columns -> β'
 
     A0 = rem_M.T @ rem_M
     b0 = (rem_M.T @ rem_z)[:, None]
     c0 = float(rem_z @ rem_z)
 
-    if grid_ids is None:
+    if grid_ids is None or velocity:
         times = t_w
     else:
         times = t0 + (grid_ids + 0.5) * delta_days * DAY
 
     sigma2 = np.where(has, 1.0 / np.where(has, a, 1.0), np.inf)
+    sigma2_v = np.where(has_v, 1.0 / np.where(has_v, b_v, 1.0), np.inf)
     return {
         "name": cache["name"],
         "f0": cache["f0"],
@@ -228,6 +269,10 @@ def compress_pulsar(
         "sigma2": sigma2,
         "has_scalar": has,
         "m": m,
+        "v_hat": v_hat,
+        "sigma2_v": sigma2_v,
+        "has_velocity": has_v,
+        "m_v": m_v,
         "accum0": (A0, b0, c0),
         "const": float(const),
         "timing_names": Mt_names,
@@ -261,13 +306,23 @@ def gls_diffuse(z, C, X):
 def compressed_dense_loglike(comp, K_cells):
     """The compressed likelihood for a state with covariance K_cells over the cells.
 
-    Same convention as the filter: ŝ ~ N(mβ, K_cells + diag σ²) on cells with a scalar,
-    plus the remainder's (A₀, b₀, c₀), β marginalised under the flat prior. Add
-    comp["const"] to compare with `gls_diffuse` on the raw TOAs.
+    K_cells is the covariance of the cell positions s_w (n_cells²), or, for a two-scalar
+    compression, of (s_w, ṡ_w) interleaved per cell ((2 n_cells)²). Same convention as the
+    filter: the scalars ~ N(Xβ, K + diag σ²), plus the remainder's (A₀, b₀, c₀), β
+    marginalised under the flat prior. Add comp["const"] to compare with `gls_diffuse` on
+    the raw TOAs.
     """
-    has = comp["has_scalar"]
-    C = K_cells[np.ix_(has, has)] + np.diag(comp["sigma2"][has])
-    z, X = comp["s_hat"][has], comp["m"][has]
+    nc = comp["s_hat"].size
+    if K_cells.shape[0] == 2 * nc:
+        has = np.column_stack([comp["has_scalar"], comp["has_velocity"]]).ravel()
+        sig = np.column_stack([comp["sigma2"], comp["sigma2_v"]]).ravel()
+        z = np.column_stack([comp["s_hat"], comp["v_hat"]]).ravel()
+        X = np.stack([comp["m"], comp["m_v"]], axis=1).reshape(2 * nc, -1)
+    else:
+        assert not comp["has_velocity"].any()
+        has, sig, z, X = comp["has_scalar"], comp["sigma2"], comp["s_hat"], comp["m"]
+    C = K_cells[np.ix_(has, has)] + np.diag(sig[has])
+    z, X = z[has], X[has]
     A0, b0, c0 = comp["accum0"]
     cf = cho_factor(C, lower=True)
     Lc = cf[0]

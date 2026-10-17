@@ -2,10 +2,12 @@
 """C1: compressed-filter vs dense continuous-time oracle on real pulsars (task 2.5).
 
     python workflows/ng15_nb/scripts/c1_compression.py --pulsar J1909-3744 \
-        [--deltas none 7 14 30] [--n-points 20] [--seed 2501] \
+        [--deltas none 7 14 30] [--scalars 2 1] [--n-points 20] [--seed 2501] \
         [--out workflows/ng15_nb/results/c1/J1909-3744.json]
 
-For each grid width Δ the pulsar is compressed (task 2.2) and the Argus marginal filter
+For each grid width Δ and each layout (`--scalars`: 2 = position and velocity per cell,
+the D2 default since the 2026-10-18 amendment; 1 = position only) the pulsar is
+compressed (task 2.2) and the Argus marginal filter
 (with accum0, task 2.3) is compared with the dense oracle (task 2.4) at the same parameter
 points. Reported per Δ:
 
@@ -77,6 +79,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--pulsar", required=True)
     ap.add_argument("--deltas", nargs="*", default=["none", "7", "14", "30"])
+    ap.add_argument("--scalars", nargs="*", type=int, default=[2, 1], choices=[1, 2])
     ap.add_argument("--n-points", type=int, default=20)
     ap.add_argument("--seed", type=int, default=2501)
     ap.add_argument("--ingest-dir", default=str(REPO / "workflows/ng15_nb/data/ingest"))
@@ -117,12 +120,14 @@ def main():
         "deltas": {},
     }
     f_vg = jax.jit(jax.value_and_grad(oracle.filter_loglike))
-    for d in args.deltas:
+    for d, nsc in [(d, n) for n in args.scalars for d in args.deltas]:
         delta = None if d == "none" else float(d)
-        comp = compress.compress_pulsar(cache, delta_days=delta)
+        comp = compress.compress_pulsar(cache, delta_days=delta, velocity=nsc == 2)
         fi = oracle.filter_inputs(comp)
         row = {
+            "scalars": nsc,
             "n_cells": int(comp["times"].size),
+            "n_velocity": int(comp["has_velocity"].sum()),
             "max_cell_span_days": float(
                 max(
                     np.ptp(cache["toas"][comp["cell"] == c])
@@ -151,10 +156,10 @@ def main():
             row["posterior"]["dlnL_spread"] <= 0.01
             and row["posterior"]["grad_rel_err_max"] <= 1e-4
         )
-        result["deltas"][d] = row
+        result["deltas"][f"{d}/{nsc}"] = row
         print(
             args.pulsar,
-            d,
+            f"{d}/{nsc}",
             row["n_cells"],
             "posterior spread %.2e gerr %.1e | prior spread %.2e gerr %.1e"
             % (
