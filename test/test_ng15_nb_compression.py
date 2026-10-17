@@ -371,3 +371,28 @@ def test_masked_velocity_step_offset():
     ll_filt = float(oracle.filter_loglike(p, fi))
     # The removed scalar's own −½[log 2πσ_v²] is part of `const`, not of either side.
     assert abs(ll_filt - ll_dense) <= 1e-6 * abs(ll_dense), (ll_filt, ll_dense)
+
+
+# --------------------------------------------------------------------------- #
+# Union grid (task 2.6)
+# --------------------------------------------------------------------------- #
+import union  # noqa: E402
+
+
+def test_union_grid_equals_sum_of_pulsars():
+    """With an identity ORF the pulsars are independent, so the masked union-grid filter
+    equals the sum of the single-pulsar filters (each on its own cells)."""
+    caches = [synthetic_pulsar(seed=0), synthetic_pulsar(seed=1)]
+    caches[1] = dict(caches[1], f0=211.0, toas=caches[1]["toas"] + 2.3 * DAY)
+    comps = [compress.compress_pulsar(c) for c in caches]
+    inp = union.build_union_inputs(comps, np.eye(2))
+    assert inp["n_union_times"] == sum(int(c["has_scalar"].sum()) for c in comps)
+    p1 = (-12.0, -6.0, -13.0, -6.0)
+    p2 = (-12.0, -6.0, -12.5, -6.5)
+    pa = jnp.asarray([p1[0], p1[1], p1[2], p2[2], p1[3], p2[3]])
+    ll_array = float(union.array_loglike(pa, inp))
+    ll_sum = sum(
+        float(oracle.filter_loglike(jnp.asarray(p), oracle.filter_inputs(c)))
+        for p, c in zip((p1, p2), comps)
+    )
+    assert abs(ll_array - ll_sum) <= 1e-8 * abs(ll_sum), (ll_array, ll_sum)
