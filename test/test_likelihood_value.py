@@ -107,10 +107,12 @@ def test_likelihood_value():
     # Diffuse (flat/improper) timing-model prior on the marginal filter. This is a
     # different likelihood from the informative-prior golden above (P_eps⁻¹ → 0 fully
     # projects out the timing-model subspace and drops a parameter-independent additive
-    # constant), so it has its own recorded reference. The value is independently
-    # validated in test_jax_kalman_filter.py::TestDiffuseFilter against a batch GLS /
-    # G-matrix oracle and the α → ∞ limit of the informative filter.
-    expected_diffuse_likelihood = 59420.06
+    # constant), so it has its own recorded reference. The value is checked on this MDC2
+    # case against the α → ∞ limit of the informative filter in
+    # test_diffuse_mdc2_limit.py. (It was 59420.06 until 2026-10-17: a jitter of
+    # 1e-9·trace(Λ)/n on Λ biased it by −34.7 nat. TestDiffuseFilter's batch-GLS and α
+    # checks run on small synthetic data, where that jitter did not bite.)
+    expected_diffuse_likelihood = 59454.72
     KF_diffuse = jk.JaxKalmanFilter(
         data=pulsar_data, use_gw=True, use_marginal=True, timing_prior="diffuse"
     )

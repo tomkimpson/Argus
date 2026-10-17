@@ -125,7 +125,7 @@ def test_all_ones_mask_preserves_the_informative_golden(mdc2):
 
 
 def test_all_ones_mask_preserves_the_diffuse_golden(mdc2):
-    """And 59420.06 on the diffuse-prior variant."""
+    """And 59454.72 on the diffuse-prior variant."""
     data, params = mdc2
     kwargs = dict(use_gw=True, use_marginal=True, timing_prior="diffuse")
     unmasked = float(jk.JaxKalmanFilter(data=data, **kwargs).get_likelihood(params))
@@ -133,7 +133,7 @@ def test_all_ones_mask_preserves_the_diffuse_golden(mdc2):
     masked = float(
         jk.JaxKalmanFilter(data=with_mask(data, ones), **kwargs).get_likelihood(params)
     )
-    assert abs(unmasked - 59420.06) < 1.0
+    assert abs(unmasked - 59454.72) < 1.0
     np.testing.assert_allclose(masked, unmasked, rtol=0, atol=0)
 
 
@@ -359,7 +359,11 @@ def test_masked_marginal_gradients_are_finite(mock_logger, mask_kind):
 
     mask = np.ones((n_epoch, n_psr))
     if mask_kind == "sparse":
-        mask = random_mask((n_epoch, n_psr), 0.5, seed=9)
+        # Under the diffuse prior a pulsar's timing model is identified only if it is
+        # observed at least dim_M times (A has rank ≤ its observation count); with fewer,
+        # Λ is singular and the likelihood is correctly -inf, which has no gradient.
+        mask = random_mask((n_epoch, n_psr), 0.75, seed=9)
+        assert np.all(mask.sum(axis=0) >= data["metadata"]["dim_M"].to_numpy())
     elif mask_kind == "empty_epoch":
         mask[2, :] = 0.0
     elif mask_kind == "absent_pulsar":
