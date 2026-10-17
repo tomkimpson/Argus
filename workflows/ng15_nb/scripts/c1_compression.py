@@ -73,24 +73,6 @@ def prior_points(post_pts, n, rng):
     return np.column_stack([lo + (hi - lo) * u[:, j] for j, (lo, hi) in enumerate(box)])
 
 
-def lambda_jitter_free_module():
-    """The library filter with only the diffuse-Λ jitter (1e-9·trace/n) zeroed."""
-    import types
-
-    src = (REPO / "python/argus/jax_kalman_filter.py").read_text()
-    old = "jitter = 1e-9 * (jnp.trace(Lambda) / n)"
-    assert src.count(old) == 1, "diffuse-Λ jitter site moved"
-    mod = types.ModuleType("argus._jk_no_lambda_jitter")
-    mod.__package__ = "argus"
-    exec(
-        compile(
-            src.replace(old, "jitter = 0.0 * (jnp.trace(Lambda) / n)"), "jk", "exec"
-        ),
-        mod.__dict__,
-    )
-    return mod
-
-
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--pulsar", required=True)
@@ -99,15 +81,7 @@ def main():
     ap.add_argument("--seed", type=int, default=2501)
     ap.add_argument("--ingest-dir", default=str(REPO / "workflows/ng15_nb/data/ingest"))
     ap.add_argument("--out")
-    ap.add_argument(
-        "--no-lambda-jitter",
-        action="store_true",
-        help="diagnostic: run the filter with its diffuse-Λ jitter set to zero "
-        "(a patched copy of the library module; the library is not edited)",
-    )
     args = ap.parse_args()
-    if args.no_lambda_jitter:
-        oracle.jk = lambda_jitter_free_module()
     out = Path(args.out or REPO / f"workflows/ng15_nb/results/c1/{args.pulsar}.json")
     out.parent.mkdir(parents=True, exist_ok=True)
 
@@ -139,7 +113,6 @@ def main():
         "posterior_source": str(POSTERIOR.relative_to(REPO)),
         "oracle_s_per_eval": oracle_s,
         "device": str(jax.devices()[0]),
-        "filter": "no-lambda-jitter" if args.no_lambda_jitter else "stock",
         "points": {k: v.tolist() for k, v in sets.items()},
         "deltas": {},
     }

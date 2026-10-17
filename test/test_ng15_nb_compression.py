@@ -200,12 +200,14 @@ POINTS = [
 
 
 def _jitter_free_filter_module():
-    """The library filter with its two 1e-9 PD jitters set to zero (test-only copy)."""
+    """The library filter with its innovation-S PD jitters set to zero (test-only copy).
+
+    The diffuse-Λ jitter was removed from the library in PR #129; only the `_jitter_scale`
+    sites remain."""
     src = (REPO / "python" / "argus" / "jax_kalman_filter.py").read_text()
     edits = [
         ("return 1e-9 * (jnp.sum", "return 0.0 * (jnp.sum"),
         ("return 1e-9 * jnp.sum", "return 0.0 * jnp.sum"),
-        ("jitter = 1e-9 * (jnp.trace", "jitter = 0.0 * (jnp.trace"),
     ]
     for old, new in edits:
         assert src.count(old) == 1, f"jitter site moved: {old!r}"
@@ -251,15 +253,18 @@ def test_oracle_equals_jitter_free_filter(collapsed, p, monkeypatch):
 
 @pytest.mark.parametrize("p", POINTS)
 def test_oracle_matches_stock_filter(collapsed, p):
-    """The production filter (with jitter) agrees well inside C1's tolerances."""
+    """The production filter agrees with the oracle far inside C1's tolerances.
+
+    Since PR #129 removed the diffuse-Λ jitter, only the innovation-S jitter separates
+    them: measured 2.4e-9 nat and 1.3e-8 relative gradient error at these points."""
     comp, oi, fi = collapsed
     p = jnp.asarray(p)
     lo = float(oracle.oracle_loglike(p, oi))
     lf = float(oracle.filter_loglike(p, fi)) + comp["const"]
-    assert abs(lf - lo) <= 1e-4, (lf, lo)
+    assert abs(lf - lo) <= 1e-7, (lf, lo)
     go = np.asarray(jax.grad(oracle.oracle_loglike)(p, oi))
     gf = np.asarray(jax.grad(oracle.filter_loglike)(p, fi))
-    assert np.max(np.abs(gf - go)) <= 1e-4 * np.max(np.abs(go))
+    assert np.max(np.abs(gf - go)) <= 1e-6 * np.max(np.abs(go))
 
 
 def test_single_step_grid():
