@@ -5,7 +5,8 @@
         [--deltas none 7 14 30] [--scalars 2 1] [--n-points 20] [--seed 2501] \
         [--out workflows/ng15_nb/results/c1/J1909-3744.json]
 
-For each grid width Δ and each layout (`--scalars`: 2 = position and velocity per cell,
+For each grid width Δ (`epoch`: one cell per ECORR epoch with DMX kept in β) and each
+layout (`--scalars`: 2 = position and velocity per cell,
 the D2 default since the 2026-10-18 amendment; 1 = position only) the pulsar is
 compressed (task 2.2) and the Argus marginal filter
 (with accum0, task 2.3) is compared with the dense oracle (task 2.4) at the same parameter
@@ -84,8 +85,11 @@ def main():
     ap.add_argument("--seed", type=int, default=2501)
     ap.add_argument("--ingest-dir", default=str(REPO / "workflows/ng15_nb/data/ingest"))
     ap.add_argument("--out")
+    ap.add_argument("--tag", default="", help="suffix for the default output name")
     args = ap.parse_args()
-    out = Path(args.out or REPO / f"workflows/ng15_nb/results/c1/{args.pulsar}.json")
+    out = Path(
+        args.out or REPO / f"workflows/ng15_nb/results/c1/{args.pulsar}{args.tag}.json"
+    )
     out.parent.mkdir(parents=True, exist_ok=True)
 
     cache = ingest.load(Path(args.ingest_dir) / f"{args.pulsar}.npz")
@@ -121,8 +125,10 @@ def main():
     }
     f_vg = jax.jit(jax.value_and_grad(oracle.filter_loglike))
     for d, nsc in [(d, n) for n in args.scalars for d in args.deltas]:
-        delta = None if d == "none" else float(d)
-        comp = compress.compress_pulsar(cache, delta_days=delta, velocity=nsc == 2)
+        delta = None if d in ("none", "epoch") else float(d)
+        comp = compress.compress_pulsar(
+            cache, delta_days=delta, velocity=nsc == 2, per_epoch=d == "epoch"
+        )
         fi = oracle.filter_inputs(comp)
         row = {
             "scalars": nsc,

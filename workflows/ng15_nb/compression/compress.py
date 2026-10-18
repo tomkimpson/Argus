@@ -37,6 +37,11 @@ Edge-case rules (spec D2):
   kept in (A₀, b₀, c₀), which is exactly what the dense likelihood sees. The same rule
   drops the velocity scalar of a cell whose projected τ direction vanishes (too few TOAs
   or frequencies to fix a slope beyond DMX and the mean).
+- Epoch cells (`per_epoch=True`): each ECORR epoch is its own cell, and the DMX columns
+  stay in β as ordinary timing columns instead of being projected out per window. A1 then
+  only needs the state constant within one epoch (TOAs within ~1 s), at the price of the
+  DMX columns joining M_sum. This is for pulsars whose red noise decorrelates within a DMX
+  window (J1012+5307), where the window compression fails C1 (spec §12, 2026-10-18).
 - Rank rule: after projection, SVD of the stacked projected design (columns normalised by
   their unprojected norms). Directions whose squared singular-value ratio falls below
   `rank_tol` (numerically in the DMX span) are dropped, and β is re-expressed in the
@@ -115,6 +120,7 @@ def compress_pulsar(
     t0=T0_DEFAULT,
     rank_tol=1e-14,
     velocity=True,
+    per_epoch=False,
 ):
     """Compress one pulsar's TOAs. See the module docstring for the model.
 
@@ -128,6 +134,8 @@ def compress_pulsar(
             measures s(t_w) = s(t_c) + ṡ(t_c)(t_w − t_c), which the filter's position row
             carries as a −(t_w − t_c) coefficient on the rate states (exact for a state
             linear in the cell).
+        per_epoch: one cell per ECORR epoch, with DMX kept in β (forces velocity off:
+            an epoch spans ~1 s).
 
     Returns a dict: times (cell timestamps, s), s_hat, sigma2, m (cells × kept, scaled),
     v_hat, sigma2_v, m_v, has_velocity (the rate scalar; zero/inf/False if velocity=False),
@@ -135,8 +143,18 @@ def compress_pulsar(
     sees), dropped (the column dominating each dropped direction), singular_ratio2,
     cell (id per TOA), t_weighted (per-cell weighted mean TOA time), has_scalar per cell.
     """
-    cell, grid_ids = assign_cells(cache, delta_days, t0)
-    is_dmx = cache["is_dmx"]
+    if per_epoch:
+        # Cells in time order (epoch ids are backend-major, not chronological).
+        _, ep = np.unique(cache["ecorr_epoch"], return_inverse=True)
+        t_ep = np.bincount(ep, weights=cache["toas"]) / np.bincount(ep)
+        rank = np.empty_like(ep[: t_ep.size])
+        rank[np.argsort(t_ep, kind="stable")] = np.arange(t_ep.size)
+        cell, grid_ids = rank[ep], None
+        is_dmx = np.zeros_like(cache["is_dmx"])
+        velocity = False
+    else:
+        cell, grid_ids = assign_cells(cache, delta_days, t0)
+        is_dmx = cache["is_dmx"]
     Mt = cache["M"][:, ~is_dmx]
     Mt_names = cache["M_names"][~is_dmx]
     D_all = cache["M"][:, is_dmx]
@@ -284,6 +302,7 @@ def compress_pulsar(
         "singular_ratio2": ratio2,
         "cell": cell,
         "delta_days": delta_days,
+        "timing_cols": ~is_dmx,  # the M columns `basis` maps; the rest are local DMX
     }
 
 

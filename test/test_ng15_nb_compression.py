@@ -137,8 +137,9 @@ def _dense(cache, comp, K_cells):
         s = cache["ecorr_epoch"] == e
         N[np.ix_(s, s)] += cache["ecorr_var"][e]
     C = U @ K_cells @ U.T + N
-    timing = cache["M"][:, ~cache["is_dmx"]] @ comp["basis"]
-    X = np.column_stack([cache["M"][:, cache["is_dmx"]], timing])
+    cols = comp["timing_cols"]
+    timing = cache["M"][:, cols] @ comp["basis"]
+    X = np.column_stack([cache["M"][:, ~cols], timing])
     return compress.gls_diffuse(cache["residuals"], C, X)
 
 
@@ -489,3 +490,42 @@ def test_sparse_filter_informative_prior_matches_dense(monkeypatch):
         segment=16,
     )
     assert abs(float(ls) - float(ld)) <= 1e-9 * abs(float(ld)), (ls, ld)
+
+
+# --------------------------------------------------------------------------- #
+# Epoch cells with DMX kept in β (C1 fallback for fast-red-noise pulsars)
+# --------------------------------------------------------------------------- #
+@pytest.mark.parametrize("amp,tau", [(3e-7, 50.0), (2e-6, 400.0), (1e-9, 5.0)])
+def test_epoch_cells_equal_dense(amp, tau):
+    """One cell per ECORR epoch, DMX in β: exact for a state constant per epoch."""
+    cache = synthetic_pulsar()
+    comp = compress.compress_pulsar(cache, per_epoch=True)
+    assert comp["cell"].max() + 1 == np.unique(cache["ecorr_epoch"]).size
+    assert np.all(np.diff(comp["times"]) > 0)  # chronological cells
+    assert comp["timing_cols"].all() and not comp["has_velocity"].any()
+    # Every epoch carries a scalar (no DMX projection, so no single-frequency drop),
+    # and DM (the sum of the DMX columns) is the one degenerate direction.
+    assert comp["has_scalar"].all()
+    assert comp["basis"].shape[1] == comp["basis"].shape[0] - 1
+    K = _K(comp["times"], amp, tau)
+    ll_dense = _dense(cache, comp, K)
+    ll_comp = compress.compressed_dense_loglike(comp, K) + comp["const"]
+    assert abs(ll_comp - ll_dense) <= 1e-10 * abs(ll_dense), (ll_comp, ll_dense)
+
+
+@pytest.mark.parametrize("p", POINTS)
+def test_epoch_cells_filter_equals_oracle_when_collapsed(p, monkeypatch):
+    """Each epoch's TOAs on one time: the epoch-cell filter equals the dense oracle."""
+    cache = synthetic_pulsar()
+    ep = cache["ecorr_epoch"]
+    t = cache["toas"].copy()
+    for e in np.unique(ep):
+        t[ep == e] = t[ep == e].min()
+    cache = dict(cache, toas=t)
+    comp = compress.compress_pulsar(cache, per_epoch=True)
+    monkeypatch.setattr(oracle, "jk", _jitter_free_filter_module())
+    oi, fi = oracle.oracle_inputs(cache, comp), oracle.filter_inputs(comp)
+    p = jnp.asarray(p)
+    lo = float(oracle.oracle_loglike(p, oi))
+    lf = float(oracle.filter_loglike(p, fi)) + comp["const"]
+    assert abs(lf - lo) <= 1e-9 * abs(lo), (lf, lo)

@@ -75,8 +75,9 @@ def physical(p):
 def oracle_inputs(cache, comp):
     """Arrays the dense oracle needs: raw TOAs, fixed noise, [D, timing @ basis]."""
     t = cache["toas"] - cache["toas"].min()
-    D = cache["M"][:, cache["is_dmx"]]
-    timing = cache["M"][:, ~cache["is_dmx"]] @ comp["basis"]
+    cols = comp["timing_cols"]
+    D = cache["M"][:, ~cols]
+    timing = cache["M"][:, cols] @ comp["basis"]
     return {
         "t": jnp.asarray(t),
         "z": jnp.asarray(cache["residuals"]),
@@ -127,13 +128,27 @@ def filter_inputs(comp):
     K = comp["m"].shape[1]
     shift = (comp["t_weighted"] - comp["times"])[has] if two else np.zeros(has.sum())
     if not two:
-        rows = [(comp["s_hat"][has], comp["sigma2"][has], comp["m"][has], 0, np.ones(has.sum()))]
+        rows = [
+            (
+                comp["s_hat"][has],
+                comp["sigma2"][has],
+                comp["m"][has],
+                0,
+                np.ones(has.sum()),
+            )
+        ]
         times = comp["times"][has]
     else:
         hv = comp["has_velocity"][has]
         sig_v = np.where(hv, comp["sigma2_v"][has], 1.0)
         rows = [
-            (comp["s_hat"][has], comp["sigma2"][has], comp["m"][has], 0, np.ones(has.sum())),
+            (
+                comp["s_hat"][has],
+                comp["sigma2"][has],
+                comp["m"][has],
+                0,
+                np.ones(has.sum()),
+            ),
             (comp["v_hat"][has], sig_v, comp["m_v"][has], 1, hv.astype(float)),
         ]
         times = np.repeat(comp["times"][has], 2)
