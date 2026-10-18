@@ -7,10 +7,11 @@
 
 Epoch cells (one position scalar per ECORR epoch, DMX kept in β) are near-exact, so they
 are each pulsar's reference: a pulsar uses epoch cells when its two-scalar DMX-window
-likelihood differs from its epoch-cell likelihood by more than C1's bounds (ΔlnL spread
-> 0.01 nat or gradient relative error > 1e-4) at `--n-points` draws from its Phase 1
+likelihood's ΔlnL spread against its epoch-cell likelihood exceeds 0.01 nat at `--n-points` draws from its Phase 1
 Discovery-OU posterior (the C1 point set). Both sides are the Argus marginal filter with
 accum0 (`oracle.filter_loglike`); no dense oracle is needed, so J1713+0747 is included.
+The gradient relative error is reported but does not gate (amended 2026-10-18): it is a
+difference between two models, each with its exact gradient.
 
 Writes workflows/ng15_nb/results/c1/epoch_rule/<pulsar>.json per pulsar, and with
 `--summarise` the totals (pulsars needing epoch cells, and M_sum with and without them)
@@ -38,7 +39,11 @@ import jax.numpy as jnp  # noqa: E402
 jax.config.update("jax_enable_x64", True)
 
 OUT = REPO / "workflows/ng15_nb/results/c1/epoch_rule"
-SPREAD_MAX, GRAD_MAX = 0.01, 1e-4  # C1's bounds
+SPREAD_MAX = 0.01  # C1's spread bound; the gradient error is reported, not gated
+
+
+def needs_epoch_cells(row):
+    return bool(row["dlnL_spread"] > SPREAD_MAX)
 
 
 def evaluate(cache, comp, pts, f_vg):
@@ -72,14 +77,14 @@ def run_pulsar(path, n_points, seed, f_vg):
         "grad_rel_err": gerr.tolist(),
         "grad_rel_err_max": float(gerr.max()),
     }
-    row["needs_epoch_cells"] = bool(
-        row["dlnL_spread"] > SPREAD_MAX or row["grad_rel_err_max"] > GRAD_MAX
-    )
+    row["needs_epoch_cells"] = needs_epoch_cells(row)
     return row
 
 
 def summarise():
     rows = [json.loads(p.read_text()) for p in sorted(OUT.glob("*.json"))]
+    for r in rows:  # re-apply the rule, so a change of rule needs no re-run
+        r["needs_epoch_cells"] = needs_epoch_cells(r)
     need = [r for r in rows if r["needs_epoch_cells"]]
     m_window = sum(r["window_m_cols"] for r in rows)
     m_rule = sum(
@@ -97,7 +102,7 @@ def summarise():
     )
     result = {
         "n_pulsars": len(rows),
-        "bounds": {"dlnL_spread": SPREAD_MAX, "grad_rel_err": GRAD_MAX},
+        "bounds": {"dlnL_spread": SPREAD_MAX},
         "needs_epoch_cells": [r["pulsar"] for r in need],
         "M_sum_window": m_window,
         "M_sum_rule": m_rule,

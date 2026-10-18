@@ -179,7 +179,10 @@ Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not
   - **Epoch cells as the per-pulsar reference** (amended 2026-10-18). Epoch cells (D2) are
     near-exact, so for pulsars outside the three test pulsars, and for those too large for
     the oracle (J1713+0747), C1 compares the window-compressed likelihood with the
-    epoch-cell one at the same bounds.
+    epoch-cell one. That comparison gates on the ΔlnL spread (≤ 0.01 nat) only; its
+    gradient differences are reported but do not gate (amended 2026-10-18, second): the
+    window likelihood's gradient is its own exact gradient, so a gradient difference is a
+    model difference, which the value spread already measures.
   - The pulsars are:
     - J1909−3744 (high precision, little red noise);
     - one strong-red-noise pulsar (J1713+0747 or B1937+21);
@@ -282,7 +285,8 @@ Within a window w, the model is
   epoch: one position scalar per epoch, no velocity step, and its DMX columns kept in β
   (no DMX projection). A1 then only has to hold within an epoch (≲ 1 s), so the cell is
   near-exact. Rule: a pulsar uses epoch cells when its two-scalar window likelihood
-  differs from its epoch-cell likelihood by more than C1's bounds at its posterior points.
+  differs from its epoch-cell likelihood by more than 0.01 nat in ΔlnL spread at 20 of its
+  posterior points (spread only, see C1).
   Epoch cells add that pulsar's DMX columns to M_sum, so they are for the pulsars that
   need them only (all 67 would add 7,410 columns).
 - **Lock-in:** fixed white noise is baked into the preprocessing. Sampling white noise later
@@ -859,3 +863,21 @@ agree there to 3e-5.
 **Approved by the user** on 2026-10-18 (this amendment and the chunked Ξ restructure).
 
 **Sections touched:** §3, §4, §11, §12
+
+### 2026-10-18 — the epoch-cell rule gates on the value spread only
+
+**Trigger:** the rule over all 67 pulsars (`results/c1/epoch_rule.json`). At both of C1's
+bounds 33/67 pulsars need epoch cells and M_sum grows 1,080 → 5,072, almost all flagged by
+the 1e-4 gradient bound. On the 0.01-nat spread alone 4 do (J1012+5307, J1643−1224,
+J1705−1903, J1903+0327; M_sum 1,607); the other 63 spreads sum to ≤ 0.05 nat.
+
+**Change:** the window-vs-epoch rule gates on the ΔlnL spread only and reports gradient
+differences (§3 C1, §4 D2). The oracle check on the three C1 pulsars is unchanged.
+
+Also recorded: a chunked Ξ update in the sparse filter (approved as a speed step) was exact
+but not faster (32 vmapped points: 0.93 vs 0.99 s/eval; one point 11.3 vs 9.4 s), so it was
+not merged.
+
+**Approved by the user** on 2026-10-18.
+
+**Sections touched:** §3, §4, §12

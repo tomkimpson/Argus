@@ -174,7 +174,7 @@
   7.860688917072209e-05
  ],
  "grad_rel_err_max": 0.0001732140560378843,
- "needs_epoch_cells": true,
+ "needs_epoch_cells": false,
  "posterior_source": "workflows/ng15_nb/outputs/ng15nb_ou14_eps000/samples.nc",
  "device": "cuda:0"
 }
