@@ -210,7 +210,7 @@ def build_sparse_inputs(comps, orf):
     }
 
 
-def array_loglike_sparse(p, inp, segment=128):
+def array_loglike_sparse(p, inp, segment=128, chunk=8):
     """`array_loglike` on the sparse path (same p, same likelihood up to rounding)."""
     obs = inp["obs"]
     N = inp["orf"].shape[0]
@@ -234,4 +234,5 @@ def array_loglike_sparse(p, inp, segment=128):
         diffuse=True,
         accum0=inp["accum0"],
         segment=segment,
+        chunk=chunk,
     )

@@ -2,7 +2,7 @@
 """K3 re-budget: the 67-psr likelihood-plus-gradient cost on the sparse marginal filter.
 
     python workflows/ng15_nb/scripts/bench_sparse.py [--delta-days none|7|14|30] \
-        [--segments 64 128 256] [--batches 1 4 16 32] [--repeats 5] [--epoch-rule] [--out workflows/ng15_nb/results/k3/sparse_<delta>.json]
+        [--segments 64 128 256] [--chunks 8] [--batches 1 4 16 32] [--repeats 5] [--epoch-rule] [--out workflows/ng15_nb/results/k3/sparse_<delta>.json]
 
 Same compression, point and parameters as `bench_union_grid.py`, but every scalar
 observation is one step of `jk._run_kalman_filter_marginal_sparse` (approved
@@ -11,6 +11,8 @@ compared with the dense union-grid result in results/k3/<delta>.json when presen
 
 `--epoch-rule` compresses the pulsars that D2's rule selects
 (results/c1/epoch_rule.json) into epoch cells instead, the layout Phases 3-6 use.
+
+`--chunks` sets the sparse filter's Ξ chunk length (1 is the unchunked Ξ recursion).
 
 The sparse scan is latency-bound (~2 MFLOP per step), so `--batches` also times
 value-and-gradient vmapped over B parameter points (B NUTS chains on one GPU); the
@@ -44,6 +46,7 @@ def main():
     ap.add_argument("--ingest-dir", default=str(REPO / "workflows/ng15_nb/data/ingest"))
     ap.add_argument("--delta-days", default="none")
     ap.add_argument("--segments", nargs="*", type=int, default=[64, 128, 256])
+    ap.add_argument("--chunks", nargs="*", type=int, default=[8])
     ap.add_argument("--batches", nargs="*", type=int, default=[1, 4, 16, 32])
     ap.add_argument("--repeats", type=int, default=5)
     ap.add_argument("--epoch-rule", action="store_true")
@@ -71,10 +74,14 @@ def main():
     p = jnp.asarray(posterior_mean_point(names))
 
     rows = []
-    for seg in args.segments:
-        value = jax.jit(lambda q, i, s=seg: union.array_loglike_sparse(q, i, s))
+    for seg, ch in [(s, c) for c in args.chunks for s in args.segments]:
+        value = jax.jit(
+            lambda q, i, s=seg, c=ch: union.array_loglike_sparse(q, i, s, c)
+        )
         vg = jax.jit(
-            jax.value_and_grad(lambda q, i, s=seg: union.array_loglike_sparse(q, i, s))
+            jax.value_and_grad(
+                lambda q, i, s=seg, c=ch: union.array_loglike_sparse(q, i, s, c)
+            )
         )
         t = time.perf_counter()
         jax.block_until_ready(vg(p, inp))
@@ -84,6 +91,7 @@ def main():
         stats = jax.devices()[0].memory_stats() or {}
         row = {
             "segment": seg,
+            "chunk": ch,
             "value_s_median": float(np.median(ts_v)),
             "value_and_grad_s_median": float(np.median(ts_vg)),
             "value_s": ts_v,
@@ -96,7 +104,7 @@ def main():
         }
         rows.append(row)
         print(
-            f"segment {seg}: value {row['value_s_median']:.3f} s, value+grad "
+            f"segment {seg} chunk {ch}: value {row['value_s_median']:.3f} s, value+grad "
             f"{row['value_and_grad_s_median']:.3f} s, lnL {row['lnL']:.4f}",
             flush=True,
         )
@@ -104,13 +112,15 @@ def main():
     seg = 128
     batch_rows = []
     rng = np.random.default_rng(0)
-    for B in args.batches:
+    for ch, B in [(c, b) for c in args.chunks for b in args.batches]:
         pts = jnp.asarray(
             np.asarray(p)[None, :] + 0.05 * rng.standard_normal((B, p.size))
         )
         vg_b = jax.jit(
             jax.vmap(
-                jax.value_and_grad(lambda q, i: union.array_loglike_sparse(q, i, seg)),
+                jax.value_and_grad(
+                    lambda q, i, c=ch: union.array_loglike_sparse(q, i, seg, c)
+                ),
                 in_axes=(0, None),
             )
         )
@@ -118,10 +128,13 @@ def main():
             jax.block_until_ready(vg_b(pts, inp))
             (llb, gb), ts = timed(vg_b, pts, inp, repeats=args.repeats)
         except Exception as e:  # out of memory at large B
-            print(f"batch {B}: {type(e).__name__}: {str(e)[:200]}", flush=True)
-            break
+            print(
+                f"chunk {ch} batch {B}: {type(e).__name__}: {str(e)[:200]}", flush=True
+            )
+            continue
         stats = jax.devices()[0].memory_stats() or {}
         row = {
+            "chunk": ch,
             "batch": B,
             "wall_s_median": float(np.median(ts)),
             "s_per_eval": float(np.median(ts)) / B,
@@ -133,7 +146,7 @@ def main():
         }
         batch_rows.append(row)
         print(
-            f"batch {B}: wall {row['wall_s_median']:.3f} s, {row['s_per_eval']:.3f} s/eval",
+            f"chunk {ch} batch {B}: wall {row['wall_s_median']:.3f} s, {row['s_per_eval']:.3f} s/eval",
             flush=True,
         )
 

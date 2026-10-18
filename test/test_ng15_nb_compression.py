@@ -423,11 +423,14 @@ ORF_PAIR = np.array([[1.0, 0.4], [0.4, 1.0]])
 P_PAIR = jnp.asarray([-12.0, -6.0, -13.0, -12.5, -6.0, -6.5])
 
 
-@pytest.mark.parametrize("segment", [1, 7, 128])
+@pytest.mark.parametrize(
+    "segment,chunk", [(1, 1), (7, 7), (128, 1), (128, 32), (96, 64)]
+)
 @pytest.mark.parametrize("delta_days", [None, 30.0])
-def test_sparse_filter_equals_dense(delta_days, segment, monkeypatch):
+def test_sparse_filter_equals_dense(delta_days, segment, chunk, monkeypatch):
     """Correlated pair: the sparse path equals the dense union-grid path (both
-    jitter-free) in value and gradient, for any segment length (padding exact)."""
+    jitter-free) in value and gradient, for any segment and chunk length (padding
+    exact; chunk 1 is the unchunked Ξ recursion, 64 in 96 reduces to 32)."""
     comps = _synthetic_pair(delta_days)
     dense = union.build_union_inputs(comps, ORF_PAIR)
     sparse = union.build_sparse_inputs(comps, ORF_PAIR)
@@ -436,7 +439,7 @@ def test_sparse_filter_equals_dense(delta_days, segment, monkeypatch):
     monkeypatch.setattr(union, "jk", _jitter_free_filter_module())
     vd, gd = jax.value_and_grad(union.array_loglike)(P_PAIR, dense)
     vs, gs = jax.value_and_grad(
-        lambda p: union.array_loglike_sparse(p, sparse, segment)
+        lambda p: union.array_loglike_sparse(p, sparse, segment, chunk)
     )(P_PAIR)
     assert abs(float(vs) - float(vd)) <= 1e-9 * abs(float(vd)), (vs, vd)
     np.testing.assert_allclose(
