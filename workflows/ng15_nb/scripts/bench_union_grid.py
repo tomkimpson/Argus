@@ -55,7 +55,11 @@ def posterior_mean_point(names):
     order = [e["pulsar"] for e in manifest["feathers"]]
     idx = [order.index(n) for n in names]
     post = az.from_netcdf(POSTERIOR).posterior
-    mean = lambda v: np.asarray(post[v]).reshape(-1, *np.asarray(post[v]).shape[2:]).mean(0)  # noqa: E731
+
+    def mean(v):
+        a = np.asarray(post[v])
+        return a.reshape(-1, *a.shape[2:]).mean(0)
+
     return np.concatenate(
         [
             [mean("gw_log10_ha"), mean("gw_log10_gamma_a")],
@@ -126,8 +130,11 @@ def main():
     names = [c["name"] for c in caches]
     inp = union.build_union_inputs(comps, union.hd_matrix(caches))
     N, T = inp["Npsr"], int(inp["data"].shape[0])
-    print(f"{N} psr, {inp['n_union_times']} union times, {T} steps, M_sum {inp['M_sum']}, "
-          f"compression {compress_s:.0f} s", flush=True)
+    print(
+        f"{N} psr, {inp['n_union_times']} union times, {T} steps, M_sum {inp['M_sum']}, "
+        f"compression {compress_s:.0f} s",
+        flush=True,
+    )
 
     p = jnp.asarray(posterior_mean_point(names))
 
@@ -179,8 +186,12 @@ def main():
         "pulsars": names,
         "k3": {"target_s": 0.5, "stop_s": 1.0},
     }
-    print(json.dumps({k: v for k, v in result.items() if k not in ("point", "pulsars")}, indent=1),
-          flush=True)
+    print(
+        json.dumps(
+            {k: v for k, v in result.items() if k not in ("point", "pulsars")}, indent=1
+        ),
+        flush=True,
+    )
     out.write_text(json.dumps(result, indent=1) + "\n")
 
 
