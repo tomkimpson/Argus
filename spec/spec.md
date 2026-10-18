@@ -170,7 +170,10 @@ Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not
     - the diffuse prior.
   - Tolerance: after removing one parameter-independent constant, the spread of
     ΔlnL across 20 random parameter points is **≤ 0.01 nats**.
-  - Gradients agree to a relative error of **≤ 1e-4**.
+  - Gradients agree to a relative error of **≤ 1e-4**. (amended 2026-10-18, third: the
+    gradient error is reported, not gated, in the oracle check as in the epoch-cell rule;
+    the compressed likelihood's gradient is exact for its own model, and the value spread
+    measures how far that model is from the dense one.)
   - **The oracle's own precision** (amended 2026-10-18). Where the dense oracle is too
     ill-conditioned to resolve these bounds, the check passes when the residual is within
     the oracle's precision. That precision is measured by moving the oracle's time origin
@@ -877,7 +880,8 @@ the 1e-4 gradient bound. On the 0.01-nat spread alone 4 do (J1012+5307, J1643−
 J1705−1903, J1903+0327; M_sum 1,607); the other 63 spreads sum to ≤ 0.05 nat.
 
 **Change:** the window-vs-epoch rule gates on the ΔlnL spread only and reports gradient
-differences (§3 C1, §4 D2). The oracle check on the three C1 pulsars is unchanged.
+differences (§3 C1, §4 D2). The oracle check on the three C1 pulsars is unchanged
+(superseded the same day: see "the oracle check gates on the spread too").
 
 Also recorded: a chunked Ξ update in the sparse filter (approved as a speed step) was exact
 but not faster on its own (32 vmapped points: 0.93 vs 0.99 s/eval; one point 11.3 vs
@@ -912,3 +916,18 @@ does not close the gap.
 **Approved by the user** on 2026-10-18.
 
 **Sections touched:** §8, §11, §12
+
+### 2026-10-18 — the oracle check gates on the spread too
+
+**Trigger:** under the spread-only epoch-cell rule, J1909−3744 and B1937+21 stay on window
+cells, where they pass C1's oracle spread bound (5.3e-4 and 8.6e-3 nat) but not its
+gradient bound (3.5e-4 and 1.1e-2; N1). Putting them on epoch cells too would take M_sum
+to ≈ 2,190 and likely past K3's 1 s stop.
+
+**Change:** C1's oracle comparison gates on the ΔlnL spread only and reports gradient
+errors, for the same reason as the rule (§3 C1). At the adopted layout all three C1
+pulsars pass: J1909−3744 5.3e-4, B1937+21 8.6e-3, J1012+5307 (epoch cells) 3.9e-8 nat.
+
+**Approved by the user** on 2026-10-18.
+
+**Sections touched:** §3, §12

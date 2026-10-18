@@ -12,6 +12,10 @@ function of the grid width Δ, and what the 67-pulsar likelihood plus gradient c
   M_sum = 1,607 timing columns over 67 pulsars.
 - **No coarser Δ passes C1.** Every Δ ≥ 7 d misses the spread bound on at least one of the
   four pulsars tested.
+- **C1 passes for all three C1 pulsars** at that layout: J1909−3744 5.3e-4, B1937+21
+  8.6e-3 and J1012+5307 3.9e-8 nat. C1 gates on the spread; gradient errors are reported,
+  not gated (amended 2026-10-18). On window cells J1909−3744 and B1937+21 have gradient
+  errors of 3.5e-4 and 1.1e-2 against the oracle.
 - **Cost (K3):** 0.84 s per value-plus-gradient evaluation, with 32 points vmapped on one
   A100. That is between K3's 0.5 s target and its 1 s stop, and Phase 2 closes on it (§12,
   2026-10-18).
@@ -111,9 +115,5 @@ All timings are value plus gradient over all 136 parameters on one A100.
 
 ## Open
 
-- **J1909−3744 and B1937+21 against the oracle gradient bound** (decision pending). Under
-  the adopted rule both stay on window cells. There they pass the oracle spread bound
-  (5.3e-4 and 8.6e-3 nat) but not the gradient bound (3.5e-4 and 1.1e-2). Both pass in
-  epoch cells.
 - **Budget.** At 0.84 s the 67-psr ladder scales to about 1,340 A100-h, against the 800
   assumed in §5 (§12, 2026-10-18).
