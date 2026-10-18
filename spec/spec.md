@@ -1,7 +1,7 @@
 # Spec: First state-space detection of the SGWB on NANOGrav 15-yr data
 
 **Status:** draft
-**Created:** 2026-10-15  ·  **Last amended:** 2026-10-17
+**Created:** 2026-10-15  ·  **Last amended:** 2026-10-19
 **Supersedes:** `openspec/changes/sgwb-detection-route` (to be deleted, task 0.1) and the
 wideband M3 plan in issue #111 / `workflows/ng15_sgwb_demo/PLAN.md`.
 
@@ -118,8 +118,9 @@ Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not
 - This spec adds:
   - (i) **per-backend white noise and ECORR**, fixed at NANOGrav's published values;
   - (ii) **DMX** retained in the timing model;
-  - (iii) an **exact epoch-compression** step (D2), which feeds the existing one-scalar-per-step
-    filter.
+  - (iii) an **exact epoch-compression** step (D2), which feeds a sparse marginal filter
+    taking one scalar observation per step (amended 2026-10-19; the stock filter takes every
+    pulsar's slot at every step, see §12 2026-10-18 K3 entry).
 
 **Assumptions and approximations.**
 - **A1. The state is constant within a compression window.** Each window is one DMX window,
@@ -135,6 +136,13 @@ Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not
     proportionally more such power, so C1 includes one explicitly.
   - Measured in Phase 2 (C1 against a continuous-time oracle). There is no a-priori estimate
     we trust.
+  - **Measured 2026-10-18: a constant state fails.** With one scalar per DMX window, C1
+    misses by 0.5–5 nat on all three pulsars. The spin phase drifts linearly within a window
+    at the spin velocity, whose stationary variance σp²/2γp is large at small γp (B1937+21's
+    error tracks γp with correlation 0.99). D2 therefore emits a second, velocity scalar per
+    window, and A1 now reads: **the state is linear in time within a window** (constant
+    velocity). It still fails where the red noise decorrelates within a window (J1012+5307,
+    correlation time ≈ 12 d against 14 d windows). See §12, 2026-10-18.
 - **A2. White noise is fixed** at NANOGrav's MAP noise dictionaries. This is exactly
   NANOGrav's own GWB practice. It is not a simplification relative to the target.
 - **A3. Single-corner OU red noise** (residual PSD between f⁻² and f⁻⁴, i.e. a
@@ -163,7 +171,25 @@ Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not
     - the diffuse prior.
   - Tolerance: after removing one parameter-independent constant, the spread of
     ΔlnL across 20 random parameter points is **≤ 0.01 nats**.
-  - Gradients agree to a relative error of **≤ 1e-4**.
+  - Gradients agree to a relative error of **≤ 1e-4**. (amended 2026-10-18, third: the
+    gradient error is reported, not gated, in the oracle check as in the epoch-cell rule;
+    the compressed likelihood's gradient is exact for its own model, and the value spread
+    measures how far that model is from the dense one.)
+  - **The oracle's own precision** (amended 2026-10-18). Where the dense oracle is too
+    ill-conditioned to resolve these bounds, the check passes when the residual is within
+    the oracle's precision. That precision is measured by moving the oracle's time origin
+    (exact in theory, conditioned differently): the shift in its spread and gradient is
+    its noise floor. Measured: B1937+21 1.5e-2 nat / 2.3e-3, B1855+09 8e-6 / 1.1e-6.
+    (2026-10-19: no pass at the adopted layout relies on this clause, since every residual is
+    inside 0.01 nat outright; the origin-shift figures come from a scratch check that was not
+    committed, so re-measure before relying on it.)
+  - **Epoch cells as the per-pulsar reference** (amended 2026-10-18). Epoch cells (D2) are
+    near-exact, so for pulsars outside the three test pulsars, and for those too large for
+    the oracle (J1713+0747), C1 compares the window-compressed likelihood with the
+    epoch-cell one. That comparison gates on the ΔlnL spread (≤ 0.01 nat) only; its
+    gradient differences are reported but do not gate (amended 2026-10-18, second): the
+    window likelihood's gradient is its own exact gradient, so a gradient difference is a
+    model difference, which the value spread already measures.
   - The pulsars are:
     - J1909−3744 (high precision, little red noise);
     - one strong-red-noise pulsar (J1713+0747 or B1937+21);
@@ -219,19 +245,32 @@ Within a window w, the model is
 - After projecting out D_w, the data split exactly (in the projected-noise metric) into two
   parts:
   - a scalar ŝ_w = s_w + m_wᵀβ + e_w, where e_w ~ N(0, σ_w²) and ECORR is included in σ_w²;
+  - a second, **velocity** scalar v̂_w = ṡ_w + m'_wᵀβ + e'_w along the projected (t − t_w)
+    direction, with t_w the weighted mean time of ŝ_w. It is orthogonal to ŝ_w's direction
+    by construction of t_w, so e'_w is independent of e_w (amended 2026-10-18; one scalar
+    failed C1, see A1);
   - an orthogonal remainder that depends only on β. It is static, so its contribution to the
     marginal filter's (A, b, c) accumulators is a **constant, precomputed once**.
-- The filter keeps one scalar per pulsar per step. Its H row is [−1 on GW r, 1/f0 on phase, m_w].
-  The only library change is that the marginal filter accepts initial accumulators
-  (A₀, b₀, c₀). With zero defaults this preserves the goldens.
-- M_sum stays at the non-DMX timing columns, roughly the ~994 we have today. That avoids the
-  ~10⁴ dense columns that caused PR #100's out-of-memory failure.
+- The filter keeps one scalar per pulsar per step, taking each window as **two steps at t_w
+  with dt = 0** between them. The position step's H row is [−1 on GW r, 1/f0 on phase, m_w];
+  the velocity step's is [−1 on GW ṙ, 1/f0 on phase rate, m'_w]. This doubles the step count.
+  A window with too few TOAs to fix a slope emits the position scalar only (the velocity step
+  is masked).
+  Two library changes (amended 2026-10-19): the marginal filter accepts initial
+  accumulators (A₀, b₀, c₀), which with zero defaults preserves the goldens; and a sparse
+  marginal filter, `_run_kalman_filter_marginal_sparse`, takes one scalar observation per
+  step, so the step count is the observation count (15,372 at the adopted layout) and no
+  step touches an unobserved pulsar (§12, 2026-10-18 K3 entry).
+- M_sum holds the non-DMX timing columns, plus the DMX columns of pulsars on epoch cells
+  (below): 1,080 with all windows, 1,607 at the adopted layout (amended 2026-10-19). That
+  avoids the ~10⁴ dense columns that caused PR #100's out-of-memory failure.
 - Windows of one pulsar that fall in the same grid cell are merged by the same algebra. The
   only approximation is A1.
 - **What D2 makes exact is the DMX, ECORR and per-backend bookkeeping, not the time
-  resolution.** The step count, and so the cost, is set by the grid width Δ. K3 will likely
-  force Δ to 2–4 weeks, which is the same time-gridding approximation the wideband pipeline
-  already makes.
+  resolution.** On the dense union grid the step count, and so the cost, is set by the grid
+  width Δ. K3 was expected to force Δ to 2–4 weeks. (2026-10-19: not so. The sparse filter's
+  cost is set by the observation count, which barely moves with Δ, so the adopted Δ is the
+  DMX window, t_w-stamped, with no time gridding beyond A1.)
 - Four ingest edge cases need an explicit rule:
   - **Single-frequency windows: drop.** A window observed at a single radio frequency has
     D_w exactly ∝ 1. Projecting out DMX then also removes s_w, so the window carries no
@@ -254,6 +293,14 @@ Within a window w, the model is
     - The dense oracle (C1) applies the same rule. A column that is fully degenerate with
       DMX is unconstrained by the data under the flat prior, so dropping it changes lnL only
       by a constant.
+- **Epoch cells** (amended 2026-10-18). A pulsar can instead be compressed per ECORR
+  epoch: one position scalar per epoch, no velocity step, and its DMX columns kept in β
+  (no DMX projection). A1 then only has to hold within an epoch (≲ 1 s), so the cell is
+  near-exact. Rule: a pulsar uses epoch cells when its two-scalar window likelihood
+  differs from its epoch-cell likelihood by more than 0.01 nat in ΔlnL spread at 20 of its
+  posterior points (spread only, see C1).
+  Epoch cells add that pulsar's DMX columns to M_sum, so they are for the pulsars that
+  need them only (all 67 would add 7,410 columns).
 - **Lock-in:** fixed white noise is baked into the preprocessing. Sampling white noise later
   would need recompression at every sample.
 
@@ -368,6 +415,12 @@ NANOGrav's log-uniform amplitude prior.
   - K3 is set to match this budget.
   - **Budget: ~1000 A100-h, confirmed by the user on 2026-10-15.** K3 stops and re-budgets
     above 1 s per evaluation.
+  - **Unresolved since Phase 2 (2026-10-19).** The 800 A100-h figure assumes 0.5 s of
+    *per-chain* latency. Phase 2 measured 0.84 s as *batched throughput* (32 lockstep chains
+    on one A100); per-chain latency is 6.7 s for one point, or 26.8 s per 32-point step. The
+    ladder is ≈ 1,340 A100-h only if the draws can be split across many short lockstep
+    chains with warmup a small share, and ≈ 10,700 A100-h if each chain needs §5's length.
+    Settle before Phase 5 (§12, 2026-10-19).
 
 ## 6. Outputs
 
@@ -420,10 +473,29 @@ therefore **pivots** with a named next step, not stops.
 - **K3 (Phase 2). Compression fails.** Two ways:
   - C1 fails even at Δ = the DMX window (the finest Δ the compression allows): pivot to vector
     observations per window.
+    - Triggered 2026-10-18 for one scalar per window. The first pivot taken is two scalars
+      per window (position and velocity, D2), which doubles the union-grid steps. Task 2.6
+      measures that cost **before** deciding the remaining C1 misses (J1909−3744 and
+      B1937+21 gradients; J1012+5307 value and gradient). The user then chooses among
+      relaxing C1's gradient bound, per-ECORR-epoch steps with DMX carried as a per-window
+      state, or that treatment only for pulsars whose red-noise correlation time is shorter
+      than their windows. (Resolved 2026-10-18: epoch cells with DMX in β for the four
+      pulsars the spread rule selects, and the gradient bound reported, not gated; §12.)
   - The cost per 67-psr likelihood-plus-gradient evaluation on one A100 is > 0.5 s at every Δ
     that passes C1: coarsen Δ (re-measuring A1), or revisit the #108 parallel filter, whose
     crossover needs exactly the larger T that a fine grid produces.
   - The cost is > 1 s even at the coarsest passing Δ: stop and re-budget with the user.
+  - **Outcome 2026-10-18:** 0.84 s per batched evaluation at the epoch-rule layout, between
+    target and stop. The user accepted it and closed Phase 2 on it; neither pivot is taken.
+    Coarsening Δ buys nothing on the sparse filter, whose cost follows the observation count
+    (7 d: 9.2 s for one point vs 9.6 s at the DMX window, same filter version,
+    `results/k3/sparse_7d.json` and `sparse_dmx_window.json`). #108 was measured slower only
+    at MDC2 scale (T = 183), never at the ~15k sequential steps where its crossover was
+    expected, so it stays an untested speed option. (Corrected 2026-10-19; per-chain
+    latency and the budget are in §5.)
+  - **Cost is judged as batched throughput** (decided by the user 2026-10-18): wall time of
+    one value-plus-gradient call vmapped over B parameter points (B NUTS chains on one
+    A100), divided by B. Revisit if lockstep chains turn out to be a major blocker.
 - **K4 (Phase 5). The 67-psr joint posterior won't sample.** That means the pilot still fails
   the Phase 5 Done-when thresholds (r̂ ≤ 1.01, divergences ≤ 0.5%, bulk ESS ≥ 400, no frozen
   chain) after three levers. The thresholds are the same, so there is no limbo band.
@@ -455,9 +527,9 @@ therefore **pivots** with a named next step, not stops.
 | Risk | Early warning |
 |---|---|
 | OU kernel too stiff, so the HD evidence is diluted (A3) | Discovery-OU lnB ≪ Discovery-PL lnB in Phase 1 (K2) |
-| Compression error at shallow-spectrum pulsars (A1) | C1 spread grows with red-noise slope; per-pulsar C4 outliers concentrated in γ_PL ≲ 1 |
+| Compression error at shallow-spectrum pulsars (A1) | C1 spread grows with red-noise slope; per-pulsar C4 outliers concentrated in γ_PL ≲ 1. Realised 2026-10-18: one scalar per window failed everywhere; two scalars still missed J1012+5307 and two gradient bounds. Resolved: epoch cells for 4 pulsars by the spread rule, and gradients reported, not gated (§12) |
 | 136-D sampling geometry | Phase 5 pilot (ε=0, 500+500) step size < 0.01, or per-chain medians split |
-| Per-step cost blows up at 67 psr on the union grid (step count × O((4N)³)) | Task 2.6 benchmark of value-plus-gradient on the marginal path. There is no trustworthy prior rate (§2); if it is near the sequential quick-look (≳ 0.6 s at 189 steps), Δ is forced to ≳ 1 month |
+| Per-step cost blows up at 67 psr on the union grid (step count × O((4N)³)) | Task 2.6 benchmark of value-plus-gradient on the marginal path. There is no trustworthy prior rate (§2); if it is near the sequential quick-look (≳ 0.6 s at 189 steps), Δ is forced to ≳ 1 month. Realised 2026-10-18: the dense grid needed 28.6 s at the DMX window; the sparse filter gives 0.84 s batched, 6.7 s per chain, and the budget is open (§5) |
 | Discovery env / jax version conflicts | Task 1.2 fails to install; fall back to a container |
 | Path-sampling integrand steep near ε=1 at lnB ~ 5 | Frozen-procedure Romberg check flags extra rungs (0.625, 0.875) |
 | Diffuse results since PR #107 carry the Λ-jitter bias (fixed 2026-10-17) | GW-vs-noise and amplitude numbers from #122/#123/#124 move by ≳ 0.1 nat on rerun; lnB(HD/CURN) is expected (fixed-parameter estimate) to move by ≲ 0.01 |
@@ -487,7 +559,7 @@ carries a superseded banner.
 evidence on real NG15 at all, before any Argus engineering.
 **Done when:** C3 passes, and N2 records Discovery-OU lnB(HD/CURN) and lnB(CURN/noise), with K2
 evaluated.
-**PR:** #128
+**PR:** #128 (merged 2026-10-16)
 
 - [x] 1.1 Fetch Discovery at a pinned commit; write `MANIFEST.json` (commit, feather hashes,
       67 pulsar names, data-set version) — verify by 67 feathers hashed and version string recorded.
@@ -516,9 +588,11 @@ evaluated.
 ### Phase 2 — Exact epoch compression (S0 feasibility)
 
 **Goal:** show the narrowband TOAs can be fed to the existing filter exactly (C1) and cheaply.
-**Done when:** C1 passes for all three test pulsars at the chosen Δ, C2 passes, and the 67-psr cost
-benchmark is ≤ 0.5 s per evaluation, with K3 evaluated.
-**PR:** _not started_. **Runs in parallel with Phase 1**: the two are independent until K2 is
+**Done when:** C1 passes for all three test pulsars at the chosen Δ (2026-10-19: the adopted layout, DMX windows plus epoch cells by rule), C2 passes, and the 67-psr cost
+benchmark is ≤ 0.5 s per evaluation, with K3 evaluated. (amended 2026-10-18: the cost
+criterion is < 1 s per batched evaluation, K3's stop; measured 0.84 s. Speed work carries
+into Phase 5's sampling test — see §12)
+**PR:** #131. **Runs in parallel with Phase 1**: the two are independent until K2 is
 evaluated, and Phase 1 has an unverified dependency (Discovery accepting a custom PSD and a
 mixed ORF) that could stall it.
 
@@ -544,8 +618,17 @@ mixed ORF) that could stall it.
       single-step grid against the filter.
 - [ ] 2.5 Run C1 on J1909−3744, one strong-red-noise pulsar and J1012+5307 (shallow) at
       Δ ∈ {DMX window, 7 d, 14 d, 30 d} — verify by the ΔlnL spread and gradient error tables in N1; choose the largest Δ that passes.
+      (amended 2026-10-18: one scalar per window fails at every Δ; rerun C1 with the
+      two-scalar D2 at the DMX window, and leave the remaining misses to the user's
+      decision after 2.6 — see §12)
+      (amended 2026-10-18, second: pulsars that miss use epoch cells, chosen by the D2
+      rule over all 67; a residual within the oracle's precision passes — see §12)
 - [ ] 2.6 Compress all 67, build the union grid with masks, benchmark the likelihood plus
       gradient on one A100 — verify by the recorded seconds per evaluation and memory; evaluate K3.
+      (amended 2026-10-18: on the two-scalar union grid, two steps per window; run before
+      the 2.5 decision)
+      (amended 2026-10-18, later: benchmarked on the sparse filter at the epoch-rule layout,
+      which replaced the union grid; the dense union grid is kept as the test reference)
 
 ### Phase 3 — Per-pulsar validation
 
@@ -693,3 +776,214 @@ diagonal), so the jitter swamped real directions. The C2 golden was itself the b
   as exposed. Rerunning #122/#123/#124 is left to the user.
 
 **Sections touched:** §2, §3, §10, §12
+
+### 2026-10-18 — two scalars per compression window
+
+**Trigger:** task 2.5's C1 at the DMX-window Δ (20 Discovery-OU posterior draws per pulsar,
+spread / max gradient relative error; bounds 0.01 nat / 1e-4):
+
+| Pulsar | one scalar (D2 as written) | two scalars (position + velocity) |
+|---|---|---|
+| B1855+09 (control) | 3.0e-4 / 1.4e-4 | 1.5e-6 / 2.5e-7 |
+| J1909−3744 | 1.58 / 0.90 | 5.3e-4 / 3.5e-4 |
+| B1937+21 | 5.2 / 1.5 | 8.6e-3 / 1.1e-2 |
+| J1012+5307 | 0.54 / 0.27 | 5.4e-2 / 3.8e-2 |
+
+The 7, 14 and 30 d grids are worse than the DMX window with one scalar. The cause is the
+within-window drift (t − t_w)·ṡ, which a constant-state compression puts into the β-only
+remainder. It is largest at small γp, where the stationary spin-velocity variance σp²/2γp is
+large: B1937+21's error correlates 0.99 with γp. J1012+5307's red-noise correlation time
+(≈ 12 d) is shorter than its 14 d windows, so even the velocity changes within a window.
+
+Separately, `model.get_Q_block`'s q11 loses precision at small γ·dt (5% at γ = 1e-12 s⁻¹,
+dt = 1 d). Fixing it in a diagnostic copy moved C1 by ≈ 0.03 nat; the library fix needs its
+own approval and is not part of this amendment. (Approved and merged as PR #130, 2026-10-18.)
+
+**Change:**
+- D2 emits a second, velocity scalar per window along the projected (t − t_w) direction,
+  fed as a second filter step at dt = 0. A1 now assumes a state linear in time within a
+  window.
+- K3: the two-scalar pivot is taken; it doubles the union-grid steps. Task 2.6 runs on that
+  grid before the user decides the remaining C1 misses.
+- Tasks 2.5 and 2.6 annotated accordingly. §10's A1 row records the outcome.
+
+**Approved by the user** on 2026-10-18.
+
+**Sections touched:** §3, §4, §8, §10, §11, §12
+
+### 2026-10-18 — K3 measured; grid stamping, union whitening and a sparse filter
+
+**Trigger:** task 2.6's benchmark of value plus gradient (all 136 parameters) on one
+A100, 67 psr, two scalars per cell, against K3's 0.5 s target and 1 s stop.
+
+**What was measured:**
+- **Dense union grid** (the existing marginal filter, every pulsar's slot at every step):
+
+  | Δ | steps | value | value + gradient | C1 worst posterior spread (4 pulsars) |
+  |---|---|---|---|---|
+  | DMX window | 14,820 | 8.7 s | 28.6 s | 5.4e-2 nat |
+  | 7 d | 1,150 | 0.68 s | 2.3 s | 9.6e-2 nat |
+  | 14 d | 690 | 0.41 s | 1.3 s | 0.37 nat |
+  | 30 d | 376 | 0.22 s | 0.74 s | 2.7 nat |
+
+  No Δ both passed C1 and came in under 1 s. The stock gradient's reverse mode needs
+  220 GB at the DMX-window Δ; it was timed on a benchmark-only copy with checkpointed
+  scan segments (same value to 3e-8 nat).
+- **Grid stamping (a D2 detail).** With two scalars, a cell can be stamped at its weighted
+  mean time t_w (exact position, but no two pulsars share a step) or at the grid centre
+  t_c, with the position row carrying −(t_w − t_c) on the rate states (exact for a state
+  linear in the cell, and pulsars share steps). Centre stamping is what makes coarse Δ
+  cheap, and it costs accuracy: J1012+5307 at 14 d went from 2.5e-2 nat (t_w) to 0.37.
+- **Union whitening.** On shared steps the library's innovation jitter (1e-9 × the mean S
+  of the observed pulsars) is set by poorly measured observations and perturbs their
+  neighbours: 3.8 nat on a synthetic pair at 30 d. The union-grid inputs whiten every
+  observation to unit noise, with the Jacobian in the offset; the joint then equals the sum
+  of pulsars to 1e-8.
+- **`get_Q_block` small-γ·dt fix** merged separately as PR #130 (approved 2026-10-18).
+- **Sparse marginal filter** (approved 2026-10-18 as the K3 re-budget):
+  `_run_kalman_filter_marginal_sparse` takes one scalar observation per step, so it never
+  touches unobserved pulsars and builds the timing information A as one product after the
+  scan. Its cost depends on the number of observations, not on Δ, so the accurate
+  t_w-stamped DMX-window cells cost no more than a grid. At the DMX-window Δ (14,811
+  observations) it gives value 0.79 s and value plus gradient 6.2 s for one point, and
+  **0.87 s per evaluation when 32 points are vmapped together** (32 NUTS chains on one
+  GPU). It equals the jitter-free dense path to 1e-9 on synthetic data. The dense MDC2
+  goldens are bit-identical after the shared-helper refactor.
+
+**Change:**
+- D2: grid cells are stamped at t_c with the position-row shift; DMX-window cells at t_w.
+- ~~Proposed, not yet decided: the array likelihood for Phases 3–6 is the sparse filter at
+  the DMX-window Δ.~~ — decided 2026-10-18: it is, with epoch cells by rule (later entries).
+- ~~Open: whether K3 is judged on batched throughput (per evaluation it is 6.2 s).~~ —
+  resolved 2026-10-18: the user accepts batched throughput for now (K3, §8), so the sparse
+  filter at 0.87 s/eval sits between K3's target and stop. Speed work continues.
+- The remaining C1 misses: the user asked (2026-10-18) to try both fallbacks — epoch cells
+  with DMX in β for the pulsars that need it, and, if needed, a relaxed gradient bound.
+
+**Approved by the user** on 2026-10-18 (the sparse filter, the `get_Q_block` fix and this
+note).
+
+**Sections touched:** §12
+
+### 2026-10-18 — epoch cells by rule, and C1 within the oracle's precision
+
+**Trigger:** the C1 fallbacks the user asked for. Posterior spread / gradient error, two
+scalars per DMX window vs epoch cells (DMX in β), 20 posterior draws each:
+
+| Pulsar | two scalars per window | epoch cells |
+|---|---|---|
+| J1012+5307 | 5.4e-2 / 3.8e-2 | 3.9e-8 / 4.2e-9 |
+| J1909−3744 | 5.3e-4 / 3.5e-4 | 1.4e-5 / 1.9e-6 |
+| B1937+21 | 8.6e-3 / 1.1e-2 | 4.2e-3 / 2.3e-3 |
+| B1855+09 | 1.5e-6 / 2.5e-7 | 1.5e-6 / 2.5e-7 |
+
+Moving the oracle's time origin by 1000 d (exact in theory) shifts the oracle alone by
+1.5e-2 nat / 2.3e-3 on B1937+21, so its epoch-cell residual is at the oracle's precision.
+B1855+09's 0.10 nat on the prior stress set is also oracle-side: its two filter layouts
+agree there to 3e-5.
+
+**Change:**
+- C1 (§3): a residual within the oracle's precision (origin-shift test) passes; epoch
+  cells are the near-exact per-pulsar reference where the oracle is not used.
+- D2 (§4): epoch cells, and the rule choosing which pulsars use them.
+- Task 2.5 annotated: next, run the rule over all 67 and record how many pulsars need
+  epoch cells and the resulting M_sum.
+- Speed: the timing block Ξ is ≈ 45% of batched time (0.55 s/eval with 16 columns vs
+  0.98 s with 1,080), so the next speed step is a chunked Ξ update in the sparse filter.
+
+**Approved by the user** on 2026-10-18 (this amendment and the chunked Ξ restructure).
+
+**Sections touched:** §3, §4, §11, §12
+
+### 2026-10-18 — the epoch-cell rule gates on the value spread only
+
+**Trigger:** the rule over all 67 pulsars (`results/c1/epoch_rule.json`). At both of C1's
+bounds 33/67 pulsars need epoch cells and M_sum grows 1,080 → 5,072, almost all flagged by
+the 1e-4 gradient bound. On the 0.01-nat spread alone 4 do (J1012+5307, J1643−1224,
+J1705−1903, J1903+0327; M_sum 1,607); the other 63 spreads sum to ≤ 0.05 nat.
+
+**Change:** the window-vs-epoch rule gates on the ΔlnL spread only and reports gradient
+differences (§3 C1, §4 D2). The oracle check on the three C1 pulsars is unchanged
+(superseded the same day: see "the oracle check gates on the spread too").
+
+Also recorded: a chunked Ξ update in the sparse filter (approved as a speed step) was exact
+but not faster on its own (32 vmapped points: 0.93 vs 0.99 s/eval; one point 11.3 vs
+9.4 s). A GPU profile then showed the backward pass launch-bound on `get_Q_block`'s
+per-step series residuals; checkpointing the Q blocks as well made both pay.
+
+**K3 at the rule layout** (67 psr, 15,372 observations, M_sum 1,607, one A100,
+`results/k3/sparse_dmx_window_epoch_rule.json`): before, 1.27 s/eval at 32 vmapped points
+(10.6 s for one point), over K3's 1 s stop; with chunked Ξ (chunk 8) and checkpointed Q,
+**0.84 s/eval** (6.7 s for one point), lnL equal to 1e-8 nat and gradient to 2e-9.
+Between K3's 0.5 s target and its 1 s stop.
+
+**Approved by the user** on 2026-10-18.
+
+**Sections touched:** §3, §4, §12
+
+### 2026-10-18 — Phase 2 closes at 0.84 s per batched evaluation
+
+**Trigger:** K3 at the epoch-rule layout measured 0.84 s/eval (32 vmapped points, one
+A100), between the 0.5 s target and the 1 s stop. K3's pivots for that zone are both poor:
+coarsening Δ does not cut the sparse filter's cost (corrected 2026-10-19; this said it costs
+C1 accuracy), and #108's parallel filter was measured slower at MDC2 scale.
+
+**Change:** Phase 2's cost criterion is < 1 s per batched evaluation (K3's stop); speed
+work continues alongside Phase 5's sampling test (§8 K3 outcome, §11 Phase 2).
+
+**Budget consequence:** ~~§5's ladder estimate assumed ≲ 0.5 s; scaled linearly, 0.84 s
+puts the 67-psr ladder at ≈ 1,340 A100-h (from 800) and the total at ≈ 1,540 A100-h.~~
+Wrong (corrected 2026-10-19): that scales batched throughput, but §5 assumed per-chain
+latency. The budget is unresolved; see §5 and the 2026-10-19 entry.
+
+**Approved by the user** on 2026-10-18.
+
+**Sections touched:** §8, §11, §12
+
+### 2026-10-18 — the oracle check gates on the spread too
+
+**Trigger:** under the spread-only epoch-cell rule, J1909−3744 and B1937+21 stay on window
+cells, where they pass C1's oracle spread bound (5.3e-4 and 8.6e-3 nat) but not its
+gradient bound (3.5e-4 and 1.1e-2; N1). Putting them on epoch cells too would take M_sum
+to ≈ 2,190 and likely past K3's 1 s stop.
+
+**Change:** C1's oracle comparison gates on the ΔlnL spread only and reports gradient
+errors, for the same reason as the rule (§3 C1). At the adopted layout all three C1
+pulsars pass: J1909−3744 5.3e-4, B1937+21 8.6e-3, J1012+5307 (epoch cells) 3.9e-8 nat.
+
+**Approved by the user** on 2026-10-18.
+
+**Sections touched:** §3, §12
+
+### 2026-10-19 — review corrections: the budget, the D2 text, the dense reference
+
+**Trigger:** /check-PR on PR #131 (5 major findings).
+
+**Change:**
+- **Budget (§5).** §5's 800 A100-h assumes 0.5 s of per-chain latency: 40 h per rung is
+  ≈ 288k sequential evaluations per chain. Phase 2 measured 0.84 s as batched throughput.
+  Warmup cannot be divided across lockstep chains, so per-chain latency is what sets wall
+  time: 6.7 s for one point (13× the assumption) or 26.8 s per 32-point step (54×). The
+  ladder ranges from ≈ 1,340 A100-h, if the draws split across many short lockstep chains
+  and warmup is a small share, to ≈ 10,700 A100-h, if each chain needs §5's length on one
+  GPU. Phase 2 still closes: the user chose to merge on 2026-10-19 with the budget recorded
+  as open. It must be settled before Phase 5, by a chain-design test or by speed work.
+- **D2 (§4) and §3.** The text now says what was adopted: two library changes (accum0 and
+  the sparse filter), M_sum 1,607 including DMX columns for epoch-cell pulsars, one
+  observation per step, and the t_w-stamped DMX-window Δ.
+- **K3 outcome (§8).** Coarsening Δ is not taken because it does not cut cost, not because
+  of C1: under the spread-only gate 7 d passes for J1909−3744 and B1937+21, and J1012+5307
+  is on epoch cells at any Δ. A 7 d layout would need its own epoch-rule pass, which was
+  not run. #108 was measured only at MDC2 scale.
+- **The dense union path** (`union.array_loglike`) is ~0.1 nat low on real data. The PD
+  jitter 1e-9·s̄·I also lands on masked unit slots, for ½Σ log(1 + 1e-9·s̄) = 0.097 nat at
+  the DMX window (predicted 0.0975, observed 0.0974). It is documented, not fixed: only
+  the dense reference and the K3 cross-check use it, and C1, the epoch rule and Phases 3–6
+  do not.
+- **C1 results.** The committed `results/c1/*.json` had `passes_c1` set by both bounds; it
+  is re-applied as spread-only, and the result writers now record the git SHA.
+- §10's A1 and cost rows, §8 K3's open choice, and task 2.6's text are annotated.
+
+**Approved by the user** on 2026-10-19 ("apply the fixes then merge").
+
+**Sections touched:** §3, §4, §5, §8, §10, §11, §12
