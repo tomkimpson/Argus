@@ -466,6 +466,9 @@ therefore **pivots** with a named next step, not stops.
     that passes C1: coarsen Δ (re-measuring A1), or revisit the #108 parallel filter, whose
     crossover needs exactly the larger T that a fine grid produces.
   - The cost is > 1 s even at the coarsest passing Δ: stop and re-budget with the user.
+  - **Outcome 2026-10-18:** 0.84 s per batched evaluation at the epoch-rule layout, between
+    target and stop. The user accepted it and closed Phase 2 on it; neither pivot is taken
+    (coarsening Δ costs C1 accuracy, and #108 was measured slower at this scale).
   - **Cost is judged as batched throughput** (decided by the user 2026-10-18): wall time of
     one value-plus-gradient call vmapped over B parameter points (B NUTS chains on one
     A100), divided by B. Revisit if lockstep chains turn out to be a major blocker.
@@ -562,7 +565,9 @@ evaluated.
 
 **Goal:** show the narrowband TOAs can be fed to the existing filter exactly (C1) and cheaply.
 **Done when:** C1 passes for all three test pulsars at the chosen Δ, C2 passes, and the 67-psr cost
-benchmark is ≤ 0.5 s per evaluation, with K3 evaluated.
+benchmark is ≤ 0.5 s per evaluation, with K3 evaluated. (amended 2026-10-18: the cost
+criterion is < 1 s per batched evaluation, K3's stop; measured 0.84 s. Speed work carries
+into Phase 5's sampling test — see §12)
 **PR:** _not started_. **Runs in parallel with Phase 1**: the two are independent until K2 is
 evaluated, and Phase 1 has an unverified dependency (Discovery accepting a custom PSD and a
 mixed ORF) that could stall it.
@@ -888,3 +893,22 @@ Between K3's 0.5 s target and its 1 s stop.
 **Approved by the user** on 2026-10-18.
 
 **Sections touched:** §3, §4, §12
+
+### 2026-10-18 — Phase 2 closes at 0.84 s per batched evaluation
+
+**Trigger:** K3 at the epoch-rule layout measured 0.84 s/eval (32 vmapped points, one
+A100), between the 0.5 s target and the 1 s stop. K3's pivots for that zone are both poor:
+coarsening Δ costs C1 accuracy (§12, 2026-10-18 K3 entry), and #108's parallel filter was
+measured slower at MDC2 scale.
+
+**Change:** Phase 2's cost criterion is < 1 s per batched evaluation (K3's stop); speed
+work continues alongside Phase 5's sampling test (§8 K3 outcome, §11 Phase 2).
+
+**Budget consequence:** §5's ladder estimate assumed ≲ 0.5 s; scaled linearly, 0.84 s
+puts the 67-psr ladder at ≈ 1,340 A100-h (from 800) and the total at ≈ 1,540 A100-h, above
+the ~1,000 A100-h confirmed on 2026-10-15. To be re-budgeted before Phase 5 if speed work
+does not close the gap.
+
+**Approved by the user** on 2026-10-18.
+
+**Sections touched:** §8, §11, §12
