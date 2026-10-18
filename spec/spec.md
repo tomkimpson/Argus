@@ -571,7 +571,7 @@ evaluated.
 benchmark is ≤ 0.5 s per evaluation, with K3 evaluated. (amended 2026-10-18: the cost
 criterion is < 1 s per batched evaluation, K3's stop; measured 0.84 s. Speed work carries
 into Phase 5's sampling test — see §12)
-**PR:** _not started_. **Runs in parallel with Phase 1**: the two are independent until K2 is
+**PR:** #131. **Runs in parallel with Phase 1**: the two are independent until K2 is
 evaluated, and Phase 1 has an unverified dependency (Discovery accepting a custom PSD and a
 mixed ORF) that could stall it.
 
