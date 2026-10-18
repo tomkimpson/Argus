@@ -1,6 +1,7 @@
 """Unit tests for model module (Kalman filter math operations)."""
 
 import pytest
+import jax
 import numpy as np
 import jax.numpy as jnp
 from argus import model
@@ -113,6 +114,48 @@ class TestQBlock:
             assert np.isclose(q11, quad, rtol=1e-4)
             # The γ**3 typo would put q11 a factor 1/γ above the true value.
             assert not np.isclose(q11, quad / γ, rtol=1e-2)
+
+    # (γ [s⁻¹], dt [s], q11, q12, q22) from the closed forms at 50 significant digits
+    # (mpmath, mp.dps = 50), rounded to double. Spans x = γ·dt from 1e-12 to ~500.
+    MP50 = [
+        (1e-12, 1.0, 0.33333333333308335, 0.4999999999995, 0.999999999999),
+        (1e-12, 86400, 214990834068593.62, 3732479677.5137444, 86399.99253504042),
+        (1e-12, 1209600, 5.899343517233727e17, 731565195098.2941, 1209598.53686902),
+        (1e-12, 505000000, 4.291295272679357e25, 1.2744812515273914e17, 504745060.8367418),
+        (1e-11, 86400, 214990708685986.66, 3732476775.1389055, 86399.925350443),
+        (1e-11, 2592000, 5.804640052968655e18, 3359144930023.0635, 2591932.8165209354),
+        (1e-9, 1.0, 0.33333333308333335, 0.4999999995, 0.999999999),
+        (1e-9, 1209600, 5.893999999555782e17, 730681801733.1688, 1208138.0469965336),
+        (1e-9, 505000000, 2.990166106831942e25, 7.860391435872112e16, 317890510.21423835),
+        (1e-7, 86400, 213603307159460.03, 3700393305.830891, 85657.78530576223),
+        (1e-7, 505000000, 4.9e22, 50000000000000.0, 5000000.0),
+        (1e-6, 86400, 201604255096454.94, 3425662670.3182716, 79347.070404267),
+        (1e-6, 1209600, 2.617367727933151e17, 246179809407.30768, 455503.6083920695),
+        (1e-6, 2592000, 1.2389375302141066e18, 427932619731.1531, 497197.23032358714),
+    ]
+
+    @pytest.mark.parametrize("γ,dt,q11,q12,q22", MP50)
+    def test_matches_50_digit_reference(self, γ, dt, q11, q12, q22):
+        """No cancellation at small γ·dt (regression: q11 was 5% off at γ = 1e-12, 1 d)."""
+        Q = np.asarray(model.get_Q_block(γ, float(dt)))
+        np.testing.assert_allclose(Q[0, 0], q11, rtol=1e-13)
+        np.testing.assert_allclose(Q[0, 1], q12, rtol=1e-13)
+        np.testing.assert_allclose(Q[1, 1], q22, rtol=1e-13)
+
+    def test_zero_dt_and_finite_gradient(self):
+        """dt = 0 gives Q = 0 exactly (the two-scalar compression's dt = 0 steps), and
+        the γ-gradient is finite on both sides of the series switch."""
+        assert np.all(np.asarray(model.get_Q_block(1e-9, 0.0)) == 0.0)
+        for dt in (0.0, 0.99e8, 1.01e8):  # x = 0, just below, just above 0.1
+            g = jax.grad(lambda γ: model.get_Q_block(γ, dt).sum())(1e-9)
+            assert np.isfinite(float(g))
+
+    def test_series_branch_is_continuous(self):
+        """The series and closed forms agree at the switch x = 0.1."""
+        γ = 1e-9
+        lo = np.asarray(model.get_Q_block(γ, 0.1 / γ * (1 - 1e-12)))
+        hi = np.asarray(model.get_Q_block(γ, 0.1 / γ * (1 + 1e-12)))
+        np.testing.assert_allclose(lo, hi, rtol=1e-10)
 
     def test_q11_small_dt_cubic_limit(self):
         """For γ·dt << 1 the position variance approaches the dt³/3 white-noise result."""
