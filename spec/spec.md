@@ -592,38 +592,38 @@ evaluated.
 benchmark is ≤ 0.5 s per evaluation, with K3 evaluated. (amended 2026-10-18: the cost
 criterion is < 1 s per batched evaluation, K3's stop; measured 0.84 s. Speed work carries
 into Phase 5's sampling test — see §12)
-**PR:** #131. **Runs in parallel with Phase 1**: the two are independent until K2 is
+**PR:** #131 (merged 2026-10-19). **Runs in parallel with Phase 1**: the two are independent until K2 is
 evaluated, and Phase 1 has an unverified dependency (Discovery accepting a custom PSD and a
 mixed ORF) that could stall it.
 
-- [ ] 2.1 Narrowband ingest from the Discovery feathers (pyarrow only) into an Argus-side cache
+- [x] 2.1 Narrowband ingest from the Discovery feathers (pyarrow only) into an Argus-side cache
       that keeps per-TOA backend, radio frequency, ECORR epoch id, DMX window id and the full
       M with column names — verify by round-tripping two pulsars and checking TOA counts and
       column names against the feather. Report the DMX-window length distribution, the number
       of single-frequency windows (dropped, D2), the number of windows that span more than
       one ECORR epoch, the number of ECORR epochs that straddle a window boundary (merged,
       D2), and the timing-model columns dropped by the rank rule.
-- [ ] 2.2 Implement compression (D2) as a pure numpy/JAX preprocessing module with unit tests on
+- [x] 2.2 Implement compression (D2) as a pure numpy/JAX preprocessing module with unit tests on
       a synthetic pulsar where the exact answer is known. The synthetic pulsar includes a
       window with two ECORR epochs, an ECORR epoch straddling two windows, a single-frequency
       window, and a DM column degenerate with DMX — verify by matching the compressed vs dense
       likelihood on the synthetic case to 1e-10, with a constant state per window so A1 holds
       exactly.
-- [ ] 2.3 Add initial accumulators (A₀, b₀, c₀) to `_run_kalman_filter_marginal` — verify by C2
+- [x] 2.3 Add initial accumulators (A₀, b₀, c₀) to `_run_kalman_filter_marginal` — verify by C2
       (the golden tests pass, plus a new exact-equality test of zero accumulators against the
       unmodified call) and a test showing nonzero A₀ equals appending the equivalent rows.
-- [ ] 2.4 Build the dense brute-force oracle: raw TOAs, the **continuous-time** analytic OU
+- [x] 2.4 Build the dense brute-force oracle: raw TOAs, the **continuous-time** analytic OU
       covariance at each TOA time (not the gridded F/Q), WN + ECORR, full M after the rank
       rule, diffuse — verify by checking it on the synthetic pulsar against 2.2, and on a
       single-step grid against the filter.
-- [ ] 2.5 Run C1 on J1909−3744, one strong-red-noise pulsar and J1012+5307 (shallow) at
+- [x] 2.5 Run C1 on J1909−3744, one strong-red-noise pulsar and J1012+5307 (shallow) at
       Δ ∈ {DMX window, 7 d, 14 d, 30 d} — verify by the ΔlnL spread and gradient error tables in N1; choose the largest Δ that passes.
       (amended 2026-10-18: one scalar per window fails at every Δ; rerun C1 with the
       two-scalar D2 at the DMX window, and leave the remaining misses to the user's
       decision after 2.6 — see §12)
       (amended 2026-10-18, second: pulsars that miss use epoch cells, chosen by the D2
       rule over all 67; a residual within the oracle's precision passes — see §12)
-- [ ] 2.6 Compress all 67, build the union grid with masks, benchmark the likelihood plus
+- [x] 2.6 Compress all 67, build the union grid with masks, benchmark the likelihood plus
       gradient on one A100 — verify by the recorded seconds per evaluation and memory; evaluate K3.
       (amended 2026-10-18: on the two-scalar union grid, two steps per window; run before
       the 2.5 decision)
