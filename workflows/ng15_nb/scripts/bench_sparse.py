@@ -2,12 +2,15 @@
 """K3 re-budget: the 67-psr likelihood-plus-gradient cost on the sparse marginal filter.
 
     python workflows/ng15_nb/scripts/bench_sparse.py [--delta-days none|7|14|30] \
-        [--segments 64 128 256] [--batches 1 4 16 32] [--repeats 5] [--out workflows/ng15_nb/results/k3/sparse_<delta>.json]
+        [--segments 64 128 256] [--batches 1 4 16 32] [--repeats 5] [--epoch-rule] [--out workflows/ng15_nb/results/k3/sparse_<delta>.json]
 
 Same compression, point and parameters as `bench_union_grid.py`, but every scalar
 observation is one step of `jk._run_kalman_filter_marginal_sparse` (approved
 2026-10-18), so the step count is the number of observations at any Δ. The value is
 compared with the dense union-grid result in results/k3/<delta>.json when present.
+
+`--epoch-rule` compresses the pulsars that D2's rule selects
+(results/c1/epoch_rule.json) into epoch cells instead, the layout Phases 3-6 use.
 
 The sparse scan is latency-bound (~2 MFLOP per step), so `--batches` also times
 value-and-gradient vmapped over B parameter points (B NUTS chains on one GPU); the
@@ -43,15 +46,24 @@ def main():
     ap.add_argument("--segments", nargs="*", type=int, default=[64, 128, 256])
     ap.add_argument("--batches", nargs="*", type=int, default=[1, 4, 16, 32])
     ap.add_argument("--repeats", type=int, default=5)
+    ap.add_argument("--epoch-rule", action="store_true")
     ap.add_argument("--out")
     args = ap.parse_args()
     delta = None if args.delta_days == "none" else float(args.delta_days)
     tag = "dmx_window" if delta is None else f"{delta:g}d"
+    epoch = set()
+    if args.epoch_rule:
+        rule = REPO / "workflows/ng15_nb/results/c1/epoch_rule.json"
+        epoch = set(json.loads(rule.read_text())["needs_epoch_cells"])
+        tag += "_epoch_rule"
     out = Path(args.out or REPO / f"workflows/ng15_nb/results/k3/sparse_{tag}.json")
     out.parent.mkdir(parents=True, exist_ok=True)
 
     caches = [ingest.load(p) for p in sorted(Path(args.ingest_dir).glob("*.npz"))]
-    comps = [compress.compress_pulsar(c, delta_days=delta) for c in caches]
+    comps = [
+        compress.compress_pulsar(c, delta_days=delta, per_epoch=c["name"] in epoch)
+        for c in caches
+    ]
     names = [c["name"] for c in caches]
     inp = union.build_sparse_inputs(comps, union.hd_matrix(caches))
     M_sum = int(inp["obs"]["m"].shape[1])
@@ -135,6 +147,7 @@ def main():
         "n_psr": len(comps),
         "n_obs": inp["n_obs"],
         "M_sum": M_sum,
+        "epoch_cell_pulsars": sorted(epoch),
         "runs": rows,
         "batched_value_and_grad": batch_rows,
         "dense_lnL": dense_lnL,
