@@ -446,6 +446,9 @@ therefore **pivots** with a named next step, not stops.
     that passes C1: coarsen Δ (re-measuring A1), or revisit the #108 parallel filter, whose
     crossover needs exactly the larger T that a fine grid produces.
   - The cost is > 1 s even at the coarsest passing Δ: stop and re-budget with the user.
+  - **Cost is judged as batched throughput** (decided by the user 2026-10-18): wall time of
+    one value-plus-gradient call vmapped over B parameter points (B NUTS chains on one
+    A100), divided by B. Revisit if lockstep chains turn out to be a major blocker.
 - **K4 (Phase 5). The 67-psr joint posterior won't sample.** That means the pilot still fails
   the Phase 5 Done-when thresholds (r̂ ≤ 1.01, divergences ≤ 0.5%, bulk ESS ≥ 400, no frozen
   chain) after three levers. The thresholds are the same, so there is no limbo band.
@@ -798,9 +801,11 @@ A100, 67 psr, two scalars per cell, against K3's 0.5 s target and 1 s stop.
 - D2: grid cells are stamped at t_c with the position-row shift; DMX-window cells at t_w.
 - Proposed, not yet decided: the array likelihood for Phases 3–6 is the sparse filter at
   the DMX-window Δ.
-- **Open, for the user:** K3 as written is per evaluation (6.2 s → stop). Batched over
-  chains it is 0.87 s (between target and stop). Whether K3 is judged on batched throughput
-  is not yet decided, nor are the remaining C1 misses (the 2026-10-18 amendment above).
+- ~~Open: whether K3 is judged on batched throughput (per evaluation it is 6.2 s).~~ —
+  resolved 2026-10-18: the user accepts batched throughput for now (K3, §8), so the sparse
+  filter at 0.87 s/eval sits between K3's target and stop. Speed work continues.
+- The remaining C1 misses: the user asked (2026-10-18) to try both fallbacks — epoch cells
+  with DMX in β for the pulsars that need it, and, if needed, a relaxed gradient bound.
 
 **Approved by the user** on 2026-10-18 (the sparse filter, the `get_Q_block` fix and this
 note).
