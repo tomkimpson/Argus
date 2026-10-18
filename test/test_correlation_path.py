@@ -358,16 +358,18 @@ def test_epsilon_gradient_matches_finite_differences(mdc2_setup):
     def logl(eps):
         return float(kf.get_likelihood(base.replace(orf_epsilon=eps)))
 
-    # The step is deliberately large. The log-likelihood is O(6e4) while its
-    # derivative in eps is O(4), so a central difference subtracts two nearly equal
-    # numbers carrying the filter's rounding noise. On the diffuse path that noise is
-    # ~1e-3 nat: Λ = A is badly conditioned (equilibrated condition number ~1e12) and
-    # nothing regularises it. (Before 2026-10-17 a jitter on Λ smoothed it to ~6e-6
-    # nat, at the cost of a −35 nat bias.) Measured here: h=1e-2 is off by 1.3%, h=0.1
-    # by 1.5e-5. The noise is in the value only; the autodiff gradient is smooth.
+    # A two-point central difference subtracts two nearly equal O(6e4) numbers that
+    # carry the diffuse filter's ~1e-3 nat rounding noise (Λ = A is badly conditioned,
+    # equilibrated condition number ~1e12, and nothing regularises it), against a
+    # derivative of O(4). Measured 2026-10-18: central differences at h = 0.02-0.2
+    # scatter by ~±0.03 around the autodiff value (platform-dependent), whichever side
+    # of the 2026-10-18 get_Q_block fix. So the independent route is a quartic least-squares fit over
+    # nine points on [0.3, 0.7], whose slope at 0.5 averages that noise down (within
+    # 0.25% of autodiff on both versions). The autodiff gradient itself is smooth.
     eps0 = 0.5
-    step = 1e-1
-    finite_difference = (logl(eps0 + step) - logl(eps0 - step)) / (2.0 * step)
+    offsets = np.linspace(-0.2, 0.2, 9)
+    values = np.array([logl(eps0 + d) for d in offsets])
+    finite_difference = np.polyfit(offsets, values, 4)[-2]
     autodiff = float(
         jax.grad(lambda e: kf.get_likelihood(base.replace(orf_epsilon=e)))(eps0)
     )

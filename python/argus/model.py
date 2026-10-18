@@ -11,7 +11,25 @@ import jax.numpy as jnp
 from jax.scipy.linalg import block_diag
 from jax import vmap
 from functools import partial
+import math
 import numpy as np
+
+# Taylor coefficients of q11 / dt³ and q12 / dt² in x = γ·dt (see `get_Q_block`):
+#   q11 = dt³ Σ_{k≥3} (−1)^{k+1} (2^{k−1} − 2) x^{k−3} / k!
+#   q12 = dt² Σ_{k≥2} (−1)^k (2^{k−1} − 1) x^{k−2} / k!
+# 18 terms reach double precision for x < 0.1 (the next term is < 1e-22 relative).
+_Q_SERIES_X = 0.1
+_Q11_SERIES = [
+    (-1) ** (k + 1) * (2 ** (k - 1) - 2) / math.factorial(k) for k in range(3, 21)
+]
+_Q12_SERIES = [(-1) ** k * (2 ** (k - 1) - 1) / math.factorial(k) for k in range(2, 20)]
+
+
+def _horner(coeffs, x):
+    out = jnp.zeros_like(x)
+    for c in reversed(coeffs):
+        out = out * x + c
+    return out
 
 
 def get_F_block(γ: float, dt: float) -> jax.Array:
@@ -40,14 +58,20 @@ def get_F_block(γ: float, dt: float) -> jax.Array:
 def get_Q_block(γ: float, dt: float) -> jax.Array:
     """Compute Q block matrix using JAX.
 
-    Uses expm1 for improved numerical stability when gamma*dt is small.
     Assumes gamma != 0 based on prior constraints.
 
-    Note: For very small γ or dt values, exponential terms may need
-    special handling to maintain numerical stability.
+    For x = γ·dt < 0.1 q11 and q12 are taken from their Taylor series in x. The closed
+    forms below cancel catastrophically there: q11's bracket is O(x³) built from O(x)
+    terms, so it lost ~|log10 x|·2 digits (5% error at γ = 1e-12 s⁻¹, dt = 1 d; ~1e-3
+    at dt = 2 weeks); above 0.1 the closed forms use expm1. The series matches 50-digit references to ~1e-15 relative.
     """
-    neg_gamma_dt = -γ * dt
-    neg_2gamma_dt = -2 * γ * dt
+    x = γ * dt
+    small = x < _Q_SERIES_X
+    # Keep both branches finite so the unused one never poisons gradients.
+    xs = jnp.where(small, x, 0.5 * _Q_SERIES_X)
+    dt_big = jnp.where(small, 1.0 / γ, dt)
+    neg_gamma_dt = -γ * dt_big
+    neg_2gamma_dt = -2 * γ * dt_big
 
     # Using expm1: (1 - exp(x)) = -expm1(x)
     one_minus_exp_term = -jnp.expm1(neg_gamma_dt)
@@ -61,9 +85,13 @@ def get_Q_block(γ: float, dt: float) -> jax.Array:
     # e^{Aτ}B = [(1-e^{-γτ})/γ, e^{-γτ}]ᵀ. The position variance is therefore
     #   q11 = ∫_0^dt [(1-e^{-γτ})/γ]² dτ = [dt - 2(1-e^{-γdt})/γ + (1-e^{-2γdt})/(2γ)] / γ²
     # (small-γdt limit → dt³/3, matching the double-integrated white-noise result).
-    q11 = (dt - 2 * one_minus_exp_term / γ + one_minus_exp_2term / (2 * γ)) / γ**2
-    q12 = (one_minus_exp_term - one_minus_exp_2term / 2) / (γ**2)
-    q22 = one_minus_exp_2term / (2 * γ)
+    q11_closed = (
+        dt_big - 2 * one_minus_exp_term / γ + one_minus_exp_2term / (2 * γ)
+    ) / γ**2
+    q12_closed = (one_minus_exp_term - one_minus_exp_2term / 2) / (γ**2)
+    q11 = jnp.where(small, dt**3 * _horner(_Q11_SERIES, xs), q11_closed)
+    q12 = jnp.where(small, dt**2 * _horner(_Q12_SERIES, xs), q12_closed)
+    q22 = -jnp.expm1(-2 * γ * dt) / (2 * γ)
 
     return jnp.array([[q11, q12], [q12, q22]])
 
