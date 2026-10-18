@@ -875,8 +875,15 @@ J1705−1903, J1903+0327; M_sum 1,607); the other 63 spreads sum to ≤ 0.05 nat
 differences (§3 C1, §4 D2). The oracle check on the three C1 pulsars is unchanged.
 
 Also recorded: a chunked Ξ update in the sparse filter (approved as a speed step) was exact
-but not faster (32 vmapped points: 0.93 vs 0.99 s/eval; one point 11.3 vs 9.4 s), so it was
-not merged.
+but not faster on its own (32 vmapped points: 0.93 vs 0.99 s/eval; one point 11.3 vs
+9.4 s). A GPU profile then showed the backward pass launch-bound on `get_Q_block`'s
+per-step series residuals; checkpointing the Q blocks as well made both pay.
+
+**K3 at the rule layout** (67 psr, 15,372 observations, M_sum 1,607, one A100,
+`results/k3/sparse_dmx_window_epoch_rule.json`): before, 1.27 s/eval at 32 vmapped points
+(10.6 s for one point), over K3's 1 s stop; with chunked Ξ (chunk 8) and checkpointed Q,
+**0.84 s/eval** (6.7 s for one point), lnL equal to 1e-8 nat and gradient to 2e-9.
+Between K3's 0.5 s target and its 1 s stop.
 
 **Approved by the user** on 2026-10-18.
 
