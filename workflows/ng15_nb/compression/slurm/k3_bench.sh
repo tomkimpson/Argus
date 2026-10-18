@@ -1,6 +1,6 @@
 #!/bin/bash
 # Task 2.6 / K3: the 67-psr union-grid value-plus-gradient cost on one A100.
-# Writes workflows/ng15_nb/results/k3_benchmark.json.
+# Writes workflows/ng15_nb/results/k3/<delta>.json; pass e.g. --delta-days 14.
 #
 #   mkdir -p workflows/ng15_nb/outputs/logfiles
 #   sbatch workflows/ng15_nb/compression/slurm/k3_bench.sh

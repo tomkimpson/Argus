@@ -2,12 +2,13 @@
 """Task 2.6: the 67-psr union-grid likelihood-plus-gradient cost on one A100 (K3).
 
     python workflows/ng15_nb/scripts/bench_union_grid.py \
-        [--ingest-dir workflows/ng15_nb/data/ingest] [--repeats 5] \
-        [--out workflows/ng15_nb/results/k3_benchmark.json]
+        [--delta-days none|7|14|30] [--ingest-dir workflows/ng15_nb/data/ingest] \
+        [--repeats 5] [--out workflows/ng15_nb/results/k3/<delta>.json]
 
-Every ingested pulsar is compressed at the DMX-window Δ with two scalars per cell (D2 as
-amended 2026-10-18) and placed on the masked union grid (`union.build_union_inputs`,
-two steps per union time). The diffuse marginal filter's value and its gradient with
+Every ingested pulsar is compressed at grid width Δ (or per DMX window) with two scalars
+per cell (D2 as amended 2026-10-18) and placed on the masked union grid
+(`union.build_union_inputs`, two steps per union time). Grid cells are stamped at their
+centres, so pulsars share steps and the step count falls with Δ. The diffuse marginal filter's value and its gradient with
 respect to all 2 + 2N sampled parameters (log10 ha, log10 γa, log10 σp, log10 γp) are then
 timed after compilation. The point is the Phase 1 Discovery-OU posterior mean where it is
 available, which only matters for the finiteness check; the cost does not depend on it.
@@ -109,13 +110,18 @@ def timed(f, *args, repeats):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--ingest-dir", default=str(REPO / "workflows/ng15_nb/data/ingest"))
+    ap.add_argument("--delta-days", default="none")
     ap.add_argument("--repeats", type=int, default=5)
-    ap.add_argument("--out", default=str(REPO / "workflows/ng15_nb/results/k3_benchmark.json"))
+    ap.add_argument("--out")
     args = ap.parse_args()
+    delta = None if args.delta_days == "none" else float(args.delta_days)
+    tag = "dmx_window" if delta is None else f"{delta:g}d"
+    out = Path(args.out or REPO / f"workflows/ng15_nb/results/k3/{tag}.json")
+    out.parent.mkdir(parents=True, exist_ok=True)
 
     t = time.perf_counter()
     caches = [ingest.load(p) for p in sorted(Path(args.ingest_dir).glob("*.npz"))]
-    comps = [compress.compress_pulsar(c) for c in caches]
+    comps = [compress.compress_pulsar(c, delta_days=delta) for c in caches]
     compress_s = time.perf_counter() - t
     names = [c["name"] for c in caches]
     inp = union.build_union_inputs(comps, union.hd_matrix(caches))
@@ -148,6 +154,7 @@ def main():
     occupancy = float(np.asarray(inp["mask_matrices"]).mean())
     result = {
         "device": str(dev),
+        "delta": tag,
         "n_psr": N,
         "n_union_times": inp["n_union_times"],
         "n_steps": T,
@@ -174,7 +181,7 @@ def main():
     }
     print(json.dumps({k: v for k, v in result.items() if k not in ("point", "pulsars")}, indent=1),
           flush=True)
-    Path(args.out).write_text(json.dumps(result, indent=1) + "\n")
+    out.write_text(json.dumps(result, indent=1) + "\n")
 
 
 if __name__ == "__main__":

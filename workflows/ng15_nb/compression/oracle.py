@@ -115,7 +115,9 @@ def filter_inputs(comp):
 
     A one-scalar compression gives one step per cell with a scalar. A two-scalar one gives
     two steps per such cell at t_w, dt = 0 apart: the position scalar (H on r and φ) then
-    the velocity scalar (H on ṙ and φ̇), the latter masked where the cell has none. Each
+    the velocity scalar (H on ṙ and φ̇), the latter masked where the cell has none. A grid
+    cell is stamped at its centre t_c while ŝ measures s(t_w), so the position row also
+    carries −(t_w − t_c) on ṙ and (t_w − t_c)/f0 on φ̇. Each
     masked step adds log 2π to the filter's log-det stream; `offset` undoes that, so
     filter_loglike + comp["const"] is the dense likelihood.
     """
@@ -123,6 +125,7 @@ def filter_inputs(comp):
     two = bool(comp["has_velocity"].any())
     f0 = comp["f0"]
     K = comp["m"].shape[1]
+    shift = (comp["t_weighted"] - comp["times"])[has] if two else np.zeros(has.sum())
     if not two:
         rows = [(comp["s_hat"][has], comp["sigma2"][has], comp["m"][has], 0, np.ones(has.sum()))]
         times = comp["times"][has]
@@ -144,6 +147,9 @@ def filter_inputs(comp):
         H[sl, 0, 0 + col] = -1.0  # GW redshift r (or ṙ)
         H[sl, 0, 2 + col] = 1.0 / f0  # spin phase φ (or φ̇)
         H[sl, 0, 4:] = m
+        if col == 0:
+            H[sl, 0, 1] = -shift
+            H[sl, 0, 3] = shift / f0
     A0, b0, c0 = comp["accum0"]
     return {
         "data": jnp.asarray(y),

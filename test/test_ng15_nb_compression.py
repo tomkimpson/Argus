@@ -198,7 +198,7 @@ def test_edge_cases_are_handled():
 
 def test_grid_cells_are_stamped_at_their_centres():
     cache = synthetic_pulsar()
-    comp = compress.compress_pulsar(cache, delta_days=30.0, velocity=False)
+    comp = compress.compress_pulsar(cache, delta_days=30.0)
     k = (comp["times"] - compress.T0_DEFAULT) / (30.0 * DAY) - 0.5
     np.testing.assert_allclose(k, np.round(k), atol=1e-12)
     assert np.all(np.diff(comp["times"]) > 0)
@@ -329,12 +329,14 @@ def _iou_joint_cov(t, gamma, sigma2):
     return np.asarray(K)
 
 
+@pytest.mark.parametrize("delta_days", [None, 30.0])
 @pytest.mark.parametrize("p", POINTS)
-def test_two_step_filter_equals_compressed_dense(p, monkeypatch):
+def test_two_step_filter_equals_compressed_dense(p, delta_days, monkeypatch):
     """Two filter steps per cell at dt = 0 reproduce the two-scalar compressed likelihood
-    under the exact joint (s, ṡ) covariance, including the masked single-frequency cell."""
+    under the exact joint (s, ṡ) covariance at the cell stamps. At Δ = 30 d the stamps are
+    grid centres, so this also checks the position row's (t_w − t_c) shift."""
     cache = synthetic_pulsar()
-    comp = compress.compress_pulsar(cache)
+    comp = compress.compress_pulsar(cache, delta_days=delta_days)
     fi = oracle.filter_inputs(comp)
     assert int(np.sum(np.asarray(fi["mask_matrices"]) == 0)) == 0  # no lone positions
     monkeypatch.setattr(oracle, "jk", _jitter_free_filter_module())
@@ -379,14 +381,20 @@ def test_masked_velocity_step_offset():
 import union  # noqa: E402
 
 
-def test_union_grid_equals_sum_of_pulsars():
+@pytest.mark.parametrize("delta_days", [None, 30.0])
+def test_union_grid_equals_sum_of_pulsars(delta_days):
     """With an identity ORF the pulsars are independent, so the masked union-grid filter
-    equals the sum of the single-pulsar filters (each on its own cells)."""
+    equals the sum of the single-pulsar filters (each on its own cells). At Δ = 30 d the
+    two pulsars share grid times."""
     caches = [synthetic_pulsar(seed=0), synthetic_pulsar(seed=1)]
     caches[1] = dict(caches[1], f0=211.0, toas=caches[1]["toas"] + 2.3 * DAY)
-    comps = [compress.compress_pulsar(c) for c in caches]
+    comps = [compress.compress_pulsar(c, delta_days=delta_days) for c in caches]
     inp = union.build_union_inputs(comps, np.eye(2))
-    assert inp["n_union_times"] == sum(int(c["has_scalar"].sum()) for c in comps)
+    n_cells = sum(int(c["has_scalar"].sum()) for c in comps)
+    if delta_days is None:
+        assert inp["n_union_times"] == n_cells
+    else:
+        assert inp["n_union_times"] < n_cells
     p1 = (-12.0, -6.0, -13.0, -6.0)
     p2 = (-12.0, -6.0, -12.5, -6.5)
     pa = jnp.asarray([p1[0], p1[1], p1[2], p2[2], p1[3], p2[3]])

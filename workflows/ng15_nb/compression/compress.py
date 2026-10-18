@@ -123,8 +123,11 @@ def compress_pulsar(
         delta_days: grid cell width; None compresses each (merged) DMX window alone.
         t0: grid origin (s). Cell k is [t0 + kΔ, t0 + (k+1)Δ), stamped at its centre.
         rank_tol: rank-rule threshold on the squared singular-value ratio.
-        velocity: emit the second (rate) scalar per cell. The cells are then stamped at
-            t_w, not at the grid centre, since the rate scalar is defined about t_w.
+        velocity: emit the second (rate) scalar per cell. Grid cells are still stamped
+            at their centres t_c, so pulsars share filter steps; the position scalar
+            measures s(t_w) = s(t_c) + ṡ(t_c)(t_w − t_c), which the filter's position row
+            carries as a −(t_w − t_c) coefficient on the rate states (exact for a state
+            linear in the cell).
 
     Returns a dict: times (cell timestamps, s), s_hat, sigma2, m (cells × kept, scaled),
     v_hat, sigma2_v, m_v, has_velocity (the rate scalar; zero/inf/False if velocity=False),
@@ -253,7 +256,7 @@ def compress_pulsar(
     b0 = (rem_M.T @ rem_z)[:, None]
     c0 = float(rem_z @ rem_z)
 
-    if grid_ids is None or velocity:
+    if grid_ids is None:
         times = t_w
     else:
         times = t0 + (grid_ids + 0.5) * delta_days * DAY
@@ -314,6 +317,10 @@ def compressed_dense_loglike(comp, K_cells):
     """
     nc = comp["s_hat"].size
     if K_cells.shape[0] == 2 * nc:
+        # K_cells is about the cell stamps `times`; ŝ measures s(t_w) = s + ṡ (t_w − t).
+        J = np.eye(2 * nc)
+        J[0::2, 1::2] = np.diag(comp["t_weighted"] - comp["times"])
+        K_cells = J @ K_cells @ J.T
         has = np.column_stack([comp["has_scalar"], comp["has_velocity"]]).ravel()
         sig = np.column_stack([comp["sigma2"], comp["sigma2_v"]]).ravel()
         z = np.column_stack([comp["s_hat"], comp["v_hat"]]).ravel()

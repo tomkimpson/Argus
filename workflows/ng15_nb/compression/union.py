@@ -2,15 +2,24 @@
 
 Each pulsar's compression (two scalars per cell, `compress.compress_pulsar`) is placed on
 the union of every pulsar's cell times. A union time carries two filter steps, dt = 0
-apart: the position step and the velocity step. A pulsar without a cell at that time, or
+apart: the position step and the velocity step. Cells are stamped at their grid centres
+(or at t_w for DMX-window cells), so with a grid Δ pulsars share steps; the position row
+carries the stamp-to-t_w shift on the rate states (see `oracle.filter_inputs`). A pulsar
+without a cell at that time, or
 without a velocity scalar in that cell, is masked there. The β-only remainders combine
 block-diagonally into one (A₀, b₀, c₀).
 
 State layout follows the library (`model.compute_H_matrix_for_step`): GW [r_n, ṙ_n] at
 columns 2n, 2n+1; spin [φ_n, φ̇_n] at 2N + 2n, 2N + 2n + 1; timing β'_n from 4N on.
 
+Every observation is whitened to unit noise (y/σ, H/σ, σ → 1). The library's
+innovation jitter is 1e-9 × the mean S over the pulsars observed at a step, so once
+pulsars share steps an observation with a huge σ² (a velocity scalar from a cell spanning
+seconds) would otherwise set the jitter on its well-measured neighbours. On the synthetic
+pair at Δ = 30 d that cost 3.8 nat; whitening makes every S ≥ 1 and comparable.
+
 `offset` undoes the log 2π each masked (pulsar, step) adds to the filter's log-det
-stream, and `const` sums the compressions' constants, so
+stream and the whitening's Σ log σ, and `const` sums the compressions' constants, so
 
     array_loglike(p, inp) + inp["const"]
 
@@ -62,6 +71,9 @@ def build_union_inputs(comps, orf):
         H[pos, n, 2 * n] = -1.0
         H[pos, n, 2 * N + 2 * n] = 1.0 / c["f0"]
         H[pos, n, cols] = c["m"][has]
+        shift = (c["t_weighted"] - c["times"])[has]
+        H[pos, n, 2 * n + 1] = -shift
+        H[pos, n, 2 * N + 2 * n + 1] = shift / c["f0"]
         vel = vel[hv]
         y[vel, n] = c["v_hat"][has][hv]
         err[vel, n] = np.sqrt(c["sigma2_v"][has][hv])
@@ -69,6 +81,10 @@ def build_union_inputs(comps, orf):
         H[vel, n, 2 * n + 1] = -1.0
         H[vel, n, 2 * N + 2 * n + 1] = 1.0 / c["f0"]
         H[vel, n, cols] = c["m_v"][has][hv]
+
+    # Whiten (exact: the scaling's Jacobian Σ log σ goes into the offset).
+    log_sigma = float(np.sum(np.log(err[mask > 0])))
+    y, H, err = y / err, H / err[:, :, None], np.ones_like(err)
 
     A0 = block_diag(*[c["accum0"][0] for c in comps])
     b0 = np.concatenate([c["accum0"][1] for c in comps])
@@ -83,7 +99,7 @@ def build_union_inputs(comps, orf):
         "orf": jnp.asarray(orf),
         "Npsr": N,
         "M_sum": int(np.sum(Ks)),
-        "offset": 0.5 * LN2PI * float(np.sum(mask == 0)),
+        "offset": 0.5 * LN2PI * float(np.sum(mask == 0)) - log_sigma,
         "const": float(sum(c["const"] for c in comps)),
         "n_union_times": int(times.size),
     }

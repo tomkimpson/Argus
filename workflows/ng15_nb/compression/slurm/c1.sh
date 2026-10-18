@@ -29,4 +29,4 @@ PULSARS=(B1937+21 J1012+5307 J1909-3744 B1855+09)
 P=${PULSARS[$SLURM_ARRAY_TASK_ID]}
 echo "pulsar ${P}  commit $(git rev-parse --short HEAD)"
 nvidia-smi --query-gpu=name,memory.total --format=csv
-python workflows/ng15_nb/scripts/c1_compression.py --pulsar "${P}" --deltas none 7 14 30
+python workflows/ng15_nb/scripts/c1_compression.py --pulsar "${P}" --deltas none 7 14 30 "$@"
