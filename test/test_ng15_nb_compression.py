@@ -495,6 +495,31 @@ def test_sparse_filter_informative_prior_matches_dense(monkeypatch):
     assert abs(float(ls) - float(ld)) <= 1e-9 * abs(float(ld)), (ls, ld)
 
 
+@pytest.mark.parametrize("delta_days", [None, 30.0])
+def test_library_sparse_filter_matches_jitter_free_copy(delta_days, monkeypatch):
+    """The library's own sparse filter, not the test-only copy the tests above use: it
+    equals the jitter-free copy up to its 1e-9 innovation jitter, in value and gradient.
+    """
+    from argus import jax_kalman_filter as jk
+
+    comps = _synthetic_pair(delta_days)
+    sparse = union.build_sparse_inputs(comps, ORF_PAIR)
+
+    def f(p):
+        return union.array_loglike_sparse(p, sparse, 16, 8)
+
+    assert union.jk is jk
+    vl, gl = jax.value_and_grad(f)(P_PAIR)
+    monkeypatch.setattr(union, "jk", _jitter_free_filter_module())
+    vc, gc = jax.value_and_grad(f)(P_PAIR)
+    assert np.isfinite(float(vl)) and np.all(np.isfinite(gl))
+    # ½ log(1 + 1e-9) per whitened observation, so ≲ 1e-9 × n_obs.
+    assert abs(float(vl) - float(vc)) <= 1e-9 * sparse["n_obs"], (vl, vc)
+    np.testing.assert_allclose(
+        gl, gc, rtol=1e-6, atol=1e-6 * float(jnp.max(jnp.abs(gc)))
+    )
+
+
 # --------------------------------------------------------------------------- #
 # Epoch cells with DMX kept in β (C1 fallback for fast-red-noise pulsars)
 # --------------------------------------------------------------------------- #
