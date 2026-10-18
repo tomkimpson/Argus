@@ -58,13 +58,12 @@ def get_F_block(γ: float, dt: float) -> jax.Array:
 def get_Q_block(γ: float, dt: float) -> jax.Array:
     """Compute Q block matrix using JAX.
 
-    Uses expm1 for improved numerical stability when gamma*dt is small.
     Assumes gamma != 0 based on prior constraints.
 
     For x = γ·dt < 0.1 q11 and q12 are taken from their Taylor series in x. The closed
     forms below cancel catastrophically there: q11's bracket is O(x³) built from O(x)
-    terms, so it lost ~|log10 x|·2 digits (5% error at γ = 1e-12 s⁻¹, dt = 1 d; 8.5e-4
-    at dt = 2 weeks). The series matches 50-digit references to ~1e-15 relative.
+    terms, so it lost ~|log10 x|·2 digits (5% error at γ = 1e-12 s⁻¹, dt = 1 d; ~1e-3
+    at dt = 2 weeks); above 0.1 the closed forms use expm1. The series matches 50-digit references to ~1e-15 relative.
     """
     x = γ * dt
     small = x < _Q_SERIES_X

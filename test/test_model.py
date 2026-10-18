@@ -116,7 +116,7 @@ class TestQBlock:
             assert not np.isclose(q11, quad / γ, rtol=1e-2)
 
     # (γ [s⁻¹], dt [s], q11, q12, q22) from the closed forms at 50 significant digits
-    # (mpmath, mp.dps = 50), rounded to double. Spans x = γ·dt from 1e-12 to ~500.
+    # (mpmath, mp.dps = 50), rounded to double. Spans x = γ·dt from 1e-12 to ~50.
     MP50 = [
         (1e-12, 1.0, 0.33333333333308335, 0.4999999999995, 0.999999999999),
         (1e-12, 86400, 214990834068593.62, 3732479677.5137444, 86399.99253504042),
@@ -174,7 +174,7 @@ class TestQBlock:
 
     def test_q11_small_dt_cubic_limit(self):
         """For γ·dt << 1 the position variance approaches the dt³/3 white-noise result."""
-        γ, dt = 1e-3, 1.0  # γ·dt = 1e-3: small enough for dt³/3, mild cancellation
+        γ, dt = 1e-3, 1.0  # γ·dt = 1e-3: small enough for dt³/3 (series branch)
         q11 = float(model.get_Q_block(γ, dt)[0, 0])
         assert np.isclose(q11, dt**3 / 3.0, rtol=2e-3)
 
