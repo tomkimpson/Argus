@@ -171,6 +171,15 @@ Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not
   - Tolerance: after removing one parameter-independent constant, the spread of
     ΔlnL across 20 random parameter points is **≤ 0.01 nats**.
   - Gradients agree to a relative error of **≤ 1e-4**.
+  - **The oracle's own precision** (amended 2026-10-18). Where the dense oracle is too
+    ill-conditioned to resolve these bounds, the check passes when the residual is within
+    the oracle's precision. That precision is measured by moving the oracle's time origin
+    (exact in theory, conditioned differently): the shift in its spread and gradient is
+    its noise floor. Measured: B1937+21 1.5e-2 nat / 2.3e-3, B1855+09 8e-6 / 1.1e-6.
+  - **Epoch cells as the per-pulsar reference** (amended 2026-10-18). Epoch cells (D2) are
+    near-exact, so for pulsars outside the three test pulsars, and for those too large for
+    the oracle (J1713+0747), C1 compares the window-compressed likelihood with the
+    epoch-cell one at the same bounds.
   - The pulsars are:
     - J1909−3744 (high precision, little red noise);
     - one strong-red-noise pulsar (J1713+0747 or B1937+21);
@@ -269,6 +278,13 @@ Within a window w, the model is
     - The dense oracle (C1) applies the same rule. A column that is fully degenerate with
       DMX is unconstrained by the data under the flat prior, so dropping it changes lnL only
       by a constant.
+- **Epoch cells** (amended 2026-10-18). A pulsar can instead be compressed per ECORR
+  epoch: one position scalar per epoch, no velocity step, and its DMX columns kept in β
+  (no DMX projection). A1 then only has to hold within an epoch (≲ 1 s), so the cell is
+  near-exact. Rule: a pulsar uses epoch cells when its two-scalar window likelihood
+  differs from its epoch-cell likelihood by more than C1's bounds at its posterior points.
+  Epoch cells add that pulsar's DMX columns to M_sum, so they are for the pulsars that
+  need them only (all 67 would add 7,410 columns).
 - **Lock-in:** fixed white noise is baked into the preprocessing. Sampling white noise later
   would need recompression at every sample.
 
@@ -572,6 +588,8 @@ mixed ORF) that could stall it.
       (amended 2026-10-18: one scalar per window fails at every Δ; rerun C1 with the
       two-scalar D2 at the DMX window, and leave the remaining misses to the user's
       decision after 2.6 — see §12)
+      (amended 2026-10-18, second: pulsars that miss use epoch cells, chosen by the D2
+      rule over all 67; a residual within the oracle's precision passes — see §12)
 - [ ] 2.6 Compress all 67, build the union grid with masks, benchmark the likelihood plus
       gradient on one A100 — verify by the recorded seconds per evaluation and memory; evaluate K3.
       (amended 2026-10-18: on the two-scalar union grid, two steps per window; run before
@@ -811,3 +829,33 @@ A100, 67 psr, two scalars per cell, against K3's 0.5 s target and 1 s stop.
 note).
 
 **Sections touched:** §12
+
+### 2026-10-18 — epoch cells by rule, and C1 within the oracle's precision
+
+**Trigger:** the C1 fallbacks the user asked for. Posterior spread / gradient error, two
+scalars per DMX window vs epoch cells (DMX in β), 20 posterior draws each:
+
+| Pulsar | two scalars per window | epoch cells |
+|---|---|---|
+| J1012+5307 | 5.4e-2 / 3.8e-2 | 3.9e-8 / 4.2e-9 |
+| J1909−3744 | 5.3e-4 / 3.5e-4 | 1.4e-5 / 1.9e-6 |
+| B1937+21 | 8.6e-3 / 1.1e-2 | 4.2e-3 / 2.3e-3 |
+| B1855+09 | 1.5e-6 / 2.5e-7 | 1.5e-6 / 2.5e-7 |
+
+Moving the oracle's time origin by 1000 d (exact in theory) shifts the oracle alone by
+1.5e-2 nat / 2.3e-3 on B1937+21, so its epoch-cell residual is at the oracle's precision.
+B1855+09's 0.10 nat on the prior stress set is also oracle-side: its two filter layouts
+agree there to 3e-5.
+
+**Change:**
+- C1 (§3): a residual within the oracle's precision (origin-shift test) passes; epoch
+  cells are the near-exact per-pulsar reference where the oracle is not used.
+- D2 (§4): epoch cells, and the rule choosing which pulsars use them.
+- Task 2.5 annotated: next, run the rule over all 67 and record how many pulsars need
+  epoch cells and the resulting M_sum.
+- Speed: the timing block Ξ is ≈ 45% of batched time (0.55 s/eval with 16 columns vs
+  0.98 s with 1,080), so the next speed step is a chunked Ξ update in the sparse filter.
+
+**Approved by the user** on 2026-10-18 (this amendment and the chunked Ξ restructure).
+
+**Sections touched:** §3, §4, §11, §12
