@@ -754,3 +754,55 @@ own approval and is not part of this amendment.
 **Approved by the user** on 2026-10-18.
 
 **Sections touched:** §3, §4, §8, §10, §11, §12
+
+### 2026-10-18 — K3 measured; grid stamping, union whitening and a sparse filter
+
+**Trigger:** task 2.6's benchmark of value plus gradient (all 136 parameters) on one
+A100, 67 psr, two scalars per cell, against K3's 0.5 s target and 1 s stop.
+
+**What was measured:**
+- **Dense union grid** (the existing marginal filter, every pulsar's slot at every step):
+
+  | Δ | steps | value | value + gradient | C1 worst posterior spread (4 pulsars) |
+  |---|---|---|---|---|
+  | DMX window | 14,820 | 8.7 s | 28.6 s | 5.4e-2 nat |
+  | 7 d | 1,150 | 0.68 s | 2.3 s | 9.6e-2 nat |
+  | 14 d | 690 | 0.41 s | 1.3 s | 0.37 nat |
+  | 30 d | 376 | 0.22 s | 0.74 s | 2.7 nat |
+
+  No Δ both passed C1 and came in under 1 s. The stock gradient's reverse mode needs
+  220 GB at the DMX-window Δ; it was timed on a benchmark-only copy with checkpointed
+  scan segments (same value to 3e-8 nat).
+- **Grid stamping (a D2 detail).** With two scalars, a cell can be stamped at its weighted
+  mean time t_w (exact position, but no two pulsars share a step) or at the grid centre
+  t_c, with the position row carrying −(t_w − t_c) on the rate states (exact for a state
+  linear in the cell, and pulsars share steps). Centre stamping is what makes coarse Δ
+  cheap, and it costs accuracy: J1012+5307 at 14 d went from 2.5e-2 nat (t_w) to 0.37.
+- **Union whitening.** On shared steps the library's innovation jitter (1e-9 × the mean S
+  of the observed pulsars) is set by poorly measured observations and perturbs their
+  neighbours: 3.8 nat on a synthetic pair at 30 d. The union-grid inputs whiten every
+  observation to unit noise, with the Jacobian in the offset; the joint then equals the sum
+  of pulsars to 1e-8.
+- **`get_Q_block` small-γ·dt fix** merged separately as PR #130 (approved 2026-10-18).
+- **Sparse marginal filter** (approved 2026-10-18 as the K3 re-budget):
+  `_run_kalman_filter_marginal_sparse` takes one scalar observation per step, so it never
+  touches unobserved pulsars and builds the timing information A as one product after the
+  scan. Its cost depends on the number of observations, not on Δ, so the accurate
+  t_w-stamped DMX-window cells cost no more than a grid. At the DMX-window Δ (14,811
+  observations) it gives value 0.79 s and value plus gradient 6.2 s for one point, and
+  **0.87 s per evaluation when 32 points are vmapped together** (32 NUTS chains on one
+  GPU). It equals the jitter-free dense path to 1e-9 on synthetic data. The dense MDC2
+  goldens are bit-identical after the shared-helper refactor.
+
+**Change:**
+- D2: grid cells are stamped at t_c with the position-row shift; DMX-window cells at t_w.
+- Proposed, not yet decided: the array likelihood for Phases 3–6 is the sparse filter at
+  the DMX-window Δ.
+- **Open, for the user:** K3 as written is per evaluation (6.2 s → stop). Batched over
+  chains it is 0.87 s (between target and stop). Whether K3 is judged on batched throughput
+  is not yet decided, nor are the remaining C1 misses (the 2026-10-18 amendment above).
+
+**Approved by the user** on 2026-10-18 (the sparse filter, the `get_Q_block` fix and this
+note).
+
+**Sections touched:** §12
