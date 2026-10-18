@@ -3,7 +3,13 @@
 import numpy as np
 
 from argus import gravitational_waves
-from argus.model import get_F, get_Q, precompute_R_matrices, precompute_H_matrix
+from argus.model import (
+    get_F,
+    get_Q,
+    get_Q_block,
+    precompute_H_matrix,
+    precompute_R_matrices,
+)
 from functools import partial
 import jax
 import jax.numpy as jnp
@@ -718,6 +724,11 @@ def _run_kalman_filter_marginal(
         b = b + b0
         c = c + c0
 
+    return _marginalize_timing(A, b, c, L, P_eps_inv, diffuse)
+
+
+def _marginalize_timing(A, b, c, L, P_eps_inv, diffuse):
+    """−½[c + L − bᵀΛ⁻¹b + logdet Λ (− logdet P_eps⁻¹)] with Λ = A (+ P_eps⁻¹)."""
     if diffuse:
         # Flat/improper prior limit P_eps⁻¹ → 0: Λ = A, and the logdet(P_eps⁻¹) term is
         # dropped (a parameter-independent constant). No jitter is added: Λ's smallest
@@ -750,6 +761,147 @@ def _run_kalman_filter_marginal(
 
     logL = -0.5 * (c + L - bLb + logdet_Lambda - logdet_P_eps_inv)
     return logL
+
+
+@partial(jax.jit, static_argnames=("Npsr", "M_sum", "diffuse", "segment"))
+def _run_kalman_filter_marginal_sparse(
+    θ,
+    obs,
+    Npsr,
+    M_sum,
+    hellings_downs_matrix,
+    P_eps_inv,
+    diffuse=False,
+    accum0=None,
+    segment=128,
+):
+    """Run the marginal filter one scalar observation at a time (sparse in the pulsars).
+
+    Same model and likelihood as `_run_kalman_filter_marginal`, for data where few
+    pulsars observe at once (the epoch-compressed narrowband array: one scalar per
+    pulsar per update, ~1.5-40% of pulsars per union time). Observations of different
+    pulsars at one time have independent noise, so updating on them one at a time is
+    exact. Each update then touches only its pulsar's four state columns:
+
+    - the gain is a rank-1 correction, O((4N)² + 4N·M_sum) instead of the dense
+      path's O((4N)²·N + 4N·M_sum·N + M_sum²·N) per time;
+    - the epsilon information A = Σ ψψᵀ/s is not accumulated in the scan: each step
+      emits ψ/√s and ỹ/√s, and A, b come from one matrix product at the end;
+    - the predict applies the 2×2 block-diagonal F elementwise, and is skipped when
+      dt = 0 (F = I, Q = 0).
+
+    Reverse mode stores the scan's per-step residuals (~(4N)² + 4N·M_sum doubles), so
+    the scan runs in checkpointed segments of `segment` observations (√n
+    rematerialisation). No PD jitter is added: s ≥ r > 0 is a scalar, and a non-positive
+    s (only possible through a non-PD P) sends the likelihood to -inf.
+
+    `obs` is a dict of per-observation arrays, in time order:
+        dt (n,)     time since the previous observation (dt[0] is ignored);
+        psr (n,)    int pulsar index;
+        h (n, 4)    coefficients on that pulsar's [r, ṙ, φ, φ̇];
+        y (n,)      the observation; err (n,) its σ before EFAC/EQUAD;
+        m (n, M_sum) its timing-model row.
+    """
+    Γ = _effective_orf(hellings_downs_matrix, θ.orf_epsilon)
+    σa2 = _compute_sigma_matrix(θ.ha**2, θ.γa, Γ)
+    σp2 = θ.σp**2
+    x0, P0 = _initialize_dynamic_kalman_filter(Npsr, σa2, θ.γa, σp2, θ.γp)
+    N2 = 2 * Npsr
+    n_dyn = 2 * N2
+
+    spin = jnp.arange(Npsr, N2)
+
+    def predict(x, P, Xi, dt):
+        # F is block-diagonal in 2×2 blocks [[1, f], [0, e]] (GW blocks share γa), so
+        # F P Fᵀ, F x and F Ξ are elementwise in the block form and fuse into one pass.
+        f = -jnp.expm1(-jnp.concatenate([jnp.full(Npsr, θ.γa), θ.γp]) * dt)
+        f = f / jnp.concatenate([jnp.full(Npsr, θ.γa), θ.γp])
+        e = jnp.exp(-jnp.concatenate([jnp.full(Npsr, θ.γa), θ.γp]) * dt)
+
+        def left(X):  # F X on a (2N, 2, ...) block view
+            fb = f.reshape((N2,) + (1,) * (X.ndim - 2))
+            eb = e.reshape((N2,) + (1,) * (X.ndim - 2))
+            return jnp.stack([X[:, 0] + fb * X[:, 1], eb * X[:, 1]], axis=1)
+
+        P4 = left(P.reshape(N2, 2, N2, 2))
+        P4 = jnp.swapaxes(left(jnp.swapaxes(P4, 0, 2).swapaxes(1, 3)), 0, 2).swapaxes(
+            1, 3
+        )
+        Qa = get_Q_block(θ.γa, dt)
+        Qp = jax.vmap(lambda g, s: get_Q_block(g, dt) * s)(θ.γp, σp2)
+        P4 = P4.at[:Npsr, :, :Npsr, :].add(σa2[:, None, :, None] * Qa[None, :, None, :])
+        P4 = P4.at[spin, :, spin, :].add(Qp)
+        x = left(x.reshape(N2, 2)).reshape(n_dyn, 1)
+        Xi = left(Xi.reshape(N2, 2, M_sum)).reshape(n_dyn, M_sum)
+        return x, P4.reshape(n_dyn, n_dyn), Xi
+
+    def predict_or_hold(x, P, Xi, dt):
+        # About half the observations follow another at the same time (dt = 0: the
+        # velocity scalar after its position scalar), where F = I and Q = 0 exactly.
+        return lax.cond(dt > 0, predict, lambda x, P, Xi, dt: (x, P, Xi), x, P, Xi, dt)
+
+    def update(x, P, Xi, n, h, y, r, m):
+        idx = jnp.array([2 * n, 2 * n + 1, N2 + 2 * n, N2 + 2 * n + 1])
+        Ph = P[:, idx] @ h
+        s = h @ Ph[idx] + r
+        y0 = y - h @ x[idx, 0]
+        psi = m + h @ Xi[idx]
+        k = Ph / s
+        x = x + (k * y0)[:, None]
+        # Joseph form for a scalar update, P − k Phᵀ − Ph kᵀ + s k kᵀ (= P − Ph Phᵀ/s).
+        P = P - jnp.outer(k, Ph) - jnp.outer(Ph, k) + s * jnp.outer(k, k)
+        P = 0.5 * (P + P.T)
+        Xi = Xi - jnp.outer(k, psi)
+        root = jnp.sqrt(jnp.where(s > 0, s, 1.0))
+        dL = jnp.where(s > 0, jnp.log(2.0 * jnp.pi * s), jnp.inf)
+        return x, P, Xi, psi / root, y0 / root, dL
+
+    r_all = jnp.square(θ.EFAC[obs["psr"]] * obs["err"]) + jnp.square(
+        θ.EQUAD[obs["psr"]]
+    )
+    n_obs = obs["y"].shape[0]
+    # Pad to whole segments with no-op observations (h = 0, m = 0, y = 0, r = 1, dt = 0):
+    # each leaves the state untouched and adds exactly log 2π to L, removed below.
+    n_pad = (-n_obs) % segment
+    pad = lambda a, v: jnp.concatenate(  # noqa: E731
+        [a, jnp.full((n_pad,) + a.shape[1:], v, a.dtype)]
+    )
+    dt = obs["dt"].at[0].set(0.0)
+    xs = (
+        pad(dt, 0.0),
+        pad(obs["psr"], 0),
+        pad(obs["h"], 0.0),
+        pad(obs["y"], 0.0),
+        pad(r_all, 1.0),
+        pad(obs["m"], 0.0),
+    )
+    n_seg = (n_obs + n_pad) // segment
+    xs = jax.tree_util.tree_map(lambda a: a.reshape((n_seg, segment) + a.shape[1:]), xs)
+
+    def step(carry, inp):
+        x, P, Xi, c, L = carry
+        dt, n, h, y, r, m = inp
+        x, P, Xi = predict_or_hold(x, P, Xi, dt)
+        x, P, Xi, g, gy, dL = update(x, P, Xi, n, h, y, r, m)
+        return (x, P, Xi, c + gy**2, L + dL), (g, gy)
+
+    @jax.checkpoint
+    def run_segment(carry, seg):
+        return lax.scan(step, carry, seg)
+
+    Xi0 = jnp.zeros((n_dyn, M_sum))
+    carry = (x0, P0, Xi0, 0.0, 0.0)
+    (x, P, Xi, c, L), (G, gy) = lax.scan(run_segment, carry, xs)
+    G = G.reshape(-1, M_sum)
+    gy = gy.reshape(-1)
+    L = L - n_pad * jnp.log(2.0 * jnp.pi)
+
+    A = G.T @ G
+    b = (G.T @ gy)[:, None]
+    if accum0 is not None:
+        A0, b0, c0 = accum0
+        A, b, c = A + A0, b + b0, c + c0
+    return _marginalize_timing(A, b, c, L, P_eps_inv, diffuse)
 
 
 class JaxKalmanFilter:

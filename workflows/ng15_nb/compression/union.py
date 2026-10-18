@@ -67,7 +67,11 @@ def build_union_inputs(comps, orf):
         hv = c["has_velocity"][has]
         pos, vel = 2 * u, 2 * u + 1
         cols = slice(starts[n], starts[n] + Ks[n])
-        y[pos, n], err[pos, n], mask[pos, n] = c["s_hat"][has], np.sqrt(c["sigma2"][has]), 1.0
+        y[pos, n], err[pos, n], mask[pos, n] = (
+            c["s_hat"][has],
+            np.sqrt(c["sigma2"][has]),
+            1.0,
+        )
         H[pos, n, 2 * n] = -1.0
         H[pos, n, 2 * N + 2 * n] = 1.0 / c["f0"]
         H[pos, n, cols] = c["m"][has]
@@ -137,4 +141,97 @@ def array_loglike(p, inp):
         mask_matrices=inp["mask_matrices"],
         diffuse=True,
         accum0=inp["accum0"],
+    )
+
+
+# --------------------------------------------------------------------------- #
+# Sparse path: one scalar observation per filter step
+# --------------------------------------------------------------------------- #
+def build_sparse_inputs(comps, orf):
+    """Per-observation inputs for `jk._run_kalman_filter_marginal_sparse`.
+
+    Every position and velocity scalar of every pulsar, sorted by time (position
+    before velocity within a cell). No masking, so no masked-step offset, and no
+    whitening: the sparse path's innovations are scalars and carry no PD jitter.
+    `const` is the same as in `build_union_inputs`.
+    """
+    N = len(comps)
+    Ks = [c["m"].shape[1] for c in comps]
+    starts = np.concatenate([[0], np.cumsum(Ks)[:-1]])
+    M_sum = int(np.sum(Ks))
+    t, kind, psr, h, y, err, m = [], [], [], [], [], [], []
+    for n, c in enumerate(comps):
+        has = c["has_scalar"]
+        hv = c["has_velocity"][has]
+        times = c["times"][has]
+        shift = (c["t_weighted"] - c["times"])[has]
+        f0 = c["f0"]
+        rows = np.zeros((has.sum(), M_sum))
+        rows[:, starts[n] : starts[n] + Ks[n]] = c["m"][has]
+        t.append(times)
+        kind.append(np.zeros(has.sum()))
+        psr.append(np.full(has.sum(), n))
+        h.append(
+            np.column_stack(
+                [-np.ones_like(shift), -shift, np.full_like(shift, 1 / f0), shift / f0]
+            )
+        )
+        y.append(c["s_hat"][has])
+        err.append(np.sqrt(c["sigma2"][has]))
+        m.append(rows)
+        rows_v = np.zeros((hv.sum(), M_sum))
+        rows_v[:, starts[n] : starts[n] + Ks[n]] = c["m_v"][has][hv]
+        t.append(times[hv])
+        kind.append(np.ones(hv.sum()))
+        psr.append(np.full(hv.sum(), n))
+        h.append(np.tile([0.0, -1.0, 0.0, 1.0 / f0], (hv.sum(), 1)))
+        y.append(c["v_hat"][has][hv])
+        err.append(np.sqrt(c["sigma2_v"][has][hv]))
+        m.append(rows_v)
+    t, kind, psr = np.concatenate(t), np.concatenate(kind), np.concatenate(psr)
+    order = np.lexsort((kind, psr, t))
+    t = t[order]
+    A0 = block_diag(*[c["accum0"][0] for c in comps])
+    b0 = np.concatenate([c["accum0"][1] for c in comps])
+    c0 = float(sum(c["accum0"][2] for c in comps))
+    return {
+        "obs": {
+            "dt": jnp.asarray(np.concatenate([[0.0], np.diff(t)])),
+            "psr": jnp.asarray(psr[order].astype(np.int32)),
+            "h": jnp.asarray(np.concatenate(h)[order]),
+            "y": jnp.asarray(np.concatenate(y)[order]),
+            "err": jnp.asarray(np.concatenate(err)[order]),
+            "m": jnp.asarray(np.concatenate(m)[order]),
+        },
+        "accum0": (jnp.asarray(A0), jnp.asarray(b0), jnp.asarray(c0)),
+        "orf": jnp.asarray(orf),
+        "const": float(sum(c["const"] for c in comps)),
+        "n_obs": int(t.size),
+    }
+
+
+def array_loglike_sparse(p, inp, segment=128):
+    """`array_loglike` on the sparse path (same p, same likelihood up to rounding)."""
+    obs = inp["obs"]
+    N = inp["orf"].shape[0]
+    M_sum = obs["m"].shape[1]
+    θ = bayesian_inference.Parameters(
+        log10_gamma_a=p[1],
+        γa=10.0 ** p[1],
+        ha=10.0 ** p[0],
+        σp=10.0 ** p[2 : 2 + N],
+        γp=10.0 ** p[2 + N : 2 + 2 * N],
+        EFAC=jnp.ones(N),
+        EQUAD=jnp.zeros(N),
+    )
+    return jk._run_kalman_filter_marginal_sparse(
+        θ=θ,
+        obs=obs,
+        Npsr=N,
+        M_sum=M_sum,
+        hellings_downs_matrix=inp["orf"],
+        P_eps_inv=jnp.zeros((M_sum, M_sum)),
+        diffuse=True,
+        accum0=inp["accum0"],
+        segment=segment,
     )

@@ -307,7 +307,8 @@ def test_single_step_grid():
 
 def _iou_joint_cov(t, gamma, sigma2):
     """Exact (position, velocity) covariance of an integrated OU at times t (from the
-    origin, stationary velocity), interleaved per time: ∂ of the oracle's position kernel."""
+    origin, stationary velocity), interleaved per time: ∂ of the oracle's position kernel.
+    """
 
     def k(s, u):
         return oracle._iou_cov(jnp.array([s, u]), gamma, sigma2)[0, 1]
@@ -343,9 +344,10 @@ def test_two_step_filter_equals_compressed_dense(p, delta_days, monkeypatch):
     ha, ga, sp, gp = oracle.physical(jnp.asarray(p))
     has = comp["has_scalar"]
     t = jnp.asarray(comp["times"] - comp["times"][has][0])
-    K = _iou_joint_cov(t, ga, ha**2 * ga / 12.0) + _iou_joint_cov(t, gp, sp**2) / comp[
-        "f0"
-    ] ** 2
+    K = (
+        _iou_joint_cov(t, ga, ha**2 * ga / 12.0)
+        + _iou_joint_cov(t, gp, sp**2) / comp["f0"] ** 2
+    )
     ll_dense = compress.compressed_dense_loglike(comp, K)
     ll_filt = float(oracle.filter_loglike(jnp.asarray(p), fi))
     assert abs(ll_filt - ll_dense) <= 1e-9 * abs(ll_dense), (ll_filt, ll_dense)
@@ -366,9 +368,10 @@ def test_masked_velocity_step_offset():
     ha, ga, sp, gp = oracle.physical(p)
     has = comp["has_scalar"]
     t = jnp.asarray(comp["times"] - comp["times"][has][0])
-    K = _iou_joint_cov(t, ga, ha**2 * ga / 12.0) + _iou_joint_cov(t, gp, sp**2) / comp[
-        "f0"
-    ] ** 2
+    K = (
+        _iou_joint_cov(t, ga, ha**2 * ga / 12.0)
+        + _iou_joint_cov(t, gp, sp**2) / comp["f0"] ** 2
+    )
     ll_dense = compress.compressed_dense_loglike(comp_m, K)
     ll_filt = float(oracle.filter_loglike(p, fi))
     # The removed scalar's own −½[log 2πσ_v²] is part of `const`, not of either side.
@@ -404,3 +407,85 @@ def test_union_grid_equals_sum_of_pulsars(delta_days):
         for p, c in zip((p1, p2), comps)
     )
     assert abs(ll_array - ll_sum) <= 1e-8 * abs(ll_sum), (ll_array, ll_sum)
+
+
+# --------------------------------------------------------------------------- #
+# Sparse marginal filter (K3 re-budget, approved 2026-10-18)
+# --------------------------------------------------------------------------- #
+def _synthetic_pair(delta_days):
+    caches = [synthetic_pulsar(seed=0), synthetic_pulsar(seed=1)]
+    caches[1] = dict(caches[1], f0=211.0, toas=caches[1]["toas"] + 2.3 * DAY)
+    return [compress.compress_pulsar(c, delta_days=delta_days) for c in caches]
+
+
+ORF_PAIR = np.array([[1.0, 0.4], [0.4, 1.0]])
+P_PAIR = jnp.asarray([-12.0, -6.0, -13.0, -12.5, -6.0, -6.5])
+
+
+@pytest.mark.parametrize("segment", [1, 7, 128])
+@pytest.mark.parametrize("delta_days", [None, 30.0])
+def test_sparse_filter_equals_dense(delta_days, segment, monkeypatch):
+    """Correlated pair: the sparse path equals the dense union-grid path (both
+    jitter-free) in value and gradient, for any segment length (padding exact)."""
+    comps = _synthetic_pair(delta_days)
+    dense = union.build_union_inputs(comps, ORF_PAIR)
+    sparse = union.build_sparse_inputs(comps, ORF_PAIR)
+    assert sparse["n_obs"] == int(np.asarray(dense["mask_matrices"]).sum())
+    assert dense["const"] == sparse["const"]
+    monkeypatch.setattr(union, "jk", _jitter_free_filter_module())
+    vd, gd = jax.value_and_grad(union.array_loglike)(P_PAIR, dense)
+    vs, gs = jax.value_and_grad(
+        lambda p: union.array_loglike_sparse(p, sparse, segment)
+    )(P_PAIR)
+    assert abs(float(vs) - float(vd)) <= 1e-9 * abs(float(vd)), (vs, vd)
+    np.testing.assert_allclose(
+        gs, gd, rtol=1e-7, atol=1e-7 * float(jnp.max(jnp.abs(gd)))
+    )
+
+
+def test_sparse_filter_informative_prior_matches_dense(monkeypatch):
+    """The shared marginalisation also serves the informative prior."""
+    comps = _synthetic_pair(None)
+    dense = union.build_union_inputs(comps, ORF_PAIR)
+    sparse = union.build_sparse_inputs(comps, ORF_PAIR)
+    mod = _jitter_free_filter_module()
+    K = int(sparse["obs"]["m"].shape[1])
+    P_inv = jnp.eye(K) * 1e-3
+    N = 2
+    θ = union.bayesian_inference.Parameters(
+        log10_gamma_a=P_PAIR[1],
+        γa=10.0 ** P_PAIR[1],
+        ha=10.0 ** P_PAIR[0],
+        σp=10.0 ** P_PAIR[2:4],
+        γp=10.0 ** P_PAIR[4:6],
+        EFAC=jnp.ones(N),
+        EQUAD=jnp.zeros(N),
+    )
+    ld = dense["offset"] + mod._run_kalman_filter_marginal(
+        θ=θ,
+        data=dense["data"],
+        data_errors=dense["data_errors"],
+        H_matrices=dense["H_matrices"],
+        Npsr=N,
+        M_sum=K,
+        hellings_downs_matrix=ORF_PAIR,
+        dt_array=dense["dt_array"],
+        dim_x=2 * N,
+        n_states=4 * N + K,
+        P_eps_inv=P_inv,
+        mask_matrices=dense["mask_matrices"],
+        diffuse=False,
+        accum0=dense["accum0"],
+    )
+    ls = mod._run_kalman_filter_marginal_sparse(
+        θ=θ,
+        obs=sparse["obs"],
+        Npsr=N,
+        M_sum=K,
+        hellings_downs_matrix=ORF_PAIR,
+        P_eps_inv=P_inv,
+        diffuse=False,
+        accum0=sparse["accum0"],
+        segment=16,
+    )
+    assert abs(float(ls) - float(ld)) <= 1e-9 * abs(float(ld)), (ls, ld)
