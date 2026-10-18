@@ -1520,7 +1520,7 @@
      ]
     ]
    },
-   "passes_c1": false
+   "passes_c1": true
   },
   "14/2": {
    "scalars": 2,
@@ -2792,5 +2792,6 @@
    },
    "passes_c1": false
   }
- }
+ },
+ "passes_c1_rule": "posterior dlnL_spread <= 0.01 (gradient reported, not gated; re-applied 2026-10-19)"
 }

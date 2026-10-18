@@ -8,6 +8,11 @@
 #
 #   mkdir -p workflows/ng15_nb/outputs/logfiles
 #   sbatch workflows/ng15_nb/compression/slurm/c1.sh
+#
+# The committed results came from (two scalars only; the second run gives the _epoch files):
+#   sbatch workflows/ng15_nb/compression/slurm/c1.sh --scalars 2
+#   sbatch workflows/ng15_nb/compression/slurm/c1.sh --scalars 2 --deltas none epoch \
+#       --tag _epoch
 
 #SBATCH --job-name=ng15nb-c1
 #SBATCH --account=oz022

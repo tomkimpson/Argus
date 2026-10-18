@@ -23,7 +23,13 @@ stream and the whitening's Σ log σ, and `const` sums the compressions' constan
 
     array_loglike(p, inp) + inp["const"]
 
-is the dense flat-prior likelihood of the raw TOAs up to A1 (state linear per cell).
+is the dense flat-prior likelihood of the raw TOAs up to A1 (state linear per cell),
+less a small jitter bias. The jitter is added as 1e-9·s̄·I over all n pulsars, so the
+masked unit slots get it too, where s̄ is the mean S of the observed pulsars at that step
+(≫ 1 after whitening). Each such slot loses ½ log(1 + 1e-9·s̄), which depends on the
+parameters. On the 67-pulsar DMX-window grid this totals 0.097 nat; the sparse filter
+(`jk._run_kalman_filter_marginal_sparse`), which Phases 3-6 use, has no masked slots and
+no such bias. This path is kept as the dense reference for tests and K3.
 """
 
 import jax.numpy as jnp

@@ -31,7 +31,7 @@ sys.path.insert(0, str(REPO / "workflows" / "ng15_nb" / "scripts"))
 import compress  # noqa: E402
 import ingest  # noqa: E402
 import oracle  # noqa: E402
-from c1_compression import POSTERIOR, posterior_points  # noqa: E402
+from c1_compression import POSTERIOR, git_sha, posterior_points  # noqa: E402
 
 import jax  # noqa: E402
 import jax.numpy as jnp  # noqa: E402
@@ -102,6 +102,7 @@ def summarise():
     )
     result = {
         "n_pulsars": len(rows),
+        "git_sha": git_sha(),
         "bounds": {"dlnL_spread": SPREAD_MAX},
         "needs_epoch_cells": [r["pulsar"] for r in need],
         "M_sum_window": m_window,
@@ -154,6 +155,7 @@ def main():
         row = run_pulsar(path, args.n_points, args.seed, f_vg)
         row["posterior_source"] = str(POSTERIOR.relative_to(REPO))
         row["device"] = str(jax.devices()[0])
+        row["git_sha"] = git_sha()
         (OUT / f"{row['pulsar']}.json").write_text(json.dumps(row, indent=1) + "\n")
         print(
             f"{row['pulsar']} spread {row['dlnL_spread']:.2e} gerr {row['grad_rel_err_max']:.1e}"

@@ -8,6 +8,8 @@ Same compression, point and parameters as `bench_union_grid.py`, but every scala
 observation is one step of `jk._run_kalman_filter_marginal_sparse` (approved
 2026-10-18), so the step count is the number of observations at any Δ. The value is
 compared with the dense union-grid result in results/k3/<delta>.json when present.
+That dense value is ~0.1 nat low on real data: the filter's PD jitter also lands on the
+union grid's masked unit slots (see `union.array_loglike`).
 
 `--epoch-rule` compresses the pulsars that D2's rule selects
 (results/c1/epoch_rule.json) into epoch cells instead, the layout Phases 3-6 use.
@@ -34,6 +36,7 @@ import compress  # noqa: E402
 import ingest  # noqa: E402
 import union  # noqa: E402
 from bench_union_grid import posterior_mean_point, timed  # noqa: E402
+from c1_compression import git_sha  # noqa: E402
 
 import jax  # noqa: E402
 import jax.numpy as jnp  # noqa: E402
@@ -156,6 +159,7 @@ def main():
     )
     result = {
         "device": str(jax.devices()[0]),
+        "git_sha": git_sha(),
         "delta": tag,
         "n_psr": len(comps),
         "n_obs": inp["n_obs"],

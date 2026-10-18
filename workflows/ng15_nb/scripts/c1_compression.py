@@ -14,7 +14,8 @@ points. Reported per Δ:
 
 - spread of ΔlnL = lnL_filter + const − lnL_oracle across the points (max − min), which
   C1 requires to be ≤ 0.01 nat;
-- the largest gradient error, max_i ‖g_f − g_o‖∞ / ‖g_o‖∞, which C1 requires ≤ 1e-4.
+- the largest gradient error, max_i ‖g_f − g_o‖∞ / ‖g_o‖∞, which is reported but does
+  not gate (amended 2026-10-18).
 
 Two point sets, each `--n-points` draws:
 - "posterior" (the C1 gate): random draws of (log10 ha, log10 γa, log10 σp, log10 γp)
@@ -28,6 +29,7 @@ Run on one A100: the oracle's dense n×n Cholesky (n = TOA count) and its gradie
 
 import argparse
 import json
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -49,6 +51,21 @@ PRIOR_BOX = {  # ou.ini [PriorModel]
     "log10_sigma_p": (-22.0, -11.5),
     "log10_gamma_p": (-12.0, -6.0),
 }
+
+
+def git_sha():
+    """HEAD of the checkout that produced a result, or None outside git."""
+    try:
+        return subprocess.check_output(
+            ["git", "-C", str(REPO), "rev-parse", "HEAD"], text=True
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+
+def passes_c1(row):
+    """C1 gates on the posterior ΔlnL spread only (amended 2026-10-18)."""
+    return bool(row["posterior"]["dlnL_spread"] <= 0.01)
 
 
 def posterior_points(psr, n, rng):
@@ -117,6 +134,7 @@ def main():
         "pulsar": args.pulsar,
         "n_toa": int(cache["toas"].size),
         "seed": args.seed,
+        "git_sha": git_sha(),
         "posterior_source": str(POSTERIOR.relative_to(REPO)),
         "oracle_s_per_eval": oracle_s,
         "device": str(jax.devices()[0]),
@@ -158,10 +176,7 @@ def main():
                 "oracle_grad": og.tolist(),
                 "filter_grad": fg.tolist(),
             }
-        row["passes_c1"] = bool(
-            row["posterior"]["dlnL_spread"] <= 0.01
-            and row["posterior"]["grad_rel_err_max"] <= 1e-4
-        )
+        row["passes_c1"] = passes_c1(row)
         result["deltas"][f"{d}/{nsc}"] = row
         print(
             args.pulsar,

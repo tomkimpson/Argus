@@ -10,15 +10,19 @@ function of the grid width Δ, and what the 67-pulsar likelihood plus gradient c
   window's weighted mean time, except for four pulsars compressed into epoch cells:
   J1012+5307, J1643−1224, J1705−1903 and J1903+0327. That gives 15,372 observations and
   M_sum = 1,607 timing columns over 67 pulsars.
-- **No coarser Δ passes C1.** Every Δ ≥ 7 d misses the spread bound on at least one of the
-  four pulsars tested.
+- **Why not a coarser Δ.** On window cells J1012+5307 misses the spread bound at every Δ,
+  so it takes epoch cells whatever Δ is. J1909−3744 passes up to 14 d and B1937+21 up to
+  7 d. Coarsening is not adopted because it does not cut the sparse filter's cost (7 d:
+  9.2 s vs 9.6 s for one point), not because of C1. A 7 d layout would also need its own
+  epoch-rule pass over the 67 pulsars, which was not run.
 - **C1 passes for all three C1 pulsars** at that layout: J1909−3744 5.3e-4, B1937+21
   8.6e-3 and J1012+5307 3.9e-8 nat. C1 gates on the spread; gradient errors are reported,
   not gated (amended 2026-10-18). On window cells J1909−3744 and B1937+21 have gradient
   errors of 3.5e-4 and 1.1e-2 against the oracle.
 - **Cost (K3):** 0.84 s per value-plus-gradient evaluation, with 32 points vmapped on one
   A100. That is between K3's 0.5 s target and its 1 s stop, and Phase 2 closes on it (§12,
-  2026-10-18).
+  2026-10-18). It is batched throughput: one chain's latency is 6.7 s for one point, or
+  26.8 s per 32-point step (see Open).
 
 ## Setup
 
@@ -41,7 +45,8 @@ function of the grid width Δ, and what the 67-pulsar likelihood plus gradient c
 - Metrics:
   - spread is max − min over the points of lnL_filter + const − lnL_oracle;
   - gradient error is max over the points of ‖g_f − g_o‖∞ / ‖g_o‖∞;
-  - C1 requires a spread ≤ 0.01 nat and a gradient error ≤ 1e-4.
+  - C1 requires a spread ≤ 0.01 nat; the gradient error is reported, not gated (amended
+    2026-10-18). `passes_c1` in the result files follows that rule.
 - Drivers:
   - `scripts/c1_compression.py` and `compression/slurm/c1.sh` write `results/c1/<pulsar>[_epoch].json`;
   - `scripts/epoch_cell_rule.py` writes `results/c1/epoch_rule*.json`;
@@ -63,8 +68,9 @@ C1 pulsars.
   is superseded (§12, 2026-10-18).
 - **Oracle precision.** Moving the oracle's time origin by 1000 d is exact in theory, but
   it changes the oracle alone by 1.5e-2 nat / 2.3e-3 on B1937+21 and by 8e-6 / 1.1e-6 on
-  B1855+09. B1937+21's epoch-cell residual is therefore at the oracle's precision, which
-  counts as a pass (amended C1).
+  B1855+09. No pass relies on this: B1937+21's epoch-cell residual (4.2e-3) and every
+  adopted-layout residual sit inside 0.01 nat outright. The origin-shift run was a scratch
+  check and is not committed, so treat these figures as indicative.
 - **Prior stress set.** Spreads there are large: up to 27 nat for J1909−3744 at the DMX
   window, and still 4.1 nat (J1909−3744) and 9.2 nat (B1937+21) in epoch cells.
   - B1855+09's 0.10 nat is oracle-side: its two filter layouts agree there to 3e-5.
@@ -101,11 +107,18 @@ All timings are value plus gradient over all 136 parameters on one A100.
 | dense union grid, 7 d | 1,150 | 2.3 s | — |
 | dense union grid, 30 d | 376 | 0.74 s | — |
 | sparse filter, all windows | 14,811 | 6.2 s | 0.87 s |
-| sparse filter, epoch rule | 15,372 | 10.6 s | 1.27 s |
+| sparse filter, epoch rule (at fc1228e) | 15,372 | 10.6 s | 1.27 s |
 | sparse + chunked Ξ + checkpointed Q, epoch rule | 15,372 | 6.7 s | **0.84 s** |
 
 - The dense rows come from §12 (2026-10-18). The dense filter needs a checkpointed copy at
   fine Δ, because its stock reverse mode needs 220 GB.
+- Files (`results/k3/README.md` lists them all): the "all windows" row is
+  `sparse_dmx_window_v2.json`; the "epoch rule" row was committed at fc1228e and then
+  overwritten by the chunked run in `sparse_dmx_window_epoch_rule.json`.
+- The dense union path is 0.097 nat below the sparse one at the DMX window. That is a
+  known jitter bias of the dense reference: its 1e-9·s̄ jitter also lands on masked unit
+  slots (`union.py` docstring). The sparse filter has no masked slots, and the t_w-stamped
+  dense run before whitening (`k3/dmx_window_tw_stamped.json`) agrees with it to 2.4e-6 nat.
 - The sparse filter's cost grows with M_sum. A GPU profile traced it to bandwidth-bound
   per-step passes over Ξ (4N × M_sum) and to per-step residual writes from
   `get_Q_block`'s series. Chunking Ξ and checkpointing Q remove both, and leave lnL
@@ -115,5 +128,8 @@ All timings are value plus gradient over all 136 parameters on one A100.
 
 ## Open
 
-- **Budget.** At 0.84 s the 67-psr ladder scales to about 1,340 A100-h, against the 800
-  assumed in §5 (§12, 2026-10-18).
+- **Budget (unresolved).** §5's 800 A100-h assumes 0.5 s of per-chain latency. 0.84 s is
+  batched throughput, and warmup cannot be split across lockstep chains. The ladder is
+  ≈ 1,340 A100-h if the draws split across many short chains with little warmup, and
+  ≈ 10,700 A100-h if each chain needs §5's length. To be settled before Phase 5 (spec §5,
+  §12 2026-10-19).
