@@ -78,19 +78,25 @@ def make_loglike(inp):
     return loglike
 
 
-def check(name, n_points=5, seed=0, points_nc=None):
+def check(name, n_points=5, seed=0, points_nc=None, origin_shift_days=1000.0):
     """Sparse path vs the dense oracle on the raw TOAs, and GW_OFF negligibility.
 
     The oracle is the C1 one (`oracle.oracle_loglike`, continuous-time OU covariance);
     it builds n_toa² matrices, so run this on a GPU for the large pulsars. Points are
     drawn uniformly over the prior box, or, with ``points_nc``, from a run's posterior
     (C1's own point set is posterior draws; the box corners stress the oracle too).
+
+    The oracle's own precision (spec C1) is measured by moving its time origin by
+    ``origin_shift_days``: exact in theory, since the origin only adds a constant in the
+    span of the offset column, but conditioned differently. The spread of that shift is
+    the oracle's noise floor at these points.
     """
     import oracle
 
     cache, comp, inp, epoch = build(name)
     loglike = jax.jit(make_loglike(inp))
     o_inp = oracle.oracle_inputs(cache, comp)
+    o_inp_shift = dict(o_inp, t=o_inp["t"] + origin_shift_days * 86400.0)
     o_fn = jax.jit(oracle.oracle_loglike)
     rng = np.random.default_rng(seed)
     if points_nc is None:
@@ -106,12 +112,23 @@ def check(name, n_points=5, seed=0, points_nc=None):
     rows = []
     for gp, sp in pts:
         v = float(loglike(gp, sp))
-        o = float(o_fn(jnp.array([GW_OFF[0], GW_OFF[1], sp, gp]), o_inp))
+        p_off = jnp.array([GW_OFF[0], GW_OFF[1], sp, gp])
+        o = float(o_fn(p_off, o_inp))
+        o_shift = float(o_fn(p_off, o_inp_shift))
         p_on = jnp.array([GW_OFF[0] + 5.0, GW_OFF[1], sp, gp])
         v_shift = float(union.array_loglike_sparse(p_on, inp) + inp["const"])
-        rows.append({"point": [gp, sp], "lnL": v, "oracle": o, "gw_x1e5": v_shift})
+        rows.append(
+            {
+                "point": [gp, sp],
+                "lnL": v,
+                "oracle": o,
+                "oracle_shifted_origin": o_shift,
+                "gw_x1e5": v_shift,
+            }
+        )
     d = np.array([r["lnL"] - r["oracle"] for r in rows])
     gw = np.array([r["gw_x1e5"] - r["lnL"] for r in rows])
+    floor = np.array([r["oracle_shifted_origin"] - r["oracle"] for r in rows])
     out = {
         "pulsar": name,
         "point_set": "prior box" if points_nc is None else "posterior",
@@ -122,6 +139,8 @@ def check(name, n_points=5, seed=0, points_nc=None):
         "dlnL_vs_oracle_spread": float(np.ptp(d)),
         "dlnL_vs_oracle_max_abs": float(np.max(np.abs(d))),
         "gw_off_max_abs_shift": float(np.max(np.abs(gw))),
+        "origin_shift_days": origin_shift_days,
+        "oracle_origin_shift_spread": float(np.ptp(floor)),
         "git_sha": common.git_sha(),
     }
     print(json.dumps(out, indent=2), flush=True)
