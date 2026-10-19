@@ -18,6 +18,10 @@ results/single_psr/discovery/<psr>.json.
     conda activate discovery
     python workflows/ng15_nb/single_psr/run_discovery.py --pulsar B1855+09
     python workflows/ng15_nb/single_psr/run_discovery.py --index 0   # SLURM array index
+
+`--gamma-p-max` raises the γp ceiling for the spot check behind the 2026-10-20 amendment
+(the ceiling is a flat direction, so the pile-up should move with it while the in-band
+PSD does not); those runs are written under the pipeline name `discovery_gp<max>`.
 """
 
 import argparse
@@ -81,13 +85,18 @@ def make_loglike(psr, span_s):
     return loglike
 
 
-def run(name, num_warmup, num_samples):
+def run(name, num_warmup, num_samples, gamma_p_max=None):
     psr = load(name)
     span_s = common.array_span_s(DISCOVERY_DIR)
     loglike = make_loglike(psr, span_s)
+    box = dict(common.BOX)
+    pipeline = "discovery"
+    if gamma_p_max is not None:
+        box["log10_gamma_p"] = (box["log10_gamma_p"][0], gamma_p_max)
+        pipeline = f"discovery_gp{gamma_p_max:g}"
 
     def model():
-        x = {s: numpyro.sample(s, dist.Uniform(*common.BOX[s])) for s in common.SITES}
+        x = {s: numpyro.sample(s, dist.Uniform(*box[s])) for s in common.SITES}
         numpyro.factor("loglik", loglike(x["log10_gamma_p"], x["log10_sigma_p"]))
 
     nuts = common.NUTS
@@ -116,13 +125,13 @@ def run(name, num_warmup, num_samples):
 
     import arviz as az
 
-    out_dir = common.OUTPUTS / "discovery"
+    out_dir = common.OUTPUTS / pipeline
     out_dir.mkdir(parents=True, exist_ok=True)
     az.from_numpyro(mcmc).to_netcdf(out_dir / f"{name}.nc")
 
     rec = common.summarise(
         name,
-        "discovery",
+        pipeline,
         samples,
         np.asarray(extra["diverging"]),
         span_s,
@@ -135,6 +144,7 @@ def run(name, num_warmup, num_samples):
             "sample_wall_s": wall,
             "device": str(jax.devices()[0]),
         },
+        box=box,
     )
     path = common.write(rec)
     print(json.dumps(rec, indent=2), flush=True)
@@ -148,10 +158,13 @@ def main():
     who.add_argument("--index", type=int, help="manifest index (SLURM array)")
     ap.add_argument("--num-warmup", type=int, default=common.NUTS["num_warmup"])
     ap.add_argument("--num-samples", type=int, default=common.NUTS["num_samples"])
+    ap.add_argument(
+        "--gamma-p-max", type=float, help="raise the γp ceiling (spot check)"
+    )
     args = ap.parse_args()
     name = args.pulsar or common.pulsars()[args.index]
     print(f"{name}: device {jax.devices()[0]}, commit {common.git_sha()}", flush=True)
-    run(name, args.num_warmup, args.num_samples)
+    run(name, args.num_warmup, args.num_samples, args.gamma_p_max)
 
 
 if __name__ == "__main__":

@@ -78,11 +78,13 @@ def make_loglike(inp):
     return loglike
 
 
-def check(name, n_points=5, seed=0):
+def check(name, n_points=5, seed=0, points_nc=None):
     """Sparse path vs the dense oracle on the raw TOAs, and GW_OFF negligibility.
 
     The oracle is the C1 one (`oracle.oracle_loglike`, continuous-time OU covariance);
-    it builds n_toa² matrices, so run this on a GPU for the large pulsars.
+    it builds n_toa² matrices, so run this on a GPU for the large pulsars. Points are
+    drawn uniformly over the prior box, or, with ``points_nc``, from a run's posterior
+    (C1's own point set is posterior draws; the box corners stress the oracle too).
     """
     import oracle
 
@@ -91,7 +93,16 @@ def check(name, n_points=5, seed=0):
     o_inp = oracle.oracle_inputs(cache, comp)
     o_fn = jax.jit(oracle.oracle_loglike)
     rng = np.random.default_rng(seed)
-    pts = np.column_stack([rng.uniform(*common.BOX[s], n_points) for s in common.SITES])
+    if points_nc is None:
+        pts = np.column_stack(
+            [rng.uniform(*common.BOX[s], n_points) for s in common.SITES]
+        )
+    else:
+        import arviz as az
+
+        post = az.from_netcdf(points_nc).posterior
+        draws = np.column_stack([np.asarray(post[s]).ravel() for s in common.SITES])
+        pts = draws[rng.choice(draws.shape[0], n_points, replace=False)]
     rows = []
     for gp, sp in pts:
         v = float(loglike(gp, sp))
@@ -103,6 +114,7 @@ def check(name, n_points=5, seed=0):
     gw = np.array([r["gw_x1e5"] - r["lnL"] for r in rows])
     out = {
         "pulsar": name,
+        "point_set": "prior box" if points_nc is None else "posterior",
         "epoch_cells": epoch,
         "n_toa": int(cache["toas"].size),
         "n_obs": inp["n_obs"],
@@ -182,14 +194,17 @@ def main():
     who.add_argument("--pulsar")
     who.add_argument("--index", type=int, help="manifest index (SLURM array)")
     ap.add_argument("--check", action="store_true", help="oracle check, no sampling")
+    ap.add_argument("--points-nc", help="--check at draws from this run's posterior")
+    ap.add_argument("--n-points", type=int, default=5)
     ap.add_argument("--num-warmup", type=int, default=common.NUTS["num_warmup"])
     ap.add_argument("--num-samples", type=int, default=common.NUTS["num_samples"])
     args = ap.parse_args()
     name = args.pulsar or common.pulsars()[args.index]
     print(f"{name}: device {jax.devices()[0]}, commit {common.git_sha()}", flush=True)
     if args.check:
-        out = check(name)
-        dest = common.RESULTS / "argus_check" / f"{name}.json"
+        out = check(name, n_points=args.n_points, points_nc=args.points_nc)
+        tag = "" if args.points_nc is None else "_posterior"
+        dest = common.RESULTS / f"argus_check{tag}" / f"{name}.json"
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(json.dumps(out, indent=2) + "\n")
         return

@@ -16,9 +16,13 @@ What the summaries record (task 3.1's verify clause):
 - r̂ (rank-normalised) and bulk ESS per site, and the divergence count;
 - the posterior mass near each box edge. A pulsar *without* detected red noise piles up
   at the lower σp edge, which is expected and reported. A pulsar *with* detected red noise
-  must not rail against the σp edges or the γp ceiling. The γp floor is reported but not
-  gated: a corner below the band (ω ≪ 2π/T) leaves an f⁻⁴ spectrum with γp unconstrained,
-  so mass there is the prior, not a rail;
+  must not rail against the σp edges. Neither γp edge is gated (spec §12, 2026-10-20):
+  - the floor: a corner below the band (ω ≪ 2π/T) leaves an f⁻⁴ spectrum with γp
+    unconstrained, so mass there is the prior;
+  - the ceiling: a corner above the band leaves σ²/(γ²ω²), an f⁻² spectrum that depends
+    on σp/γp alone, so the likelihood is flat along γp → ∞ and widening the box only
+    moves the pile-up. Mass there means the data want OU's shallowest spectrum or
+    shallower (A3's shallow-spectrum exposure), and is flagged ``at_f2_limit``;
 - the one-sided spin-noise residual PSD at f = 1/T (T the 67-pulsar array span) and
   f = 1/(5 yr), as log10 s²/Hz quantiles. Those are C4's comparison points.
 """
@@ -119,25 +123,42 @@ def edge_fractions(x, lo, hi):
     return float(np.mean(x < lo + w)), float(np.mean(x > hi - w))
 
 
-def edges(samples):
+def edges(samples, box=None):
     """Per-site edge masses, red-noise detection, and the rail verdict (see module doc)."""
     out = {}
-    for s, (lo, hi) in BOX.items():
+    for s, (lo, hi) in (box or BOX).items():
         f_lo, f_hi = edge_fractions(np.asarray(samples[s]).ravel(), lo, hi)
         out[s] = {"floor": f_lo, "ceiling": f_hi}
-    detected = out["log10_sigma_p"]["floor"] < EDGE_MASS_DETECT
+    return verdict(out)
+
+
+def verdict(edge_mass):
+    """Detection, rails and the f⁻² flag from the per-site edge masses."""
+    detected = edge_mass["log10_sigma_p"]["floor"] < EDGE_MASS_DETECT
     gated = {
-        "log10_sigma_p floor": out["log10_sigma_p"]["floor"],
-        "log10_sigma_p ceiling": out["log10_sigma_p"]["ceiling"],
-        "log10_gamma_p ceiling": out["log10_gamma_p"]["ceiling"],
+        "log10_sigma_p floor": edge_mass["log10_sigma_p"]["floor"],
+        "log10_sigma_p ceiling": edge_mass["log10_sigma_p"]["ceiling"],
     }
     rails = [k for k, v in gated.items() if v > EDGE_MASS_RAIL] if detected else []
     return {
-        "edge_mass": out,
+        "edge_mass": edge_mass,
         "red_noise_detected": bool(detected),
         "lower_edge_pileup": not detected,
+        "at_f2_limit": bool(
+            detected and edge_mass["log10_gamma_p"]["ceiling"] > EDGE_MASS_RAIL
+        ),
         "rails": rails,
     }
+
+
+def passes_3_1(diag, edge):
+    """Task 3.1's verify clause: r̂, bulk ESS, no divergences, no rails."""
+    return bool(
+        diag["max_r_hat"] <= RHAT_MAX
+        and diag["min_ess_bulk"] >= ESS_MIN
+        and diag["divergences"] == 0
+        and not edge["rails"]
+    )
 
 
 def diagnostics(samples, diverging):
@@ -178,21 +199,17 @@ def quantiles(x):
     return {"median": float(q50), "q16": float(q16), "q84": float(q84)}
 
 
-def summarise(name, pipeline, samples, diverging, span_s, extra=None):
+def summarise(name, pipeline, samples, diverging, span_s, extra=None, box=None):
     """The per-pulsar JSON record both pipelines write."""
     f0 = f0_of(name)
     diag = diagnostics(samples, diverging)
-    edge = edges(samples)
+    box = box or BOX
+    edge = edges(samples, box)
     psd = {
         label: quantiles(log10_psd_draws(samples, f0, f))
         for label, f in frequencies(span_s).items()
     }
-    passes = (
-        diag["max_r_hat"] <= RHAT_MAX
-        and diag["min_ess_bulk"] >= ESS_MIN
-        and diag["divergences"] == 0
-        and not edge["rails"]
-    )
+    passes = passes_3_1(diag, edge)
     rec = {
         "pulsar": name,
         "pipeline": pipeline,
@@ -200,7 +217,7 @@ def summarise(name, pipeline, samples, diverging, span_s, extra=None):
         "shallow_spectrum": name in SHALLOW,
         "T_yr": span_s / YR_S,
         "freqs_hz": frequencies(span_s),
-        "box": {k: list(v) for k, v in BOX.items()},
+        "box": {k: list(v) for k, v in box.items()},
         "nuts": dict(NUTS, seed=seed_of(name)),
         "diagnostics": diag,
         **edge,
