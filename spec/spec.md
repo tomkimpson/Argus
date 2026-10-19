@@ -521,6 +521,13 @@ therefore **pivots** with a named next step, not stops.
   task 1.3.]
 - [NEEDS CLARIFICATION: whether Argus's common process should keep its free corner γa (≈ curnγ
   with free γ) or fix it to mimic hd13/3. Default: free, matching NANOGrav's headline hdγ/curnγ.]
+- [NEEDS CLARIFICATION: the production γp ceiling for Phase 5 (task 5.1). The −6 box
+  (from the MDC2 ladders, and used by Phase 1's Discovery-OU reference) truncates real
+  posterior mass for f⁻²-like pulsars: with the ceiling at −4 their γp posteriors close
+  off between −6.7 and −5.3 (§12, 2026-10-20). In the array, that truncation could push
+  red power into the common process (A3). Raising it to −4 would need the Phase 1 OU
+  reference rerun on the same box, so that C5 still compares like with like. Decide
+  before 5.1.]
 
 ## 10. Risks
 
@@ -997,28 +1004,38 @@ pulsars pass: J1909−3744 5.3e-4, B1937+21 8.6e-3, J1012+5307 (epoch cells) 3.9
 Argus and Discovery-OU: J0645+5158, J1745+1017, J1802−2124, J1853+1303, J1946+3417,
 J2145−0750, and the shallow J1705−1903 and J1903+0327.
 
-**Why it is not a rail:** above its corner the integrated-OU residual PSD is
-σp²/(f0² γp² ω²), an f⁻² spectrum that depends on σp/γp alone. Once the corner is above
-the band (log10 γp ≳ −5.5 at NG15's cadence) the likelihood is flat along γp → ∞, so a
-wider box moves the pile-up and adds a longer flat ridge without changing the in-band PSD
-that C4 compares. The pile-up means the data want OU's shallowest spectrum or shallower,
-which is A3's shallow-spectrum exposure. Widening would also part Phase 3's priors from
-Phase 1's Discovery-OU boxes, which C5 needs Argus to share.
+**What the ceiling does:** above its corner the integrated-OU residual PSD tends to
+σp²/(f0² γp² ω²), an f⁻² spectrum, so a pile-up at the ceiling means the data want
+OU's shallowest spectrum or shallower (A3's shallow-spectrum exposure). It was first
+argued (and approved) that the likelihood is flat along γp → ∞, so the pile-up would
+follow any ceiling. **The spot check refuted that.** Discovery-OU reruns with the
+ceiling at −4 (`run_discovery.py --gamma-p-max -4`):
+
+| Pulsar | γp median, −6 → −4 | ceiling mass, −6 → −4 | log10 PSD at 1/T, median | at 1/(5 yr) |
+|---|---|---|---|---|
+| J1745+1017 | −7.07 → −6.66 | 0.07 → 0.00 | −0.01 → −0.41 (16–84% width ≈ 2 dex) | −1.29 → −1.48 |
+| J2145−0750 | −6.32 → −5.29 | 0.20 → 0.06 | −3.40 → −3.42 | −4.42 → −4.44 |
+| J1903+0327 | −6.28 → −5.92 | 0.22 → 0.00 | −1.55 → −1.61 | −2.57 → −2.62 |
+
+The γp posteriors close off between −6.7 and −5.3, so −6 truncates real posterior mass.
+The in-band PSD that C4 compares moves by 0.02–0.06 dex in two cases and by 0.4 dex
+(≈ 0.4σ) in the third, and C4 compares two pipelines on the same box, so the truncation
+does not bias C4. It may matter for the array runs: §9 now asks for the Phase 5 ceiling.
 
 **Change:**
 - Task 3.1: the gated edges are σp's. Both γp edges are reported. A detected pulsar with
-  > 5% of its draws in the top 2% of the γp box is flagged `at_f2_limit` and listed as
-  kernel-limited in the C4 diagnosis table.
+  > 5% of its draws in the top 2% of the γp box is flagged `at_f2_limit` and listed in
+  the C4 diagnosis table as truncated by the −6 ceiling. Phase 3 keeps the −6 box,
+  matching Phase 1's Discovery-OU reference.
 - C4's "within 1σ" (§3) is read as z = |m_A − m_D| / √(σ_A² + σ_D²) ≤ 1 on the log10
   one-sided spin PSD, with σ half the 16–84% width, at both f = 1/T and 1/(5 yr); a pulsar
   piling up at the σp floor is compared the same way (taken in the Phase 3 plan,
   2026-10-19).
 - The single-pulsar runs draw 4000 samples per chain after 1000 warmup (the frozen block
   has 1000), because the γp floor is a slowly mixing flat direction.
-- A spot check backs the change: Discovery-OU reruns of railing pulsars with the γp
-  ceiling at −4 (`run_discovery.py --gamma-p-max -4`), where the pile-up should follow
-  the ceiling and the in-band PSD should not move.
+- §9: a new open question on the production γp ceiling, to settle before task 5.1.
 
-**Approved by the user** on 2026-10-20.
+**Approved by the user** on 2026-10-20 (the rule first; then, after the spot check, this
+corrected rationale and the §9 question).
 
-**Sections touched:** §3, §11, §12
+**Sections touched:** §3, §9, §11, §12
