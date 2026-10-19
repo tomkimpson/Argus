@@ -1,7 +1,7 @@
 # Spec: First state-space detection of the SGWB on NANOGrav 15-yr data
 
 **Status:** draft
-**Created:** 2026-10-15  ·  **Last amended:** 2026-10-19
+**Created:** 2026-10-15  ·  **Last amended:** 2026-10-20
 **Supersedes:** `openspec/changes/sgwb-detection-route` (to be deleted, task 0.1) and the
 wideband M3 plan in issue #111 / `workflows/ng15_sgwb_demo/PLAN.md`.
 
@@ -640,6 +640,8 @@ mixed ORF) that could stall it.
       by 100% meeting r̂ ≤ 1.01, ESS ≥ 400 and 0 divergences. No pulsar with
       detected red noise may rail against a prior edge. For pulsars without detected red noise,
       piling up at the lower amplitude edge is expected; report it, don't fail on it.
+      (amended 2026-10-20: "prior edge" means the σp edges. Mass at either γp edge is
+      reported, not failed; the ceiling is flagged as OU's f⁻² limit. See §12)
 - [ ] 3.2 Matching single-pulsar Discovery-OU runs — verify by the same diagnostics.
 - [ ] 3.3 Produce F4 and the outlier table, flagging shallow-spectrum pulsars — verify against C4.
 
@@ -987,3 +989,36 @@ pulsars pass: J1909−3744 5.3e-4, B1937+21 8.6e-3, J1012+5307 (epoch cells) 3.9
 **Approved by the user** on 2026-10-19 ("apply the fixes then merge").
 
 **Sections touched:** §3, §4, §5, §8, §10, §11, §12
+
+### 2026-10-20 — the γp edges are reported, not gated; C4's "within 1σ"
+
+**Trigger:** task 3.1/3.2's first results. Under a rule that also gated the γp ceiling
+(log10 γp = −6), about 10 pulsars per pipeline "railed" there, mostly the same ones in
+Argus and Discovery-OU: J0645+5158, J1745+1017, J1802−2124, J1853+1303, J1946+3417,
+J2145−0750, and the shallow J1705−1903 and J1903+0327.
+
+**Why it is not a rail:** above its corner the integrated-OU residual PSD is
+σp²/(f0² γp² ω²), an f⁻² spectrum that depends on σp/γp alone. Once the corner is above
+the band (log10 γp ≳ −5.5 at NG15's cadence) the likelihood is flat along γp → ∞, so a
+wider box moves the pile-up and adds a longer flat ridge without changing the in-band PSD
+that C4 compares. The pile-up means the data want OU's shallowest spectrum or shallower,
+which is A3's shallow-spectrum exposure. Widening would also part Phase 3's priors from
+Phase 1's Discovery-OU boxes, which C5 needs Argus to share.
+
+**Change:**
+- Task 3.1: the gated edges are σp's. Both γp edges are reported. A detected pulsar with
+  > 5% of its draws in the top 2% of the γp box is flagged `at_f2_limit` and listed as
+  kernel-limited in the C4 diagnosis table.
+- C4's "within 1σ" (§3) is read as z = |m_A − m_D| / √(σ_A² + σ_D²) ≤ 1 on the log10
+  one-sided spin PSD, with σ half the 16–84% width, at both f = 1/T and 1/(5 yr); a pulsar
+  piling up at the σp floor is compared the same way (taken in the Phase 3 plan,
+  2026-10-19).
+- The single-pulsar runs draw 4000 samples per chain after 1000 warmup (the frozen block
+  has 1000), because the γp floor is a slowly mixing flat direction.
+- A spot check backs the change: Discovery-OU reruns of railing pulsars with the γp
+  ceiling at −4 (`run_discovery.py --gamma-p-max -4`), where the pile-up should follow
+  the ceiling and the in-band PSD should not move.
+
+**Approved by the user** on 2026-10-20.
+
+**Sections touched:** §3, §11, §12
