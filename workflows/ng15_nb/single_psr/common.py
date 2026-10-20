@@ -199,7 +199,9 @@ def quantiles(x):
     return {"median": float(q50), "q16": float(q16), "q84": float(q84)}
 
 
-def summarise(name, pipeline, samples, diverging, span_s, extra=None, box=None):
+def summarise(
+    name, pipeline, samples, diverging, span_s, extra=None, box=None, nuts=None
+):
     """The per-pulsar JSON record both pipelines write."""
     f0 = f0_of(name)
     diag = diagnostics(samples, diverging)
@@ -218,7 +220,7 @@ def summarise(name, pipeline, samples, diverging, span_s, extra=None, box=None):
         "T_yr": span_s / YR_S,
         "freqs_hz": frequencies(span_s),
         "box": {k: list(v) for k, v in box.items()},
-        "nuts": dict(NUTS, seed=seed_of(name)),
+        "nuts": dict(nuts or NUTS, seed=seed_of(name)),
         "diagnostics": diag,
         **edge,
         "passes_3_1": bool(passes),

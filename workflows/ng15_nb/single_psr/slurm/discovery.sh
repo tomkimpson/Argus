@@ -21,4 +21,4 @@ source /fred/oz022/tkimpson/miniconda3/etc/profile.d/conda.sh
 conda activate discovery
 export XLA_PYTHON_CLIENT_PREALLOCATE=false
 echo "repo ${REPO} @ $(git -C "${REPO}" rev-parse HEAD); index ${SLURM_ARRAY_TASK_ID}; $(nvidia-smi --query-gpu=name --format=csv,noheader)"
-python "${REPO}/workflows/ng15_nb/single_psr/run_discovery.py" --index "${SLURM_ARRAY_TASK_ID}"
+python "${REPO}/workflows/ng15_nb/single_psr/run_discovery.py" --index "${SLURM_ARRAY_TASK_ID}" ${ARGS:-}  # e.g. ARGS="--target-accept 0.99"

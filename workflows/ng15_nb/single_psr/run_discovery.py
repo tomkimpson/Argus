@@ -85,7 +85,7 @@ def make_loglike(psr, span_s):
     return loglike
 
 
-def run(name, num_warmup, num_samples, gamma_p_max=None):
+def run(name, num_warmup, num_samples, gamma_p_max=None, target_accept=None):
     psr = load(name)
     span_s = common.array_span_s(DISCOVERY_DIR)
     loglike = make_loglike(psr, span_s)
@@ -94,12 +94,17 @@ def run(name, num_warmup, num_samples, gamma_p_max=None):
     if gamma_p_max is not None:
         box["log10_gamma_p"] = (box["log10_gamma_p"][0], gamma_p_max)
         pipeline = f"discovery_gp{gamma_p_max:g}"
+    if target_accept is not None:
+        pipeline += f"_ta{target_accept:g}"
 
     def model():
         x = {s: numpyro.sample(s, dist.Uniform(*box[s])) for s in common.SITES}
         numpyro.factor("loglik", loglike(x["log10_gamma_p"], x["log10_sigma_p"]))
 
-    nuts = common.NUTS
+    nuts = dict(
+        common.NUTS,
+        target_accept_prob=target_accept or common.NUTS["target_accept_prob"],
+    )
     mcmc = MCMC(
         NUTS(
             model,
@@ -145,6 +150,7 @@ def run(name, num_warmup, num_samples, gamma_p_max=None):
             "device": str(jax.devices()[0]),
         },
         box=box,
+        nuts=dict(nuts, num_samples=num_samples, num_warmup=num_warmup),
     )
     path = common.write(rec)
     print(json.dumps(rec, indent=2), flush=True)
@@ -159,12 +165,17 @@ def main():
     ap.add_argument("--num-warmup", type=int, default=common.NUTS["num_warmup"])
     ap.add_argument("--num-samples", type=int, default=common.NUTS["num_samples"])
     ap.add_argument(
+        "--target-accept",
+        type=float,
+        help="rerun at this NUTS target (written under <pipeline>_ta<value>)",
+    )
+    ap.add_argument(
         "--gamma-p-max", type=float, help="raise the γp ceiling (spot check)"
     )
     args = ap.parse_args()
     name = args.pulsar or common.pulsars()[args.index]
     print(f"{name}: device {jax.devices()[0]}, commit {common.git_sha()}", flush=True)
-    run(name, args.num_warmup, args.num_samples, args.gamma_p_max)
+    run(name, args.num_warmup, args.num_samples, args.gamma_p_max, args.target_accept)
 
 
 if __name__ == "__main__":

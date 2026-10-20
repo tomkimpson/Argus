@@ -147,7 +147,7 @@ def check(name, n_points=5, seed=0, points_nc=None, origin_shift_days=1000.0):
     return out
 
 
-def run(name, num_warmup, num_samples):
+def run(name, num_warmup, num_samples, target_accept=None):
     _, comp, inp, epoch = build(name)
     loglike = make_loglike(inp)
 
@@ -155,7 +155,10 @@ def run(name, num_warmup, num_samples):
         x = {s: numpyro.sample(s, dist.Uniform(*common.BOX[s])) for s in common.SITES}
         numpyro.factor("loglik", loglike(x["log10_gamma_p"], x["log10_sigma_p"]))
 
-    nuts = common.NUTS
+    nuts = dict(
+        common.NUTS,
+        target_accept_prob=target_accept or common.NUTS["target_accept_prob"],
+    )
     mcmc = MCMC(
         NUTS(
             model,
@@ -181,13 +184,14 @@ def run(name, num_warmup, num_samples):
 
     import arviz as az
 
-    out_dir = common.OUTPUTS / "argus"
+    pipeline = "argus" if target_accept is None else f"argus_ta{target_accept:g}"
+    out_dir = common.OUTPUTS / pipeline
     out_dir.mkdir(parents=True, exist_ok=True)
     az.from_numpyro(mcmc).to_netcdf(out_dir / f"{name}.nc")
 
     rec = common.summarise(
         name,
-        "argus",
+        pipeline,
         samples,
         np.asarray(extra["diverging"]),
         common.array_span_s(DISCOVERY_DIR),
@@ -201,6 +205,7 @@ def run(name, num_warmup, num_samples):
             "sample_wall_s": wall,
             "device": str(jax.devices()[0]),
         },
+        nuts=dict(nuts, num_samples=num_samples, num_warmup=num_warmup),
     )
     path = common.write(rec)
     print(json.dumps(rec, indent=2), flush=True)
@@ -217,6 +222,11 @@ def main():
     ap.add_argument("--n-points", type=int, default=5)
     ap.add_argument("--num-warmup", type=int, default=common.NUTS["num_warmup"])
     ap.add_argument("--num-samples", type=int, default=common.NUTS["num_samples"])
+    ap.add_argument(
+        "--target-accept",
+        type=float,
+        help="rerun at this NUTS target (written under <pipeline>_ta<value>)",
+    )
     args = ap.parse_args()
     name = args.pulsar or common.pulsars()[args.index]
     print(f"{name}: device {jax.devices()[0]}, commit {common.git_sha()}", flush=True)
@@ -227,7 +237,7 @@ def main():
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(json.dumps(out, indent=2) + "\n")
         return
-    run(name, args.num_warmup, args.num_samples)
+    run(name, args.num_warmup, args.num_samples, args.target_accept)
 
 
 if __name__ == "__main__":
