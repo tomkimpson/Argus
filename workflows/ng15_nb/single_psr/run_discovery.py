@@ -22,6 +22,8 @@ results/single_psr/discovery/<psr>.json.
 `--gamma-p-max` raises the γp ceiling for the spot check behind the 2026-10-20 amendment
 (the ceiling is a flat direction, so the pile-up should move with it while the in-band
 PSD does not); those runs are written under the pipeline name `discovery_gp<max>`.
+`--sigma-p-max` raises the σp ceiling as well (`_sp<max>`), since along the f⁻² ridge σp
+must rise with γp and the σp ceiling can stop the posterior first.
 """
 
 import argparse
@@ -85,7 +87,14 @@ def make_loglike(psr, span_s):
     return loglike
 
 
-def run(name, num_warmup, num_samples, gamma_p_max=None, target_accept=None):
+def run(
+    name,
+    num_warmup,
+    num_samples,
+    gamma_p_max=None,
+    target_accept=None,
+    sigma_p_max=None,
+):
     psr = load(name)
     span_s = common.array_span_s(DISCOVERY_DIR)
     loglike = make_loglike(psr, span_s)
@@ -94,6 +103,9 @@ def run(name, num_warmup, num_samples, gamma_p_max=None, target_accept=None):
     if gamma_p_max is not None:
         box["log10_gamma_p"] = (box["log10_gamma_p"][0], gamma_p_max)
         pipeline = f"discovery_gp{gamma_p_max:g}"
+    if sigma_p_max is not None:
+        box["log10_sigma_p"] = (box["log10_sigma_p"][0], sigma_p_max)
+        pipeline += f"_sp{sigma_p_max:g}"
     if target_accept is not None:
         pipeline += f"_ta{target_accept:g}"
 
@@ -172,10 +184,20 @@ def main():
     ap.add_argument(
         "--gamma-p-max", type=float, help="raise the γp ceiling (spot check)"
     )
+    ap.add_argument(
+        "--sigma-p-max", type=float, help="raise the σp ceiling (spot check)"
+    )
     args = ap.parse_args()
     name = args.pulsar or common.pulsars()[args.index]
     print(f"{name}: device {jax.devices()[0]}, commit {common.git_sha()}", flush=True)
-    run(name, args.num_warmup, args.num_samples, args.gamma_p_max, args.target_accept)
+    run(
+        name,
+        args.num_warmup,
+        args.num_samples,
+        args.gamma_p_max,
+        args.target_accept,
+        args.sigma_p_max,
+    )
 
 
 if __name__ == "__main__":
