@@ -215,8 +215,8 @@ Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not
   - The published power-law chains are a qualitative cross-check only: a different kernel
     means a different posterior.
   - The reference is Discovery-OU on 30 Fourier modes, as in Phase 1. Where an outlier's
-    diagnosis is that truncation, a 100-mode Discovery-OU run is the evidence
-    (amended 2026-10-22).
+    diagnosis is that truncation, a 100-mode Discovery-OU posterior confirms it; with the
+    likelihood checked only at points, the diagnosis is marked likely (amended 2026-10-22).
 - **C5. Method agreement.** Argus's 67-psr lnB(HD/CURN) agrees with Discovery under the
   kernel-matched model (OU spectra, same priors, same estimator) to within **1 nat**.
   - The two are not expected to agree exactly. The Fourier basis truncates the spectrum,
@@ -535,10 +535,11 @@ therefore **pivots** with a named next step, not stops.
   2026-10-20 wording). In the array, the cut could still push red power into the common
   process (A3). Changing the box would need the Phase 1 OU reference rerun on the same
   box, so that C5 still compares like with like. Decide before 5.1.]
-- [NEEDS CLARIFICATION: the Fourier mode count of the Phase 5 OU reference (C5). At 30
-  modes Discovery-OU misses red power Argus finds in J0437−4715 and J1012+5307 (§12,
-  2026-10-22); J1012's posterior agrees with Argus at 100 modes. Whether other pulsars
-  shift, and whether C5's reference should use 100 modes, is unchecked. Decide before 5.3.]
+- [NEEDS CLARIFICATION: the Fourier mode count of the OU reference behind C5 (Phase 1's
+  ladder). At 30 modes Discovery-OU misses red power Argus finds in J1012+5307, and likely
+  in J0437−4715 (§12, 2026-10-22); J1012's posterior agrees with Argus at 100 modes.
+  Whether other pulsars shift, and whether C5's reference should use 100 modes, is
+  unchecked. Decide before 6.4.]
 
 ## 10. Risks
 
@@ -1037,7 +1038,7 @@ The in-band PSD that C4 compares moves by 0.02–0.06 dex in two cases and by 0.
 (≈ 0.4σ) in the third, and C4 compares two pipelines on the same box, so the truncation
 does not bias C4. It may matter for the array runs: §9 now asks for the Phase 5 ceiling.
 (Corrected 2026-10-22: the posteriors do not close off, and the 30-mode Fourier truncation,
-a different effect, does bias C4 for two pulsars. See below.)
+a different effect, biases C4 for J1012+5307 and likely for J0437−4715. See below.)
 
 **Change:**
 - Task 3.1: the gated edges are σp's. Both γp edges are reported. A detected pulsar with
@@ -1079,8 +1080,9 @@ the "closes off between −6.7 and −5.3" correction was wrong. The in-band PSD
 The rule is unchanged: γp edges are reported, not gated. 14 Argus and 12 Discovery-OU
 pulsars are `at_f2_limit` (not "about 10"); N3 lists them.
 
-**The 30-mode truncation biases C4.** Both C4 outliers are Discovery-OU's 30 Fourier modes
-missing red power that Argus's continuous-time kernel sees:
+**The 30-mode truncation biases C4.** J1012+5307's outlier is Discovery-OU's 30 Fourier
+modes missing red power that Argus's continuous-time kernel sees, and J0437−4715's likely
+is:
 - J1012+5307: a 100-mode Discovery-OU posterior (`--rn-components 100`, job 18957720)
   agrees with Argus, z = 0.03 at both frequencies, against 1.21 at 30 modes. Its earlier
   diagnosis ("the box edge sets the PSD") could not explain a gap between two pipelines on

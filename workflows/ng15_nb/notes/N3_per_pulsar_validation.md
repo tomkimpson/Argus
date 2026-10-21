@@ -10,8 +10,8 @@ Discovery-OU reference before any 67-pulsar Argus run.
 (97.0% at each frequency separately; threshold 90%). The median over pulsars of the larger
 z is 0.02. 39 pulsars pile up at the σp floor in both pipelines, so their posteriors are
 prior-dominated and agree trivially; among the other 28, C4 holds for 26 (92.9%), one
-outlier above the threshold. The two outliers have one diagnosis, Discovery-OU's 30-mode
-Fourier truncation:
+outlier short of failing. Both outliers point to Discovery-OU's 30-mode Fourier
+truncation, confirmed for J1012+5307 and likely for J0437−4715:
 
 | Pulsar | z at 1/T | z at 1/(5 yr) | Shallow | Diagnosis |
 |---|---|---|---|---|
@@ -141,7 +141,7 @@ At the prior-box corners the oracle itself loses precision (B1855+09's floor the
 their prior-box floors were not measured, so these are set aside by analogy with
 B1855+09, and the posterior-point checks are the ones that count.
 
-## The outliers: Discovery-OU's 30-mode truncation
+## The outliers and Discovery-OU's 30-mode truncation
 
 ### J1012+5307: confirmed by a 100-mode posterior
 
@@ -193,5 +193,5 @@ error. It is recorded as an observation, not a claim. Open caveats, parked for n
 Argus single-pulsar runs took a median 2.4 h per pulsar on one A100 (5000 NUTS iterations
 of the latency-bound sequential filter), up to 11.7 h at target 0.9 and 17.5 h for
 J1909−3744 at 0.99, ≈ 256 A100-h of sampling in all (§5 budgeted ~70). Discovery-OU took
-about a minute per pulsar at 30 modes and 2.5 minutes at 100. This bears on §5's budget
+about a minute per pulsar of sampling at 30 modes and about 2 minutes at 100. This bears on §5's budget
 question for Phase 5, not on C4.
