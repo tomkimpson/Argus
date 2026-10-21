@@ -24,6 +24,8 @@ results/single_psr/discovery/<psr>.json.
 PSD does not); those runs are written under the pipeline name `discovery_gp<max>`.
 `--sigma-p-max` raises the σp ceiling as well (`_sp<max>`), since along the f⁻² ridge σp
 must rise with γp and the σp ceiling can stop the posterior first.
+`--rn-components` changes the Fourier mode count from 30 (`_m<n>`), to test a C4 outlier
+for truncation.
 """
 
 import argparse
@@ -106,6 +108,8 @@ def run(
     if sigma_p_max is not None:
         box["log10_sigma_p"] = (box["log10_sigma_p"][0], sigma_p_max)
         pipeline += f"_sp{sigma_p_max:g}"
+    if RN_COMPONENTS != 30:
+        pipeline += f"_m{RN_COMPONENTS}"
     if target_accept is not None:
         pipeline += f"_ta{target_accept:g}"
 
@@ -187,7 +191,13 @@ def main():
     ap.add_argument(
         "--sigma-p-max", type=float, help="raise the σp ceiling (spot check)"
     )
+    ap.add_argument(
+        "--rn-components", type=int, help="Fourier modes (default 30; truncation test)"
+    )
     args = ap.parse_args()
+    if args.rn_components:
+        global RN_COMPONENTS
+        RN_COMPONENTS = args.rn_components
     name = args.pulsar or common.pulsars()[args.index]
     print(f"{name}: device {jax.devices()[0]}, commit {common.git_sha()}", flush=True)
     run(
