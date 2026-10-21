@@ -1,7 +1,7 @@
 # Spec: First state-space detection of the SGWB on NANOGrav 15-yr data
 
 **Status:** draft
-**Created:** 2026-10-15  ·  **Last amended:** 2026-10-20
+**Created:** 2026-10-15  ·  **Last amended:** 2026-10-22
 **Supersedes:** `openspec/changes/sgwb-detection-route` (to be deleted, task 0.1) and the
 wideband M3 plan in issue #111 / `workflows/ng15_sgwb_demo/PLAN.md`.
 
@@ -182,7 +182,9 @@ Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not
     its noise floor. Measured: B1937+21 1.5e-2 nat / 2.3e-3, B1855+09 8e-6 / 1.1e-6.
     (2026-10-19: no pass at the adopted layout relies on this clause, since every residual is
     inside 0.01 nat outright; the origin-shift figures come from a scratch check that was not
-    committed, so re-measure before relying on it.)
+    committed, so re-measure before relying on it. 2026-10-22: Phase 3's posterior-point
+    check on B1937+21 does rely on it: residual spread 1.4e-2 nat, inside the floor
+    re-measured there, 2.4e-2 nat, in `results/single_psr/argus_check_posterior/`.)
   - **Epoch cells as the per-pulsar reference** (amended 2026-10-18). Epoch cells (D2) are
     near-exact, so for pulsars outside the three test pulsars, and for those too large for
     the oracle (J1713+0747), C1 compares the window-compressed likelihood with the
@@ -212,6 +214,9 @@ Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not
   within 1σ, for ≥ 90% of pulsars. Every outlier gets a written diagnosis.
   - The published power-law chains are a qualitative cross-check only: a different kernel
     means a different posterior.
+  - The reference is Discovery-OU on 30 Fourier modes, as in Phase 1. Where an outlier's
+    diagnosis is that truncation, a 100-mode Discovery-OU run is the evidence
+    (amended 2026-10-22).
 - **C5. Method agreement.** Argus's 67-psr lnB(HD/CURN) agrees with Discovery under the
   kernel-matched model (OU spectra, same priors, same estimator) to within **1 nat**.
   - The two are not expected to agree exactly. The Fourier basis truncates the spectrum,
@@ -397,7 +402,8 @@ NANOGrav's log-uniform amplitude prior.
   output (`project_argus_editable_install_gotcha`).
 - **Compute** (rough):
   - Discovery reference: ~50 A100-h.
-  - Argus single-pulsar stage: ~70 jobs × ~1 A100-h.
+  - Argus single-pulsar stage: ~70 jobs × ~1 A100-h. (Measured in Phase 3: ≈ 256 A100-h of
+    sampling, median 2.4 h per pulsar, plus the jobs lost to the first 4 h limit.)
   - Argus 67-psr ladder: 5 rungs × ~40 h × 4 A100 ≈ 800 A100-h. This assumes ≲ 0.5 s per
     likelihood-plus-gradient evaluation; Phase 2 measures it.
   - Not yet counted, and to be added once measured:
@@ -522,12 +528,17 @@ therefore **pivots** with a named next step, not stops.
 - [NEEDS CLARIFICATION: whether Argus's common process should keep its free corner γa (≈ curnγ
   with free γ) or fix it to mimic hd13/3. Default: free, matching NANOGrav's headline hdγ/curnγ.]
 - [NEEDS CLARIFICATION: the production γp ceiling for Phase 5 (task 5.1). The −6 box
-  (from the MDC2 ladders, and used by Phase 1's Discovery-OU reference) truncates real
-  posterior mass for f⁻²-like pulsars: with the ceiling at −4 their γp posteriors close
-  off between −6.7 and −5.3 (§12, 2026-10-20). In the array, that truncation could push
-  red power into the common process (A3). Raising it to −4 would need the Phase 1 OU
-  reference rerun on the same box, so that C5 still compares like with like. Decide
-  before 5.1.]
+  (from the MDC2 ladders, and used by Phase 1's Discovery-OU reference) cuts the f⁻²
+  ridge for f⁻²-like pulsars. With both ceilings raised (γp −4, σp −9) their posteriors
+  run on to the new γp ceiling, so no finite ceiling holds all the mass; the in-band PSD
+  moves ≤ 0.07 dex for two of three pulsars checked (§12, 2026-10-22, which corrects the
+  2026-10-20 wording). In the array, the cut could still push red power into the common
+  process (A3). Changing the box would need the Phase 1 OU reference rerun on the same
+  box, so that C5 still compares like with like. Decide before 5.1.]
+- [NEEDS CLARIFICATION: the Fourier mode count of the Phase 5 OU reference (C5). At 30
+  modes Discovery-OU misses red power Argus finds in J0437−4715 and J1012+5307 (§12,
+  2026-10-22); J1012's posterior agrees with Argus at 100 modes. Whether other pulsars
+  shift, and whether C5's reference should use 100 modes, is unchecked. Decide before 5.3.]
 
 ## 10. Risks
 
@@ -649,6 +660,9 @@ mixed ORF) that could stall it.
       piling up at the lower amplitude edge is expected; report it, don't fail on it.
       (amended 2026-10-20: "prior edge" means the σp edges. Mass at either γp edge is
       reported, not failed; the ceiling is flagged as OU's f⁻² limit. See §12)
+      (amended 2026-10-22: a first-pass failure is rerun at target_accept 0.99, with 8000
+      draws where ESS or r̂ needs it (J0437−4715, J0645+5158); the rerun is what is
+      judged. See §12)
 - [ ] 3.2 Matching single-pulsar Discovery-OU runs — verify by the same diagnostics.
 - [ ] 3.3 Produce F4 and the outlier table, flagging shallow-spectrum pulsars — verify against C4.
 
@@ -1008,7 +1022,8 @@ J2145−0750, and the shallow J1705−1903 and J1903+0327.
 σp²/(f0² γp² ω²), an f⁻² spectrum, so a pile-up at the ceiling means the data want
 OU's shallowest spectrum or shallower (A3's shallow-spectrum exposure). It was first
 argued (and approved) that the likelihood is flat along γp → ∞, so the pile-up would
-follow any ceiling. **The spot check refuted that.** Discovery-OU reruns with the
+follow any ceiling. **The spot check refuted that.** (Corrected 2026-10-22:
+it did not; the check was confounded by the σp ceiling. See below.) Discovery-OU reruns with the
 ceiling at −4 (`run_discovery.py --gamma-p-max -4`):
 
 | Pulsar | γp median, −6 → −4 | ceiling mass, −6 → −4 | log10 PSD at 1/T, median | at 1/(5 yr) |
@@ -1021,6 +1036,8 @@ The γp posteriors close off between −6.7 and −5.3, so −6 truncates real p
 The in-band PSD that C4 compares moves by 0.02–0.06 dex in two cases and by 0.4 dex
 (≈ 0.4σ) in the third, and C4 compares two pipelines on the same box, so the truncation
 does not bias C4. It may matter for the array runs: §9 now asks for the Phase 5 ceiling.
+(Corrected 2026-10-22: the posteriors do not close off, and the 30-mode Fourier truncation,
+a different effect, does bias C4 for two pulsars. See below.)
 
 **Change:**
 - Task 3.1: the gated edges are σp's. Both γp edges are reported. A detected pulsar with
@@ -1039,3 +1056,58 @@ does not bias C4. It may matter for the array runs: §9 now asks for the Phase 5
 corrected rationale and the §9 question).
 
 **Sections touched:** §3, §9, §11, §12
+
+### 2026-10-22 — the γp spot check redone; the 30-mode truncation; reruns at target 0.99
+
+**Trigger:** the `/check-PR` review of PR #133, and two checks it asked for.
+
+**The γp ceiling.** The 2026-10-20 spot check raised only γp's ceiling. Two of its three
+pulsars then piled onto the σp ceiling instead (J1745+1017 12% of mass, J1903+0327 17%),
+because along the f⁻² ridge σp rises with γp. Rerun with both ceilings raised
+(`run_discovery.py --gamma-p-max -4 --sigma-p-max -9`, job 18955930):
+
+| Pulsar | γp median [16–84%] | γp ceiling mass | log10 PSD at 1/T, −6 box → both raised | at 1/(5 yr) |
+|---|---|---|---|---|
+| J1745+1017 | −5.74 [−8.03, −4.55] | 0.05 | −0.01 → −0.64 (16–84%: −0.96 to +0.68) | −1.29 → −1.66 |
+| J2145−0750 | −5.27 [−6.16, −4.43] | 0.06 | −3.40 → −3.42 | −4.42 → −4.43 |
+| J1903+0327 | −5.31 [−6.14, −4.44] | 0.06 | −1.55 → −1.62 | −2.57 → −2.63 |
+
+The posteriors run on to the new ceiling, so the likelihood is near-flat along the ridge
+and the first rationale of 2026-10-20 (the pile-up follows the ceiling) was close to right;
+the "closes off between −6.7 and −5.3" correction was wrong. The in-band PSD moves by
+≤ 0.07 dex for two pulsars and 0.6 dex, inside a 1.6 dex-wide posterior, for J1745+1017.
+The rule is unchanged: γp edges are reported, not gated. 14 Argus and 12 Discovery-OU
+pulsars are `at_f2_limit` (not "about 10"); N3 lists them.
+
+**The 30-mode truncation biases C4.** Both C4 outliers are Discovery-OU's 30 Fourier modes
+missing red power that Argus's continuous-time kernel sees:
+- J1012+5307: a 100-mode Discovery-OU posterior (`--rn-components 100`, job 18957720)
+  agrees with Argus, z = 0.03 at both frequencies, against 1.21 at 30 modes. Its earlier
+  diagnosis ("the box edge sets the PSD") could not explain a gap between two pipelines on
+  the same box.
+- J0437−4715: Discovery's lnL at Argus's posterior point is −3.0 nat relative to no red
+  noise at 30 modes and +8.1 at 100 (+8.3 at 300). This is a likelihood-level diagnosis;
+  a 100-mode posterior was not run.
+
+C4 keeps the 30-mode reference (it passes, 65/67), and §3 C4 now names the 100-mode run as
+an outlier's evidence. §9 asks whether C5's reference needs more modes.
+
+**Reruns.** Seven first-pass failures (5 Argus, 2 Discovery-OU; divergences, r̂ or ESS)
+were rerun at target_accept 0.99, J0437−4715 and J0645+5158 (Argus) with 8000 draws; all
+pass, and C4 reads the rerun wherever one exists. B1937+21 and J1909−3744 diverged in both
+pipelines at 0.9.
+
+**C1's oracle-precision clause** is now used: B1937+21's posterior-point residual
+(1.4e-2 nat) passes inside the oracle's re-measured floor (2.4e-2 nat).
+
+**Change:**
+- §3 C1: the 2026-10-19 note that no pass relies on the oracle-precision clause is updated.
+- §3 C4: the 30-mode reference, and the 100-mode run as an outlier's evidence.
+- §5: the measured Argus single-pulsar cost, ≈ 256 A100-h.
+- §9: the γp-ceiling question reworded; a new question on C5's mode count.
+- §11 task 3.1: the rerun procedure.
+- §12 2026-10-20: its spot-check rationale and "does not bias C4" marked as corrected here.
+
+**Approved by the user** on 2026-10-22.
+
+**Sections touched:** §3, §5, §9, §11, §12

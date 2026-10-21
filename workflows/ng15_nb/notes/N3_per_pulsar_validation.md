@@ -8,15 +8,18 @@ Discovery-OU reference before any 67-pulsar Argus run.
 
 **C4 passes: 65/67 pulsars (97.0%) are within 1σ at both f = 1/T and f = 1/(5 yr)**
 (97.0% at each frequency separately; threshold 90%). The median over pulsars of the larger
-z is 0.02. The two outliers, with their diagnoses:
+z is 0.02. 39 pulsars pile up at the σp floor in both pipelines, so their posteriors are
+prior-dominated and agree trivially; among the other 28, C4 holds for 26 (92.9%), one
+outlier above the threshold. The two outliers have one diagnosis, Discovery-OU's 30-mode
+Fourier truncation:
 
 | Pulsar | z at 1/T | z at 1/(5 yr) | Shallow | Diagnosis |
 |---|---|---|---|---|
-| J0437−4715 | 1.59 | 1.74 | no | Discovery's 30-mode Fourier truncation: the power Argus finds lies above 30/T, which 30 modes cannot see (Discovery's own lnL at Argus's point is −3.0 nat at 30 modes, +8.1 at 100). |
-| J1012+5307 | 1.21 | 1.21 | yes | OU's f⁻² limit: both pipelines pile onto the γp ceiling (84% vs 48% of mass), so the in-band PSD is set by the box edge, and two narrow posteriors (σ ≈ 0.13 dex) sit 0.23 dex apart. |
+| J0437−4715 | 1.59 | 1.74 | no | Likely Discovery's 30-mode truncation, from the likelihood only: Discovery's own lnL at Argus's point is −3.0 nat at 30 modes and +8.1 at 100. |
+| J1012+5307 | 1.21 | 1.21 | yes | Discovery's 30-mode truncation, confirmed: a 100-mode Discovery-OU posterior agrees with Argus (z = 0.03). |
 
-Neither is a likelihood error: both pulsars' compressed likelihoods match the dense oracle
-at posterior draws (below).
+Neither is an Argus compression error: both pulsars' compressed likelihoods match the
+dense oracle at posterior draws (below).
 
 Tasks 3.1 and 3.2 pass for **all 67 pulsars in both pipelines** (r̂ ≤ 1.01, bulk ESS ≥ 400,
 0 divergences, no σp rail), after 7 first-pass failures were rerun at a stricter NUTS
@@ -49,10 +52,21 @@ target (below).
     the original 4 h limit, at 24 h; 18812217 ran the prior-box oracle checks;
   - `d0fa1e7`: the stricter-target reruns 18896014, 18896015, 18915817 (Argus) and
     18896016 (Discovery), and the J0437−4715 oracle check 18915823;
-  - `58407b8` and `f882918`: the γp spot check and the other posterior-point oracle checks.
-  
+  - `58407b8` and `f882918`: the first γp spot check and the other posterior-point oracle
+    checks. The B1855+09 prior-box check records `58407b8`, but ran from a tree holding the
+    origin-shift code before it was committed;
+  - `5d6ca54` and `143ee87`: the γp spot check with both ceilings raised (18955930), the
+    J1012+5307 mode test (same job) and its 100-mode posterior (18957720).
+
   Readout `single_psr/c4_compare.py` → `results/single_psr/c4.json` and
-  `f4_psd_scatter.png`.
+  `f4_psd_scatter.png`. c4.json is authoritative for tasks 3.1/3.2: it re-judges every
+  record under the 2026-10-20 rule, while 26 per-pulsar JSONs written before that rule
+  still carry `passes_3_1: false` for a γp-ceiling "rail". F4's hollow marker uses Argus's
+  σp-floor flag, so J0437−4715 plots as a detection though Discovery piles up there.
+- Reruns write under `<pipeline>_ta<target>` whatever `--num-samples` is, so the 8000-draw
+  J0437−4715 and J0645+5158 runs share `argus_ta0.99/` with the 4000-draw ones; J0645's
+  failed 4000-draw rerun was moved to `argus_ta0.99_n4000/` by hand. Rerunning with the
+  default draws would overwrite them.
 
 ## Tasks 3.1 and 3.2: sampler diagnostics
 
@@ -88,23 +102,25 @@ J1643−1224, J1705−1903, J1713+0747, J1745+1017, J1747−4036, J1802−2124, 
 J1903+0327, J1946+3417, J2145−0750. Discovery has the same list less J0437−4715 and
 J1747−4036. No pulsar has > 5% of its mass on the γp floor.
 
-### The γp ceiling (spec §12, 2026-10-20)
+### The γp ceiling (spec §12, 2026-10-20 and 2026-10-22)
 
 Task 3.1 as first written failed a detected pulsar with mass at any prior edge. Mass at the
 γp ceiling is OU's shallowest (f⁻²) spectrum, which shallow-spectrum pulsars want (A3), so
-the amendment reports it and gates only the σp edges. A spot check raised Discovery's γp
-ceiling to −4 for three of them:
+the amendment reports it and gates only the σp edges. A spot check on three of them
+raised Discovery's γp ceiling to −4, and then both ceilings (γp −4, σp −9):
 
-| Pulsar | γp median (−6 → −4) | Ceiling mass at −4 | log10 S(1/T) median (−6 → −4) |
-|---|---|---|---|
-| J1745+1017 | −7.07 → −6.66 | 0.0 | −0.01 → −0.41 |
-| J2145−0750 | −6.32 → −5.29 | 0.059 | −3.40 → −3.42 |
-| J1903+0327 | −6.28 → −5.92 | 0.0 | −1.55 → −1.61 |
+| Pulsar | γp median: −6 → γp −4 → both | Ceiling mass at γp −4 | σp ceiling mass at γp −4 | γp ceiling mass, both | log10 S(1/T) median: −6 → γp −4 → both |
+|---|---|---|---|---|---|
+| J1745+1017 | −7.07 → −6.66 → −5.74 | 0.0 | 0.12 | 0.05 | −0.01 → −0.41 → −0.64 |
+| J2145−0750 | −6.32 → −5.29 → −5.27 | 0.059 | 0.0 | 0.06 | −3.40 → −3.42 → −3.42 |
+| J1903+0327 | −6.28 → −5.92 → −5.31 | 0.0 | 0.17 | 0.06 | −1.55 → −1.61 → −1.62 |
 
-The posterior closes off below −4 in each, so the likelihood is *not* flat along γp → ∞
-(the amendment's first rationale was wrong and was corrected). The in-band PSD moves by
-≤ 0.06 dex for two and 0.4 dex (within a wide posterior) for J1745+1017. Whether
-production (Phase 5) should widen the ceiling is a §9 question.
+Raising γp's ceiling alone moved two pulsars onto the σp ceiling, since along the f⁻² ridge
+σp rises with γp. With both raised, all three run on to the new γp ceiling: the likelihood
+is near-flat along the ridge, so no finite ceiling holds the mass (an earlier reading of
+the first check, that the posteriors close off below −4, was wrong). The in-band PSD
+moves by ≤ 0.07 dex for two pulsars and 0.6 dex, within a posterior 1.6 dex wide, for
+J1745+1017. Whether production (Phase 5) should change the box is a §9 question.
 
 ## Likelihood checks: Argus vs the dense oracle
 
@@ -120,11 +136,34 @@ The oracle's own precision is the spread of its lnL when its time origin moves b
 | J0437−4715 | 20 posterior | 3.7e-3 | 8e-9 | pass (< 0.01) |
 | B1855+09 | 3 prior box | 2.8e-3 | 4.4 | pass |
 
-At the prior-box corners the oracle itself loses precision (B1855+09's floor 4.4 nat;
-J1909−3744 16.6 nat and B1937+21 0.95 nat Argus − oracle there), so those points are not
-evidence against Argus; the posterior-point checks are the ones that count.
+At the prior-box corners the oracle itself loses precision (B1855+09's floor there is
+4.4 nat). J1909−3744 (16.6 nat) and B1937+21 (0.95 nat) differ from the oracle there too;
+their prior-box floors were not measured, so these are set aside by analogy with
+B1855+09, and the posterior-point checks are the ones that count.
 
-## J0437−4715: the Fourier truncation
+## The outliers: Discovery-OU's 30-mode truncation
+
+### J1012+5307: confirmed by a 100-mode posterior
+
+Both pipelines put J1012+5307 at the γp ceiling, but with 84% (Argus) and 48% (Discovery)
+of the mass there, and the in-band PSDs sit 0.23 dex apart with σ ≈ 0.13 dex. Both run on
+the same box, so the box edge cannot explain the gap. Discovery's lnL at
+log10 γp = −6.05 (`single_psr/j0437_modes.py --pulsar J1012+5307 --gamma-p -6.05`),
+relative to no red noise:
+
+| Modes | log10 σp = −14 | −13.4 | −13 |
+|---|---|---|---|
+| 30 | +34.0 | +77.2 | +84.9 |
+| 100 | +34.3 | +80.4 | +96.3 |
+| 300 | +34.3 | +80.6 | +96.9 |
+
+More modes favour the higher σp that Argus finds, converging by 100. The 100-mode
+Discovery-OU posterior (`run_discovery.py --pulsar J1012+5307 --rn-components 100`, under
+`discovery_m100/`; r̂ 1.001, ESS 3332, 0 divergences) gives log10 γp −6.051, log10 σp
+−12.997, 82% of the mass at the ceiling, and log10 S(1/T) −2.313 against Argus's −2.307:
+z = 0.03 at both frequencies.
+
+### J0437−4715: the likelihood only
 
 Argus detects red noise in J0437−4715 (log10 σp ≈ −13.4, log10 γp ≈ −6.2 with 33% of
 its mass at the ceiling); 30-mode Discovery-OU gives only an upper limit
@@ -146,11 +185,13 @@ error. It is recorded as an observation, not a claim. Open caveats, parked for n
 - the power may be mis-modelled white or chromatic noise absorbed by OU's f⁻² edge,
   rather than astrophysical red noise (J0437−4715 is the array's most precise pulsar);
 - it sits far above the GW band, so its bearing on the GWB is likely small;
-- whether other pulsars show the same 30-vs-100-mode gap is unchecked.
+- whether other pulsars show the same 30-vs-100-mode gap is unchecked (a §9 question for
+  C5's reference).
 
 ## Cost
 
 Argus single-pulsar runs took a median 2.4 h per pulsar on one A100 (5000 NUTS iterations
 of the latency-bound sequential filter), up to 11.7 h at target 0.9 and 17.5 h for
-J1909−3744 at 0.99. Discovery-OU took about a minute per pulsar. This bears on §5's budget
+J1909−3744 at 0.99, ≈ 256 A100-h of sampling in all (§5 budgeted ~70). Discovery-OU took
+about a minute per pulsar at 30 modes and 2.5 minutes at 100. This bears on §5's budget
 question for Phase 5, not on C4.
