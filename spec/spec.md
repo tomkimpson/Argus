@@ -653,9 +653,9 @@ mixed ORF) that could stall it.
 
 **Goal:** every pulsar's Argus noise posterior is consistent with the kernel-matched reference.
 **Done when:** C4 passes (≥ 90% within 1σ), and every outlier has a one-line diagnosis.
-**PR:** _not started_
+**PR:** #133 (merged 2026-10-22)
 
-- [ ] 3.1 Single-pulsar Argus NUTS for all 67 (SLURM array, flat OU priors, fixed WN) — verify
+- [x] 3.1 Single-pulsar Argus NUTS for all 67 (SLURM array, flat OU priors, fixed WN) — verify
       by 100% meeting r̂ ≤ 1.01, ESS ≥ 400 and 0 divergences. No pulsar with
       detected red noise may rail against a prior edge. For pulsars without detected red noise,
       piling up at the lower amplitude edge is expected; report it, don't fail on it.
@@ -664,8 +664,8 @@ mixed ORF) that could stall it.
       (amended 2026-10-22: a first-pass failure is rerun at target_accept 0.99, with 8000
       draws where ESS or r̂ needs it (J0437−4715, J0645+5158); the rerun is what is
       judged. See §12)
-- [ ] 3.2 Matching single-pulsar Discovery-OU runs — verify by the same diagnostics.
-- [ ] 3.3 Produce F4 and the outlier table, flagging shallow-spectrum pulsars — verify against C4.
+- [x] 3.2 Matching single-pulsar Discovery-OU runs — verify by the same diagnostics.
+- [x] 3.3 Produce F4 and the outlier table, flagging shallow-spectrum pulsars — verify against C4.
 
 ### Phase 4 — GW priors to true uniforms (#125, GW sites only)
 
