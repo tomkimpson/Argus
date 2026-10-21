@@ -20,9 +20,10 @@ What the summaries record (task 3.1's verify clause):
   - the floor: a corner below the band (ω ≪ 2π/T) leaves an f⁻⁴ spectrum with γp
     unconstrained, so mass there is the prior;
   - the ceiling: a corner above the band leaves σ²/(γ²ω²), an f⁻² spectrum that depends
-    on σp/γp alone, so the likelihood is flat along γp → ∞ and widening the box only
-    moves the pile-up. Mass there means the data want OU's shallowest spectrum or
-    shallower (A3's shallow-spectrum exposure), and is flagged ``at_f2_limit``;
+    on σp/γp alone, so the likelihood is near-flat along the ridge where σp rises with
+    γp, and widening both ceilings moves the pile-up (spec §12, 2026-10-22). Mass there
+    means the data want OU's shallowest spectrum or shallower (A3's shallow-spectrum
+    exposure), and is flagged ``at_f2_limit``;
 - the one-sided spin-noise residual PSD at f = 1/T (T the 67-pulsar array span) and
   f = 1/(5 yr), as log10 s²/Hz quantiles. Those are C4's comparison points.
 """

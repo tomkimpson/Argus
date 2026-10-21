@@ -19,11 +19,11 @@ results/single_psr/discovery/<psr>.json.
     python workflows/ng15_nb/single_psr/run_discovery.py --pulsar B1855+09
     python workflows/ng15_nb/single_psr/run_discovery.py --index 0   # SLURM array index
 
-`--gamma-p-max` raises the γp ceiling for the spot check behind the 2026-10-20 amendment
-(the ceiling is a flat direction, so the pile-up should move with it while the in-band
-PSD does not); those runs are written under the pipeline name `discovery_gp<max>`.
-`--sigma-p-max` raises the σp ceiling as well (`_sp<max>`), since along the f⁻² ridge σp
-must rise with γp and the σp ceiling can stop the posterior first.
+`--gamma-p-max` raises the γp ceiling for the spot check behind the γp amendments
+(spec §12, 2026-10-20 and 2026-10-22); those runs are written under the pipeline name
+`discovery_gp<max>`. `--sigma-p-max` raises the σp ceiling as well (`_sp<max>`): the
+likelihood is near-flat along the f⁻² ridge, where σp rises with γp, so raising γp's
+ceiling alone moves the pile-up onto σp's.
 `--rn-components` changes the Fourier mode count from 30 (`_m<n>`), to test a C4 outlier
 for truncation.
 """

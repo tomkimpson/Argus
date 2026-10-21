@@ -2,7 +2,8 @@
 """Discovery-OU lnL against its Fourier mode count at one (γp, σp) point (N3, J0437−4715).
 
 C4's J0437−4715 outlier: Argus detects red noise at a fast corner (log10 γp ≈ −6.2,
-log10 σp ≈ −13.4) where 30-mode Discovery-OU sees only an upper limit. This prints
+log10 σp ≈ −13.4) where 30-mode Discovery-OU sees only an upper limit. The other
+outlier was run the same way, with `--pulsar J1012+5307 --gamma-p -6.05`. This prints
 Discovery's lnL relative to no red noise along σp at that γp, for 30, 100 and 300 modes on
 the array span T. If the gain appears only with more modes, the power Argus finds lies
 above 30/T, outside the 30-mode basis.
