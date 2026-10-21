@@ -14,7 +14,9 @@ on log10 PSD. A pulsar passes C4 when z ≤ 1 at both frequencies, and C4 passes
 posteriors are then prior-dominated upper limits, and they should still agree.
 
 Also tallies tasks 3.1 and 3.2's diagnostics (r̂, bulk ESS, divergences, rails) and the
-lower-edge pulsars for each pipeline.
+lower-edge pulsars for each pipeline. A pulsar that failed them on the first pass was rerun
+at a stricter NUTS target (`--target-accept 0.99`, results under <pipeline>_ta0.99/); the
+rerun replaces it here, and the first-pass tally is kept alongside.
 
     conda activate Argus
     python workflows/ng15_nb/single_psr/c4_compare.py
@@ -35,6 +37,8 @@ import common  # noqa: E402
 
 C4_FRACTION = 0.9
 Z_MAX = 1.0
+PIPELINES = ("argus", "discovery")
+RERUN = "_ta0.99"  # suffix of the rerun directories
 
 
 def z_score(a, d):
@@ -177,11 +181,22 @@ def main():
     load = lambda p, n: json.loads((root / p / f"{n}.json").read_text())  # noqa: E731
     missing = {
         p: [n for n in names if not (root / p / f"{n}.json").exists()]
-        for p in ("argus", "discovery")
+        for p in PIPELINES
     }
     if any(missing.values()):
         raise SystemExit(f"missing summaries: {missing}")
-    recs = {p: [rejudge(load(p, n)) for n in names] for p in ("argus", "discovery")}
+    first = {p: [rejudge(load(p, n)) for n in names] for p in PIPELINES}
+    reruns = {
+        p: [n for n in names if (root / f"{p}{RERUN}" / f"{n}.json").exists()]
+        for p in PIPELINES
+    }
+    recs = {
+        p: [
+            rejudge(load(p + RERUN, n)) if n in reruns[p] else r
+            for n, r in zip(names, first[p])
+        ]
+        for p in PIPELINES
+    }
     rows = [compare(a, d) for a, d in zip(recs["argus"], recs["discovery"])]
     n_in = sum(r["within_1sigma"] for r in rows)
     per_freq = {
@@ -209,6 +224,8 @@ def main():
         ],
         "task_3_1_argus": tally(recs["argus"]),
         "task_3_2_discovery": tally(recs["discovery"]),
+        "reruns": reruns,
+        "first_pass": {p: tally(first[p]) for p in PIPELINES},
         "argus_git_sha": sorted({r["git_sha"] for r in recs["argus"]}),
         "discovery_git_sha": sorted({r["git_sha"] for r in recs["discovery"]}),
         "per_pulsar": rows,
