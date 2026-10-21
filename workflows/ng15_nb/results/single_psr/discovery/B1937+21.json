@@ -1,0 +1,91 @@
+{
+  "pulsar": "B1937+21",
+  "pipeline": "discovery",
+  "f0_hz": 641.9282301726892,
+  "shallow_spectrum": false,
+  "T_yr": 16.029777268872298,
+  "freqs_hz": {
+    "1/T": 1.976826457568005e-09,
+    "1/(5 yr)": 6.33761756280579e-09
+  },
+  "box": {
+    "log10_gamma_p": [
+      -12.0,
+      -6.0
+    ],
+    "log10_sigma_p": [
+      -22.0,
+      -11.5
+    ]
+  },
+  "nuts": {
+    "num_chains": 4,
+    "num_warmup": 1000,
+    "num_samples": 4000,
+    "target_accept_prob": 0.9,
+    "max_tree_depth": 8,
+    "seed": 3101
+  },
+  "diagnostics": {
+    "per_site": {
+      "log10_gamma_p": {
+        "r_hat": 1.0003147693801242,
+        "ess_bulk": 3610.268233022489
+      },
+      "log10_sigma_p": {
+        "r_hat": 1.000920928306749,
+        "ess_bulk": 6420.614412295752
+      }
+    },
+    "max_r_hat": 1.000920928306749,
+    "min_ess_bulk": 3610.268233022489,
+    "divergences": 18,
+    "divergence_fraction": 0.001125
+  },
+  "edge_mass": {
+    "log10_gamma_p": {
+      "floor": 0.0289375,
+      "ceiling": 0.0
+    },
+    "log10_sigma_p": {
+      "floor": 0.0,
+      "ceiling": 0.0
+    }
+  },
+  "red_noise_detected": true,
+  "lower_edge_pileup": false,
+  "rails": [],
+  "passes_3_1": false,
+  "site_quantiles": {
+    "log10_gamma_p": {
+      "median": -9.941322699624633,
+      "q16": -11.345883848170631,
+      "q84": -8.529191589605166
+    },
+    "log10_sigma_p": {
+      "median": -14.092918760669038,
+      "q16": -14.152188155973128,
+      "q84": -14.029965622495691
+    }
+  },
+  "log10_psd": {
+    "1/T": {
+      "median": -1.8972003850386212,
+      "q16": -2.027943823463833,
+      "q84": -1.767864054140625
+    },
+    "1/(5 yr)": {
+      "median": -3.903647190820986,
+      "q16": -4.021442768211644,
+      "q84": -3.7787654880260027
+    }
+  },
+  "git_sha": "9dbdc75e041c2445e12a62cce17e9831de545c38",
+  "rn_components": 30,
+  "n_toa": 23023,
+  "num_warmup": 1000,
+  "num_samples": 4000,
+  "mean_num_steps": 10.760375,
+  "sample_wall_s": 65.75239280599635,
+  "device": "cuda:0"
+}

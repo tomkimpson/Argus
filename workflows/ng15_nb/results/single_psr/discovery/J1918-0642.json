@@ -1,0 +1,91 @@
+{
+  "pulsar": "J1918-0642",
+  "pipeline": "discovery",
+  "f0_hz": 130.78951610879994,
+  "shallow_spectrum": false,
+  "T_yr": 16.029777268872298,
+  "freqs_hz": {
+    "1/T": 1.976826457568005e-09,
+    "1/(5 yr)": 6.33761756280579e-09
+  },
+  "box": {
+    "log10_gamma_p": [
+      -12.0,
+      -6.0
+    ],
+    "log10_sigma_p": [
+      -22.0,
+      -11.5
+    ]
+  },
+  "nuts": {
+    "num_chains": 4,
+    "num_warmup": 1000,
+    "num_samples": 4000,
+    "target_accept_prob": 0.9,
+    "max_tree_depth": 8,
+    "seed": 3150
+  },
+  "diagnostics": {
+    "per_site": {
+      "log10_gamma_p": {
+        "r_hat": 1.0022469819878301,
+        "ess_bulk": 1709.6563589439543
+      },
+      "log10_sigma_p": {
+        "r_hat": 1.0022562674112414,
+        "ess_bulk": 2346.6091347899983
+      }
+    },
+    "max_r_hat": 1.0022562674112414,
+    "min_ess_bulk": 1709.6563589439543,
+    "divergences": 0,
+    "divergence_fraction": 0.0
+  },
+  "edge_mass": {
+    "log10_gamma_p": {
+      "floor": 0.018625,
+      "ceiling": 0.0315625
+    },
+    "log10_sigma_p": {
+      "floor": 0.0,
+      "ceiling": 0.0
+    }
+  },
+  "red_noise_detected": true,
+  "lower_edge_pileup": false,
+  "rails": [],
+  "passes_3_1": true,
+  "site_quantiles": {
+    "log10_gamma_p": {
+      "median": -8.11521983783042,
+      "q16": -10.738639741125379,
+      "q84": -6.629261603079336
+    },
+    "log10_sigma_p": {
+      "median": -15.372534149168217,
+      "q16": -15.682496142316554,
+      "q84": -14.681798098220053
+    }
+  },
+  "log10_psd": {
+    "1/T": {
+      "median": -3.7776942982567667,
+      "q16": -4.299279311718129,
+      "q84": -3.1835538287154503
+    },
+    "1/(5 yr)": {
+      "median": -5.33987951889765,
+      "q16": -5.767993392264089,
+      "q84": -4.973085623439448
+    }
+  },
+  "git_sha": "9dbdc75e041c2445e12a62cce17e9831de545c38",
+  "rn_components": 30,
+  "n_toa": 18875,
+  "num_warmup": 1000,
+  "num_samples": 4000,
+  "mean_num_steps": 12.292,
+  "sample_wall_s": 75.68682960499427,
+  "device": "cuda:0"
+}

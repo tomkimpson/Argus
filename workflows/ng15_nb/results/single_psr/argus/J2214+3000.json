@@ -1,0 +1,92 @@
+{
+  "pulsar": "J2214+3000",
+  "pipeline": "argus",
+  "f0_hz": 320.5922922450741,
+  "shallow_spectrum": false,
+  "T_yr": 16.029777268872298,
+  "freqs_hz": {
+    "1/T": 1.976826457568005e-09,
+    "1/(5 yr)": 6.33761756280579e-09
+  },
+  "box": {
+    "log10_gamma_p": [
+      -12.0,
+      -6.0
+    ],
+    "log10_sigma_p": [
+      -22.0,
+      -11.5
+    ]
+  },
+  "nuts": {
+    "num_chains": 4,
+    "num_warmup": 1000,
+    "num_samples": 4000,
+    "target_accept_prob": 0.9,
+    "max_tree_depth": 8,
+    "seed": 3160
+  },
+  "diagnostics": {
+    "per_site": {
+      "log10_gamma_p": {
+        "r_hat": 1.0009450396333666,
+        "ess_bulk": 6101.970981956482
+      },
+      "log10_sigma_p": {
+        "r_hat": 1.0007464832077408,
+        "ess_bulk": 4235.2474903589955
+      }
+    },
+    "max_r_hat": 1.0009450396333666,
+    "min_ess_bulk": 4235.2474903589955,
+    "divergences": 0,
+    "divergence_fraction": 0.0
+  },
+  "edge_mass": {
+    "log10_gamma_p": {
+      "floor": 0.018,
+      "ceiling": 0.023375
+    },
+    "log10_sigma_p": {
+      "floor": 0.0279375,
+      "ceiling": 0.0
+    }
+  },
+  "red_noise_detected": false,
+  "lower_edge_pileup": true,
+  "rails": [],
+  "passes_3_1": true,
+  "site_quantiles": {
+    "log10_gamma_p": {
+      "median": -8.903449366506992,
+      "q16": -10.974352232060724,
+      "q84": -6.870068184580877
+    },
+    "log10_sigma_p": {
+      "median": -18.250771471277922,
+      "q16": -20.78751743463992,
+      "q84": -15.829024326401484
+    }
+  },
+  "log10_psd": {
+    "1/T": {
+      "median": -10.225712477793756,
+      "q16": -15.248546499112296,
+      "q84": -5.3129739549035335
+    },
+    "1/(5 yr)": {
+      "median": -11.99078849470819,
+      "q16": -17.020416371130104,
+      "q84": -7.079036690447495
+    }
+  },
+  "git_sha": "9dbdc75e041c2445e12a62cce17e9831de545c38",
+  "layout": "two scalars per DMX window",
+  "n_obs": 192,
+  "m_cols": 16,
+  "num_warmup": 1000,
+  "num_samples": 4000,
+  "mean_num_steps": 8.108375,
+  "sample_wall_s": 5774.389141874999,
+  "device": "cuda:0"
+}
