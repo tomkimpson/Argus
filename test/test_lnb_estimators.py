@@ -462,11 +462,15 @@ def test_evaluate_refuses_a_config_without_an_explicit_timing_prior(ps, tmp_path
 # GW+noise vs noise-only: Savage-Dickey on a region of the pivot log-PSD
 # ---------------------------------------------------------------------------
 #
-# Toy with a closed form: prior s ~ N(0, 1) and likelihood L(s) = 1 + K N(s; s0, w),
-# which is flat (= the noise-only value 1) away from the bump. Then
-#     Z_noise = 1,  Z = 1 + K N(s0; 0, sqrt(1 + w^2)),  ln B(model/noise) = ln Z,
-# and the posterior is an exact mixture: the prior with weight 1/Z, else the
-# product Gaussian N(s0 / (1 + w^2), w^2 / (1 + w^2)).
+# Toy with a closed form: prior s ~ U(lo, hi) (the bounded pivot prior of issue #125)
+# and likelihood L(s) = 1 + K N(s; s0, w), which is flat (= the noise-only value 1)
+# away from the bump. Then
+#     Z_noise = 1,  Z = 1 + K P / (hi - lo),  ln B(model/noise) = ln Z,
+# with P the N(s0, w) mass inside the box, and the posterior is an exact mixture: the
+# prior with weight 1/Z, else N(s0, w) truncated to the box.
+
+BOX = (-13.0, -5.0)
+GAMMA_BOX = (-11.0, -6.0)
 
 
 @pytest.fixture(scope="module")
@@ -474,30 +478,88 @@ def gvn():
     return _load_script("lnb_gw_vs_noise")
 
 
-def _bump_posterior(k, s0=2.5, w=0.3, n_chain=4, n_draw=4000, seed=0):
-    from scipy.stats import norm
+def _bump_posterior(k, s0=-6.0, w=0.3, n_chain=4, n_draw=4000, seed=0):
+    from scipy.stats import norm, truncnorm
 
-    z = 1.0 + k * norm.pdf(s0, 0.0, math.sqrt(1.0 + w**2))
+    lo, hi = BOX
+    a, b = (lo - s0) / w, (hi - s0) / w
+    z = 1.0 + k * (norm.cdf(b) - norm.cdf(a)) / (hi - lo)
     rng = np.random.default_rng(seed)
     from_prior = rng.uniform(size=(n_chain, n_draw)) < 1.0 / z
-    bump = rng.normal(s0 / (1 + w**2), w / math.sqrt(1 + w**2), size=(n_chain, n_draw))
-    return np.where(from_prior, rng.normal(size=(n_chain, n_draw)), bump), math.log(z)
+    bump = truncnorm.rvs(
+        a, b, loc=s0, scale=w, size=(n_chain, n_draw), random_state=rng
+    )
+    return np.where(from_prior, rng.uniform(lo, hi, size=(n_chain, n_draw)), bump), (
+        math.log(z)
+    )
 
 
-@pytest.mark.parametrize("k", [0.0, 5.0, 30.0])
+def _gamma_prior_draws(shape, seed=9):
+    return np.random.default_rng(seed).uniform(*GAMMA_BOX, size=shape)
+
+
+def test_default_thresholds_are_the_old_pivot_depths(gvn):
+    """The defaults sit at the pivot values the Gaussian-prior version used."""
+    t = gvn.default_thresholds(BOX)
+    assert t[0] == pytest.approx(-9.0 - 0.5 * 8.0 / 6.0)
+    assert t[-1] == pytest.approx(-9.0 - 2.5 * 8.0 / 6.0)
+    assert all(BOX[0] < c < BOX[1] for c in t)
+
+
+def test_prior_mass_is_the_uniform_fraction_below_c(gvn):
+    assert gvn.prior_mass_below(-11.0, BOX) == pytest.approx(0.25)
+    assert gvn.prior_mass_below(-5.0, BOX) == pytest.approx(1.0)
+
+
+@pytest.mark.parametrize("box", [None, (-5.0, -13.0), (-math.inf, -5.0)])
+def test_an_unbounded_or_empty_prior_is_refused(gvn, box):
+    with pytest.raises(ValueError):
+        gvn.check_box(box)
+
+
+def test_a_threshold_outside_the_box_is_refused(gvn):
+    with pytest.raises(ValueError, match="outside the prior box"):
+        gvn.prior_mass_below(-14.0, BOX)
+
+
+def test_posterior_equal_to_the_prior_gives_zero(gvn):
+    """Known answer: no information about the GW means ln B = 0 at every threshold."""
+    pivot = np.random.default_rng(3).uniform(*BOX, size=(4, 4000))
+    res = gvn.analyse(pivot, BOX, _gamma_prior_draws(pivot.shape), GAMMA_BOX)
+    assert res["reliable"], res["failed_diagnostics"]
+    assert abs(res["ln_bayes_factor"]) < 3.0 * res["uncert"]
+
+
+def test_half_the_mass_moved_up_gives_ln_two(gvn):
+    """Known answer: Z = 2 (half the posterior is the prior) gives ln B = ln 2."""
+    k = (2.0 - 1.0) * (BOX[1] - BOX[0])  # the bump is well inside the box, so P = 1
+    pivot, truth = _bump_posterior(k)
+    assert truth == pytest.approx(math.log(2.0), abs=1e-3)
+    res = gvn.analyse(pivot, BOX, _gamma_prior_draws(pivot.shape), GAMMA_BOX)
+    assert res["reliable"], res["failed_diagnostics"]
+    assert abs(res["ln_bayes_factor"] - math.log(2.0)) < 3.0 * res["uncert"]
+
+
+@pytest.mark.parametrize("k", [0.0, 40.0, 240.0])
 def test_region_savage_dickey_recovers_the_analytic_bayes_factor(gvn, k):
     """With a flat noise-only tail the region ratio is exact at every threshold."""
-    prime, truth = _bump_posterior(k)
-    gamma = np.random.default_rng(9).normal(size=prime.shape)
-    res = gvn.analyse(prime, gamma)
+    pivot, truth = _bump_posterior(k)
+    res = gvn.analyse(pivot, BOX, _gamma_prior_draws(pivot.shape), GAMMA_BOX)
     assert res["reliable"], res["failed_diagnostics"]
     assert abs(res["ln_bayes_factor"] - truth) < 3.0 * res["uncert"]
 
 
 def test_region_savage_dickey_flags_a_likelihood_that_is_not_flat(gvn):
-    """A likelihood still rising into the tail (posterior N(-1, 1)) has no plateau."""
-    prime = np.random.default_rng(4).normal(-1.0, 1.0, size=(4, 4000))
-    res = gvn.analyse(prime)
+    """A likelihood still rising into the tail (posterior ~ N(-10.3, 1.3)) has no
+    plateau."""
+    from scipy.stats import truncnorm
+
+    lo, hi = BOX
+    m, sd = -10.3, 1.3
+    pivot = truncnorm.rvs(
+        (lo - m) / sd, (hi - m) / sd, loc=m, scale=sd, size=(4, 4000), random_state=4
+    )
+    res = gvn.analyse(pivot, BOX)
     assert not res["reliable"]
     assert any("not plateaued" in m for m in res["failed_diagnostics"])
     assert res["ln_bayes_factor"] is None
@@ -505,47 +567,93 @@ def test_region_savage_dickey_flags_a_likelihood_that_is_not_flat(gvn):
 
 def test_region_savage_dickey_refuses_a_strong_signal(gvn):
     """No draws at low amplitude means no estimate, not a silent extrapolation."""
-    prime = np.random.default_rng(5).normal(3.0, 0.3, size=(4, 4000))
-    res = gvn.analyse(prime)
+    pivot = np.random.default_rng(5).normal(-6.0, 0.3, size=(4, 4000))
+    res = gvn.analyse(pivot, BOX)
     assert not res["reliable"]
     assert res["ln_bayes_factor"] is None
 
 
 def test_region_savage_dickey_flags_a_non_prior_like_nuisance(gvn):
     """gamma_a constrained inside the region means the region is not noise-only."""
-    prime = np.random.default_rng(6).normal(size=(4, 4000))
-    gamma = np.random.default_rng(7).normal(1.5, 0.3, size=(4, 4000))
-    res = gvn.analyse(prime, gamma)
+    pivot = np.random.default_rng(6).uniform(*BOX, size=(4, 4000))
+    gamma = np.random.default_rng(7).normal(-7.0, 0.3, size=(4, 4000))
+    res = gvn.analyse(pivot, BOX, gamma, GAMMA_BOX)
     assert any("gamma_a not prior-like" in m for m in res["failed_diagnostics"])
 
 
 def test_lower_bound_is_the_rule_of_three_on_independent_draws(gvn):
-    """No draws below c in n i.i.d. draws: ln B >= ln(Phi(c) n / 3.0)."""
-    from scipy.stats import norm
-
-    prime = np.random.default_rng(5).normal(3.0, 0.3, size=(4, 4000))
-    lb = gvn.lower_bound(prime, c=-0.5)
+    """No draws below c in n i.i.d. draws: ln B >= ln(prior mass(c) n / 3.0)."""
+    pivot = np.random.default_rng(5).normal(-6.0, 0.3, size=(4, 4000))
+    c = -9.5
+    lb = gvn.lower_bound(pivot, BOX, c=c)
     assert lb["n_below"] == 0
-    expect = math.log(norm.cdf(-0.5) * lb["ess"] / (0.5 * 5.991464547107979))
+    expect = math.log((c - BOX[0]) / 8.0 * lb["ess"] / (0.5 * 5.991464547107979))
     assert lb["ln_bayes_factor_lower"] == pytest.approx(expect)
-    assert lb["ess"] > 0.8 * prime.size
+    assert lb["ess"] > 0.8 * pivot.size
 
 
-@pytest.mark.parametrize("k", [0.0, 5.0, 30.0])
+@pytest.mark.parametrize("k", [0.0, 40.0, 240.0])
 def test_lower_bound_sits_below_the_analytic_bayes_factor(gvn, k):
-    prime, truth = _bump_posterior(k)
-    assert gvn.lower_bound(prime)["ln_bayes_factor_lower"] < truth
+    """A 95% bound: it may exceed the truth in ~5% of data sets, not more."""
+    below = []
+    for seed in range(20):
+        pivot, truth = _bump_posterior(k, seed=seed)
+        below.append(gvn.lower_bound(pivot, BOX)["ln_bayes_factor_lower"] < truth)
+    assert sum(below) >= 17
 
 
 def test_lower_bound_uses_effective_not_raw_draws(gvn):
     """Strongly autocorrelated chains must give a weaker bound than i.i.d. ones."""
     rng = np.random.default_rng(8)
-    iid = rng.normal(3.0, 0.3, size=(4, 4000))
+    iid = rng.normal(-6.0, 0.3, size=(4, 4000))
     sticky = np.repeat(iid[:, :400], 10, axis=1)
     assert (
-        gvn.lower_bound(sticky)["ln_bayes_factor_lower"]
-        < gvn.lower_bound(iid)["ln_bayes_factor_lower"] - 1.5
+        gvn.lower_bound(sticky, BOX)["ln_bayes_factor_lower"]
+        < gvn.lower_bound(iid, BOX)["ln_bayes_factor_lower"] - 1.5
     )
+
+
+def _write_run(tmp_path, posterior):
+    import arviz as az
+
+    run = tmp_path / "toy_run"
+    run.mkdir()
+    az.from_dict(posterior=posterior).to_netcdf(str(run / "toy_run_results.nc"))
+    (run / "toy_run.ini").write_text(
+        "[PriorModel]\ngw_parameterization = ridge\n"
+        "log10_pivot_psd_min = -13.0\nlog10_pivot_psd_max = -5.0\n"
+        "log10_gamma_a_min = -11.0\nlog10_gamma_a_max = -6.0\n"
+    )
+    return str(run)
+
+
+def test_load_run_reads_the_bounded_sites(gvn, tmp_path):
+    rng = np.random.default_rng(10)
+    run = _write_run(
+        tmp_path,
+        {
+            "log10_pivot_psd": rng.uniform(*BOX, size=(2, 50)),
+            "log10_gamma_a": rng.uniform(*GAMMA_BOX, size=(2, 50)),
+        },
+    )
+    out = gvn.load_run(run)
+    assert out["box"] == BOX and out["gamma_box"] == GAMMA_BOX
+    assert out["pivot"].shape == (2, 50)
+
+
+def test_load_run_refuses_a_gaussian_prior_run(gvn, tmp_path):
+    """A pre-#125 run (pivot sampled as a N(0, 1) latent) is refused, not misread."""
+    rng = np.random.default_rng(11)
+    run = _write_run(
+        tmp_path,
+        {
+            "log10_pivot_psd_prime": rng.normal(size=(2, 50)),
+            "log10_pivot_psd": rng.uniform(*BOX, size=(2, 50)),
+            "log10_gamma_a": rng.uniform(*GAMMA_BOX, size=(2, 50)),
+        },
+    )
+    with pytest.raises(SystemExit, match="Gaussian pivot prior"):
+        gvn.load_run(run)
 
 
 # ---------------------------------------------------------------------------
