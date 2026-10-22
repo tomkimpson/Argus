@@ -203,7 +203,8 @@ def analyse(pivot, box, gamma=None, gamma_box=None, thresholds=None):
     """Region Savage-Dickey over a threshold ladder, with the plateau gate.
 
     ``pivot`` holds draws of the pivot log-PSD under a U(box) prior; ``gamma`` holds
-    draws of log10_gamma_a under U(gamma_box), used for the flatness check.
+    draws of log10_gamma_a under U(gamma_box), used for the flatness check. The lower
+    bound is taken at the shallowest threshold.
     """
     box = check_box(box)
     if thresholds is None:
@@ -260,7 +261,7 @@ def analyse(pivot, box, gamma=None, gamma_box=None, thresholds=None):
         "reliable": reliable,
         "failed_diagnostics": failed,
         "flatness": flat,
-        "lower_bound": lower_bound(pivot, box),
+        "lower_bound": lower_bound(pivot, box, c=max(thresholds)),
         "thresholds": rows,
     }
 

@@ -1,9 +1,10 @@
 """Known-answer toys for the uniform-prior CURN-vs-noise readout (spec task 1.5).
 
-``workflows/ng15_nb/reference/lnb_curn_vs_noise.py`` maps a U(lo, hi) amplitude onto
-the N(0, 1) latent that ``lnb_gw_vs_noise.analyse`` expects. With a step likelihood
-L(s) = 1 below m and K above, Z_model / Z_noise = q + K (1 − q) with q = (m − lo)/(hi − lo),
-so the region estimator must return ln(q + K (1 − q)) for every threshold below m.
+``workflows/ng15_nb/reference/lnb_curn_vs_noise.py`` passes a U(lo, hi) amplitude to
+``lnb_gw_vs_noise.analyse``, at thresholds of uniform prior mass Phi(c). With a step
+likelihood L(s) = 1 below m and K above, Z_model / Z_noise = q + K (1 − q) with
+q = (m − lo)/(hi − lo), so the region estimator must return ln(q + K (1 − q)) for every
+threshold below m.
 """
 
 import importlib.util
@@ -36,13 +37,14 @@ def _step_posterior(rng, m, k, shape):
     return np.where(below, rng.uniform(LO, m, shape), rng.uniform(m, HI, shape))
 
 
-def test_to_latent_is_standard_normal_under_the_prior(mod):
-    from scipy.stats import kstest
+def test_thresholds_carry_the_normal_prior_mass(mod):
+    from scipy.stats import norm
 
-    x = np.random.default_rng(0).uniform(LO, HI, 20000)
-    assert kstest(mod.to_latent(x, LO, HI), "norm").pvalue > 0.01
+    t = mod.thresholds(LO, HI)
+    assert (t[0] - LO) / (HI - LO) == pytest.approx(norm.cdf(-0.5))
+    assert (t[-1] - LO) / (HI - LO) == pytest.approx(norm.cdf(-2.5))
     with pytest.raises(ValueError):
-        mod.to_latent(np.array([LO - 0.1]), LO, HI)
+        mod.check_in_box(np.array([LO - 0.1]), LO, HI)
 
 
 @pytest.mark.parametrize("k", [1.0, 4.0])
@@ -51,7 +53,7 @@ def test_step_likelihood_known_answer(mod, k):
     m = -14.0
     s = _step_posterior(rng, m, k, (4, 20000))
     gamma = rng.uniform(0, 7, s.shape)  # likelihood-flat nuisance, as in the region
-    res = mod.analyse(mod.to_latent(s, LO, HI), mod.to_latent(gamma, 0.0, 7.0))
+    res = mod.analyse(s, (LO, HI), gamma, (0.0, 7.0), thresholds=mod.thresholds(LO, HI))
     q = (m - LO) / (HI - LO)
     want = math.log(q + k * (1 - q))
     assert res["reliable"], res["failed_diagnostics"]
