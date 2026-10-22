@@ -639,7 +639,10 @@ class TestRidgeGwSampling:
         def model():
             parameter_sampling.sample_gw_parameters(specs)
 
-        draws = Predictive(model, num_samples=n_draws)(jax.random.PRNGKey(seed))
+        # Pin the PRNG mode: importing jaxns (test_nested_sampling) turns on
+        # jax_threefry_partitionable globally, which changes the draws a key gives.
+        with jax.threefry_partitionable(False):
+            draws = Predictive(model, num_samples=n_draws)(jax.random.PRNGKey(seed))
         return draws["log10_pivot_psd"], draws["log10_gamma_a"]
 
     def test_ridge_prior_is_the_configured_box(self):
@@ -647,8 +650,9 @@ class TestRidgeGwSampling:
 
         Spec task 4.1: KS p > 0.05 on 1e5 draws for each site. A single KS
         test at that level rejects a truly uniform sample 5% of the time, and
-        the draws for a given key differ with the global x64 setting, so the
-        test runs 5 keys and allows one rejection per site (a uniform sample
+        the draws for a given key differ with the global x64 setting (and the
+        PRNG mode, pinned in _ridge_prior_draws), so the test runs 5 keys and
+        allows one rejection per site (a uniform sample
         fails that 2% of the time); none may fall below p = 0.001. The old
         N(0, 1) latent mapped onto the box (an unbounded N(mid, (max - min) / 6))
         fails by a wide margin.
