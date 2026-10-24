@@ -46,7 +46,6 @@ def get_gw_parameter_priors(config):
       and log10_gamma_a_{min,max}. Both coordinates are sampled as bounded
       Uniform sites on those boxes (issue #125).
     """
-
     gw_parameterization = (
         config.get("PriorModel", "gw_parameterization", fallback="direct")
         .strip()
