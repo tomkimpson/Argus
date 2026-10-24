@@ -7,12 +7,15 @@ this reports:
 
 - lnB(GW+noise / noise) by region Savage-Dickey, with its 95% lower bound. The uniform
   rungs use ``lnb_gw_vs_noise.py`` here; the Gaussian rungs use the same script as of
-  main 7616aa7, loaded from the old-library worktree, whose prior mass is Phi(c).
+  main 7616aa7, loaded from the old-library worktree (``--old-lib``; create it with
+  ``git worktree add --detach /fred/oz022/tkimpson/Argus-phase4-old 7616aa7``, see the
+  header of slurm_scripts/phase4_gw_prior.sh), whose prior mass is Phi(c).
 - percentiles (2.5, 16, 50, 84, 97.5) of the two-sided pivot log-PSD, the derived
   log10_ha and log10_gamma_a;
 - sampling health: max r-hat and min bulk/tail ESS over the sampled sites, divergences;
-- wall time of the NUTS run and seconds per iteration, from the SLURM log, with the GPU
-  count and chain method. The Gaussian twins were resubmitted on one A100 (queue time),
+- wall time of run_analysis.py (``time`` in the SLURM log, so data loading and
+  compilation included) and seconds per iteration, with the GPU count and chain
+  method. The Gaussian twins were resubmitted on one A100 (queue time),
   so their chains ran sequentially: s/iteration compares, wall time does not.
 
 and, per pair, the change (uniform minus Gaussian). For 1b, where both eps = 0 and eps = 1
@@ -61,7 +64,7 @@ def _percentiles(x):
 
 
 def _timing(run_id, logdir):
-    """NUTS wall time (s) and s/iteration from the newest SLURM log of this rung."""
+    """run_analysis.py wall time (s) and s/iteration from the newest SLURM log of a rung."""
     logs = []
     for path in glob.glob(os.path.join(logdir, "p4_gwprior_*.out")):
         with open(path, errors="replace") as f:
