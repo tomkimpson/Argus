@@ -155,11 +155,11 @@ def display_prior_summary(prior_specs, n_pulsars, logger=None):
         )
         log_or_print(
             f"  - log10(pivot PSD): Uniform({psd_tp['min']:.1f}, {psd_tp['max']:.1f}) "
-            "via log10_pivot_psd_prime ~ N(0,1)"
+            "[bounded uniform site]"
         )
         log_or_print(
             f"  - log10(γ_a): Uniform({ga_tp['min']:.1f}, {ga_tp['max']:.1f}) "
-            "via log10_gamma_a_prime ~ N(0,1)"
+            "[bounded uniform site]"
         )
     else:
         # GW background parameters

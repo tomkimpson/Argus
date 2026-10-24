@@ -1,7 +1,7 @@
 # Spec: First state-space detection of the SGWB on NANOGrav 15-yr data
 
 **Status:** draft
-**Created:** 2026-10-15  ·  **Last amended:** 2026-10-22
+**Created:** 2026-10-15  ·  **Last amended:** 2026-10-22 (Phase 4 reruns)
 **Supersedes:** `openspec/changes/sgwb-detection-route` (to be deleted, task 0.1) and the
 wideband M3 plan in issue #111 / `workflows/ng15_sgwb_demo/PLAN.md`.
 
@@ -408,7 +408,8 @@ NANOGrav's log-uniform amplitude prior.
     likelihood-plus-gradient evaluation; Phase 2 measures it.
   - Not yet counted, and to be added once measured:
     - extra Romberg rungs if the readout asks (0.625, 0.875; ~2 × 160 A100-h);
-    - the Phase 4 MDC2 reruns (2 rungs at 33 psr);
+    - the Phase 4 MDC2 reruns (6 rungs at 33 psr: 1b eps 0/1 and 2b eps 0, each under both
+      GW priors; amended 2026-10-22);
     - the Phase 3 Discovery single-pulsar runs.
   - Scrambles: CPU.
   - Total ≈ 1000 A100-h **at ≤ 0.5 s per evaluation, with no extra rungs**.
@@ -672,7 +673,9 @@ mixed ORF) that could stall it.
 **Goal:** the NUTS GW prior equals the configured box.
 **Done when:** prior-predictive draws of `log10_pivot_psd` and `log10_gamma_a` match U(lo, hi)
 (KS p > 0.05 on 10⁵ draws), `lnb_gw_vs_noise.py` handles the bounded pivot, the goldens pass,
-and the MDC2 1b eps0 and eps1 rungs rerun with the change in lnB reported.
+and the MDC2 1b eps0 and eps1 rungs rerun with the change in lnB reported (on 1b the
+signal is too strong for a point estimate, so the change is between 95% lower bounds;
+amendment 2026-10-22).
 **PR:** _not started_ (can run in parallel with Phases 2–3)
 **Divergence from #125's stated acceptance:** this phase covers the GW sites only (EFAC/EQUAD
 stay fixed, A2) and reruns only the eps0 and eps1 rungs, not both full MDC2 ladders. Edit #125
@@ -683,6 +686,8 @@ to match when the phase opens.
       prior — verify by a unit test with a known-answer toy.
 - [ ] 4.3 Rerun MDC2 1b eps0 and eps1 rungs; report Δ in lnB(GW/noise) and amplitude interval —
       verify by a committed comparison JSON; flag old checkpoints as incompatible (PR #121 style).
+      (amended 2026-10-22: plus 2b eps0, and every rung also under the old Gaussian prior on
+      the post-#129 library, so Δ is due to the prior alone — see §12)
 
 ### Phase 5 — 67-psr Argus pilot (sampling feasibility)
 
@@ -1113,3 +1118,25 @@ pipelines at 0.9.
 **Approved by the user** on 2026-10-22.
 
 **Sections touched:** §3, §5, §9, §11, §12
+
+### 2026-10-22 — Phase 4 reruns: a same-library baseline and one 2b rung
+
+**Trigger:** opening Phase 4. The committed MDC2 diffuse rungs (#123, #124) predate the
+Λ-jitter fix (#129), so a uniform-prior rerun compared with them would mix two changes.
+And 1b is likelihood-dominated, so its lnB(GW/noise) is a lower bound the prior may barely
+move, while on 2b the pivot interval's lower edge (−10.8 one-sided, from the PR #124
+readout before #129; −11.18 two-sided on the rerun) is the Gaussian prior's tail — the
+case #125 is about.
+
+**Change:**
+- Task 4.3 reruns each rung twice on the same likelihood: the bounded uniform GW prior,
+  and the old Gaussian one on main 7616aa7 (after #129). Δ is uniform minus Gaussian.
+- One 2b eps0 rung (and its twin) is added: six 33-psr rungs, not two (§5).
+- On 1b the Done-when "change in lnB" is the change between 95% lower bounds, since
+  neither prior gives a point estimate there; 2b gives the point-estimate change.
+- Scope stays D5's: the two ridge sites. Direct-mode `log10_ha`/`log10_gamma_a`, EFAC/EQUAD
+  and the CW sites remain #125 leftovers (issue comment, 2026-10-22).
+
+**Approved by the user** on 2026-10-22 (plan approval).
+
+**Sections touched:** §5, §11, §12

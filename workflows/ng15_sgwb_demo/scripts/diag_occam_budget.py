@@ -157,6 +157,13 @@ def load_run(run_dir):
 
     idata = az.from_netcdf(nc[0])
     post = idata.posterior
+    if "log10_pivot_psd_prime" not in post:
+        # Built on the pre-#125 N(0, 1) ridge primes (and lnb_gw_vs_noise.py's old
+        # prime-sigma thresholds); not ported to the bounded-uniform GW prior.
+        raise SystemExit(
+            f"{nc[0]}: no log10_pivot_psd_prime; this diagnostic only reads "
+            "pre-#125 Gaussian-prior ridge runs"
+        )
     ll = idata.log_likelihood["likelihood"].values
     ll = ll.reshape(ll.shape[0], ll.shape[1], -1).sum(axis=-1)
 

@@ -592,14 +592,10 @@ class TestRidgeGwSampling:
             "log10_ha_transform_params": None,
             "log10_gamma_a_spec": None,
             "log10_pivot_psd_transform_params": {
-                "mean": -9.0,
-                "std": 8.0 / 6.0,
                 "min": -13.0,
                 "max": -5.0,
             },
             "log10_gamma_a_transform_params": {
-                "mean": -8.5,
-                "std": 5.0 / 6.0,
                 "min": -11.0,
                 "max": -6.0,
             },
@@ -607,7 +603,7 @@ class TestRidgeGwSampling:
         }
 
     def test_ridge_sites_and_inversion(self):
-        """Ridge mode samples the two _prime sites and derives log10_ha so that
+        """Ridge mode samples the two bounded sites and derives log10_ha so that
         the OU PSD at the pivot reproduces the sampled pivot log-PSD."""
         from numpyro import handlers
 
@@ -618,8 +614,10 @@ class TestRidgeGwSampling:
 
         trace = handlers.trace(handlers.seed(model, rng_seed=0)).get_trace()
 
-        assert trace["log10_pivot_psd_prime"]["type"] == "sample"
-        assert trace["log10_gamma_a_prime"]["type"] == "sample"
+        assert trace["log10_pivot_psd"]["type"] == "sample"
+        assert trace["log10_gamma_a"]["type"] == "sample"
+        assert "log10_pivot_psd_prime" not in trace
+        assert "log10_gamma_a_prime" not in trace
         assert "log10_ha_prime" not in trace  # log10_ha is derived, not sampled
 
         log10_pivot_psd = float(trace["log10_pivot_psd"]["value"])
@@ -632,6 +630,65 @@ class TestRidgeGwSampling:
         s2 = (ha**2 / 12.0) * ga
         sr = s2 / (w**2 * (ga**2 + w**2))
         assert float(jnp.log10(sr)) == pytest.approx(log10_pivot_psd, abs=1e-6)
+
+    @staticmethod
+    def _ridge_prior_draws(specs, n_draws, seed=0):
+        """Prior draws of the two ridge sites, from sample_gw_parameters alone."""
+        from numpyro.infer import Predictive
+
+        def model():
+            parameter_sampling.sample_gw_parameters(specs)
+
+        # Pin the PRNG mode: importing jaxns (test_nested_sampling) turns on
+        # jax_threefry_partitionable globally, which changes the draws a key gives.
+        with jax.threefry_partitionable(False):
+            draws = Predictive(model, num_samples=n_draws)(jax.random.PRNGKey(seed))
+        return draws["log10_pivot_psd"], draws["log10_gamma_a"]
+
+    def test_ridge_prior_is_the_configured_box(self):
+        """Issue #125: prior draws of both ridge sites are U(min, max).
+
+        Spec task 4.1: KS p > 0.05 on 1e5 draws for each site. A single KS
+        test at that level rejects a truly uniform sample 5% of the time, and
+        the draws for a given key differ with the global x64 setting (and the
+        PRNG mode, pinned in _ridge_prior_draws), so the test runs 5 keys and
+        allows one rejection per site (a uniform sample
+        fails that 2% of the time); none may fall below p = 0.001. The old
+        N(0, 1) latent mapped onto the box (an unbounded N(mid, (max - min) / 6))
+        fails by a wide margin.
+        """
+        import numpy as np
+        from scipy import stats
+
+        specs = self._ridge_specs()
+        n = 100_000
+        pvalues = {"log10_pivot_psd": [], "log10_gamma_a": []}
+        for seed in range(5):
+            pivot, gamma = self._ridge_prior_draws(specs, n, seed)
+            for draws, site in [(pivot, "log10_pivot_psd"), (gamma, "log10_gamma_a")]:
+                tp = specs[f"{site}_transform_params"]
+                lo, hi = tp["min"], tp["max"]
+                draws = np.asarray(draws)
+                assert draws.shape == (n,)
+                assert draws.min() >= lo and draws.max() <= hi
+                pvalues[site].append(
+                    stats.kstest(draws, stats.uniform(lo, hi - lo).cdf).pvalue
+                )
+        for site, ps in pvalues.items():
+            assert sum(p > 0.05 for p in ps) >= 4, (site, ps)
+            assert min(ps) > 1e-3, (site, ps)
+
+        for key in (
+            "log10_pivot_psd_transform_params",
+            "log10_gamma_a_transform_params",
+        ):
+            lo, hi = specs[key]["min"], specs[key]["max"]
+
+            # The pre-#125 prior on the same box
+            old = (lo + hi) / 2 + (hi - lo) / 6 * np.random.default_rng(0).normal(
+                size=n
+            )
+            assert stats.kstest(old, stats.uniform(lo, hi - lo).cdf).pvalue < 1e-10
 
     def test_ridge_count_free_parameters(self):
         """Ridge GW mode counts 2 free params (fixed noise)."""

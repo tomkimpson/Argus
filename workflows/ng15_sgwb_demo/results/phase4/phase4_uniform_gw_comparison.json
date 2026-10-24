@@ -1,0 +1,395 @@
+{
+  "spec_task": "4.3",
+  "issue": 125,
+  "script_sha": "04647392c08cf5b1680e5f70921889791a1a56b1",
+  "old_script": "/fred/oz022/tkimpson/Argus-phase4-old/workflows/ng15_sgwb_demo/scripts/lnb_gw_vs_noise.py",
+  "pivot_convention": "two-sided OU density at f = 1/(5 yr); one-sided is +0.301",
+  "rungs": [
+    {
+      "dataset": "1b",
+      "orf_epsilon": 0.0,
+      "uniform": {
+        "run": "mdc2_d1_flat_uniformgw_eps000",
+        "nc": "outputs/mdc2_d1_flat_uniformgw_eps000/mdc2_d1_flat_uniformgw_eps000_results.nc",
+        "library_sha": "a3484db24368bed06b08a9633391a8a8475626cc",
+        "config_sha256": "bc03914dbf7ae1fbe6a0914342a2472df58e8a00aa4abae19de53c5e3e6f8e9f",
+        "lnb_gw_vs_noise": null,
+        "lnb_gw_vs_noise_uncert": null,
+        "lnb_reliable": false,
+        "lnb_failed_diagnostics": [
+          "only 0 threshold(s) with >= 50 effective draws below; need 3 for a plateau (signal too strong for a density-ratio estimate)"
+        ],
+        "lnb_provisional": null,
+        "lnb_provisional_uncert": null,
+        "lnb_lower_95": 2.320301323852522,
+        "lnb_threshold_pivot": null,
+        "lnb_lower_threshold_pivot": -9.666666666666666,
+        "pivot_two_sided": {
+          "2.5": -7.7638,
+          "16": -7.2108,
+          "50": -6.95,
+          "84": -6.7138,
+          "97.5": -6.4627
+        },
+        "log10_ha": {
+          "2.5": -13.8941,
+          "16": -13.5557,
+          "50": -13.072,
+          "84": -12.5462,
+          "97.5": -12.2747
+        },
+        "log10_gamma_a": {
+          "2.5": -10.8892,
+          "16": -10.4269,
+          "50": -9.3947,
+          "84": -8.3194,
+          "97.5": -7.5541
+        },
+        "rhat_max": 1.01,
+        "ess_bulk_min": 878.0,
+        "ess_tail_min": 279.0,
+        "divergences": 0,
+        "n_draws": 4000,
+        "timing": {
+          "log": "p4_gwprior_18961537_0.out",
+          "n_gpus": 4,
+          "chain_method": "parallel",
+          "wall_s": 21013.037,
+          "median_s_per_it": 10.45
+        }
+      },
+      "gaussian": {
+        "run": "mdc2_d1_flat_gaussgw_eps000",
+        "nc": "outputs/mdc2_d1_flat_gaussgw_eps000/mdc2_d1_flat_gaussgw_eps000_results.nc",
+        "library_sha": "7616aa7b5cc830cff452347c47583b89dca1e083",
+        "config_sha256": "075d109bb7c1b085d4c393495a40ba99f199a19e79a5bfabbd04ad62e6f6a1a6",
+        "lnb_gw_vs_noise": null,
+        "lnb_gw_vs_noise_uncert": null,
+        "lnb_reliable": false,
+        "lnb_failed_diagnostics": [
+          "only 0 threshold(s) with >= 50 effective draws below; need 3 for a plateau (signal too strong for a density-ratio estimate)"
+        ],
+        "lnb_provisional": null,
+        "lnb_provisional_uncert": null,
+        "lnb_lower_95": 3.3980221486641056,
+        "lnb_threshold_pivot": null,
+        "lnb_lower_threshold_pivot": -9.666666666666666,
+        "pivot_two_sided": {
+          "2.5": -7.646,
+          "16": -7.2528,
+          "50": -6.9977,
+          "84": -6.7824,
+          "97.5": -6.5646
+        },
+        "log10_ha": {
+          "2.5": -13.8571,
+          "16": -13.6434,
+          "50": -13.3801,
+          "84": -13.0286,
+          "97.5": -12.6698
+        },
+        "log10_gamma_a": {
+          "2.5": -10.2015,
+          "16": -9.4721,
+          "50": -8.7937,
+          "84": -8.2312,
+          "97.5": -7.7863
+        },
+        "rhat_max": 1.01,
+        "ess_bulk_min": 1282.0,
+        "ess_tail_min": 1179.0,
+        "divergences": 0,
+        "n_draws": 4000,
+        "timing": {
+          "log": "p4_gwprior_19055225_3.out",
+          "n_gpus": 1,
+          "chain_method": "sequential",
+          "wall_s": 81267.142,
+          "median_s_per_it": 10.44
+        }
+      },
+      "delta_uniform_minus_gaussian": {
+        "pivot_two_sided": {
+          "2.5": -0.1178,
+          "16": 0.042,
+          "50": 0.0477,
+          "84": 0.0686,
+          "97.5": 0.1019
+        },
+        "log10_ha": {
+          "2.5": -0.037,
+          "16": 0.0877,
+          "50": 0.3081,
+          "84": 0.4824,
+          "97.5": 0.3951
+        },
+        "log10_gamma_a": {
+          "2.5": -0.6877,
+          "16": -0.9548,
+          "50": -0.601,
+          "84": -0.0882,
+          "97.5": 0.2322
+        },
+        "lnb_lower_95": -1.0777208248115837,
+        "s_per_it_ratio": 1.0009578544061302
+      }
+    },
+    {
+      "dataset": "1b",
+      "orf_epsilon": 1.0,
+      "uniform": {
+        "run": "mdc2_d1_flat_uniformgw_eps100",
+        "nc": "outputs/mdc2_d1_flat_uniformgw_eps100/mdc2_d1_flat_uniformgw_eps100_results.nc",
+        "library_sha": "a3484db24368bed06b08a9633391a8a8475626cc",
+        "config_sha256": "4cdfc68492b89dab4bc09ef562948dbb2abeb50cba4fc2e5f6ab80d7919bc9d8",
+        "lnb_gw_vs_noise": null,
+        "lnb_gw_vs_noise_uncert": null,
+        "lnb_reliable": false,
+        "lnb_failed_diagnostics": [
+          "only 0 threshold(s) with >= 50 effective draws below; need 3 for a plateau (signal too strong for a density-ratio estimate)"
+        ],
+        "lnb_provisional": null,
+        "lnb_provisional_uncert": null,
+        "lnb_lower_95": 5.855700288774013,
+        "lnb_threshold_pivot": null,
+        "lnb_lower_threshold_pivot": -9.666666666666666,
+        "pivot_two_sided": {
+          "2.5": -7.4906,
+          "16": -7.2366,
+          "50": -6.9939,
+          "84": -6.7465,
+          "97.5": -6.4998
+        },
+        "log10_ha": {
+          "2.5": -13.7927,
+          "16": -13.572,
+          "50": -13.0817,
+          "84": -12.5534,
+          "97.5": -12.2938
+        },
+        "log10_gamma_a": {
+          "2.5": -10.8947,
+          "16": -10.4255,
+          "50": -9.3673,
+          "84": -8.3228,
+          "97.5": -7.5945
+        },
+        "rhat_max": 1.01,
+        "ess_bulk_min": 1410.0,
+        "ess_tail_min": 1818.0,
+        "divergences": 0,
+        "n_draws": 4000,
+        "timing": {
+          "log": "p4_gwprior_18961537_1.out",
+          "n_gpus": 4,
+          "chain_method": "parallel",
+          "wall_s": 21225.2,
+          "median_s_per_it": 10.46
+        }
+      },
+      "gaussian": {
+        "run": "mdc2_d1_flat_gaussgw_eps100",
+        "nc": "outputs/mdc2_d1_flat_gaussgw_eps100/mdc2_d1_flat_gaussgw_eps100_results.nc",
+        "library_sha": "7616aa7b5cc830cff452347c47583b89dca1e083",
+        "config_sha256": "eb41de639c35917720c9bee2c47b9a1aa3c8498f72b67a5f0b29f7642c5e9f1a",
+        "lnb_gw_vs_noise": null,
+        "lnb_gw_vs_noise_uncert": null,
+        "lnb_reliable": false,
+        "lnb_failed_diagnostics": [
+          "only 0 threshold(s) with >= 50 effective draws below; need 3 for a plateau (signal too strong for a density-ratio estimate)"
+        ],
+        "lnb_provisional": null,
+        "lnb_provisional_uncert": null,
+        "lnb_lower_95": 5.680191857608597,
+        "lnb_threshold_pivot": null,
+        "lnb_lower_threshold_pivot": -9.666666666666666,
+        "pivot_two_sided": {
+          "2.5": -7.595,
+          "16": -7.2891,
+          "50": -7.0376,
+          "84": -6.8037,
+          "97.5": -6.5576
+        },
+        "log10_ha": {
+          "2.5": -13.8573,
+          "16": -13.6642,
+          "50": -13.4021,
+          "84": -13.0468,
+          "97.5": -12.6703
+        },
+        "log10_gamma_a": {
+          "2.5": -10.203,
+          "16": -9.4578,
+          "50": -8.7806,
+          "84": -8.23,
+          "97.5": -7.7305
+        },
+        "rhat_max": 1.01,
+        "ess_bulk_min": 1290.0,
+        "ess_tail_min": 1648.0,
+        "divergences": 0,
+        "n_draws": 4000,
+        "timing": {
+          "log": "p4_gwprior_19055225_4.out",
+          "n_gpus": 1,
+          "chain_method": "sequential",
+          "wall_s": 81320.586,
+          "median_s_per_it": 10.52
+        }
+      },
+      "delta_uniform_minus_gaussian": {
+        "pivot_two_sided": {
+          "2.5": 0.1044,
+          "16": 0.0525,
+          "50": 0.0437,
+          "84": 0.0572,
+          "97.5": 0.0578
+        },
+        "log10_ha": {
+          "2.5": 0.0646,
+          "16": 0.0922,
+          "50": 0.3204,
+          "84": 0.4934,
+          "97.5": 0.3765
+        },
+        "log10_gamma_a": {
+          "2.5": -0.6917,
+          "16": -0.9677,
+          "50": -0.5867,
+          "84": -0.0928,
+          "97.5": 0.136
+        },
+        "lnb_lower_95": 0.17550843116541603,
+        "s_per_it_ratio": 0.9942965779467682
+      }
+    },
+    {
+      "dataset": "2b",
+      "orf_epsilon": 0.0,
+      "uniform": {
+        "run": "mdc2_flat_uniformgw_eps000",
+        "nc": "outputs/mdc2_flat_uniformgw_eps000/mdc2_flat_uniformgw_eps000_results.nc",
+        "library_sha": "a3484db24368bed06b08a9633391a8a8475626cc",
+        "config_sha256": "256d212f948c4c06bab63f9885bb2742b6bedb56294db6c77c0f45a6a4524f58",
+        "lnb_gw_vs_noise": 0.7339691750801995,
+        "lnb_gw_vs_noise_uncert": 0.09625831144045732,
+        "lnb_reliable": true,
+        "lnb_failed_diagnostics": [],
+        "lnb_provisional": 0.7339691750801995,
+        "lnb_provisional_uncert": 0.09625831144045732,
+        "lnb_lower_95": 0.37382240299396535,
+        "lnb_threshold_pivot": -12.333333333333334,
+        "lnb_lower_threshold_pivot": -9.666666666666666,
+        "pivot_two_sided": {
+          "2.5": -12.601,
+          "16": -10.5974,
+          "50": -7.1645,
+          "84": -6.3719,
+          "97.5": -5.7575
+        },
+        "log10_ha": {
+          "2.5": -16.3187,
+          "16": -15.1058,
+          "50": -13.4941,
+          "84": -12.7766,
+          "97.5": -12.216
+        },
+        "log10_gamma_a": {
+          "2.5": -10.8658,
+          "16": -10.2505,
+          "50": -8.6709,
+          "84": -7.0144,
+          "97.5": -6.1791
+        },
+        "rhat_max": 1.01,
+        "ess_bulk_min": 460.0,
+        "ess_tail_min": 142.0,
+        "divergences": 0,
+        "n_draws": 4000,
+        "timing": {
+          "log": "p4_gwprior_18961537_2.out",
+          "n_gpus": 4,
+          "chain_method": "parallel",
+          "wall_s": 23315.683,
+          "median_s_per_it": 10.47
+        }
+      },
+      "gaussian": {
+        "run": "mdc2_flat_gaussgw_eps000",
+        "nc": "outputs/mdc2_flat_gaussgw_eps000/mdc2_flat_gaussgw_eps000_results.nc",
+        "library_sha": "7616aa7b5cc830cff452347c47583b89dca1e083",
+        "config_sha256": "e85eae0efc207429fcd211132ddd754d8f4efb4f1d6092fa6065b4bc5d33fd33",
+        "lnb_gw_vs_noise": 0.7199428176121621,
+        "lnb_gw_vs_noise_uncert": 0.12567143106432718,
+        "lnb_reliable": true,
+        "lnb_failed_diagnostics": [],
+        "lnb_provisional": 0.7199428176121621,
+        "lnb_provisional_uncert": 0.12567143106432718,
+        "lnb_lower_95": 0.4257757481112958,
+        "lnb_threshold_pivot": -11.333333333333332,
+        "lnb_lower_threshold_pivot": -9.666666666666666,
+        "pivot_two_sided": {
+          "2.5": -11.1755,
+          "16": -9.8066,
+          "50": -8.1082,
+          "84": -6.8922,
+          "97.5": -6.3633
+        },
+        "log10_ha": {
+          "2.5": -15.7135,
+          "16": -14.9264,
+          "50": -14.0031,
+          "84": -13.3239,
+          "97.5": -12.8213
+        },
+        "log10_gamma_a": {
+          "2.5": -10.0767,
+          "16": -9.3643,
+          "50": -8.561,
+          "84": -7.7915,
+          "97.5": -6.9903
+        },
+        "rhat_max": 1.01,
+        "ess_bulk_min": 845.0,
+        "ess_tail_min": 340.0,
+        "divergences": 0,
+        "n_draws": 4000,
+        "timing": {
+          "log": "p4_gwprior_19055225_5.out",
+          "n_gpus": 1,
+          "chain_method": "sequential",
+          "wall_s": 93801.958,
+          "median_s_per_it": 10.48
+        }
+      },
+      "delta_uniform_minus_gaussian": {
+        "pivot_two_sided": {
+          "2.5": -1.4255,
+          "16": -0.7908,
+          "50": 0.9437,
+          "84": 0.5203,
+          "97.5": 0.6058
+        },
+        "log10_ha": {
+          "2.5": -0.6052,
+          "16": -0.1794,
+          "50": 0.509,
+          "84": 0.5473,
+          "97.5": 0.6053
+        },
+        "log10_gamma_a": {
+          "2.5": -0.7891,
+          "16": -0.8862,
+          "50": -0.1099,
+          "84": 0.7771,
+          "97.5": 0.8112
+        },
+        "lnb_gw_vs_noise": 0.014026357468037487,
+        "lnb_provisional": 0.014026357468037487,
+        "lnb_lower_95": -0.05195334511733046,
+        "s_per_it_ratio": 0.9990458015267176
+      }
+    }
+  ],
+  "hd_curn_region_sd_1b": {}
+}
