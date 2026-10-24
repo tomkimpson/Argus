@@ -676,15 +676,15 @@ mixed ORF) that could stall it.
 and the MDC2 1b eps0 and eps1 rungs rerun with the change in lnB reported (on 1b the
 signal is too strong for a point estimate, so the change is between 95% lower bounds;
 amendment 2026-10-22).
-**PR:** _not started_ (can run in parallel with Phases 2–3)
+**PR:** #137 (merged 2026-10-25)
 **Divergence from #125's stated acceptance:** this phase covers the GW sites only (EFAC/EQUAD
 stay fixed, A2) and reruns only the eps0 and eps1 rungs, not both full MDC2 ladders. Edit #125
 to match when the phase opens.
 
-- [ ] 4.1 Convert both sites following the PR #120 pattern — verify by the KS test and goldens.
-- [ ] 4.2 Update `lnb_gw_vs_noise.py` prior mass to (c − lo)/(hi − lo); refuse an unbounded
+- [x] 4.1 Convert both sites following the PR #120 pattern — verify by the KS test and goldens.
+- [x] 4.2 Update `lnb_gw_vs_noise.py` prior mass to (c − lo)/(hi − lo); refuse an unbounded
       prior — verify by a unit test with a known-answer toy.
-- [ ] 4.3 Rerun MDC2 1b eps0 and eps1 rungs; report Δ in lnB(GW/noise) and amplitude interval —
+- [x] 4.3 Rerun MDC2 1b eps0 and eps1 rungs; report Δ in lnB(GW/noise) and amplitude interval —
       verify by a committed comparison JSON; flag old checkpoints as incompatible (PR #121 style).
       (amended 2026-10-22: plus 2b eps0, and every rung also under the old Gaussian prior on
       the post-#129 library, so Δ is due to the prior alone — see §12)
