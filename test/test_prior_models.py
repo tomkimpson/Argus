@@ -424,8 +424,7 @@ class TestRidgeParameterization:
         assert specs["log10_ha_spec"] is None
         assert specs["log10_ha_transform_params"] is None
         psd = specs["log10_pivot_psd_transform_params"]
-        assert psd["mean"] == pytest.approx((-13.0 + -5.0) / 2.0)
-        assert psd["std"] == pytest.approx((-5.0 - -13.0) / 6.0)
+        assert psd == {"min": -13.0, "max": -5.0}
         ga = specs["log10_gamma_a_transform_params"]
         assert ga["min"] == -11.0 and ga["max"] == -6.0
         import math

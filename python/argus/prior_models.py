@@ -43,12 +43,9 @@ def get_gw_parameter_priors(config):
       The pivot log-PSD is the TWO-sided OU density (one-sided, as in an
       enterprise power law, is log10(2) higher).
       Reads log10_pivot_psd_{min,max}, gw_pivot_freq_hz (fallback 1/(5 yr)),
-      and log10_gamma_a_{min,max}.
+      and log10_gamma_a_{min,max}. Both coordinates are sampled as bounded
+      Uniform sites on those boxes (issue #125).
     """
-
-    def _reparam(min_val, max_val):
-        """N(0,1)-reparameterized uniform: returns (mean, std) for the 3-sigma map."""
-        return (min_val + max_val) / 2.0, (max_val - min_val) / 6.0
 
     gw_parameterization = (
         config.get("PriorModel", "gw_parameterization", fallback="direct")
@@ -65,8 +62,6 @@ def get_gw_parameter_priors(config):
         f_piv = config.getfloat(
             "PriorModel", "gw_pivot_freq_hz", fallback=1.0 / (5.0 * 365.25 * 86400.0)
         )
-        psd_mean, psd_std = _reparam(psd_min, psd_max)
-        ga_mean, ga_std = _reparam(ga_min, ga_max)
         return {
             "gw_parameterization": "ridge",
             # log10_ha is derived; keep the direct-mode keys present (None) so
@@ -75,14 +70,10 @@ def get_gw_parameter_priors(config):
             "log10_ha_transform_params": None,
             "log10_gamma_a_spec": None,
             "log10_pivot_psd_transform_params": {
-                "mean": psd_mean,
-                "std": psd_std,
                 "min": psd_min,
                 "max": psd_max,
             },
             "log10_gamma_a_transform_params": {
-                "mean": ga_mean,
-                "std": ga_std,
                 "min": ga_min,
                 "max": ga_max,
             },

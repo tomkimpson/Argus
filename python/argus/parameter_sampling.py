@@ -74,22 +74,20 @@ def sample_gw_parameters(prior_specs):
     # the curved log10_ha<->log10_gamma_a ridge that stalls NUTS chains. The
     # likelihood still sees (log10_ha, log10_gamma_a); only the prior/sampling
     # basis changes (uniform on (pivot log-PSD, log10_gamma_a)).
+    #
+    # Both sites are genuine Uniforms, as in sample_uniform_parameters, so numpyro
+    # samples them in logit space and adds the Jacobian. An earlier version drew
+    # *_prime ~ N(0, 1) and mapped it affinely onto the box, which made the prior
+    # an unbounded N(mid, (max - min) / 6) (issue #125).
     if prior_specs.get("gw_parameterization") == "ridge":
         psd_tp = prior_specs["log10_pivot_psd_transform_params"]
         ga_tp = prior_specs["log10_gamma_a_transform_params"]
 
-        log10_pivot_psd_prime = numpyro.sample(
-            "log10_pivot_psd_prime", dist.Normal(0.0, 1.0)
+        log10_pivot_psd = numpyro.sample(
+            "log10_pivot_psd", dist.Uniform(psd_tp["min"], psd_tp["max"])
         )
-        log10_pivot_psd = numpyro.deterministic(
-            "log10_pivot_psd", psd_tp["mean"] + log10_pivot_psd_prime * psd_tp["std"]
-        )
-
-        log10_gamma_a_prime = numpyro.sample(
-            "log10_gamma_a_prime", dist.Normal(0.0, 1.0)
-        )
-        log10_gamma_a = numpyro.deterministic(
-            "log10_gamma_a", ga_tp["mean"] + log10_gamma_a_prime * ga_tp["std"]
+        log10_gamma_a = numpyro.sample(
+            "log10_gamma_a", dist.Uniform(ga_tp["min"], ga_tp["max"])
         )
         γa = numpyro.deterministic("γa", 10.0**log10_gamma_a)
 
@@ -571,8 +569,8 @@ def count_free_parameters(prior_specs, n_pulsars):
         if cw_specs.get("chi_transform_params") is not None:
             count += n_pulsars
     elif prior_specs.get("gw_parameterization") == "ridge":
-        # Ridge mode: two free GW coordinates (log10_pivot_psd_prime,
-        # log10_gamma_a_prime); log10_ha is derived deterministically.
+        # Ridge mode: two free GW coordinates (log10_pivot_psd,
+        # log10_gamma_a); log10_ha is derived deterministically.
         count += 2
     else:
         # GWB parameters

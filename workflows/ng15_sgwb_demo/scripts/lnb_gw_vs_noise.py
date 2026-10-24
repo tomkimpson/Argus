@@ -10,19 +10,25 @@ cannot produce that comparison.
 
 The identity
 ------------
-In ridge mode the GW amplitude enters as the pivot log-PSD
-``s = log10_pivot_psd = mu + sigma * prime``, ``prime ~ N(0, 1)``. The noise-only
-model is the limit s -> -inf. In any region R of s deep enough that the likelihood
-no longer depends on the GW parameters (L(s, rest) = L_noise(rest)),
+In ridge mode the GW amplitude enters as the pivot log-PSD ``s = log10_pivot_psd``,
+sampled from the bounded Uniform U(lo, hi) of the config (issue #125). The noise-only
+model is the limit of vanishing amplitude. In any region R = [lo, c) of s deep enough
+that the likelihood no longer depends on the GW parameters (L(s, rest) = L_noise(rest)),
 
     p(s | d) / pi(s) = Z_noise / Z_model                   for s in R,
 
 because the conditional prior of everything else does not depend on s. So
 
-    ln B(model / noise) = -ln[ P_post(prime < c) / Phi(c) ]
+    ln B(model / noise) = -ln[ P_post(s < c) / ((c - lo) / (hi - lo)) ]
 
 for any threshold c inside R. This is Savage-Dickey on a region rather than at a
-point; the null value sits at -inf so the point form is unavailable.
+point; the null value is not in the box, so the point form is unavailable. It needs
+the bottom of the box, lo, to sit where the likelihood is already flat; the plateau
+gate below is the check.
+
+Runs from before issue #125 sampled ``log10_pivot_psd_prime ~ N(0, 1)`` mapped onto the
+box, an unbounded Gaussian prior. This version refuses them; read them out with the
+script as of main 7616aa7, whose prior mass was Phi(c) in prior sigmas.
 
 The estimate is only valid once the ratio has PLATEAUED in c: a ratio still drifting
 as c deepens means the likelihood is not yet flat there. The plateau gate checks
@@ -32,9 +38,9 @@ amplitude) and fails, visibly, when the detection is strong (no draws below c).
 
 For a strong detection the script still reports a one-sided LOWER BOUND. If at most
 an expected mu_up effective draws fall below c (a Poisson 95% upper limit on the
-observed count), then P_post(prime < c) <= mu_up / ESS and
+observed count), then P_post(s < c) <= mu_up / ESS and
 
-    ln B(model / noise) >= ln[ Phi(c) * ESS / mu_up ].
+    ln B(model / noise) >= ln[ (c - lo) / (hi - lo) * ESS / mu_up ].
 
 ESS is an effective sample size, not the draw count, because neighbouring draws are
 correlated. It is the indicator's ESS, or the pivot's tail ESS when no draw falls below
@@ -44,8 +50,8 @@ likelihood is flat or rising in s at that depth.
 
 Run (CPU, no JAX):
     python workflows/ng15_sgwb_demo/scripts/lnb_gw_vs_noise.py \
-        --run outputs/mdc2_d1_flat_uprior_eps000 --run outputs/mdc2_d1_flat_uprior_eps100 \
-        --out outputs/lnb_gw_vs_noise_mdc2_d1_flat_uprior.json
+        --run outputs/mdc2_d1_flat_uniformgw_eps000 --run outputs/mdc2_d1_flat_uniformgw_eps100 \
+        --out outputs/lnb_gw_vs_noise_mdc2_d1_flat_uniformgw.json
 """
 
 import argparse
@@ -57,14 +63,19 @@ import os
 import sys
 
 import numpy as np
-from scipy.stats import chi2, kstest, norm
+from scipy.stats import chi2, kstest, uniform
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lnb_path_sampling import effective_sample_size  # noqa: E402
 
-PIVOT_SITE = "log10_pivot_psd_prime"
-GAMMA_SITE = "log10_gamma_a_prime"
-DEFAULT_THRESHOLDS = tuple(np.round(np.arange(-0.5, -2.51, -0.25), 2))
+PIVOT_SITE = "log10_pivot_psd"
+GAMMA_SITE = "log10_gamma_a"
+# The site of the pre-#125 Gaussian prior; a posterior carrying it is refused.
+LEGACY_PIVOT_SITE = "log10_pivot_psd_prime"
+# Default thresholds, as depths below the box centre in units of (hi - lo) / 6. These
+# are the pivot values the Gaussian-prior version used (its c in prior sigmas), so old
+# and new readouts are taken at the same s.
+DEFAULT_DEPTHS = tuple(np.round(np.arange(-0.5, -2.51, -0.25), 2))
 
 # A threshold counts only if this many EFFECTIVE draws sit below it.
 MIN_EFFECTIVE_BELOW = 50.0
@@ -76,15 +87,40 @@ PLATEAU_NSIGMA = 2.0
 FLATNESS_P = 0.01
 
 
-def threshold_estimate(prime, c):
+def check_box(box):
+    """(lo, hi) of a bounded pivot prior; anything else is refused."""
+    if box is None:
+        raise ValueError("the pivot prior must be a bounded Uniform (lo, hi)")
+    lo, hi = (float(x) for x in box)
+    if not (math.isfinite(lo) and math.isfinite(hi) and lo < hi):
+        raise ValueError(f"pivot prior box ({lo}, {hi}) is not a bounded interval")
+    return lo, hi
+
+
+def default_thresholds(box):
+    """The DEFAULT_DEPTHS as pivot values in the box ``(lo, hi)``."""
+    lo, hi = check_box(box)
+    return tuple(float((lo + hi) / 2 + d * (hi - lo) / 6) for d in DEFAULT_DEPTHS)
+
+
+def prior_mass_below(c, box):
+    """U(lo, hi) prior mass below threshold c."""
+    lo, hi = check_box(box)
+    if not lo < c <= hi:
+        raise ValueError(f"threshold {c} is outside the prior box ({lo}, {hi}]")
+    return (c - lo) / (hi - lo)
+
+
+def threshold_estimate(pivot, c, box):
     """ln B(model/noise) at one threshold c, with its MCMC standard error.
 
-    ``prime`` is (n_chain, n_draw). The posterior fraction below c is an MCMC mean of
-    an indicator, so its error uses the indicator's ESS, not the raw draw count.
+    ``pivot`` is (n_chain, n_draw) draws of the pivot log-PSD, whose prior is U(box).
+    The posterior fraction below c is an MCMC mean of an indicator, so its error uses
+    the indicator's ESS, not the raw draw count.
     """
-    indicator = (prime < c).astype(float)
+    indicator = (pivot < c).astype(float)
     frac = float(indicator.mean())
-    prior_frac = float(norm.cdf(c))
+    prior_frac = prior_mass_below(c, box)
     ess = effective_sample_size(indicator)
     out = {
         "c": float(c),
@@ -106,16 +142,21 @@ def threshold_estimate(prime, c):
     return out
 
 
-def lower_bound(prime, c=max(DEFAULT_THRESHOLDS), cl=0.95):
-    """One-sided ln B(model/noise) bound at threshold c (see the module docstring)."""
+def lower_bound(pivot, box, c=None, cl=0.95):
+    """One-sided ln B(model/noise) bound at threshold c (see the module docstring).
+
+    c defaults to the shallowest default threshold.
+    """
     import arviz as az
 
-    prime = np.atleast_2d(np.asarray(prime, dtype=float))
-    indicator = (prime < c).astype(float)
+    if c is None:
+        c = max(default_thresholds(box))
+    pivot = np.atleast_2d(np.asarray(pivot, dtype=float))
+    indicator = (pivot < c).astype(float)
     frac = float(indicator.mean())
     # The pivot's tail ESS stands in for the indicator's, which is undefined when no
     # draw falls below c; take the smaller whenever the indicator has one.
-    ess = float(az.ess(prime, method="tail"))
+    ess = float(az.ess(pivot, method="tail"))
     if 0.0 < frac < 1.0:
         ess = min(ess, effective_sample_size(indicator))
     k_eff = frac * ess
@@ -126,28 +167,29 @@ def lower_bound(prime, c=max(DEFAULT_THRESHOLDS), cl=0.95):
         "cl": cl,
         "n_below": int(indicator.sum()),
         "ess": ess,
-        "ln_bayes_factor_lower": float(math.log(norm.cdf(c) / frac_up)),
+        "ln_bayes_factor_lower": float(math.log(prior_mass_below(c, box) / frac_up)),
     }
 
 
-def flatness_check(prime, gamma_prime, c):
-    """KS test of the GW nuisance parameter against its N(0,1) prior inside the region.
+def flatness_check(pivot, gamma, c, gamma_box):
+    """KS test of the GW nuisance parameter against its U(gamma_box) prior in the region.
 
     If the likelihood is flat in the GW parameters below c, gamma_a there is
     prior-distributed. A rejection means the region is not yet "noise-only".
     """
-    if gamma_prime is None:
+    if gamma is None:
         return None
-    sel = gamma_prime[prime < c]
+    sel = gamma[pivot < c]
     if sel.size < 20:
         return None
     # Thin so draws are closer to independent; KS assumes i.i.d.
-    tau = max(prime.size / max(effective_sample_size(gamma_prime), 1.0), 1.0)
+    tau = max(pivot.size / max(effective_sample_size(gamma), 1.0), 1.0)
     step = max(int(round(tau)), 1)
-    thinned = gamma_prime[:, ::step][prime[:, ::step] < c]
+    thinned = gamma[:, ::step][pivot[:, ::step] < c]
     if thinned.size < 10:
         thinned = sel
-    res = kstest(thinned, "norm")
+    g_lo, g_hi = check_box(gamma_box)
+    res = kstest(thinned, uniform(g_lo, g_hi - g_lo).cdf)
     return {
         "c": float(c),
         "n": int(thinned.size),
@@ -157,12 +199,20 @@ def flatness_check(prime, gamma_prime, c):
     }
 
 
-def analyse(prime, gamma_prime=None, thresholds=DEFAULT_THRESHOLDS):
-    """Region Savage-Dickey over a threshold ladder, with the plateau gate."""
-    prime = np.atleast_2d(np.asarray(prime, dtype=float))
-    if gamma_prime is not None:
-        gamma_prime = np.atleast_2d(np.asarray(gamma_prime, dtype=float))
-    rows = [threshold_estimate(prime, c) for c in sorted(thresholds, reverse=True)]
+def analyse(pivot, box, gamma=None, gamma_box=None, thresholds=None):
+    """Region Savage-Dickey over a threshold ladder, with the plateau gate.
+
+    ``pivot`` holds draws of the pivot log-PSD under a U(box) prior; ``gamma`` holds
+    draws of log10_gamma_a under U(gamma_box), used for the flatness check. The lower
+    bound is taken at the shallowest threshold.
+    """
+    box = check_box(box)
+    if thresholds is None:
+        thresholds = default_thresholds(box)
+    pivot = np.atleast_2d(np.asarray(pivot, dtype=float))
+    if gamma is not None:
+        gamma = np.atleast_2d(np.asarray(gamma, dtype=float))
+    rows = [threshold_estimate(pivot, c, box) for c in sorted(thresholds, reverse=True)]
     eligible = [
         r
         for r in rows
@@ -185,18 +235,18 @@ def analyse(prime, gamma_prime=None, thresholds=DEFAULT_THRESHOLDS):
                 tol = PLATEAU_NSIGMA * math.hypot(a["uncert"], b["uncert"])
                 if abs(a["lnb"] - b["lnb"]) > tol:
                     failed.append(
-                        f"not plateaued: lnB({a['c']}) = {a['lnb']:.3f} vs "
-                        f"lnB({b['c']}) = {b['lnb']:.3f} (tol {tol:.3f}) -- "
+                        f"not plateaued: lnB({a['c']:.2f}) = {a['lnb']:.3f} vs "
+                        f"lnB({b['c']:.2f}) = {b['lnb']:.3f} (tol {tol:.3f}) -- "
                         "likelihood not flat at this depth"
                     )
 
     headline = eligible[-1] if eligible else None
     flat = None
     if headline is not None:
-        flat = flatness_check(prime, gamma_prime, headline["c"])
+        flat = flatness_check(pivot, gamma, headline["c"], gamma_box)
         if flat is not None and flat["ks_p"] < FLATNESS_P:
             failed.append(
-                f"gamma_a not prior-like below c={headline['c']} "
+                f"gamma_a not prior-like below c={headline['c']:.2f} "
                 f"(KS p = {flat['ks_p']:.3g})"
             )
 
@@ -211,13 +261,13 @@ def analyse(prime, gamma_prime=None, thresholds=DEFAULT_THRESHOLDS):
         "reliable": reliable,
         "failed_diagnostics": failed,
         "flatness": flat,
-        "lower_bound": lower_bound(prime),
+        "lower_bound": lower_bound(pivot, box, c=max(thresholds)),
         "thresholds": rows,
     }
 
 
 def load_run(run_dir):
-    """Posterior latents and pivot prior (mu, sigma) of one run directory."""
+    """Posterior GW draws and their prior boxes for one run directory."""
     import arviz as az
 
     run_dir = run_dir.rstrip("/")
@@ -237,12 +287,23 @@ def load_run(run_dir):
     if mode.lower() != "ridge":
         raise SystemExit(
             f"{ini[0]}: gw_parameterization = {mode}; the estimator needs ridge "
-            "(a Gaussian prior on the pivot log-PSD)."
+            "(a Uniform prior on the pivot log-PSD)."
         )
-    lo = cfg.getfloat("PriorModel", "log10_pivot_psd_min")
-    hi = cfg.getfloat("PriorModel", "log10_pivot_psd_max")
+    box = (
+        cfg.getfloat("PriorModel", "log10_pivot_psd_min"),
+        cfg.getfloat("PriorModel", "log10_pivot_psd_max"),
+    )
+    gamma_box = (
+        cfg.getfloat("PriorModel", "log10_gamma_a_min"),
+        cfg.getfloat("PriorModel", "log10_gamma_a_max"),
+    )
 
     post = az.from_netcdf(nc).posterior
+    if LEGACY_PIVOT_SITE in post.data_vars:
+        raise SystemExit(
+            f"{nc}: has {LEGACY_PIVOT_SITE}, i.e. the pre-#125 Gaussian pivot prior. "
+            "This estimator assumes U(lo, hi); read the run with the script at 7616aa7."
+        )
     eps = None
     if "orf_epsilon" in post.data_vars:
         eps = float(np.unique(np.round(post["orf_epsilon"].values, 12)).item())
@@ -250,20 +311,16 @@ def load_run(run_dir):
         "run": name,
         "nc": os.path.abspath(nc),
         "orf_epsilon": eps,
-        "pivot_mu": (lo + hi) / 2.0,
-        "pivot_sigma": (hi - lo) / 6.0,
-        "prime": np.asarray(post[PIVOT_SITE].values, dtype=float),
-        "gamma_prime": (
-            np.asarray(post[GAMMA_SITE].values, dtype=float)
-            if GAMMA_SITE in post.data_vars
-            else None
-        ),
+        "box": box,
+        "gamma_box": gamma_box,
+        "pivot": np.asarray(post[PIVOT_SITE].values, dtype=float),
+        "gamma": np.asarray(post[GAMMA_SITE].values, dtype=float),
     }
 
 
-def print_report(name, res, mu, sigma):
+def print_report(name, res):
     print(f"\n=== {name} ===")
-    print("    c  pivot<   post   prior  n_eff_below   lnB(model/noise)   per-chain")
+    print("  pivot<   post   prior  n_eff_below   lnB(model/noise)   per-chain")
     for r in res["thresholds"]:
         lnb = (
             "     --      "
@@ -274,14 +331,14 @@ def print_report(name, res, mu, sigma):
             "--" if x is None else f"{x:+.2f}" for x in r["per_chain_lnb"]
         )
         print(
-            f"  {r['c']:5.2f}  {mu + r['c'] * sigma:6.2f}  {r['post_frac']:.3f}  "
+            f"  {r['c']:6.2f}  {r['post_frac']:.3f}  "
             f"{r['prior_frac']:.3f}  {r['effective_below']:10.1f}   {lnb}   [{chains}]"
         )
     if res["flatness"]:
         f = res["flatness"]
         print(
-            f"  gamma_a | prime<{f['c']}: mean {f['mean']:+.2f} std {f['std']:.2f} "
-            f"(prior 0, 1), KS p = {f['ks_p']:.3g} (n={f['n']})"
+            f"  gamma_a | pivot<{f['c']:.2f}: mean {f['mean']:+.2f} std {f['std']:.2f} "
+            f"(vs its uniform prior), KS p = {f['ks_p']:.3g} (n={f['n']})"
         )
     if res["reliable"]:
         print(
@@ -299,7 +356,7 @@ def print_report(name, res, mu, sigma):
     lb = res["lower_bound"]
     print(
         f"  {lb['cl']:.0%} lower bound: ln B >= {lb['ln_bayes_factor_lower']:+.2f} "
-        f"(c={lb['c']}, {lb['n_below']} draws below, ESS {lb['ess']:.0f})"
+        f"(c={lb['c']:.2f}, {lb['n_below']} draws below, ESS {lb['ess']:.0f})"
     )
 
 
@@ -320,25 +377,18 @@ def plot(results, path):
             capsize=3,
             label=name,
         )
-        s = run["pivot_mu"] + run["pivot_sigma"] * run["prime"].ravel()
-        axes[1].hist(s, bins=40, density=True, histtype="step", label=name)
+        axes[1].hist(
+            run["pivot"].ravel(), bins=40, density=True, histtype="step", label=name
+        )
     axes[0].axhline(0, color="k", lw=0.5)
-    axes[0].set_xlabel("threshold c (prior sigmas of pivot log-PSD)")
+    axes[0].set_xlabel("threshold c (log10 pivot PSD)")
     axes[0].set_ylabel("ln B(model / noise-only)")
     axes[0].invert_xaxis()
     axes[0].legend(fontsize=8)
     run0 = next(iter(results.values()))[0]
-    grid = np.linspace(
-        run0["pivot_mu"] - 4 * run0["pivot_sigma"],
-        run0["pivot_mu"] + 4 * run0["pivot_sigma"],
-        200,
-    )
-    axes[1].plot(
-        grid,
-        norm.pdf(grid, run0["pivot_mu"], run0["pivot_sigma"]),
-        "k--",
-        label="prior",
-    )
+    lo, hi = run0["box"]
+    density = 1.0 / (hi - lo)
+    axes[1].plot([lo, lo, hi, hi], [0, density, density, 0], "k--", label="prior")
     axes[1].set_xlabel("log10 pivot PSD (two-sided)")
     axes[1].legend(fontsize=8)
     fig.tight_layout()
@@ -364,14 +414,15 @@ def main():
     results = {}
     for run_dir in args.run:
         run = load_run(run_dir)
-        res = analyse(run["prime"], run["gamma_prime"])
+        res = analyse(run["pivot"], run["box"], run["gamma"], run["gamma_box"])
         res.update(
             run=run["run"],
             nc=run["nc"],
             orf_epsilon=run["orf_epsilon"],
-            pivot_prior={"mu": run["pivot_mu"], "sigma": run["pivot_sigma"]},
+            pivot_prior={"uniform": list(run["box"])},
+            gamma_a_prior={"uniform": list(run["gamma_box"])},
         )
-        print_report(run["run"], res, run["pivot_mu"], run["pivot_sigma"])
+        print_report(run["run"], res)
         results[run["run"]] = (run, res)
 
     summary = {"runs": [res for _, res in results.values()]}

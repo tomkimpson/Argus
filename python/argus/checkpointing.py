@@ -36,6 +36,11 @@ COMPLETE_ATTR = "argus_sampling_complete"
 DRAWS_ATTR = "argus_draws_completed"
 TARGET_ATTR = "argus_draws_target"
 
+# Ridge GW latents before issue #125 (N(0, 1) primes). A state carrying them cannot
+# resume or warm-start a run on the bounded-uniform sites; the run fingerprint does not
+# record site names, so this is checked separately.
+PRE125_RIDGE_SITES = ("log10_pivot_psd_prime", "log10_gamma_a_prime")
+
 
 def get_checkpoint_settings(config):
     """Read the ``[Checkpointing]`` section.
@@ -115,6 +120,17 @@ def save_checkpoint(
     return state_path, partial_path
 
 
+def _refuse_pre125_ridge_state(state, path):
+    old = sorted(set(getattr(state, "z", None) or {}) & set(PRE125_RIDGE_SITES))
+    if old:
+        raise ValueError(
+            f"Refusing to use {path}: its sampler state has the pre-#125 Gaussian ridge "
+            f"sites {old}. The ridge GW sites are now bounded uniforms "
+            f"(log10_pivot_psd, log10_gamma_a), so this state cannot continue the run. "
+            f"Start the run again from scratch."
+        )
+
+
 def load_checkpoint(output_dir, output_id, fingerprint):
     """Load a checkpoint, refusing one written under a different configuration.
 
@@ -137,6 +153,7 @@ def load_checkpoint(output_dir, output_id, fingerprint):
             f"posterior. Delete the checkpoint to start over, or restore the "
             f"configuration it was written with."
         )
+    _refuse_pre125_ridge_state(payload.get("sampler_state"), state_path)
 
     if not os.path.exists(partial_path):
         raise ValueError(
@@ -284,6 +301,7 @@ def load_warm_start_state(state_path, seed):
         raise ValueError(
             f"{state_path} does not contain a sampler state; it is not a checkpoint."
         )
+    _refuse_pre125_ridge_state(state, state_path)
 
     fresh_key = jax.random.PRNGKey(seed)
     if hasattr(state, "rng_key"):
