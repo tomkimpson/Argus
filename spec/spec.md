@@ -1,7 +1,7 @@
 # Spec: First state-space detection of the SGWB on NANOGrav 15-yr data
 
 **Status:** draft
-**Created:** 2026-10-15  ·  **Last amended:** 2026-10-22 (Phase 4 reruns)
+**Created:** 2026-10-15  ·  **Last amended:** 2026-10-25 (Phase 5 γp box)
 **Supersedes:** `openspec/changes/sgwb-detection-route` (to be deleted, task 0.1) and the
 wideband M3 plan in issue #111 / `workflows/ng15_sgwb_demo/PLAN.md`.
 
@@ -528,14 +528,16 @@ therefore **pivots** with a named next step, not stops.
   task 1.3.]
 - [NEEDS CLARIFICATION: whether Argus's common process should keep its free corner γa (≈ curnγ
   with free γ) or fix it to mimic hd13/3. Default: free, matching NANOGrav's headline hdγ/curnγ.]
-- [NEEDS CLARIFICATION: the production γp ceiling for Phase 5 (task 5.1). The −6 box
+- ~~[NEEDS CLARIFICATION: the production γp ceiling for Phase 5 (task 5.1). The −6 box
   (from the MDC2 ladders, and used by Phase 1's Discovery-OU reference) cuts the f⁻²
   ridge for f⁻²-like pulsars. With both ceilings raised (γp −4, σp −9) their posteriors
   run on to the new γp ceiling, so no finite ceiling holds all the mass; the in-band PSD
   moves ≤ 0.07 dex for two of three pulsars checked (§12, 2026-10-22, which corrects the
   2026-10-20 wording). In the array, the cut could still push red power into the common
   process (A3). Changing the box would need the Phase 1 OU reference rerun on the same
-  box, so that C5 still compares like with like. Decide before 5.1.]
+  box, so that C5 still compares like with like. Decide before 5.1.]~~ — resolved 2026-10-25: the
+  −6 box stays (γp [−12, −6], σp [−22, −11.5]), matching Phase 1's OU reference and Phase 3;
+  see §12, 2026-10-25.
 - [NEEDS CLARIFICATION: the Fourier mode count of the OU reference behind C5 (Phase 1's
   ladder). At 30 modes Discovery-OU misses red power Argus finds in J1012+5307, and likely
   in J0437−4715 (§12, 2026-10-22); J1012's posterior agrees with Argus at 100 modes.
@@ -1140,3 +1142,22 @@ case #125 is about.
 **Approved by the user** on 2026-10-22 (plan approval).
 
 **Sections touched:** §5, §11, §12
+
+### 2026-10-25 — the production γp box stays at −6
+
+**Trigger:** opening Phase 5. §9 asked for the production γp ceiling before task 5.1.
+
+**Change:**
+- The production config (task 5.1) keeps Phase 1's OU-reference boxes: γp [−12, −6],
+  σp [−22, −11.5], pivot [−13, −3], γa [−11, −6]. C5 then compares like with like
+  without rerunning the Phase 1 OU ladder.
+- A3's exposure from the cut f⁻² ridge is unchanged and stays a §10 risk: the posteriors
+  run on to any ceiling (§12, 2026-10-22), and the in-band PSD moved ≤ 0.07 dex for two of
+  the three pulsars checked.
+- §9's question is struck through with this resolution.
+- §5's budget stays open. Task 5.2's 200+200 probe measures step size and s/iter, and the
+  full pilot waits on the user's decision after it.
+
+**Approved by the user** on 2026-10-25 (Phase 5 plan approval).
+
+**Sections touched:** §9, §12
