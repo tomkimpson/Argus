@@ -673,7 +673,9 @@ mixed ORF) that could stall it.
 **Goal:** the NUTS GW prior equals the configured box.
 **Done when:** prior-predictive draws of `log10_pivot_psd` and `log10_gamma_a` match U(lo, hi)
 (KS p > 0.05 on 10⁵ draws), `lnb_gw_vs_noise.py` handles the bounded pivot, the goldens pass,
-and the MDC2 1b eps0 and eps1 rungs rerun with the change in lnB reported.
+and the MDC2 1b eps0 and eps1 rungs rerun with the change in lnB reported (on 1b the
+signal is too strong for a point estimate, so the change is between 95% lower bounds;
+amendment 2026-10-22).
 **PR:** _not started_ (can run in parallel with Phases 2–3)
 **Divergence from #125's stated acceptance:** this phase covers the GW sites only (EFAC/EQUAD
 stay fixed, A2) and reruns only the eps0 and eps1 rungs, not both full MDC2 ladders. Edit #125
@@ -1122,13 +1124,16 @@ pipelines at 0.9.
 **Trigger:** opening Phase 4. The committed MDC2 diffuse rungs (#123, #124) predate the
 Λ-jitter fix (#129), so a uniform-prior rerun compared with them would mix two changes.
 And 1b is likelihood-dominated, so its lnB(GW/noise) is a lower bound the prior may barely
-move, while on 2b the pivot interval's lower edge (−10.8) is the Gaussian prior's tail —
-the case #125 is about.
+move, while on 2b the pivot interval's lower edge (−10.8 one-sided, from the PR #124
+readout before #129; −11.18 two-sided on the rerun) is the Gaussian prior's tail — the
+case #125 is about.
 
 **Change:**
 - Task 4.3 reruns each rung twice on the same likelihood: the bounded uniform GW prior,
   and the old Gaussian one on main 7616aa7 (after #129). Δ is uniform minus Gaussian.
 - One 2b eps0 rung (and its twin) is added: six 33-psr rungs, not two (§5).
+- On 1b the Done-when "change in lnB" is the change between 95% lower bounds, since
+  neither prior gives a point estimate there; 2b gives the point-estimate change.
 - Scope stays D5's: the two ridge sites. Direct-mode `log10_ha`/`log10_gamma_a`, EFAC/EQUAD
   and the CW sites remain #125 leftovers (issue comment, 2026-10-22).
 
