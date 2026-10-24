@@ -123,3 +123,4 @@ CLAUDE.md
 handoff.md
 # NG15 narrowband campaign (spec/spec.md): regenerable caches and run outputs
 workflows/ng15_nb/data/
+workflows/ng15_nb/configs/generated/
