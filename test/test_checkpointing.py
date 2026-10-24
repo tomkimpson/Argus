@@ -11,6 +11,7 @@ refused rather than silently mixing incompatible draws.
 import json
 import os
 import pickle
+from collections import namedtuple
 from unittest.mock import patch
 
 import arviz as az
@@ -128,6 +129,52 @@ def test_resume_refuses_when_the_partial_posterior_is_missing(tmp_path):
     os.remove(partial_path)
     with pytest.raises(ValueError, match="incomplete"):
         checkpointing.load_checkpoint(str(tmp_path), "run", "fp")
+
+
+# Stands in for numpyro's HMCState; module level so it pickles.
+_SamplerState = namedtuple("_SamplerState", ["z", "rng_key"])
+
+
+def test_pre125_ridge_state_is_refused(tmp_path):
+    """Issue #125: a state with the old N(0, 1) ridge primes neither resumes nor warm-starts.
+
+    The fingerprint does not record site names, so it cannot catch this itself.
+    """
+    old = _SamplerState(z={"log10_pivot_psd_prime": np.zeros(4)}, rng_key=np.zeros(2))
+    checkpointing.save_checkpoint(
+        str(tmp_path),
+        "run",
+        old,
+        _dummy_inference_data(draws=5),
+        "fp",
+        {
+            "draws_completed": 5,
+            "draws_target": 10,
+            "segments_completed": 1,
+            "segments_total": 2,
+        },
+    )
+    state_path, _ = checkpointing.checkpoint_paths(str(tmp_path), "run")
+    with pytest.raises(ValueError, match="pre-#125"):
+        checkpointing.load_checkpoint(str(tmp_path), "run", "fp")
+    with pytest.raises(ValueError, match="pre-#125"):
+        checkpointing.load_warm_start_state(state_path, seed=1)
+
+    new = _SamplerState(z={"log10_pivot_psd": np.zeros(4)}, rng_key=np.zeros(2))
+    checkpointing.save_checkpoint(
+        str(tmp_path),
+        "new",
+        new,
+        _dummy_inference_data(draws=5),
+        "fp",
+        {
+            "draws_completed": 5,
+            "draws_target": 10,
+            "segments_completed": 1,
+            "segments_total": 2,
+        },
+    )
+    assert checkpointing.load_checkpoint(str(tmp_path), "new", "fp") is not None
 
 
 def test_round_trip_preserves_state_and_progress(tmp_path):
