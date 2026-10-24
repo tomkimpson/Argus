@@ -11,7 +11,9 @@ this reports:
 - percentiles (2.5, 16, 50, 84, 97.5) of the two-sided pivot log-PSD, the derived
   log10_ha and log10_gamma_a;
 - sampling health: max r-hat and min bulk/tail ESS over the sampled sites, divergences;
-- wall time of the NUTS run and seconds per iteration, from the SLURM log.
+- wall time of the NUTS run and seconds per iteration, from the SLURM log, with the GPU
+  count and chain method. The Gaussian twins were resubmitted on one A100 (queue time),
+  so their chains ran sequentially: s/iteration compares, wall time does not.
 
 and, per pair, the change (uniform minus Gaussian). For 1b, where both eps = 0 and eps = 1
 exist, the difference of their region estimates is a cross-check of lnB(HD/CURN).
@@ -70,8 +72,13 @@ def _timing(run_id, logdir):
         return None
     _, path, text = max(logs)
     real = re.findall(r"^real\s+(\d+)m([\d.]+)s", text, flags=re.M)
-    rates = [float(r) for r in re.findall(r"([\d.]+)s/it\]", text)]
-    out = {"log": os.path.basename(path)}
+    rates = [float(r) for r in re.findall(r"([\d.]+)s/it[\],]", text)]
+    out = {
+        "log": os.path.basename(path),
+        "n_gpus": len(re.findall(r"^GPU \d+: ", text, flags=re.M)),
+        # chains run in parallel only with >= num_chains devices (bayesian_inference)
+        "chain_method": "sequential" if "chains sequentially" in text else "parallel",
+    }
     if real:
         m, s = real[-1]
         out["wall_s"] = 60 * int(m) + float(s)

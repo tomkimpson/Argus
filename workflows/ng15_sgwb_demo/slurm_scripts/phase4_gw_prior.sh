@@ -22,6 +22,9 @@
 # mdc2_d1_diffuse_rerun.sh and mdc2_2b_diffuse.sh for how to build them.
 #
 #   sbatch slurm_scripts/phase4_gw_prior.sh
+# As run: rungs 0-2 as above (job 18961537). Rungs 3-5 waited days for a 4-GPU node, so
+# they were cancelled and resubmitted on one GPU (job 19055225), chains then sequential:
+#   sbatch --array=3-5 --gres=gpu:a100:1 --time=36:00:00 slurm_scripts/phase4_gw_prior.sh
 # Readout: scripts/phase4_compare_gw_prior.py.
 
 #SBATCH --job-name=p4-gwprior
