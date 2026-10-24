@@ -37,8 +37,9 @@ DRAWS_ATTR = "argus_draws_completed"
 TARGET_ATTR = "argus_draws_target"
 
 # Ridge GW latents before issue #125 (N(0, 1) primes). A state carrying them cannot
-# resume or warm-start a run on the bounded-uniform sites; the run fingerprint does not
-# record site names, so this is checked separately.
+# resume or warm-start a run on the bounded-uniform sites. On resume the prior
+# fingerprint already differs (the ridge transform params lost mean/std); a warm start
+# has no fingerprint check, so this is what refuses it there.
 PRE125_RIDGE_SITES = ("log10_pivot_psd_prime", "log10_gamma_a_prime")
 
 
