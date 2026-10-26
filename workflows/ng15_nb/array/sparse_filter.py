@@ -61,6 +61,16 @@ class SparseArrayFilter:
         self._P_eps_inv = jnp.zeros((self.M_sum, self.M_sum))
         self._efac = jnp.ones(self.Npsr)
         self._equad = jnp.zeros(self.Npsr)
+        # Read by the harness's resume fingerprint (`bayesian_inference._data_fingerprint`):
+        # the base ORF, one row per observation of everything the filter consumes, and
+        # the timing prior.
+        self.hellings_downs_matrix = self.inp["orf"]
+        obs = self.inp["obs"]
+        self.jax_data = np.column_stack(
+            [np.asarray(obs[k], dtype=np.float64) for k in ("dt", "psr", "h", "y", "err")]
+            + [np.asarray(obs["m"], dtype=np.float64).reshape(self.n_obs, -1)]
+        )
+        self.timing_prior = "diffuse"
 
     def get_likelihood(self, θ):
         θ = θ.replace(EFAC=self._efac, EQUAD=self._equad)

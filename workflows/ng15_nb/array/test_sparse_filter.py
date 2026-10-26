@@ -109,3 +109,14 @@ def test_hd_moves_the_likelihood(kf):
     l0 = float(kf.get_likelihood(theta(p, kf.Npsr, 0.0)))
     l1 = float(kf.get_likelihood(theta(p, kf.Npsr, 1.0)))
     assert l0 != l1
+
+
+def test_resume_fingerprint(kf):
+    """The harness's checkpoint fingerprint reads the filter's data, ORF and timing prior."""
+    from argus.bayesian_inference import _data_fingerprint
+
+    fp = _data_fingerprint(kf)
+    assert fp["n_pulsars"] == kf.Npsr
+    assert fp["n_epochs"] == kf.n_obs
+    assert fp["m_sum"] == kf.M_sum
+    assert fp["timing_prior"] == "diffuse"
