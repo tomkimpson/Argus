@@ -2,7 +2,7 @@
 # Spec Phase 5, task 5.2: the 67-psr ε = 0 rung of configs/frozen/ng15_nb_v1.ini on 4 A100s,
 # one NUTS chain per GPU, through array/run_array.py.
 #   MODE=check  one timed value-plus-gradient call and the sampled-site count, no sampling
-#   MODE=smoke  1 chain, 2 + 2 iterations at tree depth 1, checkpoint every iteration: the
+#   MODE=smoke  1 chain, 2 + 4 iterations at tree depth 1 in two checkpointed segments: the
 #               whole harness path (fingerprint, checkpoint, save) in minutes on one GPU
 #               (sbatch --gres=gpu:a100:1 --time=1:00:00 ...)
 #   MODE=probe  200 warmup + 200 draws (checkpoint every 100), to measure step size and
@@ -61,10 +61,10 @@ case "${MODE}" in
         CONFIG="${WF}/configs/generated/ng15_nb_v1_smoke.ini"
         mkdir -p "$(dirname "${CONFIG}")"
         sed -e 's/^num_warmup = .*/num_warmup = 2/' \
-            -e 's/^num_samples = .*/num_samples = 2/' \
+            -e 's/^num_samples = .*/num_samples = 4/' \
             -e 's/^num_chains = .*/num_chains = 1/' \
             -e 's/^max_tree_depth = .*/max_tree_depth = 1/' \
-            -e 's/^interval = .*/interval = 1/' \
+            -e 's/^interval = .*/interval = 2/' \
             -e 's/^output_id = .*/output_id = ng15_nb_v1_smoke_eps000/' "${FROZEN}" > "${CONFIG}"
         diff "${FROZEN}" "${CONFIG}" || true
         ;;
