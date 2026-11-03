@@ -1,0 +1,92 @@
+{
+  "pulsar": "J0613-0200",
+  "pipeline": "discovery_gp-4_m200",
+  "f0_hz": 326.600566981781,
+  "shallow_spectrum": false,
+  "T_yr": 16.029777268872298,
+  "freqs_hz": {
+    "1/T": 1.976826457568005e-09,
+    "1/(5 yr)": 6.33761756280579e-09
+  },
+  "box": {
+    "log10_gamma_p": [
+      -12.0,
+      -4.0
+    ],
+    "log10_sigma_p": [
+      -22.0,
+      -11.5
+    ]
+  },
+  "nuts": {
+    "num_chains": 4,
+    "num_warmup": 1000,
+    "num_samples": 4000,
+    "target_accept_prob": 0.9,
+    "max_tree_depth": 8,
+    "seed": 3112
+  },
+  "diagnostics": {
+    "per_site": {
+      "log10_gamma_p": {
+        "r_hat": 1.0065132255502562,
+        "ess_bulk": 932.8366334979252
+      },
+      "log10_sigma_p": {
+        "r_hat": 1.00536643152354,
+        "ess_bulk": 1075.2627882873628
+      }
+    },
+    "max_r_hat": 1.0065132255502562,
+    "min_ess_bulk": 932.8366334979252,
+    "divergences": 0,
+    "divergence_fraction": 0.0
+  },
+  "edge_mass": {
+    "log10_gamma_p": {
+      "floor": 0.0148125,
+      "ceiling": 0.0211875
+    },
+    "log10_sigma_p": {
+      "floor": 0.0,
+      "ceiling": 0.026625
+    }
+  },
+  "red_noise_detected": true,
+  "lower_edge_pileup": false,
+  "at_f2_limit": false,
+  "rails": [],
+  "passes_3_1": true,
+  "site_quantiles": {
+    "log10_gamma_p": {
+      "median": -7.962187478355758,
+      "q16": -10.723919810510155,
+      "q84": -5.241619190337466
+    },
+    "log10_sigma_p": {
+      "median": -14.750942587266081,
+      "q16": -14.987133890214873,
+      "q84": -12.778122582516277
+    }
+  },
+  "log10_psd": {
+    "1/T": {
+      "median": -3.3298200544066385,
+      "q16": -3.9787730465566047,
+      "q84": -2.7899276656697625
+    },
+    "1/(5 yr)": {
+      "median": -4.939023184299088,
+      "q16": -5.19542092784538,
+      "q84": -4.687778927800626
+    }
+  },
+  "git_sha": "d74ec744b07ff6579945ea6bf5b8291cf716b88e",
+  "rn_components": 200,
+  "n_toa": 17124,
+  "num_warmup": 1000,
+  "num_samples": 4000,
+  "mean_num_steps": 21.941,
+  "sample_wall_s": 822.6800539230462,
+  "device": "cuda:0"
+}
