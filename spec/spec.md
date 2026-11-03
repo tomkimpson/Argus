@@ -1,7 +1,7 @@
 # Spec: First state-space detection of the SGWB on NANOGrav 15-yr data
 
 **Status:** draft
-**Created:** 2026-10-15  ·  **Last amended:** 2026-10-25 (Phase 5 γp box)
+**Created:** 2026-10-15  ·  **Last amended:** 2026-11-03 (Phase 5 red-noise box raised after the first probe)
 **Supersedes:** `openspec/changes/sgwb-detection-route` (to be deleted, task 0.1) and the
 wideband M3 plan in issue #111 / `workflows/ng15_sgwb_demo/PLAN.md`.
 
@@ -222,6 +222,9 @@ Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not
   - The two are not expected to agree exactly. The Fourier basis truncates the spectrum,
     imposes periodicity and misses power below 1/T; the time-domain process does none of
     these.
+  - The reference is the Discovery-OU ladder on the production v2 box with 100 per-pulsar
+    and 14 common modes (`reference/configs/ou_v2.ini`), not Phase 1's 30-mode ladder
+    (amended 2026-11-03).
   - > ⚠️ DRAFT — revise: 1 nat is a guess at the Fourier-vs-time-domain discrepancy. Phase 1 can measure part of it (vary the mode count in the OU reference) before this is frozen.
 
 ## 4. Approach
@@ -428,6 +431,13 @@ NANOGrav's log-uniform amplitude prior.
     ladder is ≈ 1,340 A100-h only if the draws can be split across many short lockstep
     chains with warmup a small share, and ≈ 10,700 A100-h if each chain needs §5's length.
     Settle before Phase 5 (§12, 2026-10-19).
+  - **Measured by the first Phase 5 probe (2026-11-01; §12, 2026-11-03).** One chain per A100
+    runs 127 leapfrog steps per draw at ≈ 843 s per draw (warmup ≈ 1,420 s per iteration).
+    A 1000 + 1000 rung is ≈ 20 d and ≈ 1,950 A100-h, so the pilot alone is ≈ 2× this
+    budget, and the 4 remaining rungs of Phase 6 do not fit at this cost. A second 200 + 200
+    probe (≈ 5 d, ≈ 500 A100-h) and the Phase 1 OU reference rerun on the v2 box come first.
+    The user approved this spend on 2026-11-03; the pilot and the ladder are re-budgeted
+    from the second probe's numbers before either starts.
 
 ## 6. Outputs
 
@@ -537,12 +547,18 @@ therefore **pivots** with a named next step, not stops.
   process (A3). Changing the box would need the Phase 1 OU reference rerun on the same
   box, so that C5 still compares like with like. Decide before 5.1.]~~ — resolved 2026-10-25: the
   −6 box stays (γp [−12, −6], σp [−22, −11.5]), matching Phase 1's OU reference and Phase 3;
-  see §12, 2026-10-25.
-- [NEEDS CLARIFICATION: the Fourier mode count of the OU reference behind C5 (Phase 1's
+  see §12, 2026-10-25. — **re-resolved 2026-11-03:** the first probe put γa and 9 pulsars' γp
+  at the −6 ceiling, so production now uses γp [−12, −4], σp [−22, −10]
+  (`configs/frozen/ng15_nb_v2.ini`), with Phase 1's OU reference rerun on that box; see §12,
+  2026-11-03.
+- ~~[NEEDS CLARIFICATION: the Fourier mode count of the OU reference behind C5 (Phase 1's
   ladder). At 30 modes Discovery-OU misses red power Argus finds in J1012+5307, and likely
   in J0437−4715 (§12, 2026-10-22); J1012's posterior agrees with Argus at 100 modes.
   Whether other pulsars shift, and whether C5's reference should use 100 modes, is
-  unchecked. Decide before 6.4.]
+  unchecked. Decide before 6.4.]~~ — resolved 2026-11-03: 100 per-pulsar modes. At 100
+  modes Discovery-OU reproduces Argus's γp posteriors for the 13 pulsars with most mass at
+  the −6 ceiling, where 30 modes do not; C5's reference is the OU ladder on the v2 box at
+  100 per-pulsar and 14 common modes (`reference/configs/ou_v2.ini`); see §12, 2026-11-03.
 
 ## 10. Risks
 
@@ -551,6 +567,8 @@ therefore **pivots** with a named next step, not stops.
 | OU kernel too stiff, so the HD evidence is diluted (A3) | Discovery-OU lnB ≪ Discovery-PL lnB in Phase 1 (K2) |
 | Compression error at shallow-spectrum pulsars (A1) | C1 spread grows with red-noise slope; per-pulsar C4 outliers concentrated in γ_PL ≲ 1. Realised 2026-10-18: one scalar per window failed everywhere; two scalars still missed J1012+5307 and two gradient bounds. Resolved: epoch cells for 4 pulsars by the spread rule, and gradients reported, not gated (§12) |
 | 136-D sampling geometry | Phase 5 pilot (ε=0, 500+500) step size < 0.01, or per-chain medians split |
+| Per-pulsar red noise switching on and off between chains (two-mode σp posterior) | Realised in the first Phase 5 probe (2026-11-01): r̂ 1.265 and bulk ESS 13 on J1738+0333's σp, one chain at σp ≈ −19.6 and three at ≈ −15.4. It sits at the σp floor, which the v2 box does not change, and is the likeliest reason the pilot misses r̂ ≤ 1.01 |
+| A white-like excess above 30/T in ~10 pulsars leaks into the common process (A3) | Realised in the first Phase 5 probe: γa at its −6 ceiling (median −6.10) with 9 pulsars' γp at theirs. Mitigated by the v2 box (§12, 2026-11-03); if γa stays at its ceiling in the second probe, the excess is common and needs a sampled white-noise term |
 | Per-step cost blows up at 67 psr on the union grid (step count × O((4N)³)) | Task 2.6 benchmark of value-plus-gradient on the marginal path. There is no trustworthy prior rate (§2); if it is near the sequential quick-look (≳ 0.6 s at 189 steps), Δ is forced to ≳ 1 month. Realised 2026-10-18: the dense grid needed 28.6 s at the DMX window; the sparse filter gives 0.84 s batched, 6.7 s per chain, and the budget is open (§5) |
 | Discovery env / jax version conflicts | Task 1.2 fails to install; fall back to a container |
 | Path-sampling integrand steep near ε=1 at lnB ~ 5 | Frozen-procedure Romberg check flags extra rungs (0.625, 0.875) |
@@ -701,8 +719,16 @@ divergences ≤ 0.5% and min bulk ESS ≥ 400, with no frozen chain, and K4 eval
 - [ ] 5.1 Write the production config (ridge, diffuse, flat RN, uniform GW, fixed WN, compressed
       data, chosen Δ) and freeze it as `configs/frozen/ng15_nb_v1.ini` — verify by a config
       diff against the MDC2 diffuse config showing only intended differences.
+      _(amended 2026-11-03: v1, frozen 2026-10-25, ran the first probe and is kept as its
+      record; superseded by `configs/frozen/ng15_nb_v2.ini`, which differs only in
+      γp [−12, −4], σp [−22, −10] and output_id — see §12, 2026-11-03)_
 - [ ] 5.2 Short probe (200+200) to measure the step size and seconds per iteration, then the full
       pilot — verify against the Done-when thresholds and a per-chain freeze check.
+      _(amended 2026-11-03: the first probe ran on v1, `results/array/probe_eps000.json`; a
+      second probe runs on v2. The pilot's segmentation is set from the second probe's
+      warmup profile so that segment 1, which holds the whole warmup because the harness
+      checkpoints only after it, ends inside the 7-day limit with margin — see §12,
+      2026-11-03)_
 
 ### Phase 6 — Detection run, significance and comparison
 
@@ -1161,3 +1187,67 @@ case #125 is about.
 **Approved by the user** on 2026-10-25 (Phase 5 plan approval).
 
 **Sections touched:** §9, §12
+
+### 2026-11-03 — the first probe hit the −6 ceilings; production box raised (v2)
+
+**Trigger:** task 5.2's first probe (job 19281055, `configs/frozen/ng15_nb_v1.ini`, ε = 0,
+200 + 200, 4 × A100, 5 d 6 h; `workflows/ng15_nb/results/array/probe_eps000.json`):
+- sampling: step sizes 0.042–0.051, 127 leapfrog steps (a full depth-7 tree) and ≈ 843 s
+  per draw, warmup ≈ 1,420 s per iteration; 0 divergences; no frozen chain; per-chain lnL
+  medians agree to ≈ 2 (sd ≈ 6.5);
+- convergence: max r̂ 1.265 and min bulk ESS 12.9, both on J1738+0333's σp (one chain at
+  σp ≈ −19.6, three at ≈ −15.4); 22 γp and 16 σp sites have r̂ > 1.01;
+- the common process sits on its ceiling: log10 γa median −6.10 (5–95% −6.74 to −6.01)
+  in [−11, −6]; and 9 pulsars' γp pile up at −6 (J1012+5307, J1705−1903, J1946+3417,
+  J1643−1224, J1903+0327, J0437−4715, J2145−0750, J1802−2124, J1730−2304).
+
+The γp pile-up is real, not a compression error. Discovery-OU, which uses NANOGrav's own
+white-noise and ECORR model independently of Argus's ingest, reproduces Argus's γp
+posteriors for the 13 pulsars with most ceiling mass once it has 100 per-pulsar modes
+instead of 30: ceiling mass within ≈ 0.09, medians within ≈ 0.1 dex (J1730−2304 ≈ 0.3).
+For example, J1705−1903's ceiling mass is 0.77 in Argus, 0.18 at 30 modes and 0.74 at 100
+(`results/single_psr/discovery_m100/`). The excess sits above 30/T, which C4 (PSD at 1/T and
+1/(5 yr)) never compared. At 200 modes with γp's ceiling at −4 and σp's at −11.5, then −10
+(`results/single_psr/discovery_gp-4_m200/`, `discovery_gp-4_sp-10_m200/`):
+- the γp medians of the 13 move to −4.75…−5.6 and run onto the −4 ceiling again (top-2% mass
+  0.04–0.10), as §12 2026-10-22 found at 30 modes. Above γp ≈ −5.5 the OU spectrum is flat
+  across the observed band, so the data cannot tell those values apart;
+- σp closes inside −10 (top-2% mass ≤ 0.02; J1745+1017 0.08), where at −11.5 it held
+  0.11–0.50 for 8 pulsars;
+- between the σp ceilings −11.5 and −10 the PSD at 1/T moves ≤ 0.07 dex in 13 of 14 pulsars
+  (J1745+1017 0.2 dex, inside a ≈ 1.6 dex wide posterior). Once γp is free above the band,
+  the exact ceiling no longer matters at low frequency;
+- against the −6 box (100 modes), the v2 box (200 modes) moves the median PSD at 1/T by
+  more than 0.3 dex in 5 of 13 pulsars: down for J1745+1017 (−0.77), J0437−4715 (−0.41),
+  J1705−1903 (−0.37) and J1802−2124 (−0.36), up for J1730−2304 (+0.49); ≤ 0.12 dex for
+  the rest. With γp capped, the only way to fit the excess is a larger σp, which also raises
+  the low-frequency power. The mode count changes as well, so this is not a pure box effect.
+
+So the excess is white-like and per-pulsar. Under the −6 box it distorts per-pulsar power at
+the frequencies that carry the GW signal, and the common process absorbs part of it, pinning
+γa to its ceiling.
+
+**Change:**
+- Production box: γp [−12, −4], σp [−22, −10]; pivot and γa unchanged. Frozen as
+  `configs/frozen/ng15_nb_v2.ini`. v1 is kept as the first probe's record. The γp ceiling
+  is set where the OU spectrum is already white across the band, not where the posterior
+  closes (it does not). σp's −10 is where it closed at 200 modes. It lies above the image
+  of NANOGrav's red-noise box (−11.5), which the posteriors exceed.
+- A second 200 + 200 probe on v2, with γa's −6 ceiling kept, so that it doubles as the test:
+  if γa leaves its ceiling, the per-pulsar box was the cause; if not, the excess is common
+  to the array, and a sampled white-noise term (which the compression does not support
+  today) is the next step, through this protocol.
+- C5's reference: Phase 1's OU ladder is rerun on the v2 box with 100 per-pulsar modes and 14
+  common modes (`reference/configs/ou_v2.ini`), which also resolves §9's mode-count question.
+  Phase 1's results and N2 stand as recorded. Phase 3's C4 stands as evaluated on the −6 box
+  and is not rerun.
+- The pilot's segmentation is set from the second probe: the harness checkpoints only after
+  warmup, so segment 1 must hold all warmup inside the 7-day limit with margin.
+- §5 records the measured cost; the spend above was approved by the user. The pilot and
+  the Phase 6 ladder are re-budgeted from the second probe before either starts.
+- §10 gains two realised risks: the J1738+0333 σp two-mode posterior and the excess leaking
+  into the common process.
+
+**Approved by the user** on 2026-11-03.
+
+**Sections touched:** §3 (C5), §5, §9, §10, §11 (5.1, 5.2), §12
