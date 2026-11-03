@@ -6,6 +6,8 @@
 #    5     pl13  eps = 1, common γ fixed at 13/3           (C3 amplitude A_HD,13/3)
 #    6-10  ou14  5-rung ladder, OU kernel, 14 common modes (K2)
 #   11-15  ou30  5-rung ladder, OU kernel, 30 common modes (mode-count sensitivity, C5 input)
+#   16-20  ou14_v2  5-rung ladder on the production v2 box, 100 per-pulsar and 14 common modes
+#          (configs/ou_v2.ini; C5's reference since spec §12, 2026-11-03). Submit with --array=16-20
 #
 # Code runs from a pinned worktree so edits to the main checkout cannot reach a queued job:
 #   git -C /fred/oz022/tkimpson/Argus worktree add --detach /fred/oz022/tkimpson/Argus-ng15nb <commit>
@@ -40,6 +42,8 @@ if (( i <= 4 )); then
     CONFIG=pl; ID=ng15nb_pl; EXTRA=(); e="${EPS[$i]}"
 elif (( i == 5 )); then
     CONFIG=pl; ID=ng15nb_pl13; EXTRA=(--gw-gamma 4.333333333333333); e=1.0
+elif (( i >= 16 )); then
+    CONFIG=ou_v2; ID=ng15nb_ou14_v2; EXTRA=(--gw-components 14); e="${EPS[$((i - 16))]}"
 elif (( i <= 10 )); then
     CONFIG=ou; ID=ng15nb_ou14; EXTRA=(--gw-components 14); e="${EPS[$((i - 6))]}"
 else
