@@ -1,5 +1,6 @@
 #!/bin/bash
-# Spec Phase 5, task 5.2: the 67-psr ε = 0 rung of configs/frozen/ng15_nb_v1.ini on 4 A100s,
+# Spec Phase 5, task 5.2: the 67-psr ε = 0 rung of configs/frozen/ng15_nb_${VERSION}.ini on 4 A100s
+# (VERSION defaults to v2; v1 is the first probe's config, kept as its record),
 # one NUTS chain per GPU, through array/run_array.py.
 #   MODE=check  one timed value-plus-gradient call and the sampled-site count, no sampling
 #   MODE=smoke  1 chain, 2 + 8 iterations at tree depth 1 in two checkpointed segments (numpyro's
@@ -34,14 +35,15 @@
 set -euo pipefail
 REPO="${REPO:?set REPO to the pinned worktree}"
 MODE="${MODE:-check}"
+VERSION="${VERSION:-v2}"
 source /fred/oz022/tkimpson/miniconda3/etc/profile.d/conda.sh
 conda activate Argus
 export PYTHONPATH="${REPO}/python:${REPO}"  # the editable install points at the main checkout
 export XLA_PYTHON_CLIENT_PREALLOCATE=false
 export NG15_INGEST_DIR=/fred/oz022/tkimpson/Argus/workflows/ng15_nb/data/ingest  # gitignored
 WF="${REPO}/workflows/ng15_nb"
-FROZEN="${WF}/configs/frozen/ng15_nb_v1.ini"
-echo "repo ${REPO} @ $(git -C "${REPO}" rev-parse HEAD); mode ${MODE}"
+FROZEN="${WF}/configs/frozen/ng15_nb_${VERSION}.ini"
+echo "repo ${REPO} @ $(git -C "${REPO}" rev-parse HEAD); mode ${MODE}; config ${VERSION}"
 nvidia-smi -L
 python -c "import argus.parameter_sampling as p; print('argus from:', p.__file__)"
 
@@ -50,23 +52,23 @@ case "${MODE}" in
         CONFIG="${FROZEN}"
         ;;
     probe)
-        CONFIG="${WF}/configs/generated/ng15_nb_v1_probe.ini"
+        CONFIG="${WF}/configs/generated/ng15_nb_${VERSION}_probe.ini"
         mkdir -p "$(dirname "${CONFIG}")"
         sed -e 's/^num_warmup = .*/num_warmup = 200/' \
             -e 's/^num_samples = .*/num_samples = 200/' \
             -e 's/^interval = .*/interval = 100/' \
-            -e 's/^output_id = .*/output_id = ng15_nb_v1_probe_eps000/' "${FROZEN}" > "${CONFIG}"
+            -e "s/^output_id = .*/output_id = ng15_nb_${VERSION}_probe_eps000/" "${FROZEN}" > "${CONFIG}"
         diff "${FROZEN}" "${CONFIG}" || true
         ;;
     smoke)
-        CONFIG="${WF}/configs/generated/ng15_nb_v1_smoke.ini"
+        CONFIG="${WF}/configs/generated/ng15_nb_${VERSION}_smoke.ini"
         mkdir -p "$(dirname "${CONFIG}")"
         sed -e 's/^num_warmup = .*/num_warmup = 2/' \
             -e 's/^num_samples = .*/num_samples = 8/' \
             -e 's/^num_chains = .*/num_chains = 1/' \
             -e 's/^max_tree_depth = .*/max_tree_depth = 1/' \
             -e 's/^interval = .*/interval = 4/' \
-            -e 's/^output_id = .*/output_id = ng15_nb_v1_smoke_eps000/' "${FROZEN}" > "${CONFIG}"
+            -e "s/^output_id = .*/output_id = ng15_nb_${VERSION}_smoke_eps000/" "${FROZEN}" > "${CONFIG}"
         diff "${FROZEN}" "${CONFIG}" || true
         ;;
     *)
