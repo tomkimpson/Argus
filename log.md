@@ -1,5 +1,34 @@
 # Research log
 
+## 2026-10-25 to 2026-11-12 — Phase 5 probes: the −6 ceiling, the v2 box, and a split γa
+
+**Goal.** Spec Phase 5 (branch `phase-5-array-pilot`): show that the 67-pulsar joint posterior samples under the production config, starting with task 5.2's 200+200 probe.
+
+**What was tried.**
+- Built the harness seam: `workflows/ng15_nb/array/sparse_filter.py` (`SparseArrayFilter`, the compressed array likelihood behind `get_likelihood(θ)`), `array/run_array.py`, `array/slurm/pilot.sh` (MODE check/smoke/probe/pilot, now VERSION v1/v2) and `array/pilot_readout.py`. Froze config v1 (`configs/frozen/ng15_nb_v1.ini`, γp [−12, −6]).
+- The first launch failed on the resume fingerprint: the adapter lacked `hellings_downs_matrix`, `jax_data` and `timing_prior`. Smoke runs then needed ≥ 4 draws per segment for numpyro's split r̂.
+- Probe 1 (job 19281055, v1, 5 d 6 h): 0 divergences and step sizes 0.042–0.051, but γa sat at its −6 ceiling (median −6.10) and 9 pulsars' γp sat at −6. r̂ 1.265 on J1738+0333 σp, a red-noise on/off split between chains. 843 s per draw at a full depth-7 tree (127 steps).
+- Diagnosis with Discovery single-pulsar fits (`results/single_psr/discovery_m100`, `discovery_gp-4_m200`, `discovery_gp-4_sp-10_m200`): at 100 modes Discovery reproduces Argus's ceiling pile-up, which 30 modes hid.
+- Amended the spec (§12, 2026-11-03), froze v2 (γp [−12, −4], σp [−22, −10], γa kept at −6 as the test), and reran the Discovery OU reference on the v2 box at 100 per-pulsar / 14 common modes (`reference/configs/ou_v2.ini`, ladder.sh indices 16–20).
+- Probe 2 (job 19908499, v2): read from its segment-1 checkpoint at 100 draws per chain (`results/array/probe2_v2_partial_eps000.json`).
+
+**What was learned.**
+- The γp pile-up is a real white-like per-pulsar excess above 30/T, not a compression bug. Discovery uses NANOGrav's native white noise independently of Argus's ingest and agrees.
+- With γp raised, the posteriors run onto any ceiling, so no finite box closes them. σp closes inside −10.
+- Correction to a claim made mid-session: the 1/T PSD is invariant only between the two raised σp ceilings. Against the −6 box it moves > 0.3 dex in 5 of 13 pulsars (J1745 −0.77, J0437 −0.41, J1705 −0.37, J1802 −0.36, J1730 +0.49), though the mode count also changed.
+- Discovery reference on v2: lnB(HD/CURN) = 5.25 ± 0.05, reliable (Phase 1: 5.49 ± 0.06). lnB(CURN/noise) is still only a bound (≥ 4.68). ~5 A100-h per rung.
+- Probe 2: γa splits across chains (medians −6.14, −7.36, −7.66, −6.16; r̂ 1.24). The pivot PSD is stable at −5.96 (Discovery −5.86). γp/σp r̂ 1.33, step sizes halved to 0.019–0.033, 0 divergences, ~1,490 s per iteration.
+
+**Decisions / dead ends.**
+- Kept the γa box at −6 for probe 2 deliberately, so the probe would test whether the per-pulsar box alone frees the common process. It only half does: the γa posterior is now two-moded and the chains do not cross.
+- Probe 2 will hit the 7-day limit before segment 2 ends. It is not resumed (the user's call, 2026-11-12): 100 draws already answer the probe's questions.
+- A full 1000+1000 pilot as configured would not reach r̂ ≤ 1.01.
+
+**Open threads.**
+- The γa mode problem. Options: the K4 levers (dense GW block, target 0.95, depth 8), a γa reparameterisation, or a sampled white-noise term (option B; needs compression work). The proposed first step is cheap: compare lnL and per-pulsar γp between the two chain groups, to see whether the −6 mode fits better or is just hard to leave.
+- Cost: a 1000+1000 rung is ~20 d and ~2,000 A100-h, about 2× §5's whole budget, before any ladder.
+- The MDC2 noise-JSON broken symlink (`project_mdc2_efac_sampled_broken_symlink`) is still unaddressed.
+
 ## 2026-10-13 to 2026-10-15 — MDC2 2b under the diffuse timing prior: clean sampling, no amplitude excess, lnB(HD/CURN) = −0.25
 
 **Goal.** Carry the diffuse timing prior (default since PR #121) through MDC2 2b. Does 2b still sample, does the eps 0 pivot excess survive, and what is lnB(HD/CURN)?
