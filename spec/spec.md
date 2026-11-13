@@ -1411,6 +1411,25 @@ come back to the user before any A100 spend.
   (probe 2 without it: 1.097, 1.246, 7); A5 smallest step size ≥ 0.019. Scored on probe 2
   restricted to γa ≤ −7.0, it reproduces the preview (153 draws; J1713 on 0/97/71/8 %) and
   FAILs A1 and A2.
+- **Step 1 result (2026-11-13, jobs 20737971 and 20734354; `results/single_psr/white_term_check.{json,md}`,
+  pulsar runs in `discovery_gp-4_sp-10_m200_wq/`): FAIL by the rule above, 5 / 14 pass; no
+  rails at the −2 ceiling.** The excess is not one shape:
+  - flat, with the OU switched off (σp to ≈ −18): J0437−4715, J0645+5158, J1705−1903,
+    J1730−2304. Their baseline PSD at 1/T (−1.6 to −4.0) was the f⁻² OU's extrapolation of
+    the >30/T excess; with a flat term it drops by 5–9 dex, so in those pulsars the low-
+    frequency red noise the v2 box implies is an artefact of the OU shape;
+  - flat plus a steep red OU: J1713+0747 (log10_wpsd −8.15, γp −4.90 → −8.29, ceiling mass
+    0.089 → 0.004; PSD at 1/T +0.77 dex). The pulsar whose state traded with γa in probe 2
+    separates cleanly into red noise and a flat excess;
+  - partial: J1600−3053 and J1012+5307 take the term but γp does not close (top-2 % mass
+    0.029, 0.071); J2145−0750 between;
+  - not flat: J0613−0200, J1643−1224, J1745+1017, J1802−2124, J1903+0327, J1946+3417. The
+    term's posterior runs to its floor and γp stays where it was: in band their excess is
+    better fitted by the OU's f⁻² than by a flat PSD.
+  Reading: lever B's flat term is the right shape for the owner-trade pulsars (J1713, J0645)
+  and four others, not for six. Lever A goes ahead unchanged (it does not depend on step 1).
+  By the approval line, "step 1 says the excess is not OU-shaped" holds for 5 pulsars, so
+  B's scoping (no GPU) may start; a B term would have to be per-pulsar and optional.
 - **Flag for the user:** J0645+5158 does not meet A2 even in the preview's best chains
   (on and flat in 69 % and 49 % of chains 1 and 2's restricted draws; σp-only "on" 90 % and
   68 %). A healthy v3 probe can therefore fail A2 on J0645 alone. The gate stays as approved;
