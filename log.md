@@ -1,5 +1,26 @@
 # Research log
 
+## 2026-11-13 (later) — Levers approved; step 1 read (the excess has more than one shape); v3 probe submitted
+
+**Goal.** Carry out the approved §12 2026-11-13 change, steps 1–4.
+
+**What was done.**
+- Spec: change marked approved; sub-tasks 5.2a–e; gates written into §12 before any run.
+- Step 1 code: `run_discovery.py --free-white`. First built as a per-TOA EQUAD in the noise matrix: ≈ 1,400× slower per value+grad (J1713+0747, 28.6 s vs 0.021 s on CPU; timing job 20728968 hit 2 h). Rebuilt as a flat one-sided PSD 10^log10_wpsd added to the OU prior on the same 200 modes (same cost as baseline; covers ≤ 200/T only). First box [−16, −6] railed (J1730 0.84, J1012 0.68 at the ceiling; job 20734354, results moved aside); rerun on [−16, −2] with a ceiling-rail gate (job 20737971).
+- `probe3_criteria.py`: A1–A5; reproduces the lever-A preview on probe 2 and FAILs it. A4 leaves B1855+09 out (probe-2 baselines without it: 1.097, 1.246, 7).
+- Lever A: v3 check (6.57 s value+grad, 136 sites) and 1-GPU smoke (both segments, results saved) passed from worktree `Argus-ng15nb-p5c` @ `633e865`. Submitted the v3 Discovery OU-14 ladder (job 20740623, indices 21–25) and the 150 + 100 v3 probe (job 20741467, 4 × A100, interval 50).
+- Discovery OU-14 v2 readouts now tracked in `results/`.
+
+**Learned.**
+- Step 1 FAILs its rule (5/14) because the excess is not one shape: flat with the OU switched off in J0437, J0645, J1705, J1730 (their baseline 1/T PSD, −1.6 to −4.0, was the f⁻² OU extrapolating the >30/T excess; drops 5–9 dex); flat plus a steep red OU in J1713+0747 (wpsd −8.15, γp −4.90 → −8.29); partial in J1600, J1012, J2145; not flat (OU f⁻² preferred) in J0613, J1643, J1745, J1802, J1903, J1946.
+- So a lever-B term must be per-pulsar and optional; it suits the owner-trade pulsars.
+- The low-frequency per-pulsar power under v2 is inflated by the OU shape in ≥ 4 pulsars, which matters for the GW band.
+- J0645+5158 misses A2's 70 % even in the preview's best chains; flagged for the user.
+
+**Open.**
+- v3 probe (≈ 4.7 d) → `array/probe3_criteria.py <out_dir> --out results/array/probe3_v3_criteria.json`; v3 ladder → path-sampling readout as for v2.
+- User: J0645 in A2; whether to start lever B scoping now.
+
 ## 2026-11-13 — Probe 2 re-read: γa's ceiling is an owner trade with J1713+0747, not two modes
 
 **Goal.** Review Phase 5's state and decide what to do about probe 2's "split γa".
