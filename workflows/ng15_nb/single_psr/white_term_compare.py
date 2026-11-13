@@ -15,8 +15,9 @@ A pulsar passes when both hold:
   `red_noise_detected` flag of `common.verdict`), γp reverts to its uniform prior and
   its top-2 % mass is ≈ 0.02 by construction, so that case counts as closed: the term
   has taken the whole excess;
-- the flat term is on: < 1 % of log10_wpsd draws in the bottom 2 % of its box (the same
-  edge rule `common.verdict` uses to call red noise detected).
+- the flat term is on and inside its box: < 1 % of log10_wpsd draws in the bottom 2 % of
+  its box (the edge rule `common.verdict` uses to call red noise detected) and ≤ 5 % in
+  the top 2 % (`common.EDGE_MASS_RAIL`), so the box does not decide the answer.
 Step 1 passes (the excess is white, so lever B's term has the right shape) when J1713+0747
 passes and so do most of the pulsars. It cannot test the owner indifference between a
 pulsar and the common process; only an array run sees that.
@@ -60,7 +61,8 @@ def main():
         wq_floor = T["edge_mass"][WQ]["floor"]
         rn_on = bool(T["red_noise_detected"])
         closes = (not rn_on) or (ceil_t <= args.ceiling_mass and gp_t["median"] < gp_b["median"])
-        wq_on = wq_floor < args.wq_floor_mass
+        wq_ceil = T["edge_mass"][WQ]["ceiling"]
+        wq_on = wq_floor < args.wq_floor_mass and wq_ceil <= common.EDGE_MASS_RAIL
         rows.append({
             "pulsar": b.stem,
             "gamma_p_median": [gp_b["median"], gp_t["median"]],
@@ -69,6 +71,7 @@ def main():
                                T["site_quantiles"]["log10_sigma_p"]["median"]],
             "wpsd_q16_50_84": [T["site_quantiles"][WQ][k] for k in ("q16", "median", "q84")],
             "wq_floor_mass": wq_floor,
+            "wq_ceiling_mass": T["edge_mass"][WQ]["ceiling"],
             "red_noise_detected": [bool(B["red_noise_detected"]), rn_on],
             "psd_shift_dex": {f: T["log10_psd"][f]["median"] - B["log10_psd"][f]["median"]
                               for f in B["log10_psd"]},
@@ -96,13 +99,13 @@ def main():
         "# Step 1: does a free white term carry the >30/T excess? (spec §12, 2026-11-13)",
         "",
         f"Base `{args.base}`, test `{args.test}` (Discovery, 200 modes, γp ≤ −4, σp ≤ −10;"
-        f" test adds log10_wpsd [s²/Hz] on {T['box'][WQ] if rows else '?'} s). Commit `{report['sha']}`.",
+        f" test adds log10_wpsd on {T['box'][WQ] if rows else '?'}, one-sided s²/Hz). Commit `{report['sha']}`.",
         "",
         f"**Verdict: {verdict}** — {n_pass}/{len(rows)} pulsars pass"
         + (f"; missing {', '.join(missing)}" if missing else "") + ".",
         "",
         "| pulsar | γp median base→wq | γp ceiling mass base→wq | log10_wpsd median [q16, q84] |"
-        " wq floor mass | ΔPSD 1/T | ΔPSD 1/(5 yr) | r̂ | pass |",
+        " wq floor / ceiling mass | ΔPSD 1/T | ΔPSD 1/(5 yr) | r̂ | pass |",
         "|---|---|---|---|---|---|---|---|---|",
     ]
     for r in rows:
@@ -111,7 +114,7 @@ def main():
         lines.append(
             f"| {r['pulsar']} | {r['gamma_p_median'][0]:.2f} → {r['gamma_p_median'][1]:.2f}"
             f" | {r['gamma_p_ceiling_mass'][0]:.3f} → {r['gamma_p_ceiling_mass'][1]:.3f}"
-            f" | {q[1]:.2f} [{q[0]:.2f}, {q[2]:.2f}] | {r['wq_floor_mass']:.3f}"
+            f" | {q[1]:.2f} [{q[0]:.2f}, {q[2]:.2f}] | {r['wq_floor_mass']:.3f} / {r['wq_ceiling_mass']:.3f}"
             f" | {s['1/T']:+.2f} | {s['1/(5 yr)']:+.2f} | {r['max_r_hat']:.3f}"
             f" | {'yes' if r['pass'] else 'no'} |")
     (common.RESULTS / "white_term_check.md").write_text("\n".join(lines) + "\n")

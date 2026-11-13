@@ -66,7 +66,11 @@ DISCOVERY_DIR = os.environ.get(
 )
 RN_COMPONENTS = 30
 WQ_SITE = "log10_wpsd"
-WQ_BOX = (-16.0, -6.0)  # log10 one-sided s²/Hz; the floor is far below every pulsar's band
+# log10 one-sided s²/Hz. The floor is far below every pulsar's band. The ceiling is ≥ 1.9 dex
+# above every step-1 pulsar's 200-mode baseline PSD at 30/T (the excess band's lower edge;
+# J1745+1017 ≈ −3.9 on the f⁻² slope). A first run at −6 railed in J1730−2304 (0.84 of draws
+# in the top 2 %) and J1012+5307 (0.68), so the box, not the data, decided them.
+WQ_BOX = (-16.0, -2.0)
 
 
 def load(name):
