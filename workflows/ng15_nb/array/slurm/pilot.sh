@@ -8,7 +8,10 @@
 #               checkpoint, resume, save) in minutes on one GPU
 #               (sbatch --gres=gpu:a100:1 --time=1:00:00 ...)
 #   MODE=probe  200 warmup + 200 draws (checkpoint every 100), to measure step size and
-#               s/iter before the full pilot is committed (§5's budget is open)
+#               s/iter before the full pilot is committed (§5's budget is open).
+#               PROBE_WARMUP, PROBE_SAMPLES, PROBE_INTERVAL override 200/200/100; the v3
+#               probe (spec §12, 2026-11-13) is VERSION=v3 with 150/100/50, ≈ 4.7 d at
+#               probe 2's rates, so warmup and all draws fit one 7-day segment
 #   MODE=pilot  the frozen 1000 + 1000. RESUME=1 continues from its checkpoint, for the
 #               7-day segments the milan-gpu limit forces
 # The probe's config is the frozen file with only num_warmup, num_samples, the checkpoint
@@ -54,9 +57,9 @@ case "${MODE}" in
     probe)
         CONFIG="${WF}/configs/generated/ng15_nb_${VERSION}_probe.ini"
         mkdir -p "$(dirname "${CONFIG}")"
-        sed -e 's/^num_warmup = .*/num_warmup = 200/' \
-            -e 's/^num_samples = .*/num_samples = 200/' \
-            -e 's/^interval = .*/interval = 100/' \
+        sed -e "s/^num_warmup = .*/num_warmup = ${PROBE_WARMUP:-200}/" \
+            -e "s/^num_samples = .*/num_samples = ${PROBE_SAMPLES:-200}/" \
+            -e "s/^interval = .*/interval = ${PROBE_INTERVAL:-100}/" \
             -e "s/^output_id = .*/output_id = ng15_nb_${VERSION}_probe_eps000/" "${FROZEN}" > "${CONFIG}"
         diff "${FROZEN}" "${CONFIG}" || true
         ;;
