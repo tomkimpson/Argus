@@ -1,5 +1,37 @@
 # Research log
 
+## 2026-11-13 — Probe 2 re-read: γa's ceiling is an owner trade with J1713+0747, not two modes
+
+**Goal.** Review Phase 5's state and decide what to do about probe 2's "split γa".
+
+**What was tried.**
+- Read the probe-2 segment-1 checkpoint directly with h5py (arviz on the login node times out) and wrote `workflows/ng15_nb/array/probe_gamma_a_diagnosis.py` → `results/array/probe2_v2_gamma_a_diagnosis.{json,md}`: trace shape, lnL against γa, per-chain coupling of γa to each pulsar's white-like red-noise state (σp > −16 and γp > −6), split r̂, and what the probe actually ran (ini + checkpoint mass matrix + SLURM log rates).
+- Cancelled job 19908499 (user's call) 18 h before its 7-day limit; segment 2 was at 45/100 draws and would have been lost anyway.
+- First pass pooled the conditionals over chains and named J1713, J0645 and J0509 as "drivers"; the advisor pass caught that pooling mixes chain identity with the effect. Redone per chain: J0509 drops out, J0645 is weak, J1713 is the one with a draw-level coupling.
+
+**What was learned.**
+- γa is a ceiling spike (57 % of draws within 0.5 dex of −6; per chain 0.80, 0.39, 0.27, 0.82) with a tail to the −11 floor; every chain visits both regions. The handoff's "two non-crossing modes" were medians of a one-sided heavy tail over 100 autocorrelated draws.
+- lnL is flat in γa (bins agree to ≈ 2.5 nats, sd 6.5). The ceiling does not fit better; handoff next-step 1 is answered.
+- In chains 1 and 2, γa tracks J1713+0747's own red-noise state draw by draw: J1713 on and flat (γp ≈ −5, σp ≈ −13.7) → γa ≈ −7.9, 6–7 % at ceiling; off → −6.1 to −6.5, 52–92 %; corr −0.70, −0.43. Chains 0 and 3 sit in the off state 84–94 % of the time and never test it; that occupancy is the mixing failure. J0645 weaker (chain 1, −0.41). B1855+09 is a separate 1-vs-3 split between two on states (σp −13.7 vs −15.1; r̂ 1.77).
+- Units: integrated OU, residual PSD f⁻² below ω = γ, f⁻⁴ above; γ in s⁻¹. γa = −6 → corner at 73 d, i.e. f⁻² across the band, the shallowest allowed. So the excess has two owners (the pulsar's OU at γp ≈ −5, or the common process at its shallowest) and the data don't pick. When J1713 owns it, γa leaves the ceiling.
+- Both probes already had max_tree_depth 8 and the dense (pivot, γa) block (v1 and v2 inis). Probe 1's 127 steps was a depth-7 tree under the cap; probe 2 saturated depth 8 (≈ 1,700 s/draw sampling-phase ≈ 255 steps at 6.6 s/step). Only target_accept 0.95 of K4 is untried.
+- Cost like for like: segment 1 1,490–1,560 s/it (warmup-heavy), segment 2 ≈ 1,700 s/draw → 1000+1000 ≈ 37 d ≈ 3,500 A100-h (3.5 × budget); ESS 10/400 draws is 40 × short.
+- Discovery OU-14 v2 reference γa at ε = 0: 5–95 % −10.74 to −7.43, max −6.45; mass above −7.0 is 0.1 % (above −7.5, 9.5 %).
+- γa's density is spike + a J1713-on bump at ≈ −7.75 (chains 1, 2) + a dip in [−7, −6.5) + tail, not just spike + tail.
+- Lever A previewed on the draws in hand (uniform γa prior ⇒ a lower ceiling restricts v2's posterior). At −7.0 (the dip): 153/400 kept (10, 59, 72, 12 per chain), γa medians ≈ −7.9 in chains 0–2; J1713 on 0/97/71/8 %; within chains holding both states the on-draws fit better by +9 to +11 nats, so J1713-off is not an equal-lnL owner below the ceiling, yet chains 0, 3 sit in it. −7.5 would cut through the bump. So lever A = ceiling −7.0, pass criteria benchmarked on the preview (cross-chain γa agreement, on-fraction ≥ 70 %, r̂), not "off the ceiling". B1855+09's split is between two on states and uncoupled from γa: no lever targets it.
+- Checkpoint `num_steps` at the final iteration: 255, 127, 255, 255 (depth 8 saturated in 3 chains); mean acceptance 0.955/0.88/0.948/0.953 vs 0.9.
+- EFAC = 1, EQUAD = 0 throughout: white noise really was fixed in this run.
+
+**Decisions / dead ends.**
+- Proposed §12 entry 2026-11-13 (awaiting approval): (1) Discovery single-pulsar check with a free white-like term (hours; necessary for lever B's shape, cannot test owner indifference); (2) lever A = v3 with γa ceiling −7.0, Discovery reference rerun on v3, 150+100 probe (≈ 400 A100-h); (3) lever B = sampled white-like term in the compressed likelihood only if A fails; (4) re-budget and evaluate K4 on the passing probe. γa floor left at −11 (prior-volume implications for evidence).
+- Spec body lines in §5/§8/5.2 that defer K4 are tagged *proposed*; deferring a kill criterion is the user's call.
+- Ruled out as first moves: target_accept 0.95 alone, γa reparam alone, a 66-psr probe without J1713.
+
+**Open threads.**
+- User approval of the proposed amendment; then step 1.
+- Regenerate `probe2_v2_gamma_a_diagnosis.json` after the commit so `diagnosis_sha` names a HEAD that contains the script.
+- Copy the Discovery v2 reference readouts into tracked `results/`; MDC2 noise-JSON symlink still unaddressed.
+
 ## 2026-10-25 to 2026-11-12 — Phase 5 probes: the −6 ceiling, the v2 box, and a split γa
 
 **Goal.** Spec Phase 5 (branch `phase-5-array-pilot`): show that the 67-pulsar joint posterior samples under the production config, starting with task 5.2's 200+200 probe.

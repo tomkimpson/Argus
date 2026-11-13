@@ -1,7 +1,7 @@
 # Spec: First state-space detection of the SGWB on NANOGrav 15-yr data
 
 **Status:** draft
-**Created:** 2026-10-15  ·  **Last amended:** 2026-11-03 (Phase 5 red-noise box raised after the first probe)
+**Created:** 2026-10-15  ·  **Last amended:** 2026-11-13 (second probe read: γa's ceiling is owner leakage from J1713+0747; levers A/B proposed, awaiting approval)
 **Supersedes:** `openspec/changes/sgwb-detection-route` (to be deleted, task 0.1) and the
 wideband M3 plan in issue #111 / `workflows/ng15_sgwb_demo/PLAN.md`.
 
@@ -438,6 +438,13 @@ NANOGrav's log-uniform amplitude prior.
     probe (≈ 5 d, ≈ 500 A100-h) and the Phase 1 OU reference rerun on the v2 box come first.
     The user approved this spend on 2026-11-03; the pilot and the ladder are re-budgeted
     from the second probe's numbers before either starts.
+  - **Measured by the second probe (2026-11-12; §12, 2026-11-13).** On v2 the warmup-heavy
+    segment 1 ran at 1,490–1,560 s per iteration and the sampling-only segment 2 at
+    ≈ 1,700 s per draw (depth 8 saturated), so a 1000 + 1000 rung is ≈ 37 d and
+    ≈ 3,500 A100-h (3.5 × this budget), and bulk ESS 10 from 400 draws is ≈ 40 × short of
+    400. Length and tuning alone cannot meet Phase 5's Done-when. *Proposed (§12,
+    2026-11-13, awaiting approval):* a model/prior change and a re-probe before any pilot,
+    with the pilot and the ladder re-budgeted from that probe.
 
 ## 6. Outputs
 
@@ -519,6 +526,13 @@ therefore **pivots** with a named next step, not stops.
   - The levers are: a dense GW block, target_accept 0.95, and tree depth 8.
   - T3.5 capped tree depth at 7 only to finish within walltime. Checkpointed segmented runs
     now remove that reason.
+  - **Status 2026-11-13:** both probes ran with tree depth 8 and the dense (pivot, γa)
+    block (v1 and v2 inis; probe 1's 127 steps was a depth-7 tree under a depth-8 cap, probe
+    2 saturated depth 8), so two of the three levers were on from the start and the probes
+    still missed every threshold. Only target_accept 0.95 is untried. *Proposed (§12,
+    2026-11-13, awaiting the user's approval, since deferring a kill criterion is their
+    call):* the failure is an owner trade between per-pulsar and common red noise, not step
+    geometry, so K4 is evaluated on the re-probe after lever A/B, not on probe 2.
   - Pivot to the ≥ 10 yr long-baseline subset as an interim result, and open a geometry
     investigation.
 - **K5 (no hard stop).** The user decided on 2026-10-15 to set no time box. The campaign keeps
@@ -568,7 +582,7 @@ therefore **pivots** with a named next step, not stops.
 | Compression error at shallow-spectrum pulsars (A1) | C1 spread grows with red-noise slope; per-pulsar C4 outliers concentrated in γ_PL ≲ 1. Realised 2026-10-18: one scalar per window failed everywhere; two scalars still missed J1012+5307 and two gradient bounds. Resolved: epoch cells for 4 pulsars by the spread rule, and gradients reported, not gated (§12) |
 | 136-D sampling geometry | Phase 5 pilot (ε=0, 500+500) step size < 0.01, or per-chain medians split |
 | Per-pulsar red noise switching on and off between chains (two-mode σp posterior) | Realised in the first Phase 5 probe (2026-11-01): r̂ 1.265 and bulk ESS 13 on J1738+0333's σp, one chain at σp ≈ −19.6 and three at ≈ −15.4. It sits at the σp floor, which the v2 box does not change, and is the likeliest reason the pilot misses r̂ ≤ 1.01 |
-| A white-like excess above 30/T in ~10 pulsars leaks into the common process (A3) | Realised in the first Phase 5 probe: γa at its −6 ceiling (median −6.10) with 9 pulsars' γp at theirs. Mitigated by the v2 box (§12, 2026-11-03); if γa stays at its ceiling in the second probe, the excess is common and needs a sampled white-noise term |
+| A white-like excess above 30/T in ~10 pulsars leaks into the common process (A3) | Realised in the first Phase 5 probe: γa at its −6 ceiling (median −6.10) with 9 pulsars' γp at theirs. Mitigated by the v2 box (§12, 2026-11-03); if γa stays at its ceiling in the second probe, the excess is common and needs a sampled white-noise term. **Realised in the second probe (2026-11-12; §12, 2026-11-13):** γa at the ceiling in 57 % of draws; in the chains that switch, γa tracks J1713+0747's own red-noise state draw by draw (on → −7.9, off → −6); lnL flat in γa. Levers A (γa ceiling −7.0) and B (sampled flat-PSD term) proposed |
 | Per-step cost blows up at 67 psr on the union grid (step count × O((4N)³)) | Task 2.6 benchmark of value-plus-gradient on the marginal path. There is no trustworthy prior rate (§2); if it is near the sequential quick-look (≳ 0.6 s at 189 steps), Δ is forced to ≳ 1 month. Realised 2026-10-18: the dense grid needed 28.6 s at the DMX window; the sparse filter gives 0.84 s batched, 6.7 s per chain, and the budget is open (§5) |
 | Discovery env / jax version conflicts | Task 1.2 fails to install; fall back to a container |
 | Path-sampling integrand steep near ε=1 at lnB ~ 5 | Frozen-procedure Romberg check flags extra rungs (0.625, 0.875) |
@@ -729,6 +743,12 @@ divergences ≤ 0.5% and min bulk ESS ≥ 400, with no frozen chain, and K4 eval
       warmup profile so that segment 1, which holds the whole warmup because the harness
       checkpoints only after it, ends inside the 7-day limit with margin — see §12,
       2026-11-03)_
+      _(amended 2026-11-13: the second probe ran on v2 to its segment-1 checkpoint
+      (`results/array/probe2_v2_partial_eps000.json`, 100 draws per chain) and was cancelled
+      18 h before the 7-day limit. Diagnosis in `results/array/probe2_v2_gamma_a_diagnosis.md`
+      (+ `.json`, `array/probe_gamma_a_diagnosis.py`): γa's ceiling is an owner trade
+      with J1713+0747's red noise, not a geometry problem. *Proposed, awaiting approval:*
+      the pilot waits on lever A or B and a third probe — see §12, 2026-11-13)_
 
 ### Phase 6 — Detection run, significance and comparison
 
@@ -1251,3 +1271,103 @@ the frequencies that carry the GW signal, and the common process absorbs part of
 **Approved by the user** on 2026-11-03.
 
 **Sections touched:** §3 (C5), §5, §9, §10, §11 (5.1, 5.2), §12
+
+### 2026-11-13 — the second probe: γa's ceiling is an owner trade with J1713+0747; levers A/B proposed
+
+**Trigger:** task 5.2's second probe (job 19908499, `configs/frozen/ng15_nb_v2.ini`, ε = 0,
+200 + 200, 4 × A100) reached its segment-1 checkpoint at 200 warmup + 100 draws per chain
+after 5.4 d and was cancelled on 2026-11-13, 18 h before its 7-day limit (segment 2 was at
+45/100 draws and would not have finished; `results/array/probe2_v2_partial_eps000.json`).
+Readout: 0 divergences, no frozen chain, step sizes 0.019–0.033; max r̂ 1.33 and bulk ESS
+10 (γp); γa r̂ 1.24 with per-chain medians −6.14, −7.36, −7.66, −6.16; pivot PSD −5.96 ± 0.03
+(Discovery −5.86). EFAC = 1 and EQUAD = 0 in every draw: the white noise was fixed.
+
+The 2026-11-03 amendment made this probe the test: "if γa leaves its ceiling, the per-pulsar
+box was the cause; if not, the excess is common to the array, and a sampled white-noise term
+is the next step". Reading the traces (`results/array/probe2_v2_gamma_a_diagnosis.md`,
+`.json`, from `array/probe_gamma_a_diagnosis.py`):
+- γa is not two modes. Every chain spans −6.0 down to −9.4 or lower; 57 % of all draws lie
+  within 0.5 dex of the ceiling (per chain 0.80, 0.39, 0.27, 0.82), the rest tail to the −11
+  floor; chains cross between the regions within 100 draws. The per-chain medians were
+  medians of a one-sided heavy tail.
+- The likelihood is flat in γa: per-chain lnL medians agree to ≈ 4 (sd ≈ 6.5) and the mean
+  lnL by γa bin varies by ≈ 2.5 nats across [−11, −6). The ceiling does not fit better.
+- In the chains that switch, γa tracks J1713+0747's own red noise draw by draw. With
+  J1713's OU term on and flat in band (σp > −16, γp > −6; it sits at γp ≈ −5, σp ≈ −13.7),
+  chain 1 has γa median −7.87 and 6 % at the ceiling (62 draws) against −6.13 and 92 % when
+  off; chain 2 −7.95 / 7 % (56 draws) against −6.45 / 52 %; corr(γa, state) −0.70 and −0.43.
+  Chains 0 and 3 are in the off state 84 % and 94 % of the time (16 and 6 on-draws, all
+  single-draw flickers, γa unmoved), so they do not test the coupling; their occupancy of
+  the off basin is the mixing failure itself. J1713's on-fraction by γa bin flips at
+  γa ≈ −7.2 to −7.5 (≥ 0.78 below −7.5, 0.54 in [−7.5, −7.2), ≤ 0.27 above −7.2). J0645+5158 shows the same more weakly (chain 1 corr −0.41). J0509+0856
+  ranks high on a chain-group median split but has no within-chain coupling; B1855+09 is a
+  separate 1-vs-3 split between two *on* states (σp −13.7 vs −15.1; σp r̂ 1.77, γp 1.47),
+  the J1738+0333 pattern of probe 1, uncoupled from γa; no lever below targets it.
+- Reading: Argus's red noise is integrated OU (residual PSD f⁻² below the corner ω = γ,
+  f⁻⁴ above; γ an angular rate in s⁻¹). At the −6 ceiling the common process's corner is at
+  a 73-day period, so it is f⁻² across the band, the shallowest allowed. A pulsar's >30/T
+  excess thus has two owners, its own OU at γp ≈ −5 or the common process at its
+  shallowest, and the likelihood does not separate them. The per-pulsar on state is a thin
+  ridge in (γp, σp) against a large off volume, so chains sit off with γa at the ceiling.
+  When J1713 owns its excess, γa leaves the ceiling: the tie is between owners.
+- Both probes already ran two of K4's three levers: `ng15_nb_v1.ini` and `_v2.ini` set
+  `max_tree_depth = 8` and the dense (pivot, γa) block (checkpoint confirms a (2, 2) block;
+  probe 1's log prints "Max tree depth: 8"). Probe 1's 127 steps was a depth-7 tree under
+  the cap; probe 2's checkpoint has `num_steps` 255, 127, 255, 255 at the final iteration
+  (depth 8 saturated in three chains; mean acceptance 0.955, 0.88, 0.948, 0.953 against
+  0.9). Only target_accept 0.95 is untried, and it addresses step geometry, not the owner
+  trade.
+- Cost, like for like: segment 1 (warmup-heavy) 1,490–1,560 s per iteration, segment 2
+  (sampling) ≈ 1,700 s per draw; a 1000 + 1000 rung is ≈ 37 d and ≈ 3,500 A100-h (3.5 ×
+  §5), and bulk ESS 10 from 400 draws is ≈ 40 × short of 400.
+- Discovery's OU-14 v2 reference at ε = 0 has γa 5–95 % −10.74 to −7.43 (median −8.11,
+  max −6.45); its 14 common modes cannot see the >30/T excess (§12, 2026-11-03), so this is
+  not evidence about Argus's γa, but it bounds what a ceiling change would cut.
+- γa's density per 0.5 dex (pooled) is 15, 14, 7, 7, 10, 10 from −11 to −8, then 51 in
+  [−8, −7.5), 39 in [−7.5, −7), a dip of 19 in [−7, −6.5) and the spike of 228. The bump at
+  ≈ −7.75 is chains 1 and 2 with J1713 on; chains 0 and 3 have 7 and 1 draws below −7.
+- Lever A previewed on the draws in hand (the γa prior is uniform, so a lower ceiling alone
+  restricts v2's posterior). At −7.0, the dip: 153 of 400 draws kept (chains 0–3: 10, 59,
+  72, 12), γa medians −7.88, −7.89, −7.86, −7.21, J1713 on in 0 %, 97 %, 71 %, 8 %. Within
+  each chain holding both states below the ceiling the on-draws fit better by +11.4, +8.8
+  and +8.9 nats (chains 1, 2, 3), so the J1713-off state is not an equal-lnL third owner
+  there, yet chains 0 and 3 sit in it. A cut at −7.5 would go through the bump (45 % of
+  the kept mass within 0.5 dex of the ceiling, against 25 % at −7.0). Discovery's reference
+  has 0.1 % of its γa mass above −7.0 (9.5 % above −7.5). The preview rests mostly on two
+  chains and cannot show that NUTS holds the on state (the thin-ridge volume is unchanged).
+
+**Change (proposed 2026-11-13, awaiting the user's approval; the record above is in):**
+- Phase 5 gains, before the pilot, a gated test of two levers that fix the owner of the
+  excess. Nothing spends A100 time until step 1 is in.
+  1. Discovery single-pulsar check (hours): J1713+0747, J0645+5158 and the nine ceiling
+     pulsars of 2026-11-03 at 100–200 modes, OU red noise plus a free flat-PSD (EQUAD-like)
+     term, a different shape from the OU's f⁻² limit. Pass:
+     γp closes off its ceiling and the term carries the excess. This tells whether lever B's
+     term is the right shape; it cannot test the owner indifference, which only an array run
+     sees.
+  2. Lever A, the array-level test: freeze v3 = v2 with γa in [−11, −7.0] (the dip in
+     Argus's own γa density, below the J1713 on/off flip at −7.5…−7.2; corner at a 2-year
+     period, so the common process is f⁻⁴ above 1/(2 yr) and cannot be f⁻² across the band;
+     cuts 0.1 % of Discovery's reference γa posterior). No code change. Rerun the Discovery
+     OU-14 reference on the v3 box (C5 needs the same box), then a shorter probe (150 + 100,
+     ≈ 4 d, ≈ 400 A100-h). Pass, benchmarked on the preview rather than "off the ceiling"
+     (25 % of the restricted mass lies within 0.5 dex of −7.0 by construction): every
+     chain's γa median within ≈ 0.3 dex of the others near −7.9; J1713 and J0645 on in
+     ≥ 70 % of every chain's draws (preview 71–97 % in the chains that move); γa and pivot
+     r̂ ≤ 1.05; γp/σp r̂ well under probe 2's; step size not below probe 2's. Fail: a chain
+     holds the J1713-off state below the ceiling (chains 0 and 3 do in the preview, ≈ 9 nats
+     worse), so the on-ridge is too thin to hold and lever B is needed. B1855+09's split is
+     outside A's criteria: an open blocker with no lever yet.
+  3. Lever B only if 2 fails or 1 says the excess is not OU-shaped: a sampled per-pulsar
+     flat-PSD (EQUAD-like) term in the compressed array likelihood (the compression work
+     deferred on 2026-11-03), scoped first; the fingerprint and `run_array.py --check` must
+     still refuse anything else. Then v4 and a probe.
+  4. The pilot and the Phase 6 ladder are re-budgeted from the passing probe. K4 is
+     evaluated on that probe, not on probe 2.
+- γa's floor stays at −11 for now: it is 3 dex below identifiability (≈ −8.5) and the tail
+  wastes draws, but moving it changes the prior volume that GW-vs-noise evidence sees.
+  Decide when the owner question is settled.
+- §5 records the second probe's rates. §8 K4 records that two levers were on from the start
+  and that K4 waits on the re-probe (proposed). §10's leakage row is marked realised.
+- Not adopted: target_accept 0.95 alone; a γa reparameterisation alone; a 66-pulsar probe
+  without J1713 (≈ 500 A100-h for one bit, and the array is fixed at 67 by design).
