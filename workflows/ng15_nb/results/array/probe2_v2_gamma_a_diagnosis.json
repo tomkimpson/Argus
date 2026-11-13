@@ -1,7 +1,7 @@
 {
   "run": "ng15_nb_v2_probe_eps000",
   "nc": "/fred/oz022/tkimpson/Argus-ng15nb-p5/workflows/ng15_nb/outputs/ng15_nb_v2_probe_eps000/ng15_nb_v2_probe_eps000_partial.nc",
-  "diagnosis_sha": "40790223efa6534b5c971c6a58bb40d4b63a2ce1",
+  "diagnosis_sha": "fb3a121bcc9c8e30323cd53364dd89ccf57acd3b",
   "n_chains": 4,
   "n_draws_per_chain": 100,
   "gamma_a_ceiling": -6.0,
