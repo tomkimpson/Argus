@@ -26,11 +26,15 @@ likelihood is near-flat along the f⁻² ridge, where σp rises with γp, so rai
 ceiling alone moves the pile-up onto σp's.
 `--rn-components` changes the Fourier mode count from 30 (`_m<n>`), to test a C4 outlier
 for truncation.
-`--free-white` adds one sampled per-pulsar white term on top of the fixed white noise: the
-per-TOA variance becomes N_fixed + 10^(2 log10_wq), with log10_wq [s] uniform on WQ_BOX
+`--free-white` adds one sampled per-pulsar flat-PSD term to the spin-noise prior on the same
+Fourier modes: one-sided PSD = OU(f) + 10^log10_wpsd [s²/Hz], log10_wpsd uniform on WQ_BOX
 (`_wq`). It is the flat-PSD (EQUAD-like) shape of spec §12 2026-11-13 step 1, a different
 shape from the OU's f⁻² limit: if it carries the >30/T excess, γp should leave its ceiling.
-At log10_wq = WQ_BOX[0] the term is ≤ 2e-4 of the smallest TOA variance (J1713+0747, 8 ns).
+It covers the modelled band only (up to `--rn-components`/T), where the excess was seen. A
+per-TOA EQUAD in the noise matrix was tried first and is ≈ 1,400× slower per value+gradient
+(J1713+0747: 28.6 s vs 0.021 s on CPU), because a variable noise matrix redoes Discovery's
+ECORR/timing/Fourier algebra over all TOAs every step. For scale, white noise of rms σ at a
+mean TOA spacing Δt has one-sided PSD 2σ²Δt: 1 µs on J1713+0747 (Δt ≈ 8.5e3 s) is ≈ −7.8.
 """
 
 import argparse
@@ -61,8 +65,8 @@ DISCOVERY_DIR = os.environ.get(
     "NG15_DISCOVERY_DIR", "/fred/oz022/tkimpson/external/discovery"
 )
 RN_COMPONENTS = 30
-WQ_SITE = "log10_wq"
-WQ_BOX = (-10.0, -5.0)  # log10 s; NANOGrav's EQUAD box is [-8.5, -5]
+WQ_SITE = "log10_wpsd"
+WQ_BOX = (-16.0, -6.0)  # log10 one-sided s²/Hz; the floor is far below every pulsar's band
 
 
 def load(name):
@@ -74,53 +78,32 @@ def load(name):
     return ds.Pulsar.read_feather(str(Path(DISCOVERY_DIR) / "data" / entry["file"]))
 
 
-def free_white_model(psr):
-    """`models.pulsar_models([psr])[0]` with one sampled white term added to the fixed one.
-
-    The fixed per-TOA variance (NANOGrav's per-backend EFAC/EQUAD from the noise dictionary)
-    is taken from the constant noise matrix and the term 10^(2 log10_wq) added to every TOA.
-    ECORR and the timing model are unchanged.
-    """
-    from discovery import matrix
-
-    fixed = ds.makenoise_measurement(psr, psr.noisedict)
-    n_fixed = matrix.jnparray(np.asarray(fixed.N))
-    param = f"{psr.name}_{WQ_SITE}"
-
-    def getnoise(params):
-        return n_fixed + 10.0 ** (2.0 * params[param])
-
-    getnoise.params = [param]
-    return ds.PulsarLikelihood(
-        [
-            psr.residuals,
-            matrix.NoiseMatrix1D_var(getnoise),
-            ds.makegp_ecorr(psr, psr.noisedict),
-            ds.makegp_timing(psr, svd=True),
-        ]
-    )
+def ou_flat_prior(f, df, log10_gamma_p, log10_sigma_r, log10_wpsd):
+    """`ou_psd.ou_rn_prior` plus a flat one-sided PSD 10^log10_wpsd on the same modes."""
+    return ou_psd.ou_rn_prior(f, df, log10_gamma_p, log10_sigma_r) + 10.0**log10_wpsd * df
 
 
 def make_loglike(psr, span_s, free_white=False):
+    prior = ou_flat_prior if free_white else ou_psd.ou_rn_prior
     rn = ds.makecommongp_fourier(
-        [psr], ou_psd.ou_rn_prior, RN_COMPONENTS, T=span_s, name=models.RN_NAME
+        [psr], prior, RN_COMPONENTS, T=span_s, name=models.RN_NAME
     )
-    pulsar = [free_white_model(psr)] if free_white else models.pulsar_models([psr])
-    logl = ds.ArrayLikelihood(pulsar, commongp=rn).logL
+    logl = ds.ArrayLikelihood(models.pulsar_models([psr]), commongp=rn).logL
     key = lambda arg: f"{psr.name}_{models.RN_NAME}_{arg}"  # noqa: E731
-    wq = f"{psr.name}_{WQ_SITE}"
-    expected = {key("log10_gamma_p"), key("log10_sigma_r")} | ({wq} if free_white else set())
+    expected = {key("log10_gamma_p"), key("log10_sigma_r")}
+    if free_white:
+        expected.add(key(WQ_SITE))
     if set(logl.params) != expected:
         raise RuntimeError(f"parameters {logl.params}, expected {sorted(expected)}")
     log10_f0 = np.log10(common.f0_of(psr.name))
 
-    def loglike(log10_gamma_p, log10_sigma_p, log10_wq=None):
+    def loglike(log10_gamma_p, log10_sigma_p, log10_wpsd=None):
         p = {
             key("log10_gamma_p"): log10_gamma_p,
             key("log10_sigma_r"): log10_sigma_p - log10_f0,
         }
         if free_white:
-            p[wq] = log10_wq
+            p[key(WQ_SITE)] = log10_wpsd
         return logl(p)
 
     return loglike
@@ -242,7 +225,7 @@ def main():
     ap.add_argument(
         "--free-white",
         action="store_true",
-        help="add a sampled per-pulsar white term log10_wq (spec §12 2026-11-13 step 1)",
+        help="add a sampled flat-PSD term log10_wpsd on the Fourier modes (spec §12 2026-11-13 step 1)",
     )
     args = ap.parse_args()
     if args.rn_components:

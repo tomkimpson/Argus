@@ -1,12 +1,11 @@
-"""The free white term of `run_discovery.py --free-white` is inert when it is off.
+"""The flat-PSD term of `run_discovery.py --free-white` is inert when it is off.
 
-Spec §12 2026-11-13, step 1: the Discovery single-pulsar check adds one sampled white term
-(per-TOA variance N_fixed + 10^(2 log10_wq)) to NANOGrav's fixed white noise. The check is
-only a test of the excess's shape if, with the term switched off, the likelihood is the
-fixed-noise one the 200-mode baseline (`results/single_psr/discovery_gp-4_sp-10_m200/`)
-used. At log10_wq = -20 the added variance is ~1e-24 of any TOA error, so the two
-log-likelihoods must agree to rounding; at the box floor (-10) they must agree to well under
-a nat, so "off" is reachable inside the prior.
+Spec §12 2026-11-13, step 1: the Discovery single-pulsar check adds one sampled flat
+one-sided PSD 10^log10_wpsd to the OU spin-noise prior on the same Fourier modes. The check
+is only a test of the excess's shape if, with the term switched off, the likelihood is the
+one the 200-mode baseline (`results/single_psr/discovery_gp-4_sp-10_m200/`) used. At
+log10_wpsd = -40 the two log-likelihoods must agree to rounding; at the box floor they must
+agree to well under a nat, so "off" is reachable inside the prior.
 
 Needs the discovery env and the NG15 feathers; skipped otherwise.
 """
@@ -42,6 +41,7 @@ def _run_discovery():
 @pytest.fixture(scope="module")
 def loglikes():
     rd = _run_discovery()
+    rd.RN_COMPONENTS = 200
     psr = rd.load("J1713+0747")
     span_s = rd.common.array_span_s(rd.DISCOVERY_DIR)
     return (
@@ -55,7 +55,7 @@ def loglikes():
 def test_white_term_off_matches_fixed_noise(loglikes, gamma_p, sigma_p):
     fixed, free, _ = loglikes
     a = float(fixed(gamma_p, sigma_p))
-    b = float(free(gamma_p, sigma_p, -20.0))
+    b = float(free(gamma_p, sigma_p, -40.0))
     assert np.isfinite(a)
     assert abs(a - b) < 1e-6 * max(1.0, abs(a))
 
@@ -71,4 +71,4 @@ def test_white_term_on_changes_likelihood(loglikes):
     fixed, free, box = loglikes
     a = float(fixed(-8.0, -14.0))
     b = float(free(-8.0, -14.0, box[1]))
-    assert b < a - 10.0  # 10 µs of extra white noise on J1713 is strongly disfavoured
+    assert b < a - 10.0  # a 1e-6 s²/Hz flat PSD (≈ 8 µs white) on J1713 is strongly disfavoured

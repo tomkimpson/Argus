@@ -6,7 +6,7 @@
 
 Compares, pulsar by pulsar, the Discovery single-pulsar runs at 200 modes and the v2 box
 (γp ≤ −4, σp ≤ −10) without (`--base`) and with (`--test`, `run_discovery.py --free-white`)
-a sampled white term log10_wq, from their result JSONs. Writes
+a sampled flat-PSD term log10_wpsd, from their result JSONs. Writes
 results/single_psr/white_term_check.{json,md}.
 
 A pulsar passes when both hold:
@@ -15,7 +15,7 @@ A pulsar passes when both hold:
   `red_noise_detected` flag of `common.verdict`), γp reverts to its uniform prior and
   its top-2 % mass is ≈ 0.02 by construction, so that case counts as closed: the term
   has taken the whole excess;
-- the white term is on: < 1 % of log10_wq draws in the bottom 2 % of its box (the same
+- the flat term is on: < 1 % of log10_wpsd draws in the bottom 2 % of its box (the same
   edge rule `common.verdict` uses to call red noise detected).
 Step 1 passes (the excess is white, so lever B's term has the right shape) when J1713+0747
 passes and so do most of the pulsars. It cannot test the owner indifference between a
@@ -35,7 +35,7 @@ sys.path.insert(0, str(HERE))
 import common  # noqa: E402
 
 KEY = "J1713+0747"
-WQ = "log10_wq"
+WQ = "log10_wpsd"
 
 
 def main():
@@ -67,7 +67,7 @@ def main():
             "gamma_p_ceiling_mass": [ceil_b, ceil_t],
             "sigma_p_median": [B["site_quantiles"]["log10_sigma_p"]["median"],
                                T["site_quantiles"]["log10_sigma_p"]["median"]],
-            "wq_q16_50_84": [T["site_quantiles"][WQ][k] for k in ("q16", "median", "q84")],
+            "wpsd_q16_50_84": [T["site_quantiles"][WQ][k] for k in ("q16", "median", "q84")],
             "wq_floor_mass": wq_floor,
             "red_noise_detected": [bool(B["red_noise_detected"]), rn_on],
             "psd_shift_dex": {f: T["log10_psd"][f]["median"] - B["log10_psd"][f]["median"]
@@ -96,17 +96,17 @@ def main():
         "# Step 1: does a free white term carry the >30/T excess? (spec §12, 2026-11-13)",
         "",
         f"Base `{args.base}`, test `{args.test}` (Discovery, 200 modes, γp ≤ −4, σp ≤ −10;"
-        f" test adds log10_wq on {T['box'][WQ] if rows else '?'} s). Commit `{report['sha']}`.",
+        f" test adds log10_wpsd [s²/Hz] on {T['box'][WQ] if rows else '?'} s). Commit `{report['sha']}`.",
         "",
         f"**Verdict: {verdict}** — {n_pass}/{len(rows)} pulsars pass"
         + (f"; missing {', '.join(missing)}" if missing else "") + ".",
         "",
-        "| pulsar | γp median base→wq | γp ceiling mass base→wq | log10_wq median [q16, q84] |"
+        "| pulsar | γp median base→wq | γp ceiling mass base→wq | log10_wpsd median [q16, q84] |"
         " wq floor mass | ΔPSD 1/T | ΔPSD 1/(5 yr) | r̂ | pass |",
         "|---|---|---|---|---|---|---|---|---|",
     ]
     for r in rows:
-        q = r["wq_q16_50_84"]
+        q = r["wpsd_q16_50_84"]
         s = r["psd_shift_dex"]
         lines.append(
             f"| {r['pulsar']} | {r['gamma_p_median'][0]:.2f} → {r['gamma_p_median'][1]:.2f}"

@@ -1390,10 +1390,15 @@ second case only B's scoping (no GPU) starts alongside the v3 probe, and v4 and 
 come back to the user before any A100 spend.
 
 **Gates as encoded (2026-11-13, before any run):**
-- Step 1 (`single_psr/white_term_compare.py`): the white term is per-TOA variance
-  N_fixed + 10^(2 log10_wq), log10_wq uniform on [−10, −5] s (the floor is ≤ 2e-4 of the
-  smallest TOA variance, J1713+0747's 8 ns). A pulsar passes when log10_wq has < 1 % of its
-  draws in the bottom 2 % of its box and γp closes: top-2 % mass ≤ 0.02 with the median
+- Step 1 (`single_psr/white_term_compare.py`): the term is a flat one-sided PSD
+  10^log10_wpsd [s²/Hz] added to the OU spin-noise prior on the same 200 Fourier modes,
+  log10_wpsd uniform on [−16, −6] (1 µs of white noise on J1713+0747 ≈ −7.8). A per-TOA
+  EQUAD in the noise matrix was tried first and dropped: ≈ 1,400× slower per
+  value+gradient (J1713+0747, 28.6 s vs 0.021 s on CPU; the 200 + 200 timing job 20728968
+  hit its 2 h limit), because a variable noise matrix redoes Discovery's per-pulsar algebra
+  over all TOAs each step. The Fourier form costs the same as the baseline but covers only
+  the modelled band (≤ 200/T), where the excess was seen. A pulsar passes when log10_wpsd
+  has < 1 % of its draws in the bottom 2 % of its box and γp closes: top-2 % mass ≤ 0.02 with the median
   below the 200-mode baseline's, or the red noise is no longer detected (then γp is back on
   its uniform prior, whose top-2 % mass is 0.02 by construction). Step 1 passes when
   J1713+0747 and a majority of the 14 pulsars pass.
