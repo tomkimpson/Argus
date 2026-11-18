@@ -1,5 +1,36 @@
 # Research log
 
+## 2026-11-19 — Lever A read out: the v3 probe fails, narrowly on two criteria and clearly on three
+
+**Goal.** Read the two lever-A results submitted on 2026-11-13: the Discovery OU-14 v3 reference ladder and the Argus v3 probe (γa ≤ −7.0, 150 warmup + 100 samples, 4 × A100).
+
+**What was tried.**
+- Ladder job 20740623 (indices 21–25) finished in about 4 h 55 min per rung, the same as v2. It was read out with the frozen estimators in CPU job 20775741: `lnb_path_sampling.py --from-runs` and `reference/lnb_curn_vs_noise.py`. Both JSONs are in `workflows/ng15_nb/results/` (commit c9b97fd).
+- Probe job 20741467 waited about 24 h on PartitionDown, then on Priority. It started on 2026-11-14 at 02:50 on gina11 and COMPLETED on 2026-11-18 at 19:19, after 4 d 16.5 h. Warmup ran at 1,280–1,660 s/it and sampling at 1,480–1,690 s/it. Tree depth did not grow relative to probe 2.
+- `array/probe3_criteria.py` was run twice: once on the first checkpoint (50 draws per chain, preview only, not kept) and once on the final `results.nc` (100 draws per chain). The final run wrote `workflows/ng15_nb/results/array/probe3_v3_criteria.json`.
+
+**What was learned.**
+- **The reference barely moves.** On v3, lnB(HD/CURN) = 5.18 ± 0.05; on v2 it was 5.25 ± 0.05. The CURN/noise 95 % lower bound is 4.89 (v2: 4.68). The ε=0 γa quantiles (5/50/95 %) are −10.71/−8.20/−7.41 (v2: −10.74/−8.11/−7.43). Discovery's γa posterior already sat below −7, so lever A's ceiling is a negligible prior cut for the reference.
+- **The final verdict is FAIL on all of A1–A5.**
+  - A1: the γa chain spread is 0.306 dex against a 0.3 limit. Chain medians are −8.42, −8.33, −8.50 and −8.20; the pooled median is −8.36. No chain sits at the ceiling.
+  - A2: J1713+0747 is on in 94/67/81/67 % of draws, below the 70 % limit in two chains by 3 points each. J0645+5158 is on in 61/47/45/54 %, failing in every chain.
+  - A3: split r̂ is 1.032 for γa and 1.089 for the pivot, against a limit of 1.05.
+  - A4: the worst γp r̂ is 1.148 (J1903+0327), worse than probe 2's 1.097. The worst σp r̂ is 1.180 (J1713+0747), better than probe 2's 1.246, and 5 σp sites are over 1.1 (probe 2: 7). B1855+09's σp r̂ is 1.82; it is reported but not gated.
+  - A5: the minimum step size is 0.0156 (chain 0), below the 0.019 floor. Step size is fixed once warmup ends, so A5 could not recover with more draws.
+- **The 50-draw preview was misleading.** It showed a 0.86 dex γa spread and J1713 on in only 44 % of chain 1's draws. The extra 50 draws closed most of that, so a first-checkpoint read overstates the failure.
+- **What lever A achieved.** It removed the ceiling pile-up and mostly holds J1713's on state. It did not make the joint posterior mix: the pivot is not converged across chains, and J0645 still trades its red noise away.
+
+**Decisions / dead ends.**
+- The thresholds were not relaxed after the fact. The three narrow misses (A1, J1713 in A2, A4 γp) don't change the verdict, because the pivot r̂, J0645 and A5 fail clearly.
+- The approved plan says a FAIL triggers lever B: a per-pulsar, optional flat-PSD term in the compressed likelihood, with v4 coming back for approval. The user chose to discuss next steps in a new session instead of starting lever B scoping now. Nothing has been started.
+
+**Open threads.**
+- Next step after a lever-A FAIL: lever B as planned, or something else. This is the user's call, for a new session.
+- J0645+5158 fails A2 under v2 and v3 alike. Is 70 % the right test for it?
+- B1855+09's σp split (r̂ 1.82) is still untargeted by any lever.
+- The γa = −7.0 ceiling and the reference agree, so v3 is a safe base for any v4.
+- The MDC2 noise-JSON broken symlink is still unfixed; that is the user's call.
+
 ## 2026-11-13 (later) — Levers approved; step 1 read (the excess has more than one shape); v3 probe submitted
 
 **Goal.** Carry out the approved §12 2026-11-13 change, steps 1–4.
