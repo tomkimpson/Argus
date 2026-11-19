@@ -436,8 +436,9 @@ NANOGrav's log-uniform amplitude prior.
     Settle before Phase 5 (§12, 2026-10-19).
   - **Measured by the first Phase 5 probe (2026-11-01; §12, 2026-11-03).** One chain per A100
     runs 127 leapfrog steps per draw at ≈ 843 s per draw (warmup ≈ 1,420 s per iteration).
-    A 1000 + 1000 rung is ≈ 20 d and ≈ 1,950 A100-h, so the pilot alone is ≈ 2× this
-    budget, and the 4 remaining rungs of Phase 6 do not fit at this cost. A second 200 + 200
+    A 1000 + 1000 rung is ≈ 26 d and ≈ 2,500 A100-h (1000 warmup + 1000 sampling iterations;
+    corrected 2026-11-20 from ≈ 20 d, which priced warmup at the sampling rate), so the pilot
+    alone is ≈ 2.5× this budget, and the 4 remaining rungs of Phase 6 do not fit at this cost. A second 200 + 200
     probe (≈ 5 d, ≈ 500 A100-h) and the Phase 1 OU reference rerun on the v2 box come first.
     The user approved this spend on 2026-11-03; the pilot and the ladder are re-budgeted
     from the second probe's numbers before either starts.
@@ -1331,9 +1332,9 @@ is the next step". Reading the traces (`results/array/probe2_v2_gamma_a_diagnosi
   Chains 0 and 3 are in the off state 84 % and 94 % of the time (16 and 6 on-draws, all
   single-draw flickers, γa unmoved), so they do not test the coupling; their occupancy of
   the off basin is the mixing failure itself. J1713's on-fraction by γa bin flips at
-  γa ≈ −7.2 to −7.5 (≥ 0.78 below −7.5, 0.54 in [−7.5, −7.2), ≤ 0.27 above −7.2). J0645+5158 shows the same more weakly (chain 1 corr −0.41). J0509+0856
+  γa ≈ −7.2 to −7.5 (≥ 0.78 below −7.5 except 0.60 in [−8.5, −8) at n = 10, 0.54 in [−7.5, −7.2), ≤ 0.27 above −7.2). J0645+5158 shows the same more weakly (chain 1 corr −0.41). J0509+0856
   ranks high on a chain-group median split but has no within-chain coupling; B1855+09 is a
-  separate 1-vs-3 split between two *on* states (σp −13.7 vs −15.1; σp r̂ 1.77, γp 1.47),
+  separate 1-vs-3 split between two *on* states (σp −13.07 vs −15.1; σp r̂ 1.77, γp 1.47),
   the J1738+0333 pattern of probe 1, uncoupled from γa; no lever below targets it.
 - Reading: Argus's red noise is integrated OU (residual PSD f⁻² below the corner ω = γ,
   f⁻⁴ above; γ an angular rate in s⁻¹). At the −6 ceiling the common process's corner is at
@@ -1357,7 +1358,7 @@ is the next step". Reading the traces (`results/array/probe2_v2_gamma_a_diagnosi
   not evidence about Argus's γa, but it bounds what a ceiling change would cut.
 - γa's density per 0.5 dex (pooled) is 15, 14, 7, 7, 10, 10 from −11 to −8, then 51 in
   [−8, −7.5), 39 in [−7.5, −7), a dip of 19 in [−7, −6.5) and the spike of 228. The bump at
-  ≈ −7.75 is chains 1 and 2 with J1713 on; chains 0 and 3 have 7 and 1 draws below −7.
+  ≈ −7.75 is chains 1 and 2 with J1713 on; chains 0 and 3 have 7 and 1 draws below −7.5 (10 and 12 below −7).
 - Lever A previewed on the draws in hand (the γa prior is uniform, so a lower ceiling alone
   restricts v2's posterior). At −7.0, the dip: 153 of 400 draws kept (chains 0–3: 10, 59,
   72, 12), γa medians −7.88, −7.89, −7.86, −7.21, J1713 on in 0 %, 97 %, 71 %, 8 %. Within

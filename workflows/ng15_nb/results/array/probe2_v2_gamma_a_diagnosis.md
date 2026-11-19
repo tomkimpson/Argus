@@ -33,7 +33,7 @@ risk ("white-like excess … leaks into the common process") realised in the for
    (pooled) it runs 15, 14, 7, 7, 10, 10 from −11 to −8, then **51** in [−8, −7.5), 39 in
    [−7.5, −7), a dip of 19 in [−7, −6.5), and the spike of 228 in [−6.5, −6). The bump at
    ≈ −7.75 is in chains 1 and 2 (19 and 29 draws) and is where J1713 is on; chains 0 and 3
-   have almost nothing below −7 (7 and 1 draws). Chain 1 (median −7.36) spends its last ten draws at −6.0 to
+   have almost nothing below −7.5 (7 and 1 draws; 10 and 12 below −7). Chain 1 (median −7.36) spends its last ten draws at −6.0 to
    −6.4; chain 3 (median −6.16) visits −7.2 in its last ten. The "two modes" were medians of
    100 autocorrelated draws of a one-sided, heavy-tailed trace.
 
@@ -53,11 +53,11 @@ risk ("white-like excess … leaks into the common process") realised in the for
    | 2 | 56 | −7.95, 7 % | −6.45, 52 % | −0.43 |
    | 3 | 6 | −6.15, 83 % | −6.16, 82 % | −0.01 |
 
-   Chains 1 and 2 switch state 10 and 18 times in 100 draws and show the coupling at the
+   Chains 1 and 2 switch state 8 and 20 times in 100 draws and show the coupling at the
    draw level. Chains 0 and 3 are in the off state 84 % and 94 % of the time; their on-draws
    are single-draw flickers (run lengths 1–2, 13 and 6 runs) with γa unmoved, so they do not
    test the coupling, and their occupancy of the off basin *is* the mixing failure (γa r̂
-   1.24). Binning J1713's on-fraction by γa (pooled): ≥ 0.78 below −7.5, 0.54 in
+   1.24). Binning J1713's on-fraction by γa (pooled): ≥ 0.78 below −7.5 except 0.60 in [−8.5, −8) (n = 10), 0.54 in
    [−7.5, −7.2), 0.27 in [−7.2, −7.0), ≤ 0.26 above −7.0. The flip sits at γa ≈ −7.2 to −7.5. When on, J1713 sits at
    γp ≈ −4.9…−5.0 and σp ≈ −13.5…−14.0, the shallowest spectrum its OU allows (f⁻² across
    the band), i.e. the >30/T excess that the 2026-11-03 amendment found in nine pulsars at
@@ -83,7 +83,7 @@ risk ("white-like excess … leaks into the common process") realised in the for
    classic split r̂ on 50-draw halves: σp > 1.1 in 8 pulsars (B1855+09 1.77, J0030+0451
    1.25, J1713+0747 1.23, J0613−0200 1.16, J1944+0907 1.11), γp > 1.1 in 1 (B1855+09 1.47,
    one chain at −5.3 and three at ≈ −9.3). B1855+09 is a 1-vs-3 split of the J1738+0333
-   kind seen in probe 1, but between two *on* states (σp −13.7 vs −15.1, both above −16),
+   kind seen in probe 1, but between two *on* states (σp −13.07 vs −15.1, both above −16),
    and it is uncoupled from γa (restricting to γa ≤ −7.2 leaves it unchanged). Neither lever
    below is argued to fix it; it is an open blocker without a lever.
 

@@ -64,7 +64,7 @@
 **What was learned.**
 - γa is a ceiling spike (57 % of draws within 0.5 dex of −6; per chain 0.80, 0.39, 0.27, 0.82) with a tail to the −11 floor; every chain visits both regions. The handoff's "two non-crossing modes" were medians of a one-sided heavy tail over 100 autocorrelated draws.
 - lnL is flat in γa (bins agree to ≈ 2.5 nats, sd 6.5). The ceiling does not fit better; handoff next-step 1 is answered.
-- In chains 1 and 2, γa tracks J1713+0747's own red-noise state draw by draw: J1713 on and flat (γp ≈ −5, σp ≈ −13.7) → γa ≈ −7.9, 6–7 % at ceiling; off → −6.1 to −6.5, 52–92 %; corr −0.70, −0.43. Chains 0 and 3 sit in the off state 84–94 % of the time and never test it; that occupancy is the mixing failure. J0645 weaker (chain 1, −0.41). B1855+09 is a separate 1-vs-3 split between two on states (σp −13.7 vs −15.1; r̂ 1.77).
+- In chains 1 and 2, γa tracks J1713+0747's own red-noise state draw by draw: J1713 on and flat (γp ≈ −5, σp ≈ −13.7) → γa ≈ −7.9, 6–7 % at ceiling; off → −6.1 to −6.5, 52–92 %; corr −0.70, −0.43. Chains 0 and 3 sit in the off state 84–94 % of the time and never test it; that occupancy is the mixing failure. J0645 weaker (chain 1, −0.41). B1855+09 is a separate 1-vs-3 split between two on states (σp −13.07 vs −15.1; r̂ 1.77).
 - Units: integrated OU, residual PSD f⁻² below ω = γ, f⁻⁴ above; γ in s⁻¹. γa = −6 → corner at 73 d, i.e. f⁻² across the band, the shallowest allowed. So the excess has two owners (the pulsar's OU at γp ≈ −5, or the common process at its shallowest) and the data don't pick. When J1713 owns it, γa leaves the ceiling.
 - Both probes already had max_tree_depth 8 and the dense (pivot, γa) block (v1 and v2 inis). Probe 1's 127 steps was a depth-7 tree under the cap; probe 2 saturated depth 8 (≈ 1,700 s/draw sampling-phase ≈ 255 steps at 6.6 s/step). Only target_accept 0.95 of K4 is untried.
 - Cost like for like: segment 1 1,490–1,560 s/it (warmup-heavy), segment 2 ≈ 1,700 s/draw → 1000+1000 ≈ 37 d ≈ 3,500 A100-h (3.5 × budget); ESS 10/400 draws is 40 × short.
@@ -110,7 +110,7 @@
 
 **Open threads.**
 - The γa mode problem. Options: the K4 levers (dense GW block, target 0.95, depth 8), a γa reparameterisation, or a sampled white-noise term (option B; needs compression work). The proposed first step is cheap: compare lnL and per-pulsar γp between the two chain groups, to see whether the −6 mode fits better or is just hard to leave.
-- Cost: a 1000+1000 rung is ~20 d and ~2,000 A100-h, about 2× §5's whole budget, before any ladder.
+- Cost: a 1000+1000 rung is ~26 d and ~2,500 A100-h, about 2.5× §5's whole budget, before any ladder (corrected 2026-11-20: ~20 d priced warmup at the sampling rate).
 - The MDC2 noise-JSON broken symlink (`project_mdc2_efac_sampled_broken_symlink`) is still unaddressed.
 
 ## 2026-10-13 to 2026-10-15 — MDC2 2b under the diffuse timing prior: clean sampling, no amplitude excess, lnB(HD/CURN) = −0.25
