@@ -145,7 +145,7 @@ class TestSampleUniformParameters:
         assert float(draws.max()) <= -12.0
         # Uniform(-20, -12): mean -16, sd 8/sqrt(12) = 2.309, whatever N is
         assert float(draws.mean()) == pytest.approx(-16.0, abs=0.1)
-        assert float(draws.std()) == pytest.approx(8.0 / jnp.sqrt(12.0), rel=0.03)
+        assert float(draws.std()) == pytest.approx(8.0 / 12.0**0.5, rel=0.03)
 
     def test_log_density_is_flat_and_nuts_space_is_bounded(self):
         from numpyro import handlers
