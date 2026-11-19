@@ -30,6 +30,9 @@ So a shortfall can be attributed to the data, the noise model (kernel), or the m
 The success bar (B ≥ 10, lnB ≥ 2.3) was chosen by the user on 2026-10-15; see K0 in §8.
 Reaching NANOGrav's order (lnB ≥ 4.6) would strengthen the headline but is not required.
 
+_(Superseded 2026-11-20: the Bayes-factor half of this claim is dropped from Argus, and the
+claim is now the detection statistic of `spec/detection-statistic.md` §1 — see §12, 2026-11-20.)_
+
 ## 2. Background
 
 **Published target** (Agazie et al. 2023, ApJL 951 L8, arXiv:2306.16213; text extracted
@@ -486,6 +489,8 @@ therefore **pivots** with a named next step, not stops.
   - If (a) holds but (b) fails *because Discovery-OU itself falls short of Discovery-PL* (K2
     territory), then the method is validated and the **kernel** is the limit. Extend the kernel
     (the K2 pivot); don't re-engineer the filter.
+  - _(Superseded 2026-11-20: K0(b) is dropped, and K0(a)'s C5 comparison — which compares
+    an Argus lnB — is replaced by `spec/detection-statistic.md` §3 V5 and §8; see §12, 2026-11-20.)_
 - **K1 (Phase 1). The reference fails to reproduce the publication** (C3 misses). Stop and debug
   data or estimator before any Argus work, since Argus cannot be expected to beat a
   reproduction that fails.
@@ -542,6 +547,8 @@ therefore **pivots** with a named next step, not stops.
   refining through the K1–K4 pivots. The fallback write-up is the Discovery-OU kernel result
   (N2) plus a long-baseline-subset Argus result, to be revisited at each phase boundary rather
   than triggered automatically.
+  - _(Superseded 2026-11-20: the long-baseline subset is not taken; the fallback write-up is
+    whatever `spec/detection-statistic.md` §8 leaves standing — see §12, 2026-11-20.)_
 
 ## 9. Open questions
 
@@ -1455,8 +1462,12 @@ come back to the user before any A100 spend.
 **Trigger:** task 5.2c's v3 probe (job 20741467, `configs/frozen/ng15_nb_v3.ini`, γa ≤ −7.0,
 ε = 0, 150 + 100, 4 × A100, 4 d 16.5 h, COMPLETED 2026-11-18) scored by
 `array/probe3_criteria.py` (`results/array/probe3_v3_criteria.json`): **FAIL on all five
-criteria.**
+criteria** (four of them informative; see A1).
 - A1: γa chain-median spread 0.306 dex (limit 0.3); medians −8.42, −8.33, −8.50, −8.20.
+  **A1 is uninformative at this length** (found in the PR #138 review): with 4 × 100 draws and
+  a pooled γa sd of 1.18 dex, four i.i.d. chains exceed a 0.3 dex median spread 73 % of the
+  time (median spread 0.41 dex), so 0.306 is not evidence of disagreement between chains. The
+  probe-2 preview's A1 FAIL has the same problem. The verdict rests on A2–A5.
 - A2: J1713+0747 on in 94/67/81/67 % (two chains under 70 %); J0645+5158 on in
   61/47/45/54 % (every chain under).
 - A3: split r̂ γa 1.032, pivot 1.089 (limit 1.05).
@@ -1488,4 +1499,8 @@ factor of 10–40.
   unchanged.
 - Closed with the probe route: B1855+09's σp split and J0645+5158's A2 question.
 
-**Sections touched:** §8 (K4), §11 (Phases 5–7), §12
+**Approved by the user** on 2026-11-20 (the Phase 0 plan of `spec/detection-statistic.md`,
+which carried this entry's wording). The A1 caveat and the superseded pointers on §1, K0 and
+K5 were added on 2026-11-20 after the PR #138 review.
+
+**Sections touched:** §1, §8 (K0, K4, K5), §11 (Phases 5–7), §12
