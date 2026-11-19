@@ -1,7 +1,7 @@
 # Spec: First state-space detection of the SGWB on NANOGrav 15-yr data
 
 **Status:** draft
-**Created:** 2026-10-15  ·  **Last amended:** 2026-11-13 (second probe read: γa's ceiling is owner leakage from J1713+0747; levers A/B approved)
+**Created:** 2026-10-15  ·  **Last amended:** 2026-11-20 (the v3 probe fails; K4 triggered; Phases 5–7 superseded by `spec/detection-statistic.md`)
 **Supersedes:** `openspec/changes/sgwb-detection-route` (to be deleted, task 0.1) and the
 wideband M3 plan in issue #111 / `workflows/ng15_sgwb_demo/PLAN.md`.
 
@@ -535,6 +535,9 @@ therefore **pivots** with a named next step, not stops.
     geometry, so K4 is evaluated on the re-probe after lever A/B, not on probe 2.
   - Pivot to the ≥ 10 yr long-baseline subset as an interim result, and open a geometry
     investigation.
+  - **Evaluated 2026-11-20: triggered** on the v3 probe (all five lever-A criteria failed).
+    The long-baseline pivot is not taken; the pivot taken is `spec/detection-statistic.md`
+    (see §12, 2026-11-20).
 - **K5 (no hard stop).** The user decided on 2026-10-15 to set no time box. The campaign keeps
   refining through the K1–K4 pivots. The fallback write-up is the Discovery-OU kernel result
   (N2) plus a long-baseline-subset Argus result, to be revisited at each phase boundary rather
@@ -725,6 +728,8 @@ to match when the phase opens.
 
 ### Phase 5 — 67-psr Argus pilot (sampling feasibility)
 
+_(superseded by `spec/detection-statistic.md` — see §12, 2026-11-20)_
+
 **Goal:** show the full-array joint posterior samples under the production configuration.
 **Done when:** one ε=0 rung (1000+1000, 4×A100, checkpointed) meets max r̂ ≤ 1.01,
 divergences ≤ 0.5% and min bulk ESS ≥ 400, with no frozen chain, and K4 evaluated.
@@ -749,37 +754,45 @@ divergences ≤ 0.5% and min bulk ESS ≥ 400, with no frozen chain, and K4 eval
       (+ `.json`, `array/probe_gamma_a_diagnosis.py`): γa's ceiling is an owner trade
       with J1713+0747's red noise, not a geometry problem. *Approved 2026-11-13:*
       the pilot waits on lever A or B and a third probe — see §12, 2026-11-13)_
-  - [ ] 5.2a Step 1: Discovery single-pulsar check, OU + free white term (EQUAD-like
+  - [x] 5.2a Step 1: Discovery single-pulsar check, OU + free white term (EQUAD-like
         `log10_wq`), 200 modes, the 14 pulsars of `discovery_gp-4_sp-10_m200`
         (`single_psr/run_discovery.py --free-white`; readout
-        `results/single_psr/white_term_check.{json,md}`)
-  - [ ] 5.2b Lever A: freeze `configs/frozen/ng15_nb_v3.ini` (v2 with γa ≤ −7.0) and rerun
+        `results/single_psr/white_term_check.{json,md}`) _(done 2026-11-13: FAIL, 5 / 14; §12)_
+  - [x] 5.2b Lever A: freeze `configs/frozen/ng15_nb_v3.ini` (v2 with γa ≤ −7.0) and rerun
         the Discovery OU-14 reference on that box (`reference/configs/ou_v3.ini`, ladder
-        indices 21–25)
-  - [ ] 5.2c v3 probe, 150 + 100 (≈ 4.7 d, one segment), read by `array/probe3_criteria.py`
-        against §12 2026-11-13's pass criteria
+        indices 21–25) _(done: v3 frozen; reference lnB(HD/CURN) 5.18 ± 0.05,
+        `results/lnb_hd_curn_ou14_v3.json`)_
+  - [x] 5.2c v3 probe, 150 + 100 (≈ 4.7 d, one segment), read by `array/probe3_criteria.py`
+        against §12 2026-11-13's pass criteria _(done 2026-11-18: FAIL on A1–A5,
+        `results/array/probe3_v3_criteria.json`; §12, 2026-11-20)_
   - [ ] 5.2d Lever B (sampled flat-PSD term in the compressed likelihood) — only if 5.2c
         fails or 5.2a says the excess is white; scoped first, v4 back to the user
+        _(superseded by `spec/detection-statistic.md` — see §12, 2026-11-20)_
   - [ ] 5.2e Re-budget the pilot and Phase 6 ladder from the passing probe; evaluate K4 on it
+        _(superseded by `spec/detection-statistic.md` — see §12, 2026-11-20)_
 
 ### Phase 6 — Detection run, significance and comparison
+
+_(superseded by `spec/detection-statistic.md` — see §12, 2026-11-20)_
 
 **Goal:** the headline numbers in T1 and F1–F3.
 **Done when:** the frozen estimator reports `reliable: true`, K0 is evaluated, C5 is evaluated,
 and the scramble p is reported at its resolution.
 **PR:** _not started_
 
-- [ ] 6.1 Remaining ladder rungs (ε = 0.25, 0.5, 0.75, 1; extra rungs if the readout asks) —
+- [ ] 6.1 (superseded — see §12, 2026-11-20) Remaining ladder rungs (ε = 0.25, 0.5, 0.75, 1; extra rungs if the readout asks) —
       verify by each rung meeting the Phase 5 thresholds.
-- [ ] 6.2 Path-sampling readout plus `lnb_gw_vs_noise.py` — verify by `reliable: true` and the
+- [ ] 6.2 (superseded — see §12, 2026-11-20) Path-sampling readout plus `lnb_gw_vs_noise.py` — verify by `reliable: true` and the
       plateau/KS gates passing.
-- [ ] 6.3 Sky-scramble ensemble (≥ 5000, |M̄| < 0.17) of the eps0-integrand statistic on the
+- [ ] 6.3 (superseded — see §12, 2026-11-20) Sky-scramble ensemble (≥ 5000, |M̄| < 0.17) of the eps0-integrand statistic on the
       ε=0 draws, with the observed value computed by the same code on the true ORF — verify by the
       p-value with its binomial uncertainty, and the ensemble file hashed into provenance.
-- [ ] 6.4 Assemble T1, F1–F3, and evaluate K0 and C5 — verify by a committed results note
+- [ ] 6.4 (superseded — see §12, 2026-11-20) Assemble T1, F1–F3, and evaluate K0 and C5 — verify by a committed results note
       quoting every number with its source run.
 
 ### Phase 7 — Write-up
+
+_(superseded by `spec/detection-statistic.md` — see §12, 2026-11-20)_
 
 To be specified when reached: the Paper A draft, plus the result artefact carrying the
 kernel statement (N2) and the scope bound.
@@ -1436,3 +1449,43 @@ come back to the user before any A100 spend.
   the readout reports J1713 and J0645 separately so the user can decide on J0645.
 
 **Sections touched:** §5, §8 (K4), §10, §11 (5.2), §12
+
+### 2026-11-20 — the v3 probe fails; K4 triggered; Phases 5–7 superseded
+
+**Trigger:** task 5.2c's v3 probe (job 20741467, `configs/frozen/ng15_nb_v3.ini`, γa ≤ −7.0,
+ε = 0, 150 + 100, 4 × A100, 4 d 16.5 h, COMPLETED 2026-11-18) scored by
+`array/probe3_criteria.py` (`results/array/probe3_v3_criteria.json`): **FAIL on all five
+criteria.**
+- A1: γa chain-median spread 0.306 dex (limit 0.3); medians −8.42, −8.33, −8.50, −8.20.
+- A2: J1713+0747 on in 94/67/81/67 % (two chains under 70 %); J0645+5158 on in
+  61/47/45/54 % (every chain under).
+- A3: split r̂ γa 1.032, pivot 1.089 (limit 1.05).
+- A4: worst γp r̂ 1.148 (J1903+0327), above probe 2's 1.097; worst σp r̂ 1.180 (J1713+0747),
+  5 σp sites over 1.1 (probe 2: 1.246, 7); B1855+09 σp r̂ 1.82, not gated.
+- A5: minimum step size 0.0156 (floor 0.019); fixed after warmup, so unrecoverable by more
+  draws.
+The Discovery OU-14 reference on the same box gives lnB(HD/CURN) = 5.18 ± 0.05
+(`results/lnb_hd_curn_ou14_v3.json`; v2 5.25 ± 0.05). Lever A removed the γa ceiling
+pile-up but did not make the joint posterior mix.
+
+**K4 evaluated: triggered.** Three probes (v1, v2, v3) ran with tree depth 8 and the dense
+(pivot, γa) block, and lever A, and missed the Phase 5 thresholds each time. The limit is
+cost per gradient (6.6–6.7 s per chain, ≈ 3,500 A100-h per 1000 + 1000 rung, five rungs), not
+one parameter. Lever B would fix at most one owner trade and does not supply the missing
+factor of 10–40.
+
+**Change:**
+- K4's named pivot (the ≥ 10 yr long-baseline subset) is **not** taken. The pivot taken is
+  `spec/detection-statistic.md`: the ε = 0 correlation score at a best-fit noise point
+  against a sky-scramble null, which needs no converged posterior.
+- Phases 5, 6 and 7 are superseded by that spec. Tasks 5.2a–5.2c stand as done (their
+  readouts are the record). 5.2d (lever B), 5.2e and 6.1–6.4 are annotated superseded,
+  not deleted.
+- K0(b), the Argus lnB(HD/CURN) ≥ 2.3 headline, is dropped unless the new spec's speed
+  track (its Phase S, ≥ 30× per-chain gain) reopens it through an amendment here.
+  Discovery-OU's 5.18 ± 0.05 is quoted as the reference pipeline's number.
+- Phases 0–4, §3 A1–A5 / C1–C4, §4 D1–D3 / D5, §5 and §7 are inherited by the new spec
+  unchanged.
+- Closed with the probe route: B1855+09's σp split and J0645+5158's A2 question.
+
+**Sections touched:** §8 (K4), §11 (Phases 5–7), §12
