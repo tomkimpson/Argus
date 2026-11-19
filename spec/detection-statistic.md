@@ -344,16 +344,16 @@ Nothing fans out before P1's K1 is evaluated.
 `workflows/ng15_nb/results/stat/inputs.json`, remote branch _(amended 2026-11-20)_
 **Done when:** `phase-5-array-pilot` exists on the remote, and the parent's §12 carries a
 dated entry that the user has approved.
-**PR:** _not started_
+**PR:** #138 (merged 2026-11-20)
 
-- [ ] 0.1 Push `phase-5-array-pilot` (27 commits, local only) → infra — verify by
+- [x] 0.1 Push `phase-5-array-pilot` (27 commits, local only) → infra — verify by
       `git branch -vv` showing an upstream with 0 ahead.
-- [ ] 0.2 Parent §12 entry: the v3 probe FAIL with its five numbers, K4 evaluated as
+- [x] 0.2 Parent §12 entry: the v3 probe FAIL with its five numbers, K4 evaluated as
       triggered, the pivot taken (this spec, not the long-baseline subset), and Phases 5–7
       marked superseded with a link here → §6 text — verify by the user approving the
       wording before it is committed.
-      > ⚠️ DRAFT — revise: the K4 ruling is the user's; the entry is drafted for approval.
-- [ ] 0.3 Record the SHA-256 of the v3 probe `.nc` and the Discovery OU-14 v3 ε = 0 chain
+      _(done: wording approved with the Phase 0 plan, 2026-11-20; A1 caveat added after review)_
+- [x] 0.3 Record the SHA-256 of the v3 probe `.nc` and the Discovery OU-14 v3 ε = 0 chain
       in `workflows/ng15_nb/results/stat/inputs.json` → infra — verify by recomputing both hashes.
 
 ### Phase 1 — The opening test on the existing draws
