@@ -57,7 +57,7 @@ def split_rhat(x):
     """Classic split r̂ on a (chains, draws) array: each chain cut into two halves."""
     c, n = x.shape
     h = n // 2
-    xs = np.concatenate([x[:, :h], x[:, h:2 * h]], 0)
+    xs = np.concatenate([x[:, :h], x[:, h : 2 * h]], 0)
     W = xs.var(1, ddof=1).mean()
     B = h * xs.mean(1).var(ddof=1)
     return float(np.sqrt(((h - 1) / h * W + B / h) / W))
@@ -71,15 +71,31 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("out_dir")
     ap.add_argument("--out")
-    ap.add_argument("--ceiling", type=float, default=-6.0, help="log10 γa prior ceiling")
-    ap.add_argument("--near", type=float, default=0.5, help="dex counted as 'at the ceiling'")
-    ap.add_argument("--on-threshold", type=float, default=-16.0,
-                    help="log10 σp above which a pulsar's red noise counts as 'on'")
-    ap.add_argument("--flat-threshold", type=float, default=-6.0,
-                    help="log10 γp above which a pulsar's OU is flat (f⁻²) across the band")
+    ap.add_argument(
+        "--ceiling", type=float, default=-6.0, help="log10 γa prior ceiling"
+    )
+    ap.add_argument(
+        "--near", type=float, default=0.5, help="dex counted as 'at the ceiling'"
+    )
+    ap.add_argument(
+        "--on-threshold",
+        type=float,
+        default=-16.0,
+        help="log10 σp above which a pulsar's red noise counts as 'on'",
+    )
+    ap.add_argument(
+        "--flat-threshold",
+        type=float,
+        default=-6.0,
+        help="log10 γp above which a pulsar's OU is flat (f⁻²) across the band",
+    )
     ap.add_argument("--groups", default="0,3:1,2", help="chain groups, e.g. 0,3:1,2")
-    ap.add_argument("--preview-ceiling", type=float, default=-7.2,
-                    help="preview a lower γa ceiling by restricting the draws to γa ≤ this")
+    ap.add_argument(
+        "--preview-ceiling",
+        type=float,
+        default=-7.2,
+        help="preview a lower γa ceiling by restricting the draws to γa ≤ this",
+    )
     args = ap.parse_args()
 
     out_dir = Path(args.out_dir)
@@ -110,27 +126,34 @@ def main():
     chains = []
     for c in range(n_chains):
         x = ga[c]
-        chains.append({
-            "chain": c,
-            "gamma_a_median": float(np.median(x)),
-            "gamma_a_sd": float(x.std()),
-            "gamma_a_min": float(x.min()),
-            "gamma_a_max": float(x.max()),
-            "gamma_a_lag1_autocorr": lag1(x),
-            "gamma_a_frac_near_ceiling": float(near[c].mean()),
-            "gamma_a_first10": np.round(x[:10], 2).tolist(),
-            "gamma_a_last10": np.round(x[-10:], 2).tolist(),
-            "corr_gamma_a_lnL": float(np.corrcoef(x, lnl[c])[0, 1]),
-            "corr_gamma_a_pivot": float(np.corrcoef(x, pv[c])[0, 1]),
-            "lnL_median": float(np.median(lnl[c])),
-            "lnL_sd": float(lnl[c].std()),
-        })
+        chains.append(
+            {
+                "chain": c,
+                "gamma_a_median": float(np.median(x)),
+                "gamma_a_sd": float(x.std()),
+                "gamma_a_min": float(x.min()),
+                "gamma_a_max": float(x.max()),
+                "gamma_a_lag1_autocorr": lag1(x),
+                "gamma_a_frac_near_ceiling": float(near[c].mean()),
+                "gamma_a_first10": np.round(x[:10], 2).tolist(),
+                "gamma_a_last10": np.round(x[-10:], 2).tolist(),
+                "corr_gamma_a_lnL": float(np.corrcoef(x, lnl[c])[0, 1]),
+                "corr_gamma_a_pivot": float(np.corrcoef(x, pv[c])[0, 1]),
+                "lnL_median": float(np.median(lnl[c])),
+                "lnL_sd": float(lnl[c].std()),
+            }
+        )
     edges = [-11, -9, -7.5, -6.5, args.ceiling]
     lnl_bins = []
     for lo, hi in zip(edges[:-1], edges[1:]):
         m = (ga >= lo) & (ga < hi)
-        lnl_bins.append({"gamma_a_bin": [lo, hi], "n": int(m.sum()),
-                         "lnL_mean": float(lnl[m].mean()) if m.any() else None})
+        lnl_bins.append(
+            {
+                "gamma_a_bin": [lo, hi],
+                "n": int(m.sum()),
+                "lnL_mean": float(lnl[m].mean()) if m.any() else None,
+            }
+        )
 
     # --- which pulsars co-move with γa -------------------------------------------
     # A pulsar's red noise is in its "white-like" state when it is on (σp above the
@@ -152,30 +175,39 @@ def main():
 
     def cond(c_mask, w_mask):
         m = c_mask & w_mask
-        return {"n": int(m.sum()),
-                "gamma_a_median": float(np.median(ga[m])) if m.any() else None,
-                "frac_near_ceiling": float(near[m].mean()) if m.any() else None}
+        return {
+            "n": int(m.sum()),
+            "gamma_a_median": float(np.median(ga[m])) if m.any() else None,
+            "frac_near_ceiling": float(near[m].mean()) if m.any() else None,
+        }
 
     def driver_of(i):
         w = white[:, :, i]
         per_chain = []
         for c in range(n_chains):
-            cm = np.zeros_like(w, dtype=bool); cm[c] = True
-            per_chain.append({
-                "chain": c,
-                "white_frac": float(w[c].mean()),
-                "switches": int(np.abs(np.diff(w[c].astype(int))).sum()),
-                "corr_gamma_a_white": float(corr_w[i, c]),
-                "sigma_p_median": float(np.median(sp[c, :, i])),
-                "gamma_p_median": float(np.median(gp[c, :, i])),
-                "gamma_a_given_white": cond(cm, w),
-                "gamma_a_given_not_white": cond(cm, ~w),
-            })
-        return {"pulsar": names[i], "index": i, "max_abs_corr_over_chains": float(score[i]),
-                "per_chain": per_chain,
-                "pooled_gamma_a_given_white": cond(np.ones_like(w, bool), w),
-                "pooled_gamma_a_given_not_white": cond(np.ones_like(w, bool), ~w),
-                "pooled_note": "pooled numbers mix chain identity with the draw-level effect"}
+            cm = np.zeros_like(w, dtype=bool)
+            cm[c] = True
+            per_chain.append(
+                {
+                    "chain": c,
+                    "white_frac": float(w[c].mean()),
+                    "switches": int(np.abs(np.diff(w[c].astype(int))).sum()),
+                    "corr_gamma_a_white": float(corr_w[i, c]),
+                    "sigma_p_median": float(np.median(sp[c, :, i])),
+                    "gamma_p_median": float(np.median(gp[c, :, i])),
+                    "gamma_a_given_white": cond(cm, w),
+                    "gamma_a_given_not_white": cond(cm, ~w),
+                }
+            )
+        return {
+            "pulsar": names[i],
+            "index": i,
+            "max_abs_corr_over_chains": float(score[i]),
+            "per_chain": per_chain,
+            "pooled_gamma_a_given_white": cond(np.ones_like(w, bool), w),
+            "pooled_gamma_a_given_not_white": cond(np.ones_like(w, bool), ~w),
+            "pooled_note": "pooled numbers mix chain identity with the draw-level effect",
+        }
 
     drivers = [driver_of(i) for i in picks]
     drivers_joint = {
@@ -194,39 +226,69 @@ def main():
     preview = {
         "ceiling": args.preview_ceiling,
         "n_draws": int(sub.sum()),
-        "share_from_chains": [float(sub[c].sum() / max(sub.sum(), 1)) for c in range(n_chains)],
-        "per_chain": [{
-            "chain": c, "n": int(sub[c].sum()),
-            "top_on_frac": float(w_top[c][sub[c]].mean()) if sub[c].any() else None,
-            "lnL_subset_minus_rest": float(lnl[c][sub[c]].mean() - lnl[c][~sub[c]].mean())
-            if sub[c].any() and (~sub[c]).any() else None,
-        } for c in range(n_chains)],
+        "share_from_chains": [
+            float(sub[c].sum() / max(sub.sum(), 1)) for c in range(n_chains)
+        ],
+        "per_chain": [
+            {
+                "chain": c,
+                "n": int(sub[c].sum()),
+                "top_on_frac": float(w_top[c][sub[c]].mean()) if sub[c].any() else None,
+                "lnL_subset_minus_rest": (
+                    float(lnl[c][sub[c]].mean() - lnl[c][~sub[c]].mean())
+                    if sub[c].any() and (~sub[c]).any()
+                    else None
+                ),
+            }
+            for c in range(n_chains)
+        ],
         "top_pulsar": names[top],
         "top_on_frac_in_subset": float(w_top[sub].mean()) if sub.any() else None,
         "top_on_frac_outside": float(w_top[~sub].mean()) if (~sub).any() else None,
-        "top_off_in_subset": {"n": int((sub & ~w_top).sum()),
-                              "lnL_mean": float(lnl[sub & ~w_top].mean()) if (sub & ~w_top).any() else None},
-        "top_on_in_subset": {"n": int((sub & w_top).sum()),
-                             "lnL_mean": float(lnl[sub & w_top].mean()) if (sub & w_top).any() else None},
+        "top_off_in_subset": {
+            "n": int((sub & ~w_top).sum()),
+            "lnL_mean": (
+                float(lnl[sub & ~w_top].mean()) if (sub & ~w_top).any() else None
+            ),
+        },
+        "top_on_in_subset": {
+            "n": int((sub & w_top).sum()),
+            "lnL_mean": float(lnl[sub & w_top].mean()) if (sub & w_top).any() else None,
+        },
         "top_on_frac_by_gamma_a_bin": [
-            {"bin": [lo, hi], "n": int(m.sum()), "on_frac": float(w_top[m].mean()) if m.any() else None}
-            for lo, hi in zip(edges[:-1], edges[1:]) for m in [(ga >= lo) & (ga < hi)]],
-        "sigma_p_in_subset": [{
-            "pulsar": names[i],
-            "q05_50_95": np.round(np.quantile(sp[:, :, i][sub], [.05, .5, .95]), 1).tolist(),
-            "frac_on": float((sp[:, :, i][sub] > args.on_threshold).mean()),
-            "frac_on_all_draws": float((sp[:, :, i] > args.on_threshold).mean()),
-        } for i in picks],
+            {
+                "bin": [lo, hi],
+                "n": int(m.sum()),
+                "on_frac": float(w_top[m].mean()) if m.any() else None,
+            }
+            for lo, hi in zip(edges[:-1], edges[1:])
+            for m in [(ga >= lo) & (ga < hi)]
+        ],
+        "sigma_p_in_subset": [
+            {
+                "pulsar": names[i],
+                "q05_50_95": np.round(
+                    np.quantile(sp[:, :, i][sub], [0.05, 0.5, 0.95]), 1
+                ).tolist(),
+                "frac_on": float((sp[:, :, i][sub] > args.on_threshold).mean()),
+                "frac_on_all_draws": float((sp[:, :, i] > args.on_threshold).mean()),
+            }
+            for i in picks
+        ],
     }
 
     # --- chain-group split of per-pulsar medians ------------------------------------
     g1, g2 = [[int(k) for k in g.split(",")] for g in args.groups.split(":")]
     splits = {}
     for arr, lab in ((sp, "sigma_p"), (gp, "gamma_p")):
-        d = np.abs(np.median(arr[g1].reshape(-1, n_psr), 0)
-                   - np.median(arr[g2].reshape(-1, n_psr), 0))
-        splits[lab] = [{"pulsar": names[i], "abs_median_diff": float(d[i])}
-                       for i in np.argsort(-d)[:8]]
+        d = np.abs(
+            np.median(arr[g1].reshape(-1, n_psr), 0)
+            - np.median(arr[g2].reshape(-1, n_psr), 0)
+        )
+        splits[lab] = [
+            {"pulsar": names[i], "abs_median_diff": float(d[i])}
+            for i in np.argsort(-d)[:8]
+        ]
 
     # --- split r̂ ---------------------------------------------------------------------
     r_gp = np.array([split_rhat(gp[:, :, i]) for i in range(n_psr)])
@@ -237,12 +299,22 @@ def main():
         "pivot": split_rhat(pv),
         "n_gamma_p_over_1.1": int((r_gp > 1.1).sum()),
         "n_sigma_p_over_1.1": int((r_sp > 1.1).sum()),
-        "worst_gamma_p": [{"pulsar": names[i], "rhat": float(r_gp[i]),
-                           "chain_medians": np.round(np.median(gp[:, :, i], 1), 2).tolist()}
-                          for i in np.argsort(-r_gp)[:5]],
-        "worst_sigma_p": [{"pulsar": names[i], "rhat": float(r_sp[i]),
-                           "chain_medians": np.round(np.median(sp[:, :, i], 1), 2).tolist()}
-                          for i in np.argsort(-r_sp)[:5]],
+        "worst_gamma_p": [
+            {
+                "pulsar": names[i],
+                "rhat": float(r_gp[i]),
+                "chain_medians": np.round(np.median(gp[:, :, i], 1), 2).tolist(),
+            }
+            for i in np.argsort(-r_gp)[:5]
+        ],
+        "worst_sigma_p": [
+            {
+                "pulsar": names[i],
+                "rhat": float(r_sp[i]),
+                "chain_medians": np.round(np.median(sp[:, :, i], 1), 2).tolist(),
+            }
+            for i in np.argsort(-r_sp)[:5]
+        ],
     }
 
     # --- what ran ---------------------------------------------------------------------
@@ -252,8 +324,14 @@ def main():
         cfg = configparser.ConfigParser()
         cfg.read(inis[0])
         for sec in cfg.sections():
-            for k in ("target_accept_prob", "max_tree_depth", "dense_mass",
-                      "dense_mass_blocks", "num_warmup", "num_samples"):
+            for k in (
+                "target_accept_prob",
+                "max_tree_depth",
+                "dense_mass",
+                "dense_mass_blocks",
+                "num_warmup",
+                "num_samples",
+            ):
                 if cfg.has_option(sec, k):
                     ran[k] = cfg.get(sec, k)
         ran["ini"] = str(inis[0])
@@ -263,10 +341,13 @@ def main():
             state = pickle.load(open(ck, "rb"))["sampler_state"]
             imm = state.adapt_state.inverse_mass_matrix
             ran["inverse_mass_blocks"] = {
-                str(k): list(np.asarray(v).shape) for k, v in imm.items()}
+                str(k): list(np.asarray(v).shape) for k, v in imm.items()
+            }
             # The final iteration's tree size and running mean acceptance, per chain.
             ran["final_num_steps"] = np.asarray(state.num_steps).tolist()
-            ran["mean_accept_prob"] = np.round(np.asarray(state.mean_accept_prob), 3).tolist()
+            ran["mean_accept_prob"] = np.round(
+                np.asarray(state.mean_accept_prob), 3
+            ).tolist()
         except Exception as e:  # noqa: BLE001
             ran["inverse_mass_blocks"] = f"unreadable: {e!r}"
     ran["efac_fixed"] = bool(np.all(efac == efac.flat[0]))
@@ -281,8 +362,9 @@ def main():
         "n_chains": n_chains,
         "n_draws_per_chain": n_draws,
         "gamma_a_ceiling": args.ceiling,
-        "gamma_a_pooled_quantiles_05_25_50_75_95":
-            np.round(np.quantile(ga, [.05, .25, .5, .75, .95]), 2).tolist(),
+        "gamma_a_pooled_quantiles_05_25_50_75_95": np.round(
+            np.quantile(ga, [0.05, 0.25, 0.5, 0.75, 0.95]), 2
+        ).tolist(),
         "gamma_a_pooled_frac_near_ceiling": float(near.mean()),
         "chains": chains,
         "lnL_by_gamma_a_bin": lnl_bins,

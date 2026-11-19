@@ -55,43 +55,68 @@ def main():
             missing.append(b.stem)
             continue
         B, T = json.loads(b.read_text()), json.loads(t.read_text())
-        gp_b, gp_t = B["site_quantiles"]["log10_gamma_p"], T["site_quantiles"]["log10_gamma_p"]
+        gp_b, gp_t = (
+            B["site_quantiles"]["log10_gamma_p"],
+            T["site_quantiles"]["log10_gamma_p"],
+        )
         ceil_b = B["edge_mass"]["log10_gamma_p"]["ceiling"]
         ceil_t = T["edge_mass"]["log10_gamma_p"]["ceiling"]
         wq_floor = T["edge_mass"][WQ]["floor"]
         rn_on = bool(T["red_noise_detected"])
-        closes = (not rn_on) or (ceil_t <= args.ceiling_mass and gp_t["median"] < gp_b["median"])
+        closes = (not rn_on) or (
+            ceil_t <= args.ceiling_mass and gp_t["median"] < gp_b["median"]
+        )
         wq_ceil = T["edge_mass"][WQ]["ceiling"]
         wq_on = wq_floor < args.wq_floor_mass and wq_ceil <= common.EDGE_MASS_RAIL
-        rows.append({
-            "pulsar": b.stem,
-            "gamma_p_median": [gp_b["median"], gp_t["median"]],
-            "gamma_p_ceiling_mass": [ceil_b, ceil_t],
-            "sigma_p_median": [B["site_quantiles"]["log10_sigma_p"]["median"],
-                               T["site_quantiles"]["log10_sigma_p"]["median"]],
-            "wpsd_q16_50_84": [T["site_quantiles"][WQ][k] for k in ("q16", "median", "q84")],
-            "wq_floor_mass": wq_floor,
-            "wq_ceiling_mass": T["edge_mass"][WQ]["ceiling"],
-            "red_noise_detected": [bool(B["red_noise_detected"]), rn_on],
-            "psd_shift_dex": {f: T["log10_psd"][f]["median"] - B["log10_psd"][f]["median"]
-                              for f in B["log10_psd"]},
-            "max_r_hat": T["diagnostics"]["max_r_hat"],
-            "min_ess_bulk": T["diagnostics"]["min_ess_bulk"],
-            "divergences": T["diagnostics"]["divergences"],
-            "gamma_p_closes": bool(closes),
-            "white_term_on": bool(wq_on),
-            "pass": bool(closes and wq_on),
-        })
+        rows.append(
+            {
+                "pulsar": b.stem,
+                "gamma_p_median": [gp_b["median"], gp_t["median"]],
+                "gamma_p_ceiling_mass": [ceil_b, ceil_t],
+                "sigma_p_median": [
+                    B["site_quantiles"]["log10_sigma_p"]["median"],
+                    T["site_quantiles"]["log10_sigma_p"]["median"],
+                ],
+                "wpsd_q16_50_84": [
+                    T["site_quantiles"][WQ][k] for k in ("q16", "median", "q84")
+                ],
+                "wq_floor_mass": wq_floor,
+                "wq_ceiling_mass": T["edge_mass"][WQ]["ceiling"],
+                "red_noise_detected": [bool(B["red_noise_detected"]), rn_on],
+                "psd_shift_dex": {
+                    f: T["log10_psd"][f]["median"] - B["log10_psd"][f]["median"]
+                    for f in B["log10_psd"]
+                },
+                "max_r_hat": T["diagnostics"]["max_r_hat"],
+                "min_ess_bulk": T["diagnostics"]["min_ess_bulk"],
+                "divergences": T["diagnostics"]["divergences"],
+                "gamma_p_closes": bool(closes),
+                "white_term_on": bool(wq_on),
+                "pass": bool(closes and wq_on),
+            }
+        )
     n_pass = sum(r["pass"] for r in rows)
     key = next((r for r in rows if r["pulsar"] == KEY), None)
-    verdict = ("INCOMPLETE" if missing or key is None else
-               "PASS" if key["pass"] and n_pass > len(rows) / 2 else "FAIL")
-    report = {"base": args.base, "test": args.test, "sha": common.git_sha(),
-              "rule": {"gamma_p_ceiling_mass_max": args.ceiling_mass,
-                       "wq_floor_mass_max": args.wq_floor_mass,
-                       "step": f"{KEY} passes and a majority of pulsars pass"},
-              "n_pulsars": len(rows), "n_pass": n_pass, "missing": missing,
-              "verdict": verdict, "pulsars": rows}
+    verdict = (
+        "INCOMPLETE"
+        if missing or key is None
+        else "PASS" if key["pass"] and n_pass > len(rows) / 2 else "FAIL"
+    )
+    report = {
+        "base": args.base,
+        "test": args.test,
+        "sha": common.git_sha(),
+        "rule": {
+            "gamma_p_ceiling_mass_max": args.ceiling_mass,
+            "wq_floor_mass_max": args.wq_floor_mass,
+            "step": f"{KEY} passes and a majority of pulsars pass",
+        },
+        "n_pulsars": len(rows),
+        "n_pass": n_pass,
+        "missing": missing,
+        "verdict": verdict,
+        "pulsars": rows,
+    }
     out = common.RESULTS / "white_term_check.json"
     out.write_text(json.dumps(report, indent=2) + "\n")
 
@@ -102,7 +127,8 @@ def main():
         f" test adds log10_wpsd on {T['box'][WQ] if rows else '?'}, one-sided s²/Hz). Commit `{report['sha']}`.",
         "",
         f"**Verdict: {verdict}** — {n_pass}/{len(rows)} pulsars pass"
-        + (f"; missing {', '.join(missing)}" if missing else "") + ".",
+        + (f"; missing {', '.join(missing)}" if missing else "")
+        + ".",
         "",
         "| pulsar | γp median base→wq | γp ceiling mass base→wq | log10_wpsd median [q16, q84] |"
         " wq floor / ceiling mass | ΔPSD 1/T | ΔPSD 1/(5 yr) | r̂ | pass |",
@@ -116,7 +142,8 @@ def main():
             f" | {r['gamma_p_ceiling_mass'][0]:.3f} → {r['gamma_p_ceiling_mass'][1]:.3f}"
             f" | {q[1]:.2f} [{q[0]:.2f}, {q[2]:.2f}] | {r['wq_floor_mass']:.3f} / {r['wq_ceiling_mass']:.3f}"
             f" | {s['1/T']:+.2f} | {s['1/(5 yr)']:+.2f} | {r['max_r_hat']:.3f}"
-            f" | {'yes' if r['pass'] else 'no'} |")
+            f" | {'yes' if r['pass'] else 'no'} |"
+        )
     (common.RESULTS / "white_term_check.md").write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
 

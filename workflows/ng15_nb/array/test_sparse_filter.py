@@ -82,12 +82,12 @@ def test_equals_phase3_likelihood(kf, eps):
     import union
     from argus import gravitational_waves
 
-    ref_inp = dict(
-        kf.inp, orf=gravitational_waves.correlation_path(kf.inp["orf"], eps)
-    )
+    ref_inp = dict(kf.inp, orf=gravitational_waves.correlation_path(kf.inp["orf"], eps))
     for p in points(kf.Npsr):
         got = float(kf.get_likelihood(theta(jnp.asarray(p), kf.Npsr, eps)))
-        want = float(union.array_loglike_sparse(jnp.asarray(p), ref_inp) + kf.inp["const"])
+        want = float(
+            union.array_loglike_sparse(jnp.asarray(p), ref_inp) + kf.inp["const"]
+        )
         assert np.isfinite(got)
         assert got == want, (eps, got, want, got - want)
 
@@ -97,7 +97,13 @@ def test_white_noise_parameters_ignored(kf):
     base = float(kf.get_likelihood(theta(p, kf.Npsr, 0.0)))
     other = float(
         kf.get_likelihood(
-            theta(p, kf.Npsr, 0.0, efac=jnp.full(kf.Npsr, 1.7), equad=jnp.full(kf.Npsr, 1e-6))
+            theta(
+                p,
+                kf.Npsr,
+                0.0,
+                efac=jnp.full(kf.Npsr, 1.7),
+                equad=jnp.full(kf.Npsr, 1e-6),
+            )
         )
     )
     assert base == other

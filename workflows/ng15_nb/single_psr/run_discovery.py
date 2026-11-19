@@ -84,7 +84,9 @@ def load(name):
 
 def ou_flat_prior(f, df, log10_gamma_p, log10_sigma_r, log10_wpsd):
     """`ou_psd.ou_rn_prior` plus a flat one-sided PSD 10^log10_wpsd on the same modes."""
-    return ou_psd.ou_rn_prior(f, df, log10_gamma_p, log10_sigma_r) + 10.0**log10_wpsd * df
+    return (
+        ou_psd.ou_rn_prior(f, df, log10_gamma_p, log10_sigma_r) + 10.0**log10_wpsd * df
+    )
 
 
 def make_loglike(psr, span_s, free_white=False):

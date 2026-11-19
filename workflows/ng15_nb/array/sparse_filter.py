@@ -67,7 +67,10 @@ class SparseArrayFilter:
         self.hellings_downs_matrix = self.inp["orf"]
         obs = self.inp["obs"]
         self.jax_data = np.column_stack(
-            [np.asarray(obs[k], dtype=np.float64) for k in ("dt", "psr", "h", "y", "err")]
+            [
+                np.asarray(obs[k], dtype=np.float64)
+                for k in ("dt", "psr", "h", "y", "err")
+            ]
             + [np.asarray(obs["m"], dtype=np.float64).reshape(self.n_obs, -1)]
         )
         self.timing_prior = "diffuse"

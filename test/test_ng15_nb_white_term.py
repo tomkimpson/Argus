@@ -51,7 +51,9 @@ def loglikes():
     )
 
 
-@pytest.mark.parametrize("gamma_p, sigma_p", [(-8.0, -14.0), (-5.0, -13.7), (-11.0, -20.0)])
+@pytest.mark.parametrize(
+    "gamma_p, sigma_p", [(-8.0, -14.0), (-5.0, -13.7), (-11.0, -20.0)]
+)
 def test_white_term_off_matches_fixed_noise(loglikes, gamma_p, sigma_p):
     fixed, free, _ = loglikes
     a = float(fixed(gamma_p, sigma_p))
@@ -71,4 +73,6 @@ def test_white_term_on_changes_likelihood(loglikes):
     fixed, free, box = loglikes
     a = float(fixed(-8.0, -14.0))
     b = float(free(-8.0, -14.0, box[1]))
-    assert b < a - 10.0  # a 1e-6 s²/Hz flat PSD (≈ 8 µs white) on J1713 is strongly disfavoured
+    assert (
+        b < a - 10.0
+    )  # a 1e-6 s²/Hz flat PSD (≈ 8 µs white) on J1713 is strongly disfavoured

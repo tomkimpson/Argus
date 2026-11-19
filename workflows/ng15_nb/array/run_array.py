@@ -57,7 +57,9 @@ def load_config(path):
     if os.path.basename(config.get("PriorModel", "noise_params_path")) != WN_SENTINEL:
         problems.append(f"noise_params_path must be {WN_SENTINEL}")
     if config.get("PriorModel", "timing_prior", fallback="").strip() != "diffuse":
-        problems.append("timing_prior must be diffuse (the sparse path is diffuse only)")
+        problems.append(
+            "timing_prior must be diffuse (the sparse path is diffuse only)"
+        )
     if config.get("PriorModel", "spin_injections_path", fallback="").strip():
         problems.append("spin_injections_path must be empty (red noise is sampled)")
     if config.get("Data", "signal_model", fallback="gwb").strip().lower() != "gwb":

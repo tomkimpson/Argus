@@ -105,7 +105,10 @@ def convergence(idata, post):
 def per_chain(idata, post, state):
     n_chain = post.sizes["chain"]
     flat = np.concatenate(
-        [np.asarray(post[v]).reshape(n_chain, post.sizes["draw"], -1) for v in post.data_vars],
+        [
+            np.asarray(post[v]).reshape(n_chain, post.sizes["draw"], -1)
+            for v in post.data_vars
+        ],
         axis=2,
     )
     repeat = np.mean(np.all(np.diff(flat, axis=1) == 0, axis=2), axis=1)
