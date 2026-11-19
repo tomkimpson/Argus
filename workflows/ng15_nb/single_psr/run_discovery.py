@@ -26,6 +26,15 @@ likelihood is near-flat along the f⁻² ridge, where σp rises with γp, so rai
 ceiling alone moves the pile-up onto σp's.
 `--rn-components` changes the Fourier mode count from 30 (`_m<n>`), to test a C4 outlier
 for truncation.
+`--free-white` adds one sampled per-pulsar flat-PSD term to the spin-noise prior on the same
+Fourier modes: one-sided PSD = OU(f) + 10^log10_wpsd [s²/Hz], log10_wpsd uniform on WQ_BOX
+(`_wq`). It is the flat-PSD (EQUAD-like) shape of spec §12 2026-11-13 step 1, a different
+shape from the OU's f⁻² limit: if it carries the >30/T excess, γp should leave its ceiling.
+It covers the modelled band only (up to `--rn-components`/T), where the excess was seen. A
+per-TOA EQUAD in the noise matrix was tried first and is ≈ 1,400× slower per value+gradient
+(J1713+0747: 28.6 s vs 0.021 s on CPU), because a variable noise matrix redoes Discovery's
+ECORR/timing/Fourier algebra over all TOAs every step. For scale, white noise of rms σ at a
+mean TOA spacing Δt has one-sided PSD 2σ²Δt: 1 µs on J1713+0747 (Δt ≈ 8.5e3 s) is ≈ −7.8.
 """
 
 import argparse
@@ -56,6 +65,12 @@ DISCOVERY_DIR = os.environ.get(
     "NG15_DISCOVERY_DIR", "/fred/oz022/tkimpson/external/discovery"
 )
 RN_COMPONENTS = 30
+WQ_SITE = "log10_wpsd"
+# log10 one-sided s²/Hz. The floor is far below every pulsar's band. The ceiling is ≥ 1.9 dex
+# above every step-1 pulsar's 200-mode baseline PSD at 30/T (the excess band's lower edge;
+# J1745+1017 ≈ −3.9 on the f⁻² slope). A first run at −6 railed in J1730−2304 (0.84 of draws
+# in the top 2 %) and J1012+5307 (0.68), so the box, not the data, decided them.
+WQ_BOX = (-16.0, -2.0)
 
 
 def load(name):
@@ -67,24 +82,35 @@ def load(name):
     return ds.Pulsar.read_feather(str(Path(DISCOVERY_DIR) / "data" / entry["file"]))
 
 
-def make_loglike(psr, span_s):
+def ou_flat_prior(f, df, log10_gamma_p, log10_sigma_r, log10_wpsd):
+    """`ou_psd.ou_rn_prior` plus a flat one-sided PSD 10^log10_wpsd on the same modes."""
+    return (
+        ou_psd.ou_rn_prior(f, df, log10_gamma_p, log10_sigma_r) + 10.0**log10_wpsd * df
+    )
+
+
+def make_loglike(psr, span_s, free_white=False):
+    prior = ou_flat_prior if free_white else ou_psd.ou_rn_prior
     rn = ds.makecommongp_fourier(
-        [psr], ou_psd.ou_rn_prior, RN_COMPONENTS, T=span_s, name=models.RN_NAME
+        [psr], prior, RN_COMPONENTS, T=span_s, name=models.RN_NAME
     )
     logl = ds.ArrayLikelihood(models.pulsar_models([psr]), commongp=rn).logL
     key = lambda arg: f"{psr.name}_{models.RN_NAME}_{arg}"  # noqa: E731
     expected = {key("log10_gamma_p"), key("log10_sigma_r")}
+    if free_white:
+        expected.add(key(WQ_SITE))
     if set(logl.params) != expected:
         raise RuntimeError(f"parameters {logl.params}, expected {sorted(expected)}")
     log10_f0 = np.log10(common.f0_of(psr.name))
 
-    def loglike(log10_gamma_p, log10_sigma_p):
-        return logl(
-            {
-                key("log10_gamma_p"): log10_gamma_p,
-                key("log10_sigma_r"): log10_sigma_p - log10_f0,
-            }
-        )
+    def loglike(log10_gamma_p, log10_sigma_p, log10_wpsd=None):
+        p = {
+            key("log10_gamma_p"): log10_gamma_p,
+            key("log10_sigma_r"): log10_sigma_p - log10_f0,
+        }
+        if free_white:
+            p[key(WQ_SITE)] = log10_wpsd
+        return logl(p)
 
     return loglike
 
@@ -96,10 +122,11 @@ def run(
     gamma_p_max=None,
     target_accept=None,
     sigma_p_max=None,
+    free_white=False,
 ):
     psr = load(name)
     span_s = common.array_span_s(DISCOVERY_DIR)
-    loglike = make_loglike(psr, span_s)
+    loglike = make_loglike(psr, span_s, free_white)
     box = dict(common.BOX)
     pipeline = "discovery"
     if gamma_p_max is not None:
@@ -112,10 +139,16 @@ def run(
         pipeline += f"_m{RN_COMPONENTS}"
     if target_accept is not None:
         pipeline += f"_ta{target_accept:g}"
+    if free_white:
+        box[WQ_SITE] = WQ_BOX
+        pipeline += "_wq"
 
     def model():
-        x = {s: numpyro.sample(s, dist.Uniform(*box[s])) for s in common.SITES}
-        numpyro.factor("loglik", loglike(x["log10_gamma_p"], x["log10_sigma_p"]))
+        x = {s: numpyro.sample(s, dist.Uniform(*box[s])) for s in box}
+        numpyro.factor(
+            "loglik",
+            loglike(x["log10_gamma_p"], x["log10_sigma_p"], x.get(WQ_SITE)),
+        )
 
     nuts = dict(
         common.NUTS,
@@ -158,6 +191,7 @@ def run(
         span_s,
         extra={
             "rn_components": RN_COMPONENTS,
+            "free_white": bool(free_white),
             "n_toa": int(len(psr.toas)),
             "num_warmup": num_warmup,
             "num_samples": num_samples,
@@ -194,6 +228,11 @@ def main():
     ap.add_argument(
         "--rn-components", type=int, help="Fourier modes (default 30; truncation test)"
     )
+    ap.add_argument(
+        "--free-white",
+        action="store_true",
+        help="add a sampled flat-PSD term log10_wpsd on the Fourier modes (spec §12 2026-11-13 step 1)",
+    )
     args = ap.parse_args()
     if args.rn_components:
         global RN_COMPONENTS
@@ -207,6 +246,7 @@ def main():
         args.gamma_p_max,
         args.target_accept,
         args.sigma_p_max,
+        args.free_white,
     )
 
 

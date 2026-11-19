@@ -1,0 +1,110 @@
+{
+  "pulsar": "J0613-0200",
+  "pipeline": "discovery_gp-4_sp-10_m200_wq",
+  "f0_hz": 326.600566981781,
+  "shallow_spectrum": false,
+  "T_yr": 16.029777268872298,
+  "freqs_hz": {
+    "1/T": 1.976826457568005e-09,
+    "1/(5 yr)": 6.33761756280579e-09
+  },
+  "box": {
+    "log10_gamma_p": [
+      -12.0,
+      -4.0
+    ],
+    "log10_sigma_p": [
+      -22.0,
+      -10.0
+    ],
+    "log10_wpsd": [
+      -16.0,
+      -2.0
+    ]
+  },
+  "nuts": {
+    "num_chains": 4,
+    "num_warmup": 1000,
+    "num_samples": 4000,
+    "target_accept_prob": 0.9,
+    "max_tree_depth": 8,
+    "seed": 3112
+  },
+  "diagnostics": {
+    "per_site": {
+      "log10_gamma_p": {
+        "r_hat": 1.0074132085388212,
+        "ess_bulk": 1083.533299489716
+      },
+      "log10_sigma_p": {
+        "r_hat": 1.0079622348979818,
+        "ess_bulk": 1342.9232063161367
+      },
+      "log10_wpsd": {
+        "r_hat": 1.0015257815967076,
+        "ess_bulk": 1415.2280149413427
+      }
+    },
+    "max_r_hat": 1.0079622348979818,
+    "min_ess_bulk": 1083.533299489716,
+    "divergences": 0,
+    "divergence_fraction": 0.0
+  },
+  "edge_mass": {
+    "log10_gamma_p": {
+      "floor": 0.0250625,
+      "ceiling": 0.0126875
+    },
+    "log10_sigma_p": {
+      "floor": 0.0,
+      "ceiling": 0.0
+    },
+    "log10_wpsd": {
+      "floor": 0.023375,
+      "ceiling": 0.0
+    }
+  },
+  "red_noise_detected": true,
+  "lower_edge_pileup": false,
+  "at_f2_limit": false,
+  "rails": [],
+  "passes_3_1": true,
+  "site_quantiles": {
+    "log10_gamma_p": {
+      "median": -8.381284297266372,
+      "q16": -10.860429865968449,
+      "q84": -5.841450411097264
+    },
+    "log10_sigma_p": {
+      "median": -14.801333757478393,
+      "q16": -15.015487978320802,
+      "q84": -13.369658131717568
+    },
+    "log10_wpsd": {
+      "median": -10.46932321936925,
+      "q16": -14.213813702145718,
+      "q84": -7.372530444495672
+    }
+  },
+  "log10_psd": {
+    "1/T": {
+      "median": -3.250292072434333,
+      "q16": -3.9344014275948536,
+      "q84": -2.788419590105063
+    },
+    "1/(5 yr)": {
+      "median": -4.949655565581068,
+      "q16": -5.226798563289365,
+      "q84": -4.698971363436524
+    }
+  },
+  "git_sha": "3a40610f6271907cf560aa8c25dc194f51dfc803",
+  "rn_components": 200,
+  "free_white": true,
+  "n_toa": 17124,
+  "num_warmup": 1000,
+  "num_samples": 4000,
+  "mean_num_steps": 33.1475,
+  "sample_wall_s": 1096.0743844659883,
+  "device": "cuda:0"
+}

@@ -162,17 +162,18 @@ def passes_3_1(diag, edge):
     )
 
 
-def diagnostics(samples, diverging):
+def diagnostics(samples, diverging, sites=SITES):
     """r̂ and bulk ESS per site (arviz, rank-normalised), and the divergence count.
 
     ``samples``: {site: (chains, draws)}; ``diverging``: (chains, draws) bools.
+    ``sites`` defaults to the two red-noise sites; runs with extra sites pass their own.
     """
     import arviz as az
 
-    ds = az.convert_to_dataset({s: np.asarray(samples[s]) for s in SITES})
+    ds = az.convert_to_dataset({s: np.asarray(samples[s]) for s in sites})
     rhat = az.rhat(ds)
     ess = az.ess(ds, method="bulk")
-    per_site = {s: {"r_hat": float(rhat[s]), "ess_bulk": float(ess[s])} for s in SITES}
+    per_site = {s: {"r_hat": float(rhat[s]), "ess_bulk": float(ess[s])} for s in sites}
     n_div = int(np.sum(diverging))
     return {
         "per_site": per_site,
@@ -203,10 +204,15 @@ def quantiles(x):
 def summarise(
     name, pipeline, samples, diverging, span_s, extra=None, box=None, nuts=None
 ):
-    """The per-pulsar JSON record both pipelines write."""
+    """The per-pulsar JSON record both pipelines write.
+
+    The sampled sites are the keys of ``box`` (default ``BOX``), so a run with an extra
+    site (e.g. ``run_discovery.py --free-white``) gets its r̂, ESS, edges and quantiles.
+    """
     f0 = f0_of(name)
-    diag = diagnostics(samples, diverging)
     box = box or BOX
+    sites = tuple(box)
+    diag = diagnostics(samples, diverging, sites)
     edge = edges(samples, box)
     psd = {
         label: quantiles(log10_psd_draws(samples, f0, f))
@@ -225,7 +231,7 @@ def summarise(
         "diagnostics": diag,
         **edge,
         "passes_3_1": bool(passes),
-        "site_quantiles": {s: quantiles(np.asarray(samples[s]).ravel()) for s in SITES},
+        "site_quantiles": {s: quantiles(np.asarray(samples[s]).ravel()) for s in sites},
         "log10_psd": psd,
         "git_sha": git_sha(),
     }

@@ -1,0 +1,110 @@
+{
+  "pulsar": "J2145-0750",
+  "pipeline": "discovery_gp-4_sp-10_m200_wq",
+  "f0_hz": 62.29588879225955,
+  "shallow_spectrum": false,
+  "T_yr": 16.029777268872298,
+  "freqs_hz": {
+    "1/T": 1.976826457568005e-09,
+    "1/(5 yr)": 6.33761756280579e-09
+  },
+  "box": {
+    "log10_gamma_p": [
+      -12.0,
+      -4.0
+    ],
+    "log10_sigma_p": [
+      -22.0,
+      -10.0
+    ],
+    "log10_wpsd": [
+      -16.0,
+      -2.0
+    ]
+  },
+  "nuts": {
+    "num_chains": 4,
+    "num_warmup": 1000,
+    "num_samples": 4000,
+    "target_accept_prob": 0.9,
+    "max_tree_depth": 8,
+    "seed": 3159
+  },
+  "diagnostics": {
+    "per_site": {
+      "log10_gamma_p": {
+        "r_hat": 1.001711712779261,
+        "ess_bulk": 1681.9175232403477
+      },
+      "log10_sigma_p": {
+        "r_hat": 1.0025862420362706,
+        "ess_bulk": 931.7420775475152
+      },
+      "log10_wpsd": {
+        "r_hat": 1.0038202480805767,
+        "ess_bulk": 766.7373550560546
+      }
+    },
+    "max_r_hat": 1.0038202480805767,
+    "min_ess_bulk": 766.7373550560546,
+    "divergences": 0,
+    "divergence_fraction": 0.0
+  },
+  "edge_mass": {
+    "log10_gamma_p": {
+      "floor": 0.0066875,
+      "ceiling": 0.04875
+    },
+    "log10_sigma_p": {
+      "floor": 0.0160625,
+      "ceiling": 0.0
+    },
+    "log10_wpsd": {
+      "floor": 0.010375,
+      "ceiling": 0.0
+    }
+  },
+  "red_noise_detected": false,
+  "lower_edge_pileup": true,
+  "at_f2_limit": false,
+  "rails": [],
+  "passes_3_1": true,
+  "site_quantiles": {
+    "log10_gamma_p": {
+      "median": -5.585554584193542,
+      "q16": -8.46054818246037,
+      "q84": -4.502207177726284
+    },
+    "log10_sigma_p": {
+      "median": -14.01104690538476,
+      "q16": -19.526816588956404,
+      "q84": -12.59977310405318
+    },
+    "log10_wpsd": {
+      "median": -6.389169860796283,
+      "q16": -12.519644333830017,
+      "q84": -5.976975966356706
+    }
+  },
+  "log10_psd": {
+    "1/T": {
+      "median": -3.7570941725654663,
+      "q16": -12.59770704567642,
+      "q84": -3.1679285890202933
+    },
+    "1/(5 yr)": {
+      "median": -4.788638228344637,
+      "q16": -14.193356469302506,
+      "q84": -4.184731818105266
+    }
+  },
+  "git_sha": "3a40610f6271907cf560aa8c25dc194f51dfc803",
+  "rn_components": 200,
+  "free_white": true,
+  "n_toa": 18675,
+  "num_warmup": 1000,
+  "num_samples": 4000,
+  "mean_num_steps": 42.761125,
+  "sample_wall_s": 1438.6968870900164,
+  "device": "cuda:0"
+}
