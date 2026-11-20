@@ -53,6 +53,22 @@ def significance(G_mean, hd, orfs):
     }
 
 
+def without_uniform(orf):
+    """`orf` with its off-diagonal mean removed (diagonal kept at 1).
+
+    NG15's pulsars cluster on the sky, so Γ_HD's off-diagonal mean is 0.047 while an
+    isotropic scramble's is ≈ 0: the scramble null tests HD against no correlation and
+    cannot separate HD from a uniform (monopole-like) correlation. Scoring the mean-removed
+    templates is HD with a free uniform term, a conservative variant (it also discards HD's
+    own projection onto the uniform direction). Reported next to the headline, not gated.
+    """
+    n = orf.shape[0]
+    off = ~np.eye(n, dtype=bool)
+    out = np.array(orf, dtype=float)
+    out[off] -= out[off].mean()
+    return out
+
+
 def load_inputs():
     full = json.loads((RESULTS / "full.json").read_text())
     scr = json.loads((RESULTS / "scrambles_summary.json").read_text())
@@ -83,6 +99,17 @@ def main():
     reproduces = repro_rel <= 1e-12
 
     pooled = significance(G.mean(axis=0), hd, orfs)
+    pooled_no_uniform = significance(
+        G.mean(axis=0), without_uniform(hd), [without_uniform(o) for o in orfs]
+    )
+    off = ~np.eye(n_psr, dtype=bool)
+    uniform = {
+        "hd_offdiag_mean": float(hd[off].mean()),
+        "scramble_offdiag_mean_mean": float(np.mean([o[off].mean() for o in orfs])),
+        "pooled_G_offdiag_mean": float(G.mean(axis=0)[off].mean()),
+        "hd_with_free_uniform_term": pooled_no_uniform,
+        "note": "scramble null tests HD vs no correlation; see without_uniform()",
+    }
     chains = [significance(G4[c].mean(axis=0), hd, orfs) for c in range(n_chain)]
     ps = np.array([c["p"] for c in chains])
     zs = np.array([c["z"] for c in chains])
@@ -92,7 +119,8 @@ def main():
     rho = {}
     for name in WATCH:
         r = spearmanr(S_draw, sp[:, names.index(name)])
-        rho[name] = {"spearman_rho": float(r.statistic), "p_value": float(r.pvalue)}
+        # ρ only: a p-value would assume 400 independent draws (they are autocorrelated)
+        rho[name] = {"spearman_rho": float(r.statistic)}
 
     k1 = {
         "pooled_p": pooled["p"],
@@ -128,6 +156,7 @@ def main():
             ],
         },
         "pooled": pooled,
+        "uniform_component": uniform,
         "chains": chains,
         "S_vs_log10_sigma_p": rho,
         "K1": k1,
