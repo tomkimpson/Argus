@@ -3,7 +3,10 @@
 Needs the gitignored ingest caches, so it is skipped where they are absent (Argus CI):
 
     conda activate Argus
+    export NG15_INGEST_DIR=/fred/oz022/tkimpson/Argus/workflows/ng15_nb/data/ingest
     PYTHONPATH=$PWD/python python -m pytest workflows/ng15_nb/stat -q
+
+Without NG15_INGEST_DIR a worktree has no caches, and every test skips silently.
 
 - V2: lnL with the ORF fed as-is at C = I equals `SparseArrayFilter.get_likelihood` at
   ε = 0 to ≤ 1e-8 nats.

@@ -13,8 +13,11 @@ check  Task 1.1 on the 67-pulsar filter: wall time and peak memory of one G (bat
 full   Task 1.4: G for all 400 draws in fixed batches of B; V1 on 12 of them (3 per
        chain) for Γ_HD and scramble 0, against the forward-mode ε-derivative through
        the harness (gate ≤ 1e-6 relative) and a central difference (reported); then a
-       rerun of 5 draws (gate ≤ 1e-8 relative to max |G|, absolute also recorded). V1 reads its G rows from the 400-draw array, so
-       the per-draw S of task 1.5 reproduces V1's contracted values exactly.
+       rerun of 5 draws as one batch of 5 (gate ≤ 1e-8 relative to max |G|; the JSON
+       key says atol). That is a different batch shape from the 400-draw run, so it
+       measures batch-shape sensitivity, not same-batch determinism. V1 reads its G rows
+       from the 400-draw array, so the per-draw S of task 1.5 reproduces V1's contracted
+       values to rounding (2.7e-16 relative; BLAS reduction order differs by shape/CPU).
 
 Tracked outputs go to `results/stat/opening/`; the full G array (~14 MB) goes to the
 gitignored `workflows/ng15_nb/outputs/stat/opening/` beside the ingest caches, with its

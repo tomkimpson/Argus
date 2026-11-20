@@ -28,12 +28,15 @@ import orf_gradient as og  # noqa: E402
 
 RESULTS = og.WF / "results/stat/opening"
 LNB = og.WF / "results/lnb_hd_curn_ou14_v3.json"
+SUMMARY_SHA256 = "94fa472157cb54f204cd4dab0ececdbcf208df9c3f64b536e06b3a2482de4129"
 SUMMARY = og.DEFAULT_INGEST.parent.parent / "outputs/ng15nb_ou14_v3_eps000/summary.json"
 
 
 def main():
     rung = json.loads(LNB.read_text())["rungs"][0]
     assert rung["eps"] == 0.0
+    if og.sha256(SUMMARY) != SUMMARY_SHA256:
+        raise SystemExit(f"{SUMMARY} changed since V5 was recorded (sha256 mismatch)")
     disc = json.loads(SUMMARY.read_text())
     assert abs(disc["integrand_mean"] - rung["mean"]) < 1e-12
     argus = json.loads((RESULTS / "readout.json").read_text())

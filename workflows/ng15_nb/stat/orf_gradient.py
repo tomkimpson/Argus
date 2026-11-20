@@ -182,7 +182,7 @@ def make_fns(kf):
 
 
 def batched_G(grad_orf, p_flat, batch):
-    """G for every row of p_flat, in fixed batches (same batching ⇒ bit-identical G)."""
+    """G for every row of p_flat, in fixed chunks of `batch` (the last may be shorter)."""
     out = []
     for start in range(0, len(p_flat), batch):
         chunk = jnp.asarray(p_flat[start : start + batch])
