@@ -1,0 +1,39 @@
+{
+  "spec": "spec/detection-statistic.md task 1.6 (V5)",
+  "argus": {
+    "pooled_mean_S": 22.06825330139607,
+    "pooled_mean_S_readout": 22.068253301396076,
+    "chain_means": [
+      21.118841851011656,
+      22.25935345338371,
+      22.933563822677897,
+      21.96125407851102
+    ],
+    "chain_mean_sd": 0.7523546375989115,
+    "se_from_chain_means": 0.37617731879945576,
+    "draw_sd": 4.004175192127667,
+    "n_draws": 400,
+    "note": "4 x 100 unconverged v3 probe draws; not a posterior"
+  },
+  "discovery_ou14_v3_eps000": {
+    "mean": 22.609171319634598,
+    "mc_uncert": 0.1302096953911935,
+    "draw_sd": 3.927004834847922,
+    "chain_means": [
+      22.819201118075306,
+      22.670830484786713,
+      22.520777650942122,
+      22.42587602473426
+    ],
+    "n_draws": 4000,
+    "sources": {
+      "lnb_json": "workflows/ng15_nb/results/lnb_hd_curn_ou14_v3.json",
+      "summary_json": "/fred/oz022/tkimpson/Argus/workflows/ng15_nb/outputs/ng15nb_ou14_v3_eps000/summary.json",
+      "summary_sha256": "94fa472157cb54f204cd4dab0ececdbcf208df9c3f64b536e06b3a2482de4129"
+    }
+  },
+  "difference": -0.5409180182385285,
+  "difference_in_discovery_draw_sd": -0.13774315056565908,
+  "draft_gate": "|difference| <= 1 Discovery draw sd",
+  "draft_gate_pass": true
+}

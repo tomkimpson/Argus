@@ -1,0 +1,96 @@
+{
+  "task": "1.1 (timing, V2)",
+  "device": "cuda:0",
+  "jax": "0.4.38",
+  "git_sha": "a002374bf5e0b48df63de537c4d8221a7f080c3d",
+  "draws": {
+    "path": "/fred/oz022/tkimpson/Argus-ng15nb-p5c/workflows/ng15_nb/outputs/ng15_nb_v3_probe_eps000/ng15_nb_v3_probe_eps000_results.nc",
+    "sha256": "742bf6dad46d4384720b3d4b6deb2b43dbe0d0984b04e1ab32d0b7470c817f1c"
+  },
+  "filter": {
+    "n_pulsars": 67,
+    "n_obs": 15372,
+    "M_sum": 1607,
+    "epoch_cells": [
+      "J1012+5307",
+      "J1643-1224",
+      "J1705-1903",
+      "J1903+0327"
+    ],
+    "segment": 128,
+    "chunk": 8,
+    "const": 7873804.24934633,
+    "orf_offdiag_absmax": 0.49898753327769574
+  },
+  "true_orf_vs_archive_max_abs": 2.7755575615628914e-16,
+  "timing": {
+    "G_batch1": {
+      "compile_plus_first_s": 22.69139545899816,
+      "steady_s": [
+        4.718355870005325,
+        4.735487419005949
+      ]
+    },
+    "param_grad_batch1": {
+      "compile_plus_first_s": 18.17986759699852,
+      "steady_s": [
+        6.6656851320003625,
+        6.669843492003565
+      ]
+    },
+    "peak_bytes_after_G_batch1": 1423413248,
+    "peak_bytes_after_param_grad": 1423413248,
+    "G_batched": {
+      "8": {
+        "compile_plus_first_s": 16.736355669003387,
+        "steady_s": [
+          7.082934988997295
+        ],
+        "steady_s_per_draw": 0.8853668736246618,
+        "peak_bytes": 10771388416
+      },
+      "32": {
+        "compile_plus_first_s": 25.63752299099724,
+        "steady_s": [
+          16.24274903300102
+        ],
+        "steady_s_per_draw": 0.5075859072812818,
+        "peak_bytes": 42153500928
+      }
+    }
+  },
+  "V2": {
+    "atol": 1e-08,
+    "pass": true,
+    "draws": [
+      {
+        "chain": 0,
+        "draw": 0,
+        "lnL_stat": 7786921.942730411,
+        "lnL_harness": 7786921.942730411,
+        "abs_diff": 0.0,
+        "lnL_stored": 7786921.942730592,
+        "diff_vs_stored": -1.8067657947540283e-07
+      },
+      {
+        "chain": 1,
+        "draw": 50,
+        "lnL_stat": 7786902.819564827,
+        "lnL_harness": 7786902.819564827,
+        "abs_diff": 0.0,
+        "lnL_stored": 7786902.819564823,
+        "diff_vs_stored": 3.725290298461914e-09
+      },
+      {
+        "chain": 3,
+        "draw": 99,
+        "lnL_stat": 7786921.135769358,
+        "lnL_harness": 7786921.135769358,
+        "abs_diff": 0.0,
+        "lnL_stored": 7786921.135769342,
+        "diff_vs_stored": 1.5832483768463135e-08
+      }
+    ]
+  },
+  "single_G_over_30s": false
+}

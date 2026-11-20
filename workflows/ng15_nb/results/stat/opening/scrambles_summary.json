@@ -1,0 +1,16 @@
+{
+  "spec": "spec/detection-statistic.md task 1.3",
+  "generator": "workflows/ng15_sgwb_demo/scripts/sky_scrambles.py::generate_scrambles",
+  "true_orf": "union.hd_matrix over the 67 ingest caches (manifest order)",
+  "path": "/fred/oz022/tkimpson/Argus/workflows/ng15_nb/data/scrambles/ng15nb_stat_ens5000_seed20261120.npz",
+  "sha256": "9f47733b2c625289562040a2a20aed42bc4ad7b2ce42c6adafd80c48d6c8849d",
+  "seed": 20261120,
+  "n_scrambles": 5000,
+  "match_threshold": 0.17,
+  "match_max": 0.10833499965809579,
+  "match_mean": 0.01689609125460321,
+  "n_attempts": 5000,
+  "acceptance_rate": 1.0,
+  "wall_s": 3.806477559992345,
+  "first_10_regenerated_bit_identical": true
+}
