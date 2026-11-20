@@ -13,7 +13,7 @@ check  Task 1.1 on the 67-pulsar filter: wall time and peak memory of one G (bat
 full   Task 1.4: G for all 400 draws in fixed batches of B; V1 on 12 of them (3 per
        chain) for Γ_HD and scramble 0, against the forward-mode ε-derivative through
        the harness (gate ≤ 1e-6 relative) and a central difference (reported); then a
-       rerun of 5 draws (gate ≤ 1e-8). V1 reads its G rows from the 400-draw array, so
+       rerun of 5 draws (gate ≤ 1e-8 relative to max |G|, absolute also recorded). V1 reads its G rows from the 400-draw array, so
        the per-draw S of task 1.5 reproduces V1's contracted values exactly.
 
 Tracked outputs go to `results/stat/opening/`; the full G array (~14 MB) goes to the
@@ -196,7 +196,8 @@ def full(args):
 
     rerun_idx = [c * 100 + d for c, d in RERUN_DRAWS]
     G_re = og.batched_G(f["grad_orf"], flat[rerun_idx], args.batch)
-    rerun_diff = float(np.max(np.abs(G_re - G[rerun_idx])))
+    rerun_abs = float(np.max(np.abs(G_re - G[rerun_idx])))
+    rerun_diff = rerun_abs / float(np.max(np.abs(G[rerun_idx])))  # relative, max-norm
 
     OUTPUTS.mkdir(parents=True, exist_ok=True)
     g_path = OUTPUTS / "G_v3probe_eps000.npz"
@@ -219,7 +220,8 @@ def full(args):
         "G_symmetry_max_abs": float(np.max(np.abs(G - np.swapaxes(G, 1, 2)))),
         "G_archive": {"path": str(g_path), "sha256": og.sha256(g_path)},
         "V1": v1_out,
-        "rerun": {"draws": RERUN_DRAWS, "max_abs_diff": rerun_diff,
+        "rerun": {"draws": RERUN_DRAWS, "max_abs_diff": rerun_abs,
+                  "max_rel_diff": rerun_diff,
                   "atol": RERUN_ATOL, "pass": rerun_diff <= RERUN_ATOL},
     }
     (RESULTS / "full.json").write_text(json.dumps(out, indent=2) + "\n")
