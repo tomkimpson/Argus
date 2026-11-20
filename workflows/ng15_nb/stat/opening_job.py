@@ -63,8 +63,11 @@ def setup():
     with np.load(SCRAMBLES["path"]) as a:
         if og.sha256(SCRAMBLES["path"]) != SCRAMBLES["sha256"]:
             raise SystemExit("scramble archive hash differs from scrambles_summary.json")
-        if not np.array_equal(a["true_orf"], np.asarray(kf.inp["orf"])):
-            raise SystemExit("scramble archive true_orf differs from the filter's ORF")
+        # Not bit-equal across nodes: numpy's arccos/log differ by ULPs between the
+        # login node (where the archive was built) and the GPU nodes' CPUs.
+        orf_diff = float(np.max(np.abs(a["true_orf"] - np.asarray(kf.inp["orf"]))))
+        if orf_diff > 1e-12:
+            raise SystemExit(f"archive true_orf differs from the filter's ORF by {orf_diff}")
         scr0 = np.asarray(a["orfs"][0])
     p, extras = og.load_draws()
     assert p.shape == (4, 100, 2 + 2 * kf.Npsr), p.shape
@@ -74,6 +77,7 @@ def setup():
         "git_sha": __import__("common").git_sha(),
         "draws": {k: extras[k] for k in ("path", "sha256")},
         "filter": kf.summary(),
+        "true_orf_vs_archive_max_abs": orf_diff,
     }
     return kf, og.make_fns(kf), p, extras, scr0, meta
 
