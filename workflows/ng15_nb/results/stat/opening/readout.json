@@ -56,7 +56,7 @@
     "hd_offdiag_mean": 0.04699430560595749,
     "scramble_offdiag_mean_mean": 7.362086254796091e-06,
     "pooled_G_offdiag_mean": 0.021310625066334837,
-    "hd_with_free_uniform_term": {
+    "hd_flat_offdiag_mean_removed": {
       "S": 17.639717465907804,
       "n_scrambles": 5000,
       "n_ge": 0,
@@ -72,7 +72,7 @@
         5.575938468062788
       ]
     },
-    "note": "scramble null tests HD vs no correlation; see without_uniform()"
+    "note": "diagnostic; scramble null tests HD vs no correlation (without_uniform)"
   },
   "chains": [
     {

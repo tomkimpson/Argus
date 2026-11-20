@@ -12,7 +12,8 @@ S at the mean G, and the null for that mean is the mean G scored on every scramb
 - p = (n + 1)/(N + 1) with n the scrambles scoring ≥ the observed value, binomial
   sd √(p(1 − p)/N); the floor at N = 5000 is 1/5001;
 - z = (S − null mean)/null sd, reported for K1's draft replacement (not the gate).
-Also the per-draw S band, and Spearman ρ of per-draw S against log10 σp of J1713+0747
+Also the per-draw S band, S scored with the flat off-diagonal mean removed from every
+template (`without_uniform`, a diagnostic for the uniform component), and Spearman ρ of per-draw S against log10 σp of J1713+0747
 and J0645+5158 (spec §10's B1 early warning).
 
 `significance(G_mean, hd, orfs)` is the scoring step; Phase 2 reuses it on the optima.
@@ -54,13 +55,15 @@ def significance(G_mean, hd, orfs):
 
 
 def without_uniform(orf):
-    """`orf` with its off-diagonal mean removed (diagonal kept at 1).
+    """`orf` with its off-diagonal mean removed (diagonal kept at 1). A diagnostic.
 
     NG15's pulsars cluster on the sky, so Γ_HD's off-diagonal mean is 0.047 while an
     isotropic scramble's is ≈ 0: the scramble null tests HD against no correlation and
-    cannot separate HD from a uniform (monopole-like) correlation. Scoring the mean-removed
-    templates is HD with a free uniform term, a conservative variant (it also discards HD's
-    own projection onto the uniform direction). Reported next to the headline, not gated.
+    cannot separate HD from a uniform (monopole-like) correlation. Scoring mean-removed
+    templates shows how much of S rides on the flat off-diagonal mean. It is not a
+    proper HD-vs-monopole test: a real monopole enters G Fisher-weighted (uneven pulsar
+    sensitivities), not as a flat offset, and the null still contains no monopole.
+    Reported next to the headline, not gated.
     """
     n = orf.shape[0]
     off = ~np.eye(n, dtype=bool)
@@ -90,7 +93,7 @@ def main():
     G = G4.reshape(-1, n_psr, n_psr)
     S_draw = og.score(G, [hd])[:, 0]
 
-    # task 1.5's verify clause: per-draw S for Γ_HD reproduces task 1.2's values exactly
+    # task 1.5's verify clause: per-draw S for Γ_HD reproduces task 1.2's values
     idx = [c * n_draw + d for c, d in full["V1"]["draws"]]
     v1 = np.array(full["V1"]["hd"]["contracted"])
     # Not bitwise: the BLAS reduction order differs with the matrix shape and the CPU
@@ -107,8 +110,8 @@ def main():
         "hd_offdiag_mean": float(hd[off].mean()),
         "scramble_offdiag_mean_mean": float(np.mean([o[off].mean() for o in orfs])),
         "pooled_G_offdiag_mean": float(G.mean(axis=0)[off].mean()),
-        "hd_with_free_uniform_term": pooled_no_uniform,
-        "note": "scramble null tests HD vs no correlation; see without_uniform()",
+        "hd_flat_offdiag_mean_removed": pooled_no_uniform,
+        "note": "diagnostic; scramble null tests HD vs no correlation (without_uniform)",
     }
     chains = [significance(G4[c].mean(axis=0), hd, orfs) for c in range(n_chain)]
     ps = np.array([c["p"] for c in chains])
