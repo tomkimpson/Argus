@@ -366,27 +366,30 @@ NG15 and how much it moves with the noise setting.
 `workflows/ng15_nb/data/scrambles/`
 **Done when:** a committed readout gives the pooled and per-chain p-values with binomial
 uncertainties, V1 and V2 pass, and K1 is evaluated in writing.
-**PR:** _not started_
+**PR:** #139 (merged 2026-11-20)
 
-- [ ] 1.1 `stat/orf_gradient.py`: G(θ) = ∂lnL/∂C at C = I through
+- [x] 1.1 `stat/orf_gradient.py`: G(θ) = ∂lnL/∂C at C = I through
       `array_loglike_sparse`, with wall time and peak memory logged → infra — verify by V2
       (lnL equal to `SparseArrayFilter.get_likelihood` to ≤ 1e-8 nats at 3 draws).
-- [ ] 1.2 Validate the contraction → infra — verify by V1 (per-draw relative error ≤ 1e-6
+- [x] 1.2 Validate the contraction → infra — verify by V1 (per-draw relative error ≤ 1e-6
       on ≥ 10 draws, for Γ_HD and one scramble, against a scalar derivative in ε).
-- [ ] 1.3 Generate ≥ 5000 scrambles for the 67 NG15 positions with match < 0.17, seeded
+- [x] 1.3 Generate ≥ 5000 scrambles for the 67 NG15 positions with match < 0.17, seeded
       → F1, F2 — verify by the summary JSON reporting count, maximum match and hash, and
       by regenerating the first 10 from the seed.
-- [ ] 1.4 Compute and save G for all 400 draws (SLURM, one A100) → F2 — verify by 400
+- [x] 1.4 Compute and save G for all 400 draws (SLURM, one A100) → F2 — verify by 400
       finite 67 × 67 arrays and a rerun of 5 draws matching to 1e-8. (G need not come out
       symmetric if the filter reads one triangle of the ORF; the contraction is still
       exact. Symmetrise only for F5.)
-- [ ] 1.5 Readout: S per draw; pooled-mean and per-chain-mean S against the scramble
+- [x] 1.5 Readout: S per draw; pooled-mean and per-chain-mean S against the scramble
       distribution; p-values; S against J1713+0747's and J0645+5158's σp draw by draw
       → F2 — verify by the per-draw S for Γ_HD reproducing task 1.2's values exactly.
-- [ ] 1.6 Compare the pooled-mean S with the Discovery OU-14 v3 ε = 0 integrand mean
+- [x] 1.6 Compare the pooled-mean S with the Discovery OU-14 v3 ε = 0 integrand mean
       → T1 — verify by V5, and by a written line fixing or replacing V5's tolerance.
-- [ ] 1.7 Evaluate K1 → §6 text — verify by a dated note in `results/stat/opening/` that
+- [x] 1.7 Evaluate K1 → §6 text — verify by a dated note in `results/stat/opening/` that
       quotes both trigger quantities and the verdict.
+      _(done: K1 does not fire — pooled p = 2.0e-4, the 5000-scramble floor, z = 6.96;
+      chain-p span 1.0; V1 1.4e-11/7.7e-11, V2 0.0 nats; V5 Δ = −0.14 draw sd;
+      `workflows/ng15_nb/results/stat/opening/K1_2026-11-20.md`)_
 
 ### Phase 2 — The best-fit noise point
 
