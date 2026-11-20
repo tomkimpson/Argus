@@ -62,12 +62,16 @@ def setup():
     kf = og.build_filter()
     with np.load(SCRAMBLES["path"]) as a:
         if og.sha256(SCRAMBLES["path"]) != SCRAMBLES["sha256"]:
-            raise SystemExit("scramble archive hash differs from scrambles_summary.json")
+            raise SystemExit(
+                "scramble archive hash differs from scrambles_summary.json"
+            )
         # Not bit-equal across nodes: numpy's arccos/log differ by ULPs between the
         # login node (where the archive was built) and the GPU nodes' CPUs.
         orf_diff = float(np.max(np.abs(a["true_orf"] - np.asarray(kf.inp["orf"]))))
         if orf_diff > 1e-12:
-            raise SystemExit(f"archive true_orf differs from the filter's ORF by {orf_diff}")
+            raise SystemExit(
+                f"archive true_orf differs from the filter's ORF by {orf_diff}"
+            )
         scr0 = np.asarray(a["orfs"][0])
     p, extras = og.load_draws()
     assert p.shape == (4, 100, 2 + 2 * kf.Npsr), p.shape
@@ -163,19 +167,28 @@ def full(args):
     for name, orf in (("hd", hd), ("scramble_0", scr0)):
         contracted = og.score(G[idx], [orf])[:, 0]
         t = time.perf_counter()
-        jvp = np.array([float(f["eps_jvp"](jnp.asarray(orf), jnp.asarray(flat[i]))) for i in idx])
+        jvp = np.array(
+            [float(f["eps_jvp"](jnp.asarray(orf), jnp.asarray(flat[i]))) for i in idx]
+        )
         wall_jvp = time.perf_counter() - t
         fd = np.array(
             [
                 (
                     float(f["eps_value"](jnp.asarray(orf), jnp.asarray(flat[i]), FD_H))
-                    - float(f["eps_value"](jnp.asarray(orf), jnp.asarray(flat[i]), -FD_H))
+                    - float(
+                        f["eps_value"](jnp.asarray(orf), jnp.asarray(flat[i]), -FD_H)
+                    )
                 )
                 / (2 * FD_H)
                 for i in idx
             ]
         )
-        v1[name] = {"contracted": contracted, "jvp": jvp, "fd": fd, "wall_jvp_s": wall_jvp}
+        v1[name] = {
+            "contracted": contracted,
+            "jvp": jvp,
+            "fd": fd,
+            "wall_jvp_s": wall_jvp,
+        }
     # Denominator fixed before looking: max(|direct|, median |S_HD| over these draws).
     scale = float(np.median(np.abs(v1["hd"]["jvp"])))
     v1_out = {"rtol": V1_RTOL, "fd_h": FD_H, "scale": scale, "draws": V1_DRAWS}
@@ -220,13 +233,29 @@ def full(args):
         "G_symmetry_max_abs": float(np.max(np.abs(G - np.swapaxes(G, 1, 2)))),
         "G_archive": {"path": str(g_path), "sha256": og.sha256(g_path)},
         "V1": v1_out,
-        "rerun": {"draws": RERUN_DRAWS, "max_abs_diff": rerun_abs,
-                  "max_rel_diff": rerun_diff,
-                  "atol": RERUN_ATOL, "pass": rerun_diff <= RERUN_ATOL},
+        "rerun": {
+            "draws": RERUN_DRAWS,
+            "max_abs_diff": rerun_abs,
+            "max_rel_diff": rerun_diff,
+            "atol": RERUN_ATOL,
+            "pass": rerun_diff <= RERUN_ATOL,
+        },
     }
     (RESULTS / "full.json").write_text(json.dumps(out, indent=2) + "\n")
-    print(json.dumps({k: out[k] for k in ("wall_G_s", "all_finite", "rerun")}, indent=2))
-    print(json.dumps({n: {k: v1_out[n][k] for k in ("max_rel_vs_jvp", "max_rel_vs_fd", "pass")} for n in v1}, indent=2))
+    print(
+        json.dumps({k: out[k] for k in ("wall_G_s", "all_finite", "rerun")}, indent=2)
+    )
+    print(
+        json.dumps(
+            {
+                n: {
+                    k: v1_out[n][k] for k in ("max_rel_vs_jvp", "max_rel_vs_fd", "pass")
+                }
+                for n in v1
+            },
+            indent=2,
+        )
+    )
     if not (finite and v1_out["pass"] and out["rerun"]["pass"]):
         raise SystemExit("STOP: a gate failed (finite, V1 or the rerun)")
 

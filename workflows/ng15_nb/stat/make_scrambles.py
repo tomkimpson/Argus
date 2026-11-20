@@ -27,7 +27,9 @@ sys.path.insert(0, str(HERE))
 import orf_gradient as og  # noqa: E402
 
 THRESHOLD = 0.17
-DATA = og.DEFAULT_INGEST.parent / "scrambles"  # beside the ingest caches (main checkout)
+DATA = (
+    og.DEFAULT_INGEST.parent / "scrambles"
+)  # beside the ingest caches (main checkout)
 SUMMARY = og.WF / "results/stat/opening/scrambles_summary.json"
 
 

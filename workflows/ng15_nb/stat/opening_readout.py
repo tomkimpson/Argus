@@ -122,7 +122,10 @@ def main():
             "q05_q50_q95": [float(q) for q in np.quantile(S_draw, [0.05, 0.5, 0.95])],
             "min": float(S_draw.min()),
             "max": float(S_draw.max()),
-            "chain_means": [float(S_draw[c * n_draw:(c + 1) * n_draw].mean()) for c in range(n_chain)],
+            "chain_means": [
+                float(S_draw[c * n_draw : (c + 1) * n_draw].mean())
+                for c in range(n_chain)
+            ],
         },
         "pooled": pooled,
         "chains": chains,
@@ -130,9 +133,26 @@ def main():
         "K1": k1,
     }
     (RESULTS / "readout.json").write_text(json.dumps(out, indent=2) + "\n")
-    np.savez_compressed(RESULTS / "per_draw_S_hd.npz", S=S_draw.reshape(n_chain, n_draw))
+    np.savez_compressed(
+        RESULTS / "per_draw_S_hd.npz", S=S_draw.reshape(n_chain, n_draw)
+    )
     plot(S_draw, pooled, chains, G, orfs)
-    print(json.dumps({k: out[k] for k in ("per_draw_S_hd_reproduces_V1", "per_draw_S_hd_vs_V1_max_rel", "per_draw_S_hd", "pooled", "K1", "S_vs_log10_sigma_p")}, indent=2))
+    print(
+        json.dumps(
+            {
+                k: out[k]
+                for k in (
+                    "per_draw_S_hd_reproduces_V1",
+                    "per_draw_S_hd_vs_V1_max_rel",
+                    "per_draw_S_hd",
+                    "pooled",
+                    "K1",
+                    "S_vs_log10_sigma_p",
+                )
+            },
+            indent=2,
+        )
+    )
     if not reproduces:
         raise SystemExit("STOP: per-draw S does not reproduce V1's contracted values")
 
@@ -150,9 +170,16 @@ def plot(S_draw, pooled, chains, G, orfs):
     lo, hi = np.quantile(S_draw, [0.05, 0.95])
     ax.axvspan(lo, hi, color="C0", alpha=0.15, label="per-draw S, 5–95 %")
     for c, r in enumerate(chains):
-        ax.axvline(r["S"], color="C0", lw=0.8, ls="--", label="chain means" if c == 0 else None)
-    ax.axvline(pooled["S"], color="C3", lw=1.5, label=f"pooled S, p {'≤' if pooled['n_ge'] == 0 else '='} {pooled['p']:.1e}"
-               + (" (floor)" if pooled["n_ge"] == 0 else ""))
+        ax.axvline(
+            r["S"], color="C0", lw=0.8, ls="--", label="chain means" if c == 0 else None
+        )
+    ax.axvline(
+        pooled["S"],
+        color="C3",
+        lw=1.5,
+        label=f"pooled S, p {'≤' if pooled['n_ge'] == 0 else '='} {pooled['p']:.1e}"
+        + (" (floor)" if pooled["n_ge"] == 0 else ""),
+    )
     ax.set_xlabel(r"$S(\theta;\Gamma)=\partial\ln L/\partial\epsilon$ at $\epsilon=0$")
     ax.set_ylabel("scrambles")
     ax.legend(fontsize=7, frameon=False)
