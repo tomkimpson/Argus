@@ -1,7 +1,7 @@
 # Spec: A one-pass state-space detection statistic for the SGWB on NANOGrav 15-yr data
 
 **Status:** draft
-**Created:** 2026-11-19  ·  **Last amended:** 2026-11-20 (Phase 0's Touches and task 0.3's path made consistent)
+**Created:** 2026-11-19  ·  **Last amended:** 2026-11-26 (K1/K2 stability gate moved to z units; compute total confirmed)
 **Parent spec:** [`spec/spec.md`](spec.md). This spec replaces the parent's Phases 5–7 and
 its headline claim (§1, K0(b)). The parent's Phases 0–4, its data, compression and reference
 sections (§3 A1–A5, C1–C4; §4 D1–D3, D5; §5 inputs and environments) and its non-goals (§7)
@@ -224,7 +224,7 @@ model, independently of any Fourier-basis pipeline.
 | ID | Shows | Caption claim it must support | Where | Produced in |
 |----|-------|-------------------------------|-------|-------------|
 | F1 | Scramble-null histogram of S at θ̂, observed value marked | The true sky geometry beats all but a fraction p ≤ 5 × 10⁻³ of ≥ 5000 scrambles | main §4 | Phase 3 |
-| F2 | S and p at each optimum and across the 400 Argus draws | The detection does not depend on the noise point: across the plausible optima and the four chain means the statistic stays within K1/K2's stability bound (factor of 10 in p as approved; span of 1 in null-σ units proposed), with the per-draw spread shown as a band | main §4 | Phases 1, 2 |
+| F2 | S and p at each optimum and across the 400 Argus draws | The detection does not depend on the noise point: across the plausible optima and the four chain means the statistic stays within K1/K2's stability bound (a span of at most 1 in z = (S − null mean)/null sd), with the per-draw spread shown as a band | main §4 | Phases 1, 2 |
 | F3 | Scramble p-values on simulated data, without and with HD correlations | With no correlations the p-values are uniform (false-alarm rate 2–9 % at nominal 5 %); with HD at the fitted amplitude the median p is ≤ 0.05 | main §3 | Phase 3 |
 | F4 | S at θ̂ recomputed on the data truncated to increasing time spans | The statistic grows with the data span as a real background should | main §4 | Phase 5 |
 | T1 | p (Argus at θ̂, with range), NANOGrav's optimal-statistic and Bayes-factor p; common amplitude from Argus (profile), Discovery-OU and published; Discovery-OU and published lnB as reference rows | Argus's amplitude interval overlaps the published one, and its significance is of the same order as NANOGrav's scramble p = 1.6 × 10⁻³ | main §5 | Phases 3, 4 |
@@ -268,22 +268,16 @@ Plus:
 - **K1 (Phase 1, the opening test).** On the 400 existing draws, with ≥ 5000 scrambles:
   stop and return to the user if **either**
   - the pooled-mean statistic has scramble p > 0.05, **or**
-  - the four chains' individual p-values span more than a factor of 10.
-  (User decision, 2026-11-19. Passing shows the route can carry the claim, not that the
-  claim holds. If every chain's p is at the resolution floor, the span is 1 and passes.)
-  > ⚠️ DRAFT — revise: the factor-of-10 test is in awkward units. Near z ≈ 3 a factor of 10
-  > in p is only about 0.7 null standard deviations, and near the 2 × 10⁻⁴ floor it is the
-  > difference between 0 and 9 exceedances in 5000, i.e. counting noise. So it is most
-  > likely to fire when the detection is strongest. Proposed replacement, for the user to
-  > approve: express each chain's (and, in K2, each optimum's) statistic as
-  > z = (S − null mean)/null sd, and trigger when the z values span more than 1. The
-  > per-draw spread of S is reported as a band and never gated: single draws scatter far
-  > more than chain means (Discovery's draw sd is 4.1). Until approved, the factor-of-10
-  > wording stands and both quantities are reported.
+  - the four chains' statistics span more than 1 in z = (S − null mean)/null sd.
+  (User decisions, 2026-11-19 and 2026-11-26. Passing shows the route can carry the claim,
+  not that the claim holds. The p-span is still reported beside the z-span but does not gate:
+  near the 2 × 10⁻⁴ floor it is counting noise. The per-draw spread of S is reported as a
+  band and never gated. _(amended 2026-11-26: was a factor of 10 in p)_)
 - **K2 (Phase 2). The fixed noise point is ill-defined.** Fewer than 8 of 32 starts
-  converge, or p across the optima within ΔlnL ≤ 3 of the best spans more than a factor of
-  10. Pivot, with the user, to the draw-averaged statistic (D2's alternative) and say in the
-  paper that it is not a posterior average.
+  converge, or the statistic across the optima within ΔlnL ≤ 3 of the best spans more than 1
+  in z (p-span reported, not gated; amended 2026-11-26). Pivot, with the user, to the
+  draw-averaged statistic (D2's alternative) and say in the paper that it is not a posterior
+  average.
 - **K3 (Phase 3). The null is not calibrated.** V3 fails. The scramble p then means
   nothing at fixed noise. Stop; the fallback is a null built from simulations at θ̂, which
   the user must approve because it makes the significance model-dependent.
@@ -508,6 +502,16 @@ points are in the §6 draft flag.
 To be specified when reached. The introduction and abstract come last.
 
 ## 12. Amendment log
+
+### 2026-11-26 — K1/K2 stability gate in z units; compute total confirmed
+
+**Trigger:** starting Phases 2 and S. Phase 1 put every chain's p at the 5000-scramble floor
+(z = 6.96), where a factor-of-10 p-span is counting noise, so K2 would test nothing.
+**Change:** K1 and K2 now fire when the statistic spans more than 1 in
+z = (S − null mean)/null sd across chains (K1) or plausible optima (K2); the p-span is
+reported but does not gate. F2's caption names the z bound. The user confirmed the §5 compute
+total of ≈ 230 A100-h. K1's Phase 1 verdict is unchanged under the new rule (chain z-span 0.30, `results/stat/opening/K1_2026-11-20.md`).
+**Sections touched:** §6 (F2), §8 (K1, K2), §12
 
 ### 2026-11-20 — Phase 0's Touches and task 0.3's path made consistent
 
